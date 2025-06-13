@@ -83,8 +83,10 @@ const CreateTransactionPage = () => {
       } else {
         console.log("Failure!");
       }
-    } catch (error) {
-      alert(error.code);
+    } catch (errors) {
+      const { error } = errors;
+      console.log(error);
+      if (error.code === -32003) alert(error.message);
     }
   };
 
@@ -139,8 +141,10 @@ const CreateTransactionPage = () => {
       } else {
         console.log("Failure!");
       }
-    } catch (error) {
-      alert(error.code);
+    } catch (errors) {
+      const { error } = errors;
+      console.log(error);
+      alert(error.message);
     }
   };
 
@@ -171,7 +175,7 @@ const CreateTransactionPage = () => {
         </div>
       )}
       <div className="bordered-div">
-        <h2>Transfer ETH/BNB/MATIC</h2>
+        <h2>Transfer Native Coin</h2>
         <div className="container">
           <div>
             <label className="label-6">To:</label>

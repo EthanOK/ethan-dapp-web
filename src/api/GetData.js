@@ -1,5 +1,5 @@
 import { ethers, utils } from "ethers";
-import { React_Serve_Back, main_rpc } from "../utils/SystemConfiguration.js";
+import { React_Serve_Back, main_rpc } from "../common/SystemConfiguration.js";
 import { login } from "../utils/ServeBack.js";
 let url = React_Serve_Back;
 

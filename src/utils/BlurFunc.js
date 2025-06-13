@@ -1,7 +1,7 @@
 const { getBlurCalldata } = require("./GetBlurCallData");
 const { getSignerAndChainId } = require("./GetProvider");
 const { addSuffixOfTxData } = require("./HandleTxData");
-const { suffixOfYunGou } = require("./SystemConfiguration");
+const { suffixOfYunGou } = require("../common/SystemConfiguration");
 const { getScanURL } = require("./Utils");
 
 const onlyBuyBlurNFT = async (

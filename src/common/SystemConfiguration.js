@@ -54,37 +54,9 @@ const nftMint_goerli = "0x71eE06999F6D5f66AcA3c12e45656362fD9D031f";
 
 const batchTransferToken_sepolia = "0x6e7f9fCcAdFD34689A9542534c25475B5FFB7282";
 
-const faucet_goerli = "0xC1f60B81c6dAb5BE517a53983708488F9978D0Eb";
-
-const faucet_tbsc = "0x1ef1b1405dCda2375Fc8430DE5560016F0D8DBe0";
-
-const faucet_sepolia = "0xaD1dA61611ca6764c8C87806Bb39C66AF212F560";
-
-const yulp_tbsc = "0x21DEf0EeF658237579f40603164Eb86c3453ad97";
-
-const yulp_goerli = "0x333FA70Aaf2a9B4979EB59bcfF2B2f846DBD8DE3";
-
-const ygio_goerli = "0xd042eF5cF97c902bF8F53244F4a81ec4f8E465Ab";
-
-const ygio_tbsc = "0x0Fa4640F99f876D78Fc964AFE0DD6649e7C23c4f";
-
-const ygio_sepolia = "0x5Bb9dE881543594D17a7Df91D62459024c4EEf02";
-
-const ygme_goerli = "0x28D1bC817DE02C9f105A6986eF85cB04863C3042";
-
-const ygme_sepolia = "0x709B78B36b7208f668A3823c1d1992C0805E4f4d";
-
 const crossChain_goerli = "0x2817c37eB23FC4F94f1168A94f26befa1F42FF7d";
 
 const crossChain_tbsc = "0x6AAf3B8a8E42BeDc226e2d1F166Dfdc22d4b5182";
-
-const ygme_tbsc = "0xDb6c494BE6Aae80cc042f9CDA24Ce573aD163A46";
-
-const usdt_goerli = "0x965A558b312E288F5A77F851F7685344e1e73EdF";
-
-const usdt_sepolia = "0x590dcA422b660071F978E5A69851A18529B45415";
-
-const usdt_tbsc = "0xa52770d379e6276e8f798143032442b29D47b567";
 
 const PancakeRouter = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
 
@@ -134,27 +106,13 @@ export {
   YunGouAggregators_goerli,
   YunGouAggregators_tbsc,
   YunGouAggregators_sepolia,
-  faucet_goerli,
-  faucet_sepolia,
-  ygio_goerli,
-  ygme_goerli,
   crossChain_goerli,
   crossChain_tbsc,
-  faucet_tbsc,
-  ygio_tbsc,
-  usdt_goerli,
-  usdt_sepolia,
-  usdt_tbsc,
-  yulp_tbsc,
-  yulp_goerli,
   EXPIRES_TIME,
   SECRETKEY,
-  ygme_tbsc,
   ZERO_ADDRESS,
   LOGIN_SOLANA_MESSAGE,
   SOLANA_DEV_RPC,
-  ygme_sepolia,
-  ygio_sepolia,
   batchTransferToken_sepolia,
   ALCHEMY_KEY_V3
 };

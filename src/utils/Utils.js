@@ -15,7 +15,7 @@ import {
   ALCHEMY_KEY_V3,
   YunGou2_0_sepolia,
   YunGouAggregators_sepolia
-} from "./SystemConfiguration";
+} from "../common/SystemConfiguration";
 import { order_data, order_data_tbsc } from "../testdata/orderdata_yungou";
 import { BigNumber, ethers, providers, utils } from "ethers";
 import { Decimal } from "decimal.js";

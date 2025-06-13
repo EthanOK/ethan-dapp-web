@@ -36,7 +36,8 @@ import {
   YUNGOU_END,
   DefaultChainId,
   chainName_S
-} from "../utils/SystemConfiguration.js";
+} from "../common/SystemConfiguration.js";
+import { SupportChains } from "../common/ChainsConfig.js";
 
 const HomePage = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
@@ -653,7 +654,7 @@ const HomePage = () => {
           <h1>Login successful!</h1>
         </div>
       )}
-      <h1>YunGou Aggregator DApp Test</h1>
+      <h1>Welcome To Ethan DApp</h1>
 
       <div>
         <div>
@@ -669,29 +670,16 @@ const HomePage = () => {
             onChange={handleSelectChange}
             style={{ width: "100px", height: "30px", fontSize: "12px" }}
           >
-            <option value="1" style={{ textAlign: "center" }}>
-              Ethereum
-            </option>
-            <option value="5" style={{ textAlign: "center" }}>
-              Goerli
-            </option>
-            <option value="11155111" style={{ textAlign: "center" }}>
-              Sepolia
-            </option>
-            <option value="56" style={{ textAlign: "center" }}>
-              BSC
-            </option>
-            <option value="97" style={{ textAlign: "center" }}>
-              TBSC
-            </option>
-            <option value="8453" style={{ textAlign: "center" }}>
-              Base
-            </option>
-            <option value="196" style={{ textAlign: "center" }}>
-              X Layer
-            </option>
+            {SupportChains.map((chain) => (
+              <option
+                key={chain.id}
+                value={chain.id}
+                style={{ textAlign: "center" }}
+              >
+                {chain.name}
+              </option>
+            ))}
           </select>
-          {/* <p>Network ChainId: {selectedOption}</p> */}
         </div>
 
         <div>

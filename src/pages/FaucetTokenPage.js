@@ -4,39 +4,33 @@ import {
   getERC20Contract,
   getERC721Contract
 } from "../utils/GetContract.js";
-import {
-  faucet_goerli,
-  ygio_goerli,
-  ygio_tbsc,
-  usdt_goerli,
-  usdt_tbsc,
-  yulp_tbsc,
-  yulp_goerli,
-  ygme_goerli,
-  ygme_tbsc,
-  ZERO_ADDRESS,
-  faucet_sepolia,
-  usdt_sepolia,
-  ygme_sepolia,
-  ygio_sepolia
-} from "../utils/SystemConfiguration.js";
+import { ZERO_ADDRESS } from "../common/SystemConfiguration.js";
 import { getDecimal, getDecimalBigNumber } from "../utils/Utils.js";
 import { ethers } from "ethers";
 import { addSuffixOfTxData } from "../utils/HandleTxData.js";
 import { switchChain } from "../utils/GetProvider.js";
 import { login } from "../utils/ConnectWallet.js";
+import { faucetConfig, getFaucetTokenAddress } from "../common/ChainsConfig.js";
 const FaucetTokenPage = () => {
   //   const [tableData, setTableData] = useState([]);
 
   const [isMounted, setIsMounted] = useState(false);
   const [myYgmeBalance, setMyYgmeBalance] = useState(0);
-  const [myYgioBalance, setMyYgioBalance] = useState(0);
-  const [myUSDTBalance, setMyUSDTBalance] = useState(0);
-  const [myYULPBalance, setMyYULPBalance] = useState(0);
   const [currentAccount, setCurrentAccount] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
 
-  const faucetAmount = "10000";
+  const [selectedToken, setSelectedToken] = useState(
+    localStorage.getItem("faucetTokenName") || "YGIO"
+  );
+  const [tokenBalance, setTokenBalance] = useState(0);
+
+  const tokenOptions = [
+    { label: "YGIO", faucetAmount: 1000 },
+    { label: "USDT", faucetAmount: 1000 },
+    { label: "WstETH", faucetAmount: 5 }
+  ];
+
+  const currentToken = tokenOptions.find((t) => t.label === selectedToken);
 
   useEffect(() => {
     setIsMounted(true);
@@ -46,6 +40,12 @@ const FaucetTokenPage = () => {
       setIsMounted(false);
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedToken) {
+      fetchBalance();
+    }
+  }, [selectedToken]);
 
   useEffect(() => {
     if (isMounted) {
@@ -60,6 +60,8 @@ const FaucetTokenPage = () => {
           let account = accounts[0];
 
           localStorage.setItem("userAddress", account);
+
+          console.log("selectedToken", selectedToken);
         });
       }
     }
@@ -70,43 +72,46 @@ const FaucetTokenPage = () => {
       let account = localStorage.getItem("userAddress");
       setCurrentAccount(account);
       await updateBalance();
+      setSelectedToken(selectedToken);
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const handleSelectChange = (event) => {
+    const tokenName = event.target.value;
+    setSelectedToken(tokenName);
+
+    localStorage.setItem("faucetTokenName", tokenName);
+  };
+
+  const fetchBalance = async () => {
+    try {
+      const result = await getTokenBalance(selectedToken);
+      setTokenBalance(result);
+    } catch (err) {
+      console.error("Failed to fetch balance", err);
+      setTokenBalance(0);
+    }
+  };
+
+  const getTokenBalance = async (tokenName) => {
+    let account = localStorage.getItem("userAddress");
+    let chainId = localStorage.getItem("chainId");
+    let ygioAddress = getFaucetTokenAddress(chainId, tokenName);
+    let contract = await getERC20Contract(ygioAddress);
+    let ygioBalance = await contract.balanceOf(account);
+    let decimals = await contract.decimals();
+    let balanceStandard = getDecimal(ygioBalance, decimals);
+    return balanceStandard;
   };
 
   const updateBalance = async () => {
     try {
       let account = localStorage.getItem("userAddress");
       let chainId = localStorage.getItem("chainId");
-      let ygioAddress;
-      let ygmeAddress;
-      let usdtAddress;
-      let yulpAddress;
-      if (chainId == 5) {
-        ygioAddress = ygio_goerli;
-        usdtAddress = usdt_goerli;
-        yulpAddress = yulp_goerli;
-        ygmeAddress = ygme_goerli;
-      } else if (chainId == 97) {
-        ygioAddress = ygio_tbsc;
-        usdtAddress = usdt_tbsc;
-        yulpAddress = yulp_tbsc;
-        ygmeAddress = ygme_tbsc;
-      } else if (chainId == 11155111) {
-        usdtAddress = usdt_sepolia;
-        ygmeAddress = ygme_sepolia;
-        ygioAddress = ygio_sepolia;
-      }
-      if (ygioAddress) {
-        let contract = await getERC20Contract(ygioAddress);
-        // let ygioBalance = await contract.balanceOf(account, { blockTag: 9926596 });
-        let ygioBalance = await contract.balanceOf(account);
-        let decimals = await contract.decimals();
-        let balanceStandard = getDecimal(ygioBalance, decimals);
+      let ygmeAddress = faucetConfig[chainId].ygme;
 
-        setMyYgioBalance(balanceStandard);
-      }
       if (ygmeAddress) {
         let ygmecontract = await getERC721Contract(ygmeAddress);
 
@@ -114,41 +119,17 @@ const FaucetTokenPage = () => {
 
         setMyYgmeBalance(ygmeBalance.toString());
       }
-
-      if (usdtAddress) {
-        let usdtcontract = await getERC20Contract(usdtAddress);
-        let usdtBalance = await usdtcontract.balanceOf(account);
-        let usdtdecimals = await usdtcontract.decimals();
-        let usdtbalanceStandard = getDecimal(usdtBalance, usdtdecimals);
-        setMyUSDTBalance(usdtbalanceStandard);
-      }
-
-      if (yulpAddress) {
-        let yulpcontract = await getERC20Contract(yulpAddress);
-        let yulpBalance = await yulpcontract.balanceOf(account);
-        let yulpdecimals = await yulpcontract.decimals();
-        let yulpbalanceStandard = getDecimal(yulpBalance, yulpdecimals);
-
-        setMyYULPBalance(yulpbalanceStandard);
-      }
     } catch (error) {
       console.log(error);
     }
   };
-  const faucetYGIOHandler = async () => {
+  const faucetYGIOHandler = async (faucetAmount) => {
     let account = localStorage.getItem("userAddress");
     let chainId = localStorage.getItem("chainId");
-    let accountFrom;
-    let ygioAddress;
-    if (chainId == 5) {
+    let accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
+    let ygioAddress = faucetConfig[Number(chainId)].ygio;
+    if (chainId === 5) {
       accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
-      ygioAddress = ygio_goerli;
-    } else if (chainId == 97) {
-      accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-      ygioAddress = ygio_tbsc;
-    } else if (chainId == 11155111) {
-      accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-      ygioAddress = ygio_sepolia;
     }
     try {
       let faucetContract = await getFaucetContract();
@@ -182,17 +163,51 @@ const FaucetTokenPage = () => {
     } catch (error) {}
   };
 
-  const faucetYGMEHandler = async () => {
+  const faucetTokenHandler = async (tokenName, faucetAmount) => {
     let account = localStorage.getItem("userAddress");
     let chainId = localStorage.getItem("chainId");
-    let ygmeAddress;
-    if (chainId == 5) {
-      ygmeAddress = ygme_goerli;
-    } else if (chainId == 97) {
-      ygmeAddress = ygme_tbsc;
-    } else if (chainId == 11155111) {
-      ygmeAddress = ygme_sepolia;
+    let accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
+    let ygioAddress = getFaucetTokenAddress(chainId, tokenName);
+    if (chainId === 5) {
+      accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
     }
+    try {
+      let faucetContract = await getFaucetContract();
+      console.log(
+        ygioAddress,
+        accountFrom,
+        account,
+        getDecimalBigNumber(faucetAmount, 18)
+      );
+
+      console.log(getDecimalBigNumber(faucetAmount, 18).toString());
+
+      let tx = await faucetContract.faucet(
+        ygioAddress,
+        accountFrom,
+        account,
+        getDecimalBigNumber(faucetAmount, 18)
+      );
+
+      let result = await tx.wait();
+      if (result.status === 1) {
+        console.log("Success!");
+        setShowAlert(true);
+        setTimeout(() => {
+          setShowAlert(false);
+        }, 3000);
+        await updateBalance();
+      } else {
+        console.log("Failure!");
+      }
+    } catch (error) {}
+  };
+
+  const faucetYGMEHandler = async (faucetAmount) => {
+    let account = localStorage.getItem("userAddress");
+    let chainId = localStorage.getItem("chainId");
+    let ygmeAddress = faucetConfig[chainId].ygme;
+
     try {
       let faucetContract = await getFaucetContract();
 
@@ -221,23 +236,18 @@ const FaucetTokenPage = () => {
     }
   };
 
-  const faucetUSDTHandler = async () => {
+  const faucetUSDTHandler = async (faucetAmount) => {
     let account = localStorage.getItem("userAddress");
     let chainId = localStorage.getItem("chainId");
-    let accountFrom;
-    let usdtAddress;
+    let accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
+    let usdtAddress = faucetConfig[Number(chainId)].usdt;
     let amount;
     if (chainId == 5) {
       accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
-      usdtAddress = usdt_goerli;
       amount = getDecimalBigNumber(faucetAmount, 6);
     } else if (chainId == 97) {
-      accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-      usdtAddress = usdt_tbsc;
       amount = getDecimalBigNumber(faucetAmount, 18);
     } else if (chainId == 11155111) {
-      accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-      usdtAddress = usdt_sepolia;
       amount = getDecimalBigNumber(faucetAmount, 6);
     }
     try {
@@ -264,19 +274,17 @@ const FaucetTokenPage = () => {
     } catch (error) {}
   };
 
-  const faucetYULPHandler = async () => {
+  const faucetYULPHandler = async (faucetAmount) => {
     let account = localStorage.getItem("userAddress");
     let chainId = localStorage.getItem("chainId");
     let accountFrom;
-    let lpAddress;
+    let lpAddress = faucetConfig[chainId].yulp;
     let amount;
     if (chainId == 5) {
       accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
-      lpAddress = usdt_goerli;
       amount = getDecimalBigNumber(faucetAmount, 6);
     } else if (chainId == 97) {
       accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-      lpAddress = yulp_tbsc;
       amount = getDecimalBigNumber(faucetAmount, 18);
     }
     try {
@@ -303,44 +311,40 @@ const FaucetTokenPage = () => {
     } catch (error) {}
   };
 
-  const faucetButton = (coinType) => {
-    if (coinType == "YGIO") {
-      return (
-        <button
-          onClick={faucetYGIOHandler}
-          className="cta-button mint-nft-button"
-        >
-          Faucet {faucetAmount} YGIO
-        </button>
-      );
-    } else if (coinType == "USDT") {
-      return (
-        <button
-          onClick={faucetUSDTHandler}
-          className="cta-button mint-nft-button"
-        >
-          Faucet {faucetAmount} USDT
-        </button>
-      );
-    } else if (coinType == "LP-YG") {
-      return (
-        <button
-          onClick={faucetYULPHandler}
-          className="cta-button mint-nft-button"
-        >
-          Faucet {faucetAmount} LP
-        </button>
-      );
-    } else if (coinType == "YGME") {
-      return (
-        <button
-          onClick={faucetYGMEHandler}
-          className="cta-button mint-nft-button"
-        >
-          Faucet 10 YGME
-        </button>
-      );
-    }
+  const faucetButton = (coinType, faucetAmount = 5) => {
+    faucetAmount = String(faucetAmount);
+    const handlers = {
+      YGME: {
+        handler: () => faucetYGMEHandler(faucetAmount),
+        label: "YGME",
+        amount: faucetAmount
+      },
+      YGIO: {
+        handler: () => faucetYGIOHandler(faucetAmount),
+        label: "YGIO",
+        amount: faucetAmount
+      },
+      USDT: {
+        handler: () => faucetUSDTHandler(faucetAmount),
+        label: "USDT",
+        amount: faucetAmount
+      },
+      WstETH: {
+        handler: () => faucetTokenHandler(coinType, faucetAmount),
+        label: "WstETH",
+        amount: faucetAmount
+      }
+    };
+
+    const config = handlers[coinType];
+
+    if (!config) return null;
+
+    return (
+      <button onClick={config.handler} className="cta-button mint-nft-button">
+        Faucet {config.amount} {config.label}
+      </button>
+    );
   };
 
   const checkWalletIsConnected = async () => {
@@ -413,7 +417,7 @@ const FaucetTokenPage = () => {
           <h1>Claim Successful!</h1>
         </div>
       )}{" "}
-      <h1>Please Switch To Goerli OR Sepolia OR TBSC</h1>
+      <h1>Please Switch To Sepolia</h1>
       <div className="bordered-div">
         <h2>Faucet YGME</h2>
         <h3>My YGME Balance: {myYgmeBalance}</h3>
@@ -421,21 +425,34 @@ const FaucetTokenPage = () => {
       </div>
       <p></p>
       <div className="bordered-div">
-        <h2>Faucet YGIO</h2>
-        <h3>My YGIO Balance: {myYgioBalance}</h3>
-        {currentAccount ? faucetButton("YGIO") : PleaseLogin()}
-      </div>
-      <p></p>
-      <div className="bordered-div">
-        <h2>Faucet USDT</h2>
-        <h3>My USDT Balance: {myUSDTBalance}</h3>
-        {currentAccount ? faucetButton("USDT") : PleaseLogin()}
-      </div>
-      <p></p>
-      <div className="bordered-div">
-        <h2>Faucet YGIO-USDT LP</h2>
-        <h3>My LP Balance: {myYULPBalance}</h3>
-        {currentAccount ? faucetButton("LP-YG") : PleaseLogin()}
+        <h2>Faucet Token</h2>
+
+        <select
+          value={selectedToken}
+          onChange={handleSelectChange}
+          style={{
+            width: "120px",
+            height: "30px",
+            fontSize: "14px",
+            fontWeight: "bold",
+            textAlign: "center", // 选项居中
+            textAlignLast: "center" // select 默认选中项居中（兼容性需注意）
+          }}
+        >
+          {tokenOptions.map((token) => (
+            <option key={token.label} value={token.label}>
+              {token.label}
+            </option>
+          ))}
+        </select>
+
+        <h3>
+          My {selectedToken} Balance: {tokenBalance}
+        </h3>
+
+        {currentAccount
+          ? faucetButton(selectedToken, currentToken.faucetAmount)
+          : PleaseLogin()}
       </div>
     </center>
   );

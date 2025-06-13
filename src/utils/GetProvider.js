@@ -5,21 +5,47 @@ import {
   main_rpc,
   goerli_rpc,
   projectId_walletconnect
-} from "./SystemConfiguration";
+} from "../common/SystemConfiguration";
+import { SupportChains } from "../common/ChainsConfig";
 
-const switchChain = async (chainId) => {
+export const switchChain = async (chainId) => {
+  const chain = SupportChains.find((c) => c.id === chainId);
+  if (!chain) {
+    alert("Unsupported chain");
+    return false;
+  }
+
   try {
-    let number = parseInt(chainId);
-    let chainIdHEX = "0x" + number.toString(16);
     await window.ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: chainIdHEX }]
+      params: [{ chainId: chain.chainId }]
     });
-
     return true;
   } catch (error) {
-    console.log(error);
-    if (error.code === 4001 || error.code === -32002) {
+    if (error.code === 4902) {
+      // 未添加，尝试添加
+      try {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: chain.chainId,
+              chainName: chain.chainName,
+              rpcUrls: chain.rpcUrls,
+              nativeCurrency: chain.nativeCurrency,
+              blockExplorerUrls: chain.blockExplorerUrls
+            }
+          ]
+        });
+        return true;
+      } catch (error) {
+        if (error.code === 4001 || error.code === -32002) {
+          alert(error.message);
+          return false;
+        }
+        return true;
+      }
+    } else if (error.code === 4001 || error.code === -32002) {
       alert(error.message);
     }
     return false;
@@ -204,6 +230,5 @@ export {
   getSignerAndChainId,
   getChainIdAndBalanceETHAndTransactionCount,
   getSignerAndAccountAndChainId,
-  switchChain,
   getAccount
 };

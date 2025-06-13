@@ -10,7 +10,7 @@ import {
   YunGou2_0_goerli,
   YunGou2_0_tbsc,
   PRIVATEKEY_VERIFYER
-} from "./SystemConfiguration";
+} from "../common/SystemConfiguration";
 import {
   getSignerAndChainId,
   getSignerAndAccountAndChainId
@@ -67,10 +67,10 @@ const signEIP712Message = async (signer, chainId) => {
     return params;
   } catch (error) {
     console.log(error);
-    if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
-    }
-    if (error.code == -32000) {
+    // if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
+    //   alert("User Rejected Transaction");
+    // }
+    if (error.code === 4001 || error.code === -32000) {
       alert(error.message);
     }
     return null;

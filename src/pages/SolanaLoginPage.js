@@ -12,7 +12,7 @@ import {
   Transaction,
   clusterApiUrl
 } from "@solana/web3.js";
-import { LOGIN_SOLANA_MESSAGE } from "../utils/SystemConfiguration";
+import { LOGIN_SOLANA_MESSAGE } from "../common/SystemConfiguration";
 
 import { getPhantomProvider } from "../utils/GetPhantomProvider";
 import {
