@@ -8,7 +8,7 @@ import {
   batchTransferToken_sepolia,
   nftMint_goerli,
   ygme_sepolia
-} from "./SystemConfiguration";
+} from "../common/SystemConfiguration";
 import {
   getScanURL,
   equalityStringIgnoreCase,

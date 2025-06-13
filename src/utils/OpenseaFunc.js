@@ -12,7 +12,7 @@ import {
   chainName_TBSC,
   OPENSEA_MAIN_API,
   chainName_S
-} from "./SystemConfiguration";
+} from "../common/SystemConfiguration";
 import {
   getSigner,
   getProvider,

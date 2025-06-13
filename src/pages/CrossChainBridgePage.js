@@ -12,7 +12,7 @@ import {
   crossChain_tbsc,
   ygio_goerli,
   ygio_tbsc
-} from "../utils/SystemConfiguration.js";
+} from "../common/SystemConfiguration.js";
 import { getClaimYGIOBalance, getCrossChainSignature } from "../api/GetData.js";
 import { changeCrossChainDatas } from "../api/ChangeData.js";
 import { switchChain } from "../utils/GetProvider.js";

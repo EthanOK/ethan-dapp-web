@@ -19,7 +19,7 @@ import {
   usdt_sepolia,
   ygme_sepolia,
   ygio_sepolia
-} from "../utils/SystemConfiguration.js";
+} from "../common/SystemConfiguration.js";
 import { getDecimal, getDecimalBigNumber } from "../utils/Utils.js";
 import { ethers } from "ethers";
 import { addSuffixOfTxData } from "../utils/HandleTxData.js";
@@ -413,7 +413,7 @@ const FaucetTokenPage = () => {
           <h1>Claim Successful!</h1>
         </div>
       )}{" "}
-      <h1>Please Switch To Goerli OR Sepolia OR TBSC</h1>
+      <h1>Please Switch To Sepolia</h1>
       <div className="bordered-div">
         <h2>Faucet YGME</h2>
         <h3>My YGME Balance: {myYgmeBalance}</h3>

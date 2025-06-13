@@ -9,7 +9,7 @@ import {
   ygio_goerli,
   faucet_tbsc,
   faucet_sepolia
-} from "./SystemConfiguration";
+} from "../common/SystemConfiguration";
 const getContract = async (contractAddress, abi, signer) => {
   let contract = new ethers.Contract(contractAddress, abi, signer);
   return contract;

@@ -10,7 +10,7 @@ import "./App.css";
 import { _TypedDataEncoder } from "@ethersproject/hash";
 import { login } from "./utils/ConnectWallet";
 import { getChainIdAndBalanceETHAndTransactionCount } from "./utils/GetProvider";
-import { DefaultChainId } from "./utils/SystemConfiguration";
+import { DefaultChainId } from "./common/SystemConfiguration";
 import BuyNFTPage from "./pages/BuyNFTPage";
 import LuckyBabyPage from "./pages/LuckyBabyPage";
 import ENSPage from "./pages/ENSPage";
@@ -183,10 +183,10 @@ function App() {
                 {/* <AccordionItem title="Get IPFS" linkTo="/getIPFS" /> */}
                 <AccordionItem title="Lucky Baby" linkTo="/luckyBaby" />
                 <AccordionItem title="Utils" linkTo="/utils" />
-                <AccordionItem
+                {/* <AccordionItem
                   title="Cross-Chain Bridge"
                   linkTo="/crossChainBridge"
-                />{" "}
+                />{" "} */}
                 <AccordionItem title="ERC6551" linkTo="/erc6551" />
                 <AccordionItem title="Web3Auth" linkTo="/web3Auth" />
                 <AccordionItem
@@ -240,7 +240,7 @@ function App() {
             element={<CreateTransactionPage />}
           />
           <Route path="/utils" element={<UtilsPage />} />
-          <Route path="/crossChainBridge" element={<CrossChainBridgePage />} />
+          {/* <Route path="/crossChainBridge" element={<CrossChainBridgePage />} /> */}
           <Route path="/erc6551" element={<ERC6551Page />} />
           <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
           <Route path="/web3Auth" element={<Web3AuthPage />} />

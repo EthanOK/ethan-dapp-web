@@ -4,7 +4,7 @@ import {
   UniswapRouter,
   bsc_rpc,
   main_rpc
-} from "./SystemConfiguration";
+} from "../common/SystemConfiguration";
 
 import routerABI from "../contracts/UniswapV2RouterABI.json";
 import erc20ABI from "../contracts/erc20ABI.json";
