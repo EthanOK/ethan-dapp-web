@@ -9,13 +9,12 @@ import { getDecimal, getDecimalBigNumber, isAddress } from "../utils/Utils.js";
 import { BigNumber, ethers, utils } from "ethers";
 import {
   crossChain_goerli,
-  crossChain_tbsc,
-  ygio_goerli,
-  ygio_tbsc
+  crossChain_tbsc
 } from "../common/SystemConfiguration.js";
 import { getClaimYGIOBalance, getCrossChainSignature } from "../api/GetData.js";
 import { changeCrossChainDatas } from "../api/ChangeData.js";
 import { switchChain } from "../utils/GetProvider.js";
+import { faucetConfig } from "../common/ChainsConfig.js";
 const CrossChainBridgePage = () => {
   //  const [tableData, setTableData] = useState([]);
 
@@ -213,7 +212,7 @@ const CrossChainBridgePage = () => {
     const amountInput = document.getElementById("amountSend");
     const amountValue = amountInput.value;
 
-    let ygioAddress = ygio_goerli;
+    let ygioAddress = faucetConfig[chainId].ygio;
     let ccAddress = crossChain_goerli;
 
     if (chainId != 5) {
@@ -254,7 +253,7 @@ const CrossChainBridgePage = () => {
     const amountInput = document.getElementById("amountSend_T");
     const amountValue = amountInput.value;
 
-    let ygioAddress = ygio_tbsc;
+    let ygioAddress = faucetConfig[chainId].ygio;
     let ccAddress = crossChain_tbsc;
 
     if (chainId != 97) {

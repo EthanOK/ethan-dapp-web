@@ -6,14 +6,14 @@ import BatchTransferTokenABI from "../contracts/BatchTransferTokenABI.json";
 import {
   DefaultChainId,
   batchTransferToken_sepolia,
-  nftMint_goerli,
-  ygme_sepolia
+  nftMint_goerli
 } from "../common/SystemConfiguration";
 import {
   getScanURL,
   equalityStringIgnoreCase,
   getInfuraProvider
 } from "./Utils";
+import { faucetConfig } from "../common/ChainsConfig";
 
 const mintNFT = async (mintAmount) => {
   let etherscanURL = await getScanURL();
@@ -38,7 +38,7 @@ const mintNFT = async (mintAmount) => {
 
     const calls = [
       {
-        target: ygme_sepolia,
+        target: faucetConfig[chainId].ygme,
         callData: getSwapCallData(account, mintAmount)
       }
     ];
@@ -103,7 +103,7 @@ const signEIP712MessageMintNft = async (mintAmount) => {
 
     let tx = await batchTransfer.aggregate([
       {
-        target: ygme_sepolia,
+        target: faucetConfig[chainId].ygme,
         callData: getSwapCallData(await signer.getAddress(), mintAmount)
       }
     ]);
