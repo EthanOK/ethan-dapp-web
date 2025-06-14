@@ -14,7 +14,7 @@ import {
 import { getClaimYGIOBalance, getCrossChainSignature } from "../api/GetData.js";
 import { changeCrossChainDatas } from "../api/ChangeData.js";
 import { switchChain } from "../utils/GetProvider.js";
-import { faucetConfig } from "../common/ChainsConfig.js";
+import { faucetConfig } from "../common/FaucetConfig.js";
 const CrossChainBridgePage = () => {
   //  const [tableData, setTableData] = useState([]);
 

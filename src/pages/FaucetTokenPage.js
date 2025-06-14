@@ -15,7 +15,7 @@ import {
   faucetConfig,
   faucetTokenList,
   getFaucetTokenAddress
-} from "../common/ChainsConfig.js";
+} from "../common/FaucetConfig.js";
 const FaucetTokenPage = () => {
   //   const [tableData, setTableData] = useState([]);
 
