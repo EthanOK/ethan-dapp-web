@@ -24,9 +24,7 @@ const FaucetTokenPage = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
 
-  const [selectedToken, setSelectedToken] = useState(
-    localStorage.getItem("faucetTokenName") || "YGIO"
-  );
+  const [selectedToken, setSelectedToken] = useState("YGIO");
   const [tokenBalance, setTokenBalance] = useState(0);
 
   const currentToken = faucetTokenList.find((t) => t.label === selectedToken);
@@ -84,8 +82,8 @@ const FaucetTokenPage = () => {
 
   const faucetBalance = async () => {
     try {
-      const selectedToken = localStorage.getItem("faucetTokenName");
-      const result = await getTokenBalance(selectedToken);
+      const selectedToken_ = localStorage.getItem("faucetTokenName") || "YGIO";
+      const result = await getTokenBalance(selectedToken_);
       setTokenBalance(result);
     } catch (err) {
       console.error("Failed to fetch balance", err);
