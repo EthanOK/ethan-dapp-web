@@ -239,6 +239,23 @@ function getAlchemy(chainId) {
   return null;
 }
 
+export const normalizeFaucetConfigKeys = (config) => {
+  const normalized = {};
+
+  for (const chainId in config) {
+    const original = config[chainId];
+    const lowered = {};
+
+    for (const key in original) {
+      lowered[key.toLowerCase()] = original[key];
+    }
+
+    normalized[chainId] = lowered;
+  }
+
+  return normalized;
+};
+
 export {
   equalityStringIgnoreCase,
   getScanURL,

@@ -23,6 +23,16 @@ const getERC20Contract = async (token) => {
   let contract = new ethers.Contract(token, erc20ABI, signer);
   return contract;
 };
+export const getERC20Decimals = async (token) => {
+  let decimals = 0;
+  try {
+    let signer = await getSigner();
+    let contract = new ethers.Contract(token, erc20ABI, signer);
+    decimals = await contract.decimals();
+  } catch (error) {}
+
+  return decimals;
+};
 
 const getERC721Contract = async (token) => {
   let signer = await getSigner();

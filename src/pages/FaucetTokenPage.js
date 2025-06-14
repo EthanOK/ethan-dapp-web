@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import {
   getFaucetContract,
   getERC20Contract,
-  getERC721Contract
+  getERC721Contract,
+  getERC20Decimals
 } from "../utils/GetContract.js";
 import { ZERO_ADDRESS } from "../common/SystemConfiguration.js";
 import { getDecimal, getDecimalBigNumber } from "../utils/Utils.js";
@@ -10,7 +11,11 @@ import { ethers } from "ethers";
 import { addSuffixOfTxData } from "../utils/HandleTxData.js";
 import { switchChain } from "../utils/GetProvider.js";
 import { login } from "../utils/ConnectWallet.js";
-import { faucetConfig, getFaucetTokenAddress } from "../common/ChainsConfig.js";
+import {
+  faucetConfig,
+  faucetTokenList,
+  getFaucetTokenAddress
+} from "../common/ChainsConfig.js";
 const FaucetTokenPage = () => {
   //   const [tableData, setTableData] = useState([]);
 
@@ -24,13 +29,7 @@ const FaucetTokenPage = () => {
   );
   const [tokenBalance, setTokenBalance] = useState(0);
 
-  const tokenOptions = [
-    { label: "YGIO", faucetAmount: 1000 },
-    { label: "USDT", faucetAmount: 1000 },
-    { label: "WstETH", faucetAmount: 5 }
-  ];
-
-  const currentToken = tokenOptions.find((t) => t.label === selectedToken);
+  const currentToken = faucetTokenList.find((t) => t.label === selectedToken);
 
   useEffect(() => {
     setIsMounted(true);
@@ -43,7 +42,7 @@ const FaucetTokenPage = () => {
 
   useEffect(() => {
     if (selectedToken) {
-      fetchBalance();
+      faucetBalance();
     }
   }, [selectedToken]);
 
@@ -60,8 +59,6 @@ const FaucetTokenPage = () => {
           let account = accounts[0];
 
           localStorage.setItem("userAddress", account);
-
-          console.log("selectedToken", selectedToken);
         });
       }
     }
@@ -85,8 +82,9 @@ const FaucetTokenPage = () => {
     localStorage.setItem("faucetTokenName", tokenName);
   };
 
-  const fetchBalance = async () => {
+  const faucetBalance = async () => {
     try {
+      const selectedToken = localStorage.getItem("faucetTokenName");
       const result = await getTokenBalance(selectedToken);
       setTokenBalance(result);
     } catch (err) {
@@ -98,8 +96,8 @@ const FaucetTokenPage = () => {
   const getTokenBalance = async (tokenName) => {
     let account = localStorage.getItem("userAddress");
     let chainId = localStorage.getItem("chainId");
-    let ygioAddress = getFaucetTokenAddress(chainId, tokenName);
-    let contract = await getERC20Contract(ygioAddress);
+    let tokenAddress = getFaucetTokenAddress(chainId, tokenName);
+    let contract = await getERC20Contract(tokenAddress);
     let ygioBalance = await contract.balanceOf(account);
     let decimals = await contract.decimals();
     let balanceStandard = getDecimal(ygioBalance, decimals);
@@ -118,184 +116,42 @@ const FaucetTokenPage = () => {
         let ygmeBalance = await ygmecontract.balanceOf(account);
 
         setMyYgmeBalance(ygmeBalance.toString());
+
+        // update faucet balance
+        await faucetBalance();
       }
     } catch (error) {
       console.log(error);
     }
-  };
-  const faucetYGIOHandler = async (faucetAmount) => {
-    let account = localStorage.getItem("userAddress");
-    let chainId = localStorage.getItem("chainId");
-    let accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-    let ygioAddress = faucetConfig[Number(chainId)].ygio;
-    if (chainId === 5) {
-      accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
-    }
-    try {
-      let faucetContract = await getFaucetContract();
-      console.log(
-        ygioAddress,
-        accountFrom,
-        account,
-        getDecimalBigNumber(faucetAmount, 18)
-      );
-
-      console.log(getDecimalBigNumber(faucetAmount, 18).toString());
-
-      let tx = await faucetContract.faucet(
-        ygioAddress,
-        accountFrom,
-        account,
-        getDecimalBigNumber(faucetAmount, 18)
-      );
-
-      let result = await tx.wait();
-      if (result.status === 1) {
-        console.log("Success!");
-        setShowAlert(true);
-        setTimeout(() => {
-          setShowAlert(false);
-        }, 3000);
-        await updateBalance();
-      } else {
-        console.log("Failure!");
-      }
-    } catch (error) {}
   };
 
   const faucetTokenHandler = async (tokenName, faucetAmount) => {
     let account = localStorage.getItem("userAddress");
     let chainId = localStorage.getItem("chainId");
     let accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-    let ygioAddress = getFaucetTokenAddress(chainId, tokenName);
+    let tokenAddress = getFaucetTokenAddress(chainId, tokenName);
     if (chainId === 5) {
       accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
     }
+    const decimals = await getERC20Decimals(tokenAddress);
+    let tx;
     try {
       let faucetContract = await getFaucetContract();
-      console.log(
-        ygioAddress,
-        accountFrom,
-        account,
-        getDecimalBigNumber(faucetAmount, 18)
-      );
-
-      console.log(getDecimalBigNumber(faucetAmount, 18).toString());
-
-      let tx = await faucetContract.faucet(
-        ygioAddress,
-        accountFrom,
-        account,
-        getDecimalBigNumber(faucetAmount, 18)
-      );
-
-      let result = await tx.wait();
-      if (result.status === 1) {
-        console.log("Success!");
-        setShowAlert(true);
-        setTimeout(() => {
-          setShowAlert(false);
-        }, 3000);
-        await updateBalance();
+      if (tokenName.toLowerCase() === "ygme") {
+        let calldata = ethers.utils.defaultAbiCoder.encode(
+          ["address", "address", "uint256"],
+          [account, ZERO_ADDRESS, faucetAmount]
+        );
+        let data = await addSuffixOfTxData("0xdf791e50", calldata);
+        tx = await faucetContract.faucetDatas(tokenAddress, data);
       } else {
-        console.log("Failure!");
+        tx = await faucetContract.faucet(
+          tokenAddress,
+          accountFrom,
+          account,
+          getDecimalBigNumber(faucetAmount, decimals)
+        );
       }
-    } catch (error) {}
-  };
-
-  const faucetYGMEHandler = async (faucetAmount) => {
-    let account = localStorage.getItem("userAddress");
-    let chainId = localStorage.getItem("chainId");
-    let ygmeAddress = faucetConfig[chainId].ygme;
-
-    try {
-      let faucetContract = await getFaucetContract();
-
-      let calldata = ethers.utils.defaultAbiCoder.encode(
-        ["address", "address", "uint256"],
-        [account, ZERO_ADDRESS, 10]
-      );
-
-      let data = await addSuffixOfTxData("0xdf791e50", calldata);
-
-      let tx = await faucetContract.faucetDatas(ygmeAddress, data);
-
-      let result = await tx.wait();
-      if (result.status === 1) {
-        console.log("Success!");
-        setShowAlert(true);
-        setTimeout(() => {
-          setShowAlert(false);
-        }, 3000);
-        await updateBalance();
-      } else {
-        console.log("Failure!");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const faucetUSDTHandler = async (faucetAmount) => {
-    let account = localStorage.getItem("userAddress");
-    let chainId = localStorage.getItem("chainId");
-    let accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-    let usdtAddress = faucetConfig[Number(chainId)].usdt;
-    let amount;
-    if (chainId == 5) {
-      accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
-      amount = getDecimalBigNumber(faucetAmount, 6);
-    } else if (chainId == 97) {
-      amount = getDecimalBigNumber(faucetAmount, 18);
-    } else if (chainId == 11155111) {
-      amount = getDecimalBigNumber(faucetAmount, 6);
-    }
-    try {
-      let faucetContract = await getFaucetContract();
-      console.log(usdtAddress, accountFrom, account, amount.toString());
-      let tx = await faucetContract.faucet(
-        usdtAddress,
-        accountFrom,
-        account,
-        amount
-      );
-
-      let result = await tx.wait();
-      if (result.status === 1) {
-        console.log("Success!");
-        setShowAlert(true);
-        setTimeout(() => {
-          setShowAlert(false);
-        }, 3000);
-        await updateBalance();
-      } else {
-        console.log("Failure!");
-      }
-    } catch (error) {}
-  };
-
-  const faucetYULPHandler = async (faucetAmount) => {
-    let account = localStorage.getItem("userAddress");
-    let chainId = localStorage.getItem("chainId");
-    let accountFrom;
-    let lpAddress = faucetConfig[chainId].yulp;
-    let amount;
-    if (chainId == 5) {
-      accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
-      amount = getDecimalBigNumber(faucetAmount, 6);
-    } else if (chainId == 97) {
-      accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
-      amount = getDecimalBigNumber(faucetAmount, 18);
-    }
-    try {
-      let faucetContract = await getFaucetContract();
-      console.log(lpAddress, accountFrom, account, amount.toString());
-      let tx = await faucetContract.faucet(
-        lpAddress,
-        accountFrom,
-        account,
-        amount
-      );
 
       let result = await tx.wait();
       if (result.status === 1) {
@@ -313,30 +169,14 @@ const FaucetTokenPage = () => {
 
   const faucetButton = (coinType, faucetAmount = 5) => {
     faucetAmount = String(faucetAmount);
-    const handlers = {
-      YGME: {
-        handler: () => faucetYGMEHandler(faucetAmount),
-        label: "YGME",
-        amount: faucetAmount
-      },
-      YGIO: {
-        handler: () => faucetYGIOHandler(faucetAmount),
-        label: "YGIO",
-        amount: faucetAmount
-      },
-      USDT: {
-        handler: () => faucetUSDTHandler(faucetAmount),
-        label: "USDT",
-        amount: faucetAmount
-      },
-      WstETH: {
-        handler: () => faucetTokenHandler(coinType, faucetAmount),
-        label: "WstETH",
-        amount: faucetAmount
-      }
+
+    const handler = {
+      handler: () => faucetTokenHandler(coinType, faucetAmount),
+      label: coinType,
+      amount: faucetAmount
     };
 
-    const config = handlers[coinType];
+    const config = handler;
 
     if (!config) return null;
 
@@ -435,11 +275,11 @@ const FaucetTokenPage = () => {
             height: "30px",
             fontSize: "14px",
             fontWeight: "bold",
-            textAlign: "center", // 选项居中
-            textAlignLast: "center" // select 默认选中项居中（兼容性需注意）
+            textAlign: "center",
+            textAlignLast: "center"
           }}
         >
-          {tokenOptions.map((token) => (
+          {faucetTokenList.map((token) => (
             <option key={token.label} value={token.label}>
               {token.label}
             </option>
