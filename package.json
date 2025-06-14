@@ -1,6 +1,6 @@
 {
-  "name": "ethan-yungou-web",
-  "version": "2.1.0",
+  "name": "ethan-bric-web",
+  "version": "2.2.0",
   "author": "Ethan",
   "private": true,
   "dependencies": {
@@ -46,7 +46,8 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "lint": "react-scripts lint"
+    "lint": "react-scripts lint",
+    "release": "standard-version && git push --follow-tags"
   },
   "eslintConfig": {
     "extends": [
@@ -73,6 +74,7 @@
     "prettier": "^3.3.3",
     "process": "^0.11.10",
     "react-app-rewired": "^2.2.1",
-    "source-map-loader": "^4.0.1"
+    "source-map-loader": "^4.0.1",
+    "standard-version": "^9.5.0"
   }
 }
