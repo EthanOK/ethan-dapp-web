@@ -13,7 +13,7 @@ import {
   equalityStringIgnoreCase,
   getInfuraProvider
 } from "./Utils";
-import { faucetConfig } from "../common/ChainsConfig";
+import { faucetConfig } from "../common/FaucetConfig";
 
 const mintNFT = async (mintAmount) => {
   let etherscanURL = await getScanURL();

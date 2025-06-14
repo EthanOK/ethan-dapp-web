@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.1](https://github.com/EthanOK/ethan-yungou-web/compare/v2.2.0...v2.2.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* add FaucetConfig ([62eead2](https://github.com/EthanOK/ethan-yungou-web/commit/62eead2714810d6c7896522aa7a1e2b2028b834e))
+
 ## [2.2.0](https://github.com/EthanOK/ethan-yungou-web/compare/v2.1.6...v2.2.0) (2025-06-14)
 
 

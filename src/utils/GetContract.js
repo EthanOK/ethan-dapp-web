@@ -4,7 +4,7 @@ import faucetABI from "../contracts/faucetABI.json";
 import erc20ABI from "../contracts/erc20ABI.json";
 import erc721ABI from "../contracts/erc721A.json";
 import crossChainABI from "../contracts/crossChainABI.json";
-import { faucetConfig } from "../common/ChainsConfig";
+import { faucetConfig } from "../common/FaucetConfig";
 const getContract = async (contractAddress, abi, signer) => {
   let contract = new ethers.Contract(contractAddress, abi, signer);
   return contract;

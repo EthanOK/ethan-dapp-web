@@ -1,6 +1,6 @@
 {
   "name": "ethan-bric-web",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "author": "Ethan",
   "private": true,
   "dependencies": {
@@ -47,7 +47,7 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "lint": "react-scripts lint",
-    "release": "standard-version && git push --follow-tags"
+    "release": "standard-version --release-as patch"
   },
   "eslintConfig": {
     "extends": [
