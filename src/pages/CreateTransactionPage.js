@@ -83,17 +83,17 @@ const CreateTransactionPage = () => {
       } else {
         console.log("Failure!");
       }
-    } catch (errors) {
-      const { error } = errors;
-      console.log(error);
-      if (error.code === -32003) alert(error.message);
+    } catch (error) {
+      console.log(JSON.stringify(error));
+
+      alert(error.reason);
     }
   };
 
   const createTxHandler = async () => {
     const url = await getScanURL();
     const signer = await getSigner();
-    const provider = await getInfuraProvider();
+    // const provider = await getInfuraProvider();
 
     const to = document.getElementById("to_tx").value;
 
@@ -108,21 +108,21 @@ const CreateTransactionPage = () => {
       return;
     }
 
-    let hexInputData;
+    // let hexInputData;
     // 如果是0x前缀
     if (!data.startsWith("0x") || data.length % 2 != 0) {
       alert("data is not valid");
       return;
     }
-    const transaction = {
-      from: await signer.getAddress(),
-      // to: to == "" ? null : to,
-      data: data
-      // value: value.toHexString(),
-    };
-    const result = await getAccessList(provider, transaction);
+    // const transaction = {
+    //   from: await signer.getAddress(),
+    //   // to: to == "" ? null : to,
+    //   data: data
+    //   // value: value.toHexString(),
+    // };
+    // const result = await getAccessList(provider, transaction);
 
-    console.log("Access List:", result);
+    // console.log("Access List:", result);
 
     try {
       const tx = await signer.sendTransaction({
@@ -141,10 +141,9 @@ const CreateTransactionPage = () => {
       } else {
         console.log("Failure!");
       }
-    } catch (errors) {
-      const { error } = errors;
-      console.log(error);
-      alert(error.message);
+    } catch (error) {
+      console.log(JSON.stringify(error));
+      alert(error.reason);
     }
   };
 
