@@ -22,7 +22,7 @@ const EstimateTxFeePage = () => {
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -37,14 +37,14 @@ const EstimateTxFeePage = () => {
     const value = document.getElementById("value").value;
     const data = document.getElementById("data").value;
 
-    const value_ = getDecimalBigNumber(value == "" ? "0" : value, 18);
+    const value_ = getDecimalBigNumber(value === "" ? "0" : value, 18);
 
     if (!isAddress(from)) {
       alert("from address is not valid");
       return;
     }
 
-    if (Number(to.length) != 0 && !isAddress(to)) {
+    if (Number(to.length) !== 0 && !isAddress(to)) {
       console.log(to.length);
       alert("to address is not valid");
       return;

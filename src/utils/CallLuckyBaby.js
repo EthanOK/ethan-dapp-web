@@ -9,7 +9,7 @@ import { getScanURL, equalityStringIgnoreCase } from "./Utils";
 const luckyBabyAddress = "0x66fD5106a5Af336CE81fd38A5AB2FFFD9bCD1C8c";
 
 const participate = async (count) => {
-  if (count == 0) {
+  if (count === 0) {
     alert("count must be greater than 0");
     return [null, null];
   }
@@ -60,7 +60,7 @@ const participate = async (count) => {
       const tx = await payToken.approve(luckyBabyAddress, payAmount.toString());
       let result = await tx.wait();
 
-      if (result.status != 1) {
+      if (result.status !== 1) {
         alert("Approve failed");
         return [null, null];
       }
@@ -76,9 +76,9 @@ const participate = async (count) => {
     let message_;
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       message_ = "User Reject Transaction";
-    } else if (error.code == -32000) {
+    } else if (error.code === -32000) {
       message_ = error.message;
-    } else if (error.error.code == -32603) {
+    } else if (error.error.code === -32603) {
       message_ = error.error.message;
     }
     alert(message_);
@@ -112,9 +112,9 @@ const openPrizePool = async () => {
     let message_;
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       message_ = "User Reject Transaction";
-    } else if (error.code == -32000) {
+    } else if (error.code === -32000) {
       message_ = error.message;
-    } else if (error.error.code == -32603) {
+    } else if (error.error.code === -32603) {
       message_ = error.error.message;
     }
 
@@ -159,9 +159,9 @@ const incrementNewIssue = async (
     let message_;
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       message_ = "User Reject Transaction";
-    } else if (error.code == -32000) {
+    } else if (error.code === -32000) {
       message_ = error.message;
-    } else if (error.error.code == -32603) {
+    } else if (error.error.code === -32603) {
       message_ = error.error.message;
     }
 
@@ -190,9 +190,9 @@ const getWinners = async () => {
       message_ = "User Reject Transaction";
     } else if (equalityStringIgnoreCase(error.code, "CALL_EXCEPTION")) {
       message_ = error.reason;
-    } else if (error.code == -32000) {
+    } else if (error.code === -32000) {
       message_ = error.message;
-    } else if (error.error.code == -32603) {
+    } else if (error.error.code === -32603) {
       message_ = error.error.message;
     }
     alert(message_);
@@ -224,9 +224,9 @@ const redeemPrize = async () => {
     let message_;
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       message_ = "User Reject Transaction";
-    } else if (error.code == -32000) {
+    } else if (error.code === -32000) {
       message_ = error.message;
-    } else if (error.error.code == -32603) {
+    } else if (error.error.code === -32603) {
       message_ = error.error.message;
     }
 

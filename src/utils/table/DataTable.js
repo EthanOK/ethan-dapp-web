@@ -1,7 +1,7 @@
 import React from "react";
 
 const DataTable = ({ data }) => {
-  if (data.length == 0) {
+  if (data.length === 0) {
     return (
       <div>
         <p>Not Data</p>

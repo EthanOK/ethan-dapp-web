@@ -74,7 +74,7 @@ const mintNFT = async (mintAmount) => {
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");
     }
-    if (error.code == -32000) {
+    if (error.code === -32000) {
       alert(error.message);
     }
     return [null, null];
@@ -93,7 +93,7 @@ const signEIP712MessageMintNft = async (mintAmount) => {
       return [null, null];
     }
     let signature = await signEIP712Message(signer, chainId);
-    if (signature == null) return [null, null];
+    if (signature === null) return [null, null];
 
     const batchTransfer = new ethers.Contract(
       contractAddress,
@@ -117,7 +117,7 @@ const signEIP712MessageMintNft = async (mintAmount) => {
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");
     }
-    if (error.code == -32000) {
+    if (error.code === -32000) {
       alert(error.message);
     }
     return [null, null];

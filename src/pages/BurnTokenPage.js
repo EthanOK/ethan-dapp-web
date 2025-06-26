@@ -34,7 +34,7 @@ const BurnTokenPage = () => {
 
   const burnTokenHandler = async () => {
     try {
-      if (tokenAddress == null) return;
+      if (tokenAddress === null) return;
       let erc20contract = await getERC20Contract(tokenAddress);
       const burnAccount = "0x0000000000000000000000000000000000000001";
       let tx = await erc20contract.transfer(
@@ -63,7 +63,7 @@ const BurnTokenPage = () => {
     const addressInput = document.getElementById("addressString");
     const addressValue = addressInput.value;
     let res;
-    if (addressInput.length == 44) {
+    if (addressInput.length === 44) {
       res = isAddress(JSON.parse(addressValue));
     } else {
       res = isAddress(addressValue);

@@ -22,7 +22,7 @@ const GetOpenSeaDataPage = () => {
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -37,7 +37,7 @@ const GetOpenSeaDataPage = () => {
     const tokenIdInput = document.getElementById("tokenId");
     const tokenIdValue = tokenIdInput.value;
     let res;
-    if (contractValue.length == 44) {
+    if (contractValue.length === 44) {
       res = isAddress(JSON.parse(contractValue));
     } else {
       res = isAddress(contractValue);

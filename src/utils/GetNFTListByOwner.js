@@ -5,7 +5,7 @@ const getNFTListByOwner = async (chainId, owner) => {
   const ownedNfts = [];
   const alchemyURL = getAlchemyURL(chainId);
 
-  while (pageKey != null) {
+  while (pageKey !== null) {
     let pageKeyStr = "";
     if (pageKey.length > 0) {
       pageKeyStr = `&pageKey=${pageKey}`;
@@ -32,11 +32,11 @@ const getNFTListByOwnerAndContract = async (chainId, owner, contract) => {
   const tokenIds = new Set();
 
   const alchemyURL = getAlchemyURL(chainId);
-  if (alchemyURL == null) {
+  if (alchemyURL === null) {
     return null;
   }
 
-  while (pageKey != null) {
+  while (pageKey !== null) {
     let pageKeyStr = "";
     if (pageKey.length > 0) {
       pageKeyStr = `&pageKey=${pageKey}`;
@@ -71,11 +71,11 @@ const getContractsForOwner = async (chainId, owner) => {
 
   const alchemyURL = getAlchemyURL(chainId);
 
-  if (alchemyURL == null) {
+  if (alchemyURL === null) {
     return null;
   }
 
-  while (pageKey != null) {
+  while (pageKey !== null) {
     let pageKeyStr = "";
     if (pageKey.length > 0) {
       pageKeyStr = `&pageKey=${pageKey}`;

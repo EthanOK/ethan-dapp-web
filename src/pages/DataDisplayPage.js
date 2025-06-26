@@ -46,7 +46,7 @@ const DataDisplayPage = () => {
   const updatePrices = async () => {
     try {
       let result = await getPriceBaseUSDT();
-      if (result.code == 200) {
+      if (result.code === 200) {
         let data = result.data;
         setEthPrice(data.ethPrice);
         setBnbPrice(data.bnbPrice);
@@ -56,7 +56,7 @@ const DataDisplayPage = () => {
   const configData = async () => {
     try {
       let account = localStorage.getItem("userAddress");
-      if (account != null) {
+      if (account !== null) {
         setCurrentAccount(account);
       }
       const data = await getSystemData();

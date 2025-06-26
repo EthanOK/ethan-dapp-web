@@ -12,7 +12,7 @@ const getFulfillment_transaction = async (
     tokenId: tokenId
   });
 
-  if (order.orderHash == null) {
+  if (order.orderHash === null) {
     return "null";
   }
   console.log("orderHash: " + order.orderHash);
@@ -44,7 +44,7 @@ const getFulfillment_order = async (
     tokenId: tokenId
   });
 
-  if (order.orderHash == null) {
+  if (order.orderHash === null) {
     return "null";
   }
 
@@ -54,7 +54,7 @@ const getFulfillment_order = async (
     order.protocolAddress,
     order.side
   );
-  if (fulfillment.fulfillment_data.orders[0].signature == null) {
+  if (fulfillment.fulfillment_data.orders[0].signature === null) {
     return "null";
   }
   console.log(order);
@@ -87,7 +87,7 @@ const getFulfillAvailableOrders_data = async (
       tokenId: tokenIds[i]
     });
 
-    if (order.orderHash == null) {
+    if (order.orderHash === null) {
       return "orderHash is null";
     }
 
@@ -97,7 +97,7 @@ const getFulfillAvailableOrders_data = async (
       order.protocolAddress,
       order.side
     );
-    if (count == 0) {
+    if (count === 0) {
       protocolAddress = order.protocolAddress;
       fulfillerConduitKey =
         fulfillment.fulfillment_data.transaction.input_data.parameters
@@ -105,7 +105,7 @@ const getFulfillAvailableOrders_data = async (
     }
     count++;
     // console.log(fulfillment.fulfillment_data.transaction.input_data.parameters);
-    if (fulfillment.fulfillment_data.orders[0].signature == null) {
+    if (fulfillment.fulfillment_data.orders[0].signature === null) {
       return "signature is null";
     }
     let length_offer =
@@ -172,7 +172,7 @@ const getFulfillAvailableAdvancedOrders_datas = async (
       tokenId: tokenIds[i]
     });
 
-    if (order.orderHash == null) {
+    if (order.orderHash === null) {
       return "orderHash is null";
     }
     console.log("orderHash:" + order.orderHash);
@@ -182,7 +182,7 @@ const getFulfillAvailableAdvancedOrders_datas = async (
       order.protocolAddress,
       order.side
     );
-    if (count == 0) {
+    if (count === 0) {
       protocolAddress = order.protocolAddress;
       fulfillerConduitKey =
         fulfillment.fulfillment_data.transaction.input_data.parameters
@@ -190,7 +190,7 @@ const getFulfillAvailableAdvancedOrders_datas = async (
     }
     count++;
     // console.log(fulfillment.fulfillment_data.transaction.input_data.parameters);
-    if (fulfillment.fulfillment_data.orders[0].signature == null) {
+    if (fulfillment.fulfillment_data.orders[0].signature === null) {
       return "signature is null";
     }
     let length_offer =

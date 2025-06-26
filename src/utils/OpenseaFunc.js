@@ -29,12 +29,12 @@ const fulfillBasicOrder = async (contract_, tokenId_, currentAccount) => {
   const chainId = localStorage.getItem("chainId");
 
   let transactionData;
-  if (contract_ == "" || tokenId_ == "") {
+  if (contract_ === "" || tokenId_ === "") {
     console.log("contractAddress or tokenId is null");
     return;
   }
 
-  if (chainId == 1) {
+  if (chainId === 1) {
     const openseaSDK = new OpenSeaSDK(providerWeb3, {
       chain: Chain.Mainnet,
       apiKey: OPENSEA_MAIN_API
@@ -46,7 +46,7 @@ const fulfillBasicOrder = async (contract_, tokenId_, currentAccount) => {
       contract_,
       tokenId_
     );
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     const openseaSDK = new OpenSeaSDK(providerWeb3, {
       chain: Chain.BNB,
       apiKey: OPENSEA_MAIN_API
@@ -58,25 +58,25 @@ const fulfillBasicOrder = async (contract_, tokenId_, currentAccount) => {
       contract_,
       tokenId_
     );
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     transactionData = await OrdersTest.getFulfillment_transaction(
       chainName_S,
       currentAccount,
       contract_,
       tokenId_
     );
-    if (transactionData == null) {
+    if (transactionData === null) {
       console.log("transactionDatas is null");
       return;
     }
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     transactionData = await OrdersTest.getFulfillment_transaction(
       chainName_TBSC,
       currentAccount,
       contract_,
       tokenId_
     );
-    if (transactionData == null) {
+    if (transactionData === null) {
       console.log("transactionDatas is null");
       return;
     }
@@ -113,7 +113,7 @@ const fulfillBasicOrder = async (contract_, tokenId_, currentAccount) => {
     ethers.BigNumber.from(value.toString())
   );
 
-  if (tx != null) {
+  if (tx !== null) {
     console.log("fulfillBasicOrder... please await");
     let etherscanURL = await getScanURL();
     console.log(`Please See: ${etherscanURL}/tx/${tx.hash}`);
@@ -131,7 +131,7 @@ const fulfillOrder = async (contract_, tokenId_, currentAccount) => {
   const signer = providerWeb3.getSigner();
   const chainId = localStorage.getItem("chainId");
   let orderdata = [];
-  if (chainId == 1) {
+  if (chainId === 1) {
     const openseaSDK = new OpenSeaSDK(providerWeb3, {
       chain: Chain.Mainnet,
       apiKey: OPENSEA_MAIN_API
@@ -143,7 +143,7 @@ const fulfillOrder = async (contract_, tokenId_, currentAccount) => {
       contract_,
       tokenId_
     );
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     const openseaSDK = new OpenSeaSDK(providerWeb3, {
       chain: Chain.BNB,
       apiKey: OPENSEA_MAIN_API
@@ -155,14 +155,14 @@ const fulfillOrder = async (contract_, tokenId_, currentAccount) => {
       contract_,
       tokenId_
     );
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     orderdata = await OrdersTest.getFulfillment_order(
       chainName_S,
       currentAccount,
       contract_,
       tokenId_
     );
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     orderdata = await OrdersTest.getFulfillment_order(
       chainName_TBSC,
       currentAccount,
@@ -206,9 +206,9 @@ const fulfillBasicOrder_efficient = async (
   const providerWeb3 = await getProvider();
   const signer = providerWeb3.getSigner();
   const chainId = localStorage.getItem("chainId");
-  // chainId == 1
+  // chainId ===1
   let transactionData;
-  if (chainId == 1) {
+  if (chainId === 1) {
     const openseaSDK = new OpenSeaSDK(providerWeb3, {
       chain: Chain.Mainnet,
       apiKey: OPENSEA_MAIN_API
@@ -219,7 +219,7 @@ const fulfillBasicOrder_efficient = async (
       contract_,
       tokenId_
     );
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     const openseaSDK = new OpenSeaSDK(providerWeb3, {
       chain: Chain.BNB,
       apiKey: OPENSEA_MAIN_API
@@ -230,25 +230,25 @@ const fulfillBasicOrder_efficient = async (
       contract_,
       tokenId_
     );
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     transactionData = await OrdersTest.getFulfillment_transaction(
       chainName_S,
       currentAccount,
       contract_,
       tokenId_
     );
-    if (transactionData == null) {
+    if (transactionData === null) {
       console.log("transactionDatas is null");
       return;
     }
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     transactionData = await OrdersTest.getFulfillment_transaction(
       chainName_TBSC,
       currentAccount,
       contract_,
       tokenId_
     );
-    if (transactionData == null) {
+    if (transactionData === null) {
       console.log("transactionDatas is null");
       return;
     }
@@ -291,7 +291,7 @@ const fulfillAvailableOrders = async (
   const providerWeb3 = await getProvider();
   const signer = providerWeb3.getSigner();
   const chainId = localStorage.getItem("chainId");
-  // chainId == 1
+  // chainId ===1
   let protocolAddress,
     currentPriceSum,
     orders,
@@ -300,7 +300,7 @@ const fulfillAvailableOrders = async (
     fulfillerConduitKey,
     maximumFulfilled;
 
-  if (chainId == 1) {
+  if (chainId === 1) {
     const openseaSDK = new OpenSeaSDK(providerWeb3, {
       chain: Chain.Mainnet,
       apiKey: OPENSEA_MAIN_API
@@ -319,7 +319,7 @@ const fulfillAvailableOrders = async (
       contracts_,
       tokenIds_
     );
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     const openseaSDK = new OpenSeaSDK(providerWeb3, {
       chain: Chain.BNB,
       apiKey: OPENSEA_MAIN_API
@@ -338,7 +338,7 @@ const fulfillAvailableOrders = async (
       contracts_,
       tokenIds_
     );
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     [
       protocolAddress,
       currentPriceSum,
@@ -354,7 +354,7 @@ const fulfillAvailableOrders = async (
       tokenIds_
     );
     console.log(orders);
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     [
       protocolAddress,
       currentPriceSum,
@@ -420,7 +420,7 @@ const fulfillAvailableAdvancedOrders = async (
   const provider = await getProvider();
   const signer = provider.getSigner();
   const chainId = localStorage.getItem("chainId");
-  // chainId == 1
+  // chainId ===1
   let protocolAddress,
     currentPriceSum,
     advancedOrders,
@@ -430,11 +430,11 @@ const fulfillAvailableAdvancedOrders = async (
     fulfillerConduitKey,
     maximumFulfilled;
 
-  if (contracts_ == "" || tokenIds_ == "") {
+  if (contracts_ === "" || tokenIds_ === "") {
     console.log("contractAddress or tokenIds is null");
     return;
   }
-  if (chainId == 1) {
+  if (chainId === 1) {
     const openseaSDK = new OpenSeaSDK(provider, {
       chain: Chain.Mainnet,
       apiKey: OPENSEA_MAIN_API
@@ -454,7 +454,7 @@ const fulfillAvailableAdvancedOrders = async (
       contracts_,
       tokenIds_
     );
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     const openseaSDK = new OpenSeaSDK(provider, {
       chain: Chain.BNB,
       apiKey: OPENSEA_MAIN_API
@@ -474,7 +474,7 @@ const fulfillAvailableAdvancedOrders = async (
       contracts_,
       tokenIds_
     );
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     const Orders_datas =
       await OrdersTest.getFulfillAvailableAdvancedOrders_datas(
         chainName_S,
@@ -482,7 +482,7 @@ const fulfillAvailableAdvancedOrders = async (
         contracts_,
         tokenIds_
       );
-    if (Orders_datas == null) {
+    if (Orders_datas === null) {
       console.log("Orders_datas is null");
       return null;
     }
@@ -496,7 +496,7 @@ const fulfillAvailableAdvancedOrders = async (
       fulfillerConduitKey,
       maximumFulfilled
     ] = Orders_datas;
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     const Orders_datas =
       await OrdersTest.getFulfillAvailableAdvancedOrders_datas(
         chainName_TBSC,
@@ -504,7 +504,7 @@ const fulfillAvailableAdvancedOrders = async (
         contracts_,
         tokenIds_
       );
-    if (Orders_datas == null) {
+    if (Orders_datas === null) {
       console.log("Orders_datas is null");
       return null;
     }

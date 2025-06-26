@@ -44,13 +44,13 @@ const UtilsPage = () => {
   const configData = async () => {
     try {
       let account = localStorage.getItem("userAddress");
-      if (account != null) {
+      if (account !== null) {
         setCurrentAccount(account);
       }
 
       let result = await getPriceBaseUSDTByBinance();
       console.log(result);
-      if (result.code == 200) {
+      if (result.code === 200) {
         let data = result.data;
         setEtherPrice(data.ethPrice);
       }

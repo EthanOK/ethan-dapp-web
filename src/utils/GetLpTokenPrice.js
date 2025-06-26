@@ -15,11 +15,11 @@ const getTokenPrice = async (platform, token0, token1) => {
     let routerV2;
 
     console.log(platform);
-    if (platform == "1") {
+    if (platform === "1") {
       // Uniswap
       routerV2 = UniswapRouter;
       rpc = main_rpc;
-    } else if (platform == "56") {
+    } else if (platform === "56") {
       // PancakeSwap
       routerV2 = PancakeRouter;
 

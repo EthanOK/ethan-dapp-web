@@ -44,7 +44,7 @@ const getFulfillment_transaction = async (
     tokenAddress,
     tokenId
   );
-  if (orderhash == null) {
+  if (orderhash === null) {
     return null;
   }
   await waitOneSecond();
@@ -79,7 +79,7 @@ const getFulfillAvailableAdvancedOrders_datas = async (
       tokenAddress_s[i],
       tokenIds[i]
     );
-    if (OrderData == null) {
+    if (OrderData === null) {
       return null;
     }
     console.log("OrderData:");
@@ -104,7 +104,7 @@ const getFulfillAvailableAdvancedOrders_datas = async (
     }
     count++;
     // console.log(fulfillment.fulfillment_data.transaction.input_data.parameters);
-    if (fulfillment.fulfillment_data.orders[0].signature == null) {
+    if (fulfillment.fulfillment_data.orders[0].signature === null) {
       return "signature is null";
     }
     let length_offer =
@@ -182,7 +182,7 @@ const getFulfillAvailableOrders_data = async (
       tokenAddress_s[i],
       tokenIds[i]
     );
-    if (OrderData == null) {
+    if (OrderData === null) {
       return null;
     }
     console.log("OrderData:");
@@ -207,7 +207,7 @@ const getFulfillAvailableOrders_data = async (
     }
     count++;
     // console.log(fulfillment.fulfillment_data.transaction.input_data.parameters);
-    if (fulfillment.fulfillment_data.orders[0].signature == null) {
+    if (fulfillment.fulfillment_data.orders[0].signature === null) {
       return "signature is null";
     }
     let length_offer =
@@ -267,7 +267,7 @@ const getFulfillment_order = async (
   tokenId
 ) => {
   const OrderData = await getOrderHash(chainName, tokenAddress, tokenId);
-  if (OrderData == null) {
+  if (OrderData === null) {
     return null;
   }
   console.log("OrderData:");

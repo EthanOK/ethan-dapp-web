@@ -11,7 +11,7 @@ const onlyBuyBlurNFT = async (
   blurAccessToken
 ) => {
   const [signer, chainId] = await getSignerAndChainId();
-  if (chainId != 1) {
+  if (chainId !== 1) {
     alert("Please switch to Mainnet");
     return [null, null];
   }
@@ -23,10 +23,10 @@ const onlyBuyBlurNFT = async (
     blurAccessToken
   );
 
-  if (blurData == null) {
+  if (blurData === null) {
     alert("Blur Order Data is NULL");
     return [null, null];
-  } else if (blurData == 0) return [null, null];
+  } else if (blurData === 0) return [null, null];
   try {
     // 修改前缀
     let inputData = blurData.data;
@@ -41,7 +41,7 @@ const onlyBuyBlurNFT = async (
       value: blurData.value
     });
 
-    if (tx != null) {
+    if (tx !== null) {
       console.log("fulfillBasicOrder... please await");
       let etherscanURL = await getScanURL();
       console.log(`Please See: ${etherscanURL}/tx/${tx.hash}`);

@@ -51,9 +51,9 @@ const CrossChainBridgePage = () => {
       setCurrentAccount(account);
       let chainId = localStorage.getItem("chainId");
       setChainId(chainId);
-      if (chainId == 5 || Number(chainId) == 5) {
+      if (chainId === 5 || Number(chainId) === 5) {
         setToChainId(97);
-      } else if (chainId == 97 || Number(chainId) == 97) {
+      } else if (chainId === 97 || Number(chainId) === 97) {
         setToChainId(5);
       }
 
@@ -68,7 +68,7 @@ const CrossChainBridgePage = () => {
 
   const claimTokenHandler_TBSC = async () => {
     try {
-      if (chainId != 97) {
+      if (chainId !== 97) {
         alert("Must TBSC");
         let success = await switchChain(97);
         if (!success) {
@@ -138,7 +138,7 @@ const CrossChainBridgePage = () => {
 
   const claimTokenHandler_G = async () => {
     try {
-      if (chainId != 5) {
+      if (chainId !== 5) {
         alert("Must Goerli");
         let success = await switchChain(5);
         if (!success) {
@@ -215,7 +215,7 @@ const CrossChainBridgePage = () => {
     let ygioAddress = faucetConfig[chainId].ygio;
     let ccAddress = crossChain_goerli;
 
-    if (chainId != 5) {
+    if (chainId !== 5) {
       alert("Must Goerli");
       let success = await switchChain(5);
       if (!success) {
@@ -256,7 +256,7 @@ const CrossChainBridgePage = () => {
     let ygioAddress = faucetConfig[chainId].ygio;
     let ccAddress = crossChain_tbsc;
 
-    if (chainId != 97) {
+    if (chainId !== 97) {
       alert("Must TBSC");
       let success = await switchChain(97);
       if (!success) {
@@ -326,9 +326,9 @@ const CrossChainBridgePage = () => {
         );
 
         console.log(resultData_);
-        if (toChainId == 97) {
+        if (toChainId === 97) {
           setBalanceOfCC_T(ethers.utils.formatEther(resultData_.data.balance));
-        } else if (toChainId == 5) {
+        } else if (toChainId === 5) {
           setBalanceOfCC_G(ethers.utils.formatEther(resultData_.data.balance));
         }
 
@@ -352,7 +352,7 @@ const CrossChainBridgePage = () => {
     const addressInput = document.getElementById("addressString");
     const addressValue = addressInput.value;
     let res;
-    if (addressInput.length == 44) {
+    if (addressInput.length === 44) {
       res = isAddress(JSON.parse(addressValue));
     } else {
       res = isAddress(addressValue);
@@ -370,7 +370,7 @@ const CrossChainBridgePage = () => {
   };
 
   const claimTokenButton = (type) => {
-    if (type == "inGoerli") {
+    if (type === "inGoerli") {
       return (
         <button
           onClick={claimTokenHandler_G}
@@ -379,7 +379,7 @@ const CrossChainBridgePage = () => {
           Claim YGIO(inGoerli)
         </button>
       );
-    } else if (type == "inTBSC") {
+    } else if (type === "inTBSC") {
       return (
         <button
           onClick={claimTokenHandler_TBSC}

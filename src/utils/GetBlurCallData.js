@@ -10,7 +10,7 @@ const getBlurCalldata = async (
   const postURL = "https://api.nftgo.io/api/v1/nft-aggregator/aggregate-v2";
   // 如何获得orderInfo
   const blurOrderInfos = await getNFTGoBlurOrderInfos(tokenAddress, tokenId);
-  if (blurOrderInfos.length == 0) return null;
+  if (blurOrderInfos.length === 0) return null;
   const orderInfos = [blurOrderInfos[0]];
   // 遍历 orderInfos 计算tokenPrice
   let tokenPrice = 0;
@@ -46,7 +46,7 @@ const getBlurCalldata = async (
     // console.log(response);
     if (response.ok) {
       const responseData = await response.json();
-      if (responseData.errorCode != 0) {
+      if (responseData.errorCode !== 0) {
         return null;
       }
       const txData = responseData.data.aggregateResult.actions[0].data.txData;

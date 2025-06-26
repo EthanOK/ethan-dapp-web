@@ -12,7 +12,6 @@ import {
   Transaction,
   clusterApiUrl
 } from "@solana/web3.js";
-import { LOGIN_SOLANA_MESSAGE } from "../common/SystemConfiguration";
 
 import { getPhantomProvider } from "../utils/GetPhantomProvider";
 import {
@@ -63,7 +62,7 @@ const WethPage = () => {
   const configData = async () => {
     setCurrentAccount("0x");
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -72,7 +71,7 @@ const WethPage = () => {
       let accountSolana = localStorage.getItem("currentSolanaAccount");
       setCurrentSolanaAccount(accountSolana);
 
-      if (accountSolana == "" || accountSolana == null) {
+      if (accountSolana === "" || accountSolana === null) {
         return;
       }
 
@@ -118,7 +117,7 @@ const WethPage = () => {
     const loginTime = new Date().toLocaleString();
 
     const message =
-      LOGIN_SOLANA_MESSAGE +
+      `Welcome to ${origin} !` +
       "\nAccount: " +
       account_Address +
       "\nLoginTime: " +
@@ -126,7 +125,7 @@ const WethPage = () => {
 
     const signature_string = await signSolanaMessage(provider, message);
 
-    if (signature_string == null) {
+    if (signature_string === null) {
       setMessage("");
       alert("User rejected the signature.");
     } else {

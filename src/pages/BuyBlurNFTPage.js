@@ -37,7 +37,7 @@ const BuyBlurNFTPage = () => {
 
   const updateData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
     let blurAccessToken = localStorage.getItem("blurAccessToken");
@@ -47,7 +47,7 @@ const BuyBlurNFTPage = () => {
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -71,7 +71,7 @@ const BuyBlurNFTPage = () => {
     );
 
     console.log(loginData);
-    if (loginData == null) {
+    if (loginData === null) {
       alert("获取登陆信息是失败");
       return;
     }
@@ -85,7 +85,7 @@ const BuyBlurNFTPage = () => {
     const messageString = loginData.message;
     let result = await signBlurLoginMessage(signer, messageString);
 
-    if (result == null) return;
+    if (result === null) return;
 
     console.log(localTime);
     const requestData = {
@@ -102,7 +102,7 @@ const BuyBlurNFTPage = () => {
     const blurAccessToken = await getBlurAccessTokenByNFTGO(requestData);
     console.log(blurAccessToken);
 
-    if (blurAccessToken == null) {
+    if (blurAccessToken === null) {
       alert("登陆失败");
       return;
     }
@@ -111,7 +111,7 @@ const BuyBlurNFTPage = () => {
     localStorage.setItem("chainId", chainId);
     localStorage.setItem("blurAccessToken", blurAccessToken);
 
-    if (result != false) {
+    if (result !== false) {
       setMessage(JSON.stringify(result, null, "\t"));
     }
   };
@@ -123,7 +123,7 @@ const BuyBlurNFTPage = () => {
       alert("contract is not address");
       return;
     }
-    if (tokenId == "") {
+    if (tokenId === "") {
       alert("tokenId is empty");
       return;
     }
@@ -135,7 +135,7 @@ const BuyBlurNFTPage = () => {
         currentAccount,
         blurAccessToken
       );
-      if (message_ != null) {
+      if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {

@@ -25,7 +25,7 @@ const getNewTx = async (
     return tx;
   } catch (error) {
     // console.log(error);
-    if (error.code == -32000) {
+    if (error.code === -32000) {
       alert(error.message);
     } else if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");

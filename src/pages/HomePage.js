@@ -67,7 +67,7 @@ const HomePage = () => {
     let chainId_ = localStorage.getItem("chainId");
     setChainId(chainId_);
     let currentAccount_ = localStorage.getItem("userAddress");
-    if (currentAccount != currentAccount_) {
+    if (currentAccount !== currentAccount_) {
       configAccountData(currentAccount_);
     }
   };
@@ -77,7 +77,7 @@ const HomePage = () => {
 
       let chainId = localStorage.getItem("chainId");
 
-      if (chainId == null) {
+      if (chainId === null) {
         localStorage.setItem("chainId", DefaultChainId);
       }
 
@@ -98,7 +98,7 @@ const HomePage = () => {
           await configAccountData(account);
         });
 
-        if (account != null) {
+        if (account !== null) {
           configAccountData(account);
         }
       }
@@ -232,7 +232,7 @@ const HomePage = () => {
         fulfillerConduitKey,
         maximumFulfilled;
       console.log(contractsValue);
-      if (contractsValue == "" || tokenIdsValue == "") {
+      if (contractsValue === "" || tokenIdsValue === "") {
         console.log("contractAddress or tokenIds is null");
         return;
       }
@@ -240,7 +240,7 @@ const HomePage = () => {
       let orders;
       let valueEth = BigNumber.from("0");
 
-      if (chainId == "1") {
+      if (chainId === "1") {
         const openseaSDK = new OpenSeaSDK(provider, {
           chain: Chain.Mainnet,
           apiKey: OPENSEA_MAIN_API
@@ -260,7 +260,7 @@ const HomePage = () => {
           contractsValue,
           tokenIdsValue
         );
-      } else if (chainId == "56") {
+      } else if (chainId === "56") {
         const openseaSDK = new OpenSeaSDK(provider, {
           chain: Chain.BNB,
           apiKey: OPENSEA_MAIN_API
@@ -280,7 +280,7 @@ const HomePage = () => {
           contractsValue,
           tokenIdsValue
         );
-      } else if (chainId == "11155111") {
+      } else if (chainId === "11155111") {
         orders = [order_data_t.order_data];
         for (let i = 0; i < orders.length; i++) {
           valueEth = valueEth.add(orders[i].totalPayment);
@@ -292,7 +292,7 @@ const HomePage = () => {
             contractsValue,
             tokenIdsValue
           );
-        if (Orders_datas == null) {
+        if (Orders_datas === null) {
           console.log("Orders_datas is null");
           return null;
         }
@@ -462,8 +462,8 @@ const HomePage = () => {
       const chainId = localStorage.getItem("chainId");
       let orders;
       let valueEth = BigNumber.from("0");
-      if (chainId == "1") {
-      } else if (chainId == "5") {
+      if (chainId === "1") {
+      } else if (chainId === "5") {
         orders = orders_data_t.orders;
         for (let i = 0; i < orders.length; i++) {
           valueEth = valueEth.add(orders[i].totalPayment);
@@ -546,9 +546,9 @@ const HomePage = () => {
 
     let parameters, chainId;
     chainId = localStorage.getItem("chainId");
-    if (chainId == 5) {
+    if (chainId === 5) {
       parameters = order_data_t.order_data.parameters;
-    } else if (chainId == 97) {
+    } else if (chainId === 97) {
       parameters = order_data_t.order_data_tbsc.parameters;
     }
     let YunGou2_0 = await getYunGouAddress();
@@ -586,7 +586,7 @@ const HomePage = () => {
   const showWalletType = () => {
     return (
       <button className="cta-button connect-wallet-button">
-        {localStorage.getItem("LoginType") == "metamask"
+        {localStorage.getItem("LoginType") === "metamask"
           ? "Already logged in with Metamask"
           : "Already logged in with WalletConnect"}
       </button>

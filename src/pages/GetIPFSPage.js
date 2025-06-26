@@ -20,7 +20,7 @@ const GetIPFSPage = () => {
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };

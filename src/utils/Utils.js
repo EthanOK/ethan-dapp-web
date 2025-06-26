@@ -38,15 +38,15 @@ const equalityStringIgnoreCase = (string1, string2) => {
 const getScanURL = async () => {
   let chainId = localStorage.getItem("chainId");
   let scanurl;
-  if (chainId == 1) {
+  if (chainId === 1) {
     scanurl = main_url;
-  } else if (chainId == 5) {
+  } else if (chainId === 5) {
     scanurl = goerli_url;
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     scanurl = tbsc_url;
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     scanurl = bsc_url;
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     scanurl = sepolia_url;
   }
   return scanurl;
@@ -55,9 +55,9 @@ const getScanURL = async () => {
 const getInfuraProvider = async () => {
   let chainId = localStorage.getItem("chainId");
   let provider;
-  if (chainId == 1) {
+  if (chainId === 1) {
     provider = new providers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC);
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     provider = new providers.JsonRpcProvider(process.env.REACT_APP_SEPOLIA_RPC);
   }
   return provider;
@@ -66,13 +66,13 @@ const getInfuraProvider = async () => {
 const getYunGouAddress = async () => {
   let chainId = localStorage.getItem("chainId");
   let address;
-  if (chainId == 1) {
+  if (chainId === 1) {
     address = YunGou2_0_main;
-  } else if (chainId == 5) {
+  } else if (chainId === 5) {
     address = YunGou2_0_goerli;
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     address = YunGou2_0_tbsc;
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     address = YunGou2_0_bsc;
   }
   return address;
@@ -81,15 +81,15 @@ const getYunGouAddress = async () => {
 const getYunGouAggregatorsAddress = async () => {
   let chainId = localStorage.getItem("chainId");
   let address;
-  if (chainId == 1) {
+  if (chainId === 1) {
     address = YunGouAggregators_main;
-  } else if (chainId == 5) {
+  } else if (chainId === 5) {
     address = YunGouAggregators_goerli;
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     address = YunGouAggregators_tbsc;
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     address = YunGouAggregators_bsc;
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     address = YunGouAggregators_sepolia;
   } else {
     address = YunGouAggregators_main;
@@ -100,19 +100,19 @@ const getYunGouAggregatorsAddress = async () => {
 const getYunGouAddressAndParameters = async (chainId) => {
   let YG_Address;
   let parameters;
-  if (chainId == 1) {
+  if (chainId === 1) {
     YG_Address = YunGou2_0_main;
     parameters = order_data.parameters;
-  } else if (chainId == 5) {
+  } else if (chainId === 5) {
     YG_Address = YunGou2_0_goerli;
     parameters = order_data.parameters;
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     YG_Address = YunGou2_0_tbsc;
     parameters = order_data_tbsc.parameters;
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     YG_Address = YunGou2_0_tbsc;
     parameters = order_data_tbsc.parameters;
-  } else if (chainId == 11155111) {
+  } else if (chainId === 11155111) {
     YG_Address = YunGou2_0_sepolia;
     parameters = order_data.parameters;
   } else {
@@ -124,16 +124,16 @@ const getYunGouAddressAndParameters = async (chainId) => {
 const getYunGouAddressAndOrder = async (chainId) => {
   let YG_Address;
   let order;
-  if (chainId == 1) {
+  if (chainId === 1) {
     YG_Address = YunGou2_0_main;
     order = order_data;
-  } else if (chainId == 5) {
+  } else if (chainId === 5) {
     YG_Address = YunGou2_0_goerli;
     order = order_data;
-  } else if (chainId == 97) {
+  } else if (chainId === 97) {
     YG_Address = YunGou2_0_tbsc;
     order = order_data_tbsc;
-  } else if (chainId == 56) {
+  } else if (chainId === 56) {
     YG_Address = YunGou2_0_tbsc;
     order = order_data_tbsc;
   }
@@ -152,7 +152,7 @@ const isContract = async (provider, address) => {
 // 将一个字符串解池化为一个数组 “[1,2,3]” => [1,2,3]
 
 const stringToArray = (string) => {
-  if (string == "[]" || string == "") return [];
+  if (string === "[]" || string === "") return [];
   const hexStringArray = string.substring(1, string.length - 1).split(",");
   const stringArray = hexStringArray.map((hexString) => {
     return hexString.trim(); // 去掉前后的空格
@@ -171,7 +171,7 @@ const getDecimalBigNumber = (number, decimals) => {
 
 const getExtractAddress = (address) => {
   let str = String(address);
-  if (str == "null") {
+  if (str === "null") {
     return "null";
   }
   return (
@@ -217,9 +217,9 @@ async function getAssociatedAddress(mintAddress, ownerAddress) {
 }
 
 function getAlchemyURL(chainId) {
-  if (Number(chainId) == 1) {
+  if (Number(chainId) === 1) {
     return `https://eth-mainnet.g.alchemy.com/nft/v3/${ALCHEMY_KEY_V3}/`;
-  } else if (Number(chainId) == 11155111) {
+  } else if (Number(chainId) === 11155111) {
     return `https://eth-sepolia.g.alchemy.com/nft/v3/${ALCHEMY_KEY_V3}/`;
   }
   return null;

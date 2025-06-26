@@ -33,7 +33,7 @@ const MintNFTPage = () => {
     try {
       console.log("mint amount: " + selectedAmount);
       let [message_, tx] = await mintNFT(selectedAmount);
-      if (message_ != null) {
+      if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {
@@ -51,7 +51,7 @@ const MintNFTPage = () => {
     try {
       console.log("mint amount: " + selectedAmount);
       let [message_, tx] = await signEIP712MessageMintNft(selectedAmount);
-      if (message_ != null) {
+      if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {
