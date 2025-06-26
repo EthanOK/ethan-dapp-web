@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.2](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.1...v2.2.2) (2025-06-26)
+
+
+### Features
+
+* login dapp use `ERC-4361` ([cb97580](https://github.com/EthanOK/ethan-bric-web/commit/cb9758055a065c2702eda33d2afc0d1aadc1f4d3))
+* publish docker ([a85b78b](https://github.com/EthanOK/ethan-bric-web/commit/a85b78bcf6f2ac8f5c088bac71bc8d5b85f6721c))
+
+
+### Bug Fixes
+
+* alert error reason in CreateTransactionPage ([ed48924](https://github.com/EthanOK/ethan-bric-web/commit/ed48924f50c2af94d49f14ac9da08992e2411dca))
+* string eq ([d7b0a16](https://github.com/EthanOK/ethan-bric-web/commit/d7b0a166f8b85672a4c55f8bc6c2f3aad5bec47e))
+
 ### [2.2.1](https://github.com/EthanOK/ethan-yungou-web/compare/v2.2.0...v2.2.1) (2025-06-14)
 
 
