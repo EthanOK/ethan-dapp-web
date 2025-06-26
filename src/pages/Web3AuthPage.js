@@ -13,7 +13,7 @@ const clientId =
 const chainConfig = {
   chainNamespace: "eip155",
   chainId: "0xaa36a7",
-  rpcTarget: "https://rpc.ankr.com/eth_sepolia",
+  rpcTarget: "https://0xrpc.io/sep",
   // Avoid using public rpcTarget in production.
   // Use services like Infura, Quicknode etc
   displayName: "Ethereum Sepolia Testnet",
