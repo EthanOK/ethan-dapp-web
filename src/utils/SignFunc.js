@@ -1,23 +1,52 @@
-import { BigNumber, ethers, providers, utils } from "ethers";
-import { getSigner } from "./GetProvider";
-import { _TypedDataEncoder, TypedDataEncoder } from "@ethersproject/hash";
+import { BigNumber, ethers, utils } from "ethers";
+import { _TypedDataEncoder } from "@ethersproject/hash";
 import {
   equalityStringIgnoreCase,
   getYunGouAddressAndParameters
 } from "./Utils";
-import {
-  YunGou2_0_main,
-  YunGou2_0_goerli,
-  YunGou2_0_tbsc,
-  PRIVATEKEY_VERIFYER
-} from "../common/SystemConfiguration";
-import {
-  getSignerAndChainId,
-  getSignerAndAccountAndChainId
-} from "./GetProvider";
-import { order_data, order_data_tbsc } from "../testdata/orderdata_yungou";
+import { PRIVATEKEY_VERIFYER } from "../common/SystemConfiguration";
+import { getSignerAndChainId } from "./GetProvider";
+import { order_data } from "../testdata/orderdata_yungou";
 import { Seaport } from "@opensea/seaport-js";
 import { BulkOrder, EIP_712_BULK_ORDER_TYPE_DEMO } from "signbulkorder-sdk";
+import { SiweMessage } from "siwe";
+
+export const signSiweMessage = async () => {
+  try {
+    const [signer_, chainId_] = await getSignerAndChainId();
+    const signerAddress = await signer_.getAddress();
+    const domain = window.location.host;
+    const origin = window.location.origin;
+
+    const now = new Date();
+    const pad = (n) => n.toString().padStart(2, "0");
+    const datePart = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
+    const randomPart = Math.floor(Math.random() * 1e16).toString();
+    const nonce = datePart + randomPart;
+
+    // Build ERC-4361: Sign-In with Ethereum
+    const msg = new SiweMessage({
+      domain: domain,
+      address: signerAddress,
+      statement: "Welcome To Ethan DApp",
+      uri: origin,
+      version: "1",
+      chainId: chainId_,
+      nonce,
+      issuedAt: now.toISOString()
+    });
+
+    const prepared = msg.prepareMessage();
+    const signature = await signer_.signMessage(prepared);
+    return { message: prepared, signature };
+  } catch (error) {
+    console.log(error);
+    if (error.code === 4001 || error.code === -32000) {
+      alert(error.message);
+    }
+    return null;
+  }
+};
 
 const signEIP712Message = async (signer, chainId) => {
   try {
@@ -100,7 +129,7 @@ const signStringMessage = async (signer) => {
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");
     }
-    if (error.code == -32000) {
+    if (error.code === -32000) {
       alert(error.message);
     }
     return false;
@@ -131,7 +160,7 @@ const signHexDataMessage = async (signer, hexData) => {
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");
     }
-    if (error.code == -32000) {
+    if (error.code === -32000) {
       alert(error.message);
     }
     return null;
@@ -200,11 +229,11 @@ const signEIP712YunGouMessage = async (signer, chainId) => {
   } catch (error) {
     console.log(error);
 
-    if (error.code == 500) {
+    if (error.code === 500) {
       alert(error.message);
     } else if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");
-    } else if (error.code == -32000) {
+    } else if (error.code === -32000) {
       alert(error.message);
     }
     return false;
@@ -402,7 +431,7 @@ const signEIP712OpenSeaMessage = async (signer, chainId) => {
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");
     }
-    if (error.code == -32000) {
+    if (error.code === -32000) {
       alert(error.message);
     }
     return false;
@@ -577,7 +606,7 @@ const getSystemSignature = async (orderSignature, data) => {
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");
     }
-    if (error.code == -32000) {
+    if (error.code === -32000) {
       alert(error.message);
     }
     return false;
@@ -607,7 +636,7 @@ const signBlurLoginMessage = async (signer, messageString) => {
     if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
       alert("User Rejected Transaction");
     }
-    if (error.code == -32000) {
+    if (error.code === -32000) {
       alert(error.message);
     }
     return null;

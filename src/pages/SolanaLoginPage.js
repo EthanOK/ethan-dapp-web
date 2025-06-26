@@ -12,7 +12,6 @@ import {
   Transaction,
   clusterApiUrl
 } from "@solana/web3.js";
-import { LOGIN_SOLANA_MESSAGE } from "../common/SystemConfiguration";
 
 import { getPhantomProvider } from "../utils/GetPhantomProvider";
 import {
@@ -59,7 +58,7 @@ const SolanaLoginPage = () => {
   const configData = async () => {
     setCurrentAccount("0x");
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
     try {
@@ -78,7 +77,7 @@ const SolanaLoginPage = () => {
       let accountSolana = localStorage.getItem("currentSolanaAccount");
       setCurrentSolanaAccount(accountSolana);
 
-      if (accountSolana == "" || accountSolana == null) {
+      if (accountSolana === "" || accountSolana === null) {
         return;
       }
 
@@ -116,11 +115,11 @@ const SolanaLoginPage = () => {
 
     localStorage.setItem("currentSolanaAccount", account_Address);
 
-    console.log(provider);
+    // console.log(provider);
     const loginTime = new Date().toLocaleString();
 
     const message =
-      LOGIN_SOLANA_MESSAGE +
+      `Welcome to ${origin} !` +
       "\nAccount: " +
       account_Address +
       "\nLoginTime: " +
@@ -128,7 +127,7 @@ const SolanaLoginPage = () => {
 
     const signature_string = await signSolanaMessage(provider, message);
 
-    if (signature_string == null) {
+    if (signature_string === null) {
       setMessage("");
       alert("User rejected the signature.");
     } else {
@@ -172,7 +171,7 @@ const SolanaLoginPage = () => {
       alert("Please install Phantom wallet to use this app");
       return;
     }
-    if (currentSolanaAccount == "" || currentSolanaAccount == null) {
+    if (currentSolanaAccount === "" || currentSolanaAccount === null) {
       return;
     }
 
@@ -204,18 +203,18 @@ const SolanaLoginPage = () => {
       alert("Please install Phantom wallet to use this app");
       return;
     }
-    if (currentSolanaAccount == "" || currentSolanaAccount == null) {
+    if (currentSolanaAccount === "" || currentSolanaAccount === null) {
       return;
     }
     const toSolAddressInput = document.getElementById("toSolAddress");
     const toSolAddressInputValue = toSolAddressInput.value;
     const addressArray = stringToArray(toSolAddressInputValue);
-    if (addressArray.length == 0) {
+    if (addressArray.length === 0) {
       alert("To address is null");
       return;
     }
     addressArray.forEach((address) => {
-      if (address.length != 44) {
+      if (address.length !== 44) {
         alert("To address is not valid");
         return;
       }
@@ -248,7 +247,7 @@ const SolanaLoginPage = () => {
       );
 
       console.log(signature);
-      if (signature == null) {
+      if (signature === null) {
         setAlertMessage("send Sol Failure!");
       } else {
         setAlertMessage("send Sol Success!");

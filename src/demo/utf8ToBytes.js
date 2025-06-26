@@ -20,4 +20,4 @@ const hexString2 = ethers.utils.hexlify(bytes2);
 
 console.log(hexString2);
 
-console.log(hexString2 == hexString);
+console.log(hexString2 === hexString);

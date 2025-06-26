@@ -62,15 +62,15 @@ function App() {
       let account = localStorage.getItem("userAddress");
 
       let chainId = localStorage.getItem("chainId");
-      if (chainId == null) {
+      if (chainId === null) {
         localStorage.setItem("chainId", DefaultChainId);
       }
       let loginType = localStorage.getItem("LoginType");
-      if (loginType == null) {
+      if (loginType === null) {
         localStorage.setItem("LoginType", "metamask");
       }
 
-      if (account != null) {
+      if (account !== null) {
         configAccountData(account);
       }
       if (window.ethereum) {

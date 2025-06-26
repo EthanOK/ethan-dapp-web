@@ -37,7 +37,7 @@ const SignEIP712Page = () => {
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -49,7 +49,7 @@ const SignEIP712Page = () => {
   const signEIP712YunGouHandler = async () => {
     let [signer, chainId] = await getSignerAndChainId();
     let result = await signEIP712YunGouMessage(signer, chainId);
-    if (result != false) {
+    if (result !== false) {
       setMessage(JSON.stringify(result, null, "\t"));
     }
   };
@@ -59,7 +59,7 @@ const SignEIP712Page = () => {
     const [signer, chainId] = await getSignerAndChainId();
 
     let result = await signEIP712OpenSeaMessage(signer, chainId);
-    if (result != false) {
+    if (result !== false) {
       setMessage(JSON.stringify(result, null, "\t"));
     }
   };
@@ -90,7 +90,7 @@ const SignEIP712Page = () => {
     const loginData = await getBlurLoginMessageByNFTGO(
       await signer.getAddress()
     );
-    if (loginData == null) {
+    if (loginData === null) {
       alert("获取登陆信息是失败");
       return;
     }
@@ -117,7 +117,7 @@ const SignEIP712Page = () => {
     console.log(blurAccessToken);
     localStorage.setItem("blurAccessToken", blurAccessToken);
 
-    if (result != false) {
+    if (result !== false) {
       setMessage(JSON.stringify(result, null, "\t"));
     }
   };

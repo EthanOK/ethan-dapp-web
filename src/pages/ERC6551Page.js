@@ -65,14 +65,14 @@ const ERC6551Page = () => {
 
   const updateData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -92,7 +92,7 @@ const ERC6551Page = () => {
       alert("contract is not address");
       return;
     }
-    if (tokenId == "") {
+    if (tokenId === "") {
       alert("tokenId is empty");
       return;
     }
@@ -138,7 +138,7 @@ const ERC6551Page = () => {
       alert("contract is not address");
       return;
     }
-    if (tokenId == "") {
+    if (tokenId === "") {
       alert("tokenId is empty");
       return;
     }
@@ -180,7 +180,7 @@ const ERC6551Page = () => {
         await tokenboundClient.signer.sendTransaction(multiCallTx_data);
       console.log(tx);
 
-      if (tx.hash != null) {
+      if (tx.hash !== null) {
         setTxHash(tx.hash);
         let etherscanURL = await getScanURL();
         let message = `${etherscanURL}/tx/${tx.hash}`;
@@ -300,7 +300,7 @@ const ERC6551Page = () => {
         </div>
         <p></p>
         <div>
-          {srcIframe != null && (
+          {srcIframe !== null && (
             <iframe
               style={{ width: "600px", height: "600px" }}
               src={srcIframe}

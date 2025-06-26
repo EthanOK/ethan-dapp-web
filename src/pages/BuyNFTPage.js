@@ -29,7 +29,7 @@ const BuyNFTPage = () => {
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -44,7 +44,7 @@ const BuyNFTPage = () => {
     const tokenIdInput = document.getElementById("tokenId");
     const tokenIdValue = tokenIdInput.value;
     let res;
-    if (contractValue.length == 44) {
+    if (contractValue.length === 44) {
       res = isAddress(JSON.parse(contractValue));
     } else {
       res = isAddress(contractValue);
@@ -74,7 +74,7 @@ const BuyNFTPage = () => {
       const tokenIdInput = document.getElementById("tokenId");
       const tokenIdValue = tokenIdInput.value;
       let res;
-      if (contractValue.length == 44) {
+      if (contractValue.length === 44) {
         res = isAddress(JSON.parse(contractValue));
       } else {
         res = isAddress(contractValue);
@@ -88,7 +88,7 @@ const BuyNFTPage = () => {
         tokenIdValue,
         currentAccount
       );
-      if (message_ != null) {
+      if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {
@@ -115,7 +115,7 @@ const BuyNFTPage = () => {
         tokenIdValue,
         currentAccount
       );
-      if (message_ != null) {
+      if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {
@@ -140,7 +140,7 @@ const BuyNFTPage = () => {
         tokenIdValue,
         currentAccount
       );
-      if (message_ != null) {
+      if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {
@@ -167,7 +167,7 @@ const BuyNFTPage = () => {
         tokenIdsValue,
         currentAccount
       );
-      if (message_ != null) {
+      if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {
@@ -194,7 +194,7 @@ const BuyNFTPage = () => {
         tokenIdsValue,
         currentAccount
       );
-      if (message_ != null) {
+      if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {

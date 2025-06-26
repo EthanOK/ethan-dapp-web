@@ -83,16 +83,16 @@ const LuckyBabyPage = () => {
     try {
       const amountInput = document.getElementById("buyAmount");
       const amountValue = amountInput.value;
-      if (numberCurrTicket == numberAllTicket) {
+      if (numberCurrTicket === numberAllTicket) {
         alert("All ticket has been sold");
         return;
       }
 
       let [message_, tx] = await participate(amountValue);
 
-      if (tx == null) {
+      if (tx === null) {
         return;
-      } else if (message_ != null) {
+      } else if (message_ !== null) {
         setMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {
@@ -115,7 +115,7 @@ const LuckyBabyPage = () => {
     try {
       let winners_ = await getWinners();
       // console.log(winners_);
-      if (winners_ != null) {
+      if (winners_ !== null) {
         setWinners(JSON.stringify(winners_, null, "\t"));
       }
     } catch (error) {
@@ -126,11 +126,11 @@ const LuckyBabyPage = () => {
   const redeemPrizeHandler = async () => {
     try {
       let [message_, tx] = await redeemPrize();
-      if (tx == null) {
+      if (tx === null) {
         alert(message_);
         return;
       }
-      if (message_ != null) {
+      if (message_ !== null) {
         setRedeemMessage(message_);
         let rsult = await tx.wait();
         if (rsult.status === 1) {
@@ -152,11 +152,11 @@ const LuckyBabyPage = () => {
   const openPrizePoolHandler = async () => {
     try {
       let [message_, tx] = await openPrizePool();
-      if (tx == null) {
+      if (tx === null) {
         alert(message_);
         return;
       }
-      if (message_ != null) {
+      if (message_ !== null) {
         let rsult = await tx.wait();
         if (rsult.status === 1) {
           console.log("Success!");
@@ -221,7 +221,7 @@ const LuckyBabyPage = () => {
         tokenIds: stringToArray(prizeTokenIdsValue)
       };
 
-      if (prizeType == 2 && stringToArray(prizeTokenIdsValue).length == 0) {
+      if (prizeType === 2 && stringToArray(prizeTokenIdsValue).length === 0) {
         alert("Please input NFT tokenIds!");
         return;
       }
@@ -234,11 +234,11 @@ const LuckyBabyPage = () => {
         payToken,
         prize
       );
-      if (tx == null) {
+      if (tx === null) {
         alert(message_);
         return;
       }
-      if (message_ != null) {
+      if (message_ !== null) {
         let rsult = await tx.wait();
         if (rsult.status === 1) {
           console.log("Success!");

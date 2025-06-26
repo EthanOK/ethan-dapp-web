@@ -17,10 +17,10 @@ const getSystemData = async () => {
   });
   let result_json = await result.json();
 
-  if (result_json.code == -400) {
+  if (result_json.code === -400) {
     alert("token 过期，请重新登陆");
     return [];
-  } else if (result_json.code == -401) {
+  } else if (result_json.code === -401) {
     alert(result_json.message);
     return [];
   }
@@ -319,7 +319,7 @@ const getBlurLoginMessageByOpensea = async (userAddress) => {
     if (response.ok) {
       const responseData = await response.json();
       // console.log(responseData);
-      if (responseData.data.toLowerCase() != "Success".toLowerCase()) {
+      if (responseData.data.toLowerCase() !== "Success".toLowerCase()) {
         return null;
       }
 
@@ -350,7 +350,7 @@ const getBlurLoginMessageByNFTGO = async (userAddress) => {
     // console.log(response);
     if (response.ok) {
       const responseData = await response.json();
-      if (responseData.errorCode != 0) {
+      if (responseData.errorCode !== 0) {
         return null;
       }
       const data = responseData.data;
@@ -381,7 +381,7 @@ const getBlurAccessTokenByOpensea = async (requestData) => {
     if (response.ok) {
       const responseData = await response.json();
       console.log(responseData);
-      if (responseData.data.toLowerCase() != "Success".toLowerCase()) {
+      if (responseData.data.toLowerCase() !== "Success".toLowerCase()) {
         return null;
       }
       const blurAccessToken = responseData.accessToken;
@@ -412,7 +412,7 @@ const getBlurAccessTokenByNFTGO = async (requestData) => {
     if (response.ok) {
       const responseData = await response.json();
       console.log(responseData);
-      if (responseData.errorCode != 0) {
+      if (responseData.errorCode !== 0) {
         return null;
       }
       const blurAccessToken = responseData.data.blurAuth;

@@ -30,14 +30,14 @@ const GetCollectionPage = () => {
 
   const updateData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -67,7 +67,7 @@ const GetCollectionPage = () => {
 
       console.log(result);
 
-      if (result != null) {
+      if (result !== null) {
         setMessage(JSON.stringify(result, null, 2));
       }
     } catch (error) {
@@ -92,7 +92,7 @@ const GetCollectionPage = () => {
         contract
       );
 
-      if (result != null) {
+      if (result !== null) {
         setMessage(JSON.stringify(result, null, 2));
       }
     } catch (error) {

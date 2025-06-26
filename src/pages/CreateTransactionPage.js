@@ -29,7 +29,7 @@ const CreateTransactionPage = () => {
 
   const configData = async () => {
     let account = localStorage.getItem("userAddress");
-    if (account != null) {
+    if (account !== null) {
       setCurrentAccount(account);
     }
   };
@@ -46,7 +46,7 @@ const CreateTransactionPage = () => {
     const toValue = toInput.value;
     const amountInput = document.getElementById("amount");
     const amountValue = amountInput.value;
-    let amount = amountValue == "" ? "0" : amountValue;
+    let amount = amountValue === "" ? "0" : amountValue;
 
     let amountBigNumber = getDecimalBigNumber(amount, 18);
 
@@ -101,7 +101,7 @@ const CreateTransactionPage = () => {
 
     const data = document.getElementById("data_tx").value;
 
-    const value = getDecimalBigNumber(value_ == "" ? "0" : value_, 18);
+    const value = getDecimalBigNumber(value_ === "" ? "0" : value_, 18);
 
     if (to !== "" && !isAddress(to)) {
       alert("To address is not valid");
@@ -110,13 +110,13 @@ const CreateTransactionPage = () => {
 
     // let hexInputData;
     // 如果是0x前缀
-    if (!data.startsWith("0x") || data.length % 2 != 0) {
+    if (!data.startsWith("0x") || data.length % 2 !== 0) {
       alert("data is not valid");
       return;
     }
     // const transaction = {
     //   from: await signer.getAddress(),
-    //   // to: to == "" ? null : to,
+    //   // to: to ==="" ? null : to,
     //   data: data
     //   // value: value.toHexString(),
     // };
@@ -126,7 +126,7 @@ const CreateTransactionPage = () => {
 
     try {
       const tx = await signer.sendTransaction({
-        to: to == "" ? null : to,
+        to: to === "" ? null : to,
         data: data,
         value: value
       });

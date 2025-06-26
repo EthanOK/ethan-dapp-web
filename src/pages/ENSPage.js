@@ -48,7 +48,7 @@ const ENSPage = () => {
   const updatePrices = async () => {
     try {
       let result = await getPriceBaseUSDT();
-      if (result.code == 200) {
+      if (result.code === 200) {
         let data = result.data;
         setEthPrice(data.ethPrice);
         setBnbPrice(data.bnbPrice);
@@ -58,7 +58,7 @@ const ENSPage = () => {
   const configData = async () => {
     try {
       let account = localStorage.getItem("userAddress");
-      if (account != null) {
+      if (account !== null) {
         setCurrentAccount(account);
       }
       const data = await getSystemData();
@@ -73,7 +73,7 @@ const ENSPage = () => {
     const addressInput = document.getElementById("addressString");
     const addressValue = addressInput.value;
     let res;
-    if (addressInput.length == 44) {
+    if (addressInput.length === 44) {
       res = isAddress(JSON.parse(addressValue));
     } else {
       res = isAddress(addressValue);
@@ -85,11 +85,11 @@ const ENSPage = () => {
     let result = await getENSUniversalResolver(addressValue);
     console.log(result);
 
-    if (result.code != 200) {
+    if (result.code !== 200) {
       alert(result.message);
       return;
     }
-    if (result.data == null) {
+    if (result.data === null) {
       setMessageENS("null");
     } else {
       setMessageENS(result.data);
@@ -104,12 +104,12 @@ const ENSPage = () => {
       return;
     }
     let result = await getAddressOfENSTheGraph(ensValue);
-    if (result.code != 200) {
+    if (result.code !== 200) {
       alert(result.message);
       return;
     }
 
-    if (result.data == null) {
+    if (result.data === null) {
       setMessageAddress("null");
     } else {
       setMessageAddress(result.data);
@@ -125,16 +125,16 @@ const ENSPage = () => {
     }
     const labelHash = BigNumber.from(tokenIdValue).toHexString();
 
-    // if (labelHash.length != 66 || tokenIdValue.length < 64) {
+    // if (labelHash.length !==66 || tokenIdValue.length < 64) {
     //   alert("输入错误");
     //   return;
     // }
     let result = await getENSByTokenId(tokenIdValue);
-    if (result.code != 200) {
+    if (result.code !== 200) {
       alert(result.message);
       return;
     }
-    if (result.data == null) {
+    if (result.data === null) {
       setMessageName("null");
     } else {
       setMessageName(result.data);
