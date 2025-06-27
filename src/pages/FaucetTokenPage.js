@@ -106,6 +106,7 @@ const FaucetTokenPage = () => {
     try {
       let account = localStorage.getItem("userAddress");
       let chainId = localStorage.getItem("chainId");
+      chainId = parseInt(chainId);
       let ygmeAddress = faucetConfig[chainId].ygme;
 
       if (ygmeAddress) {
@@ -126,6 +127,7 @@ const FaucetTokenPage = () => {
   const faucetTokenHandler = async (tokenName, faucetAmount) => {
     let account = localStorage.getItem("userAddress");
     let chainId = localStorage.getItem("chainId");
+    chainId = parseInt(chainId);
     let accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
     let tokenAddress = getFaucetTokenAddress(chainId, tokenName);
     if (chainId === 5) {

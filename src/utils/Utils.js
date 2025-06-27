@@ -37,6 +37,8 @@ const equalityStringIgnoreCase = (string1, string2) => {
 
 const getScanURL = async () => {
   let chainId = localStorage.getItem("chainId");
+  chainId = parseInt(chainId);
+
   let scanurl;
   if (chainId === 1) {
     scanurl = main_url;
@@ -54,6 +56,7 @@ const getScanURL = async () => {
 
 const getInfuraProvider = async () => {
   let chainId = localStorage.getItem("chainId");
+  chainId = parseInt(chainId);
   let provider;
   if (chainId === 1) {
     provider = new providers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC);
@@ -65,6 +68,7 @@ const getInfuraProvider = async () => {
 
 const getYunGouAddress = async () => {
   let chainId = localStorage.getItem("chainId");
+  chainId = parseInt(chainId);
   let address;
   if (chainId === 1) {
     address = YunGou2_0_main;
@@ -80,6 +84,7 @@ const getYunGouAddress = async () => {
 
 const getYunGouAggregatorsAddress = async () => {
   let chainId = localStorage.getItem("chainId");
+  chainId = parseInt(chainId);
   let address;
   if (chainId === 1) {
     address = YunGouAggregators_main;
@@ -100,6 +105,7 @@ const getYunGouAggregatorsAddress = async () => {
 const getYunGouAddressAndParameters = async (chainId) => {
   let YG_Address;
   let parameters;
+  chainId = parseInt(chainId);
   if (chainId === 1) {
     YG_Address = YunGou2_0_main;
     parameters = order_data.parameters;
@@ -124,6 +130,7 @@ const getYunGouAddressAndParameters = async (chainId) => {
 const getYunGouAddressAndOrder = async (chainId) => {
   let YG_Address;
   let order;
+  chainId = parseInt(chainId);
   if (chainId === 1) {
     YG_Address = YunGou2_0_main;
     order = order_data;

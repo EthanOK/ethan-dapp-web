@@ -50,6 +50,7 @@ const CrossChainBridgePage = () => {
       let account = localStorage.getItem("userAddress");
       setCurrentAccount(account);
       let chainId = localStorage.getItem("chainId");
+      chainId = parseInt(chainId);
       setChainId(chainId);
       if (chainId === 5 || Number(chainId) === 5) {
         setToChainId(97);

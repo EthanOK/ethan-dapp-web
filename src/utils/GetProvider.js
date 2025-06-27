@@ -125,6 +125,7 @@ const getProvider = async () => {
 };
 const getProviderWeb3 = async () => {
   let chainId = localStorage.getItem("chainId");
+  chainId = parseInt(chainId);
   let rpc;
   if (chainId === 1) {
     rpc = main_rpc;
