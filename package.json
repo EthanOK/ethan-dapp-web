@@ -1,7 +1,7 @@
 {
-  "name": "ethan-bric-web",
+  "name": "ethan-dapp-web",
   "version": "2.2.2",
-  "author": "Ethan",
+  "author": "0xEthan",
   "private": true,
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

@@ -81,11 +81,12 @@ const getProvider = async () => {
   try {
     if (type === "walletconnect") {
       let chainId = localStorage.getItem("chainId");
+      const optionalChains = SupportChains.map((c) => parseInt(c.id));
 
       let provider = await EthereumProvider.init({
         projectId: projectId_walletconnect,
         chains: [Number.parseInt(chainId)],
-        optionalChains: [1, 5, 56, 97, 137],
+        optionalChains: optionalChains,
         methods: [
           "eth_sendTransaction",
           "personal_sign",
