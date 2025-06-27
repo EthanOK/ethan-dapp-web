@@ -1,10 +1,10 @@
 FROM node:18
 
 # 复制代码
-COPY . /ethan-yungou-web
+COPY . /ethan-dapp-web
 
 # 设置容器启动后的默认运行目录
-WORKDIR /ethan-yungou-web
+WORKDIR /ethan-dapp-web
 
 
 RUN npm install
