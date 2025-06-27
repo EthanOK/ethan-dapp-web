@@ -7,7 +7,6 @@ import yunGouAggregatorsAbi from "../contracts/YunGouAggregators.json";
 
 import yunGou2_0Abi from "../contracts/yungou2_0.json";
 import { BigNumber, ethers } from "ethers";
-import { _TypedDataEncoder } from "@ethersproject/hash";
 import { OpenSeaSDK, Chain } from "opensea-js";
 
 import { login } from "../utils/ConnectWallet.js";
@@ -16,7 +15,6 @@ import {
   getSigner,
   getProvider,
   getChainIdAndBalanceETHAndTransactionCount,
-  getSignerAndChainId,
   switchChain
 } from "../utils/GetProvider.js";
 
@@ -27,12 +25,10 @@ import {
   stringToArray,
   getYunGouAggregatorsAddress
 } from "../utils/Utils.js";
-import Web3 from "web3";
 import Orders from "../utils/GetOrder.js";
 import OrdersTest from "../utils/GetOrdersTestnet.js";
 import {
   OPENSEA_MAIN_API,
-  chainName_G,
   YUNGOU_END,
   DefaultChainId,
   chainName_S

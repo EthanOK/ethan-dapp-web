@@ -169,7 +169,7 @@ function App() {
                 />
                 <AccordionItem title="Faucet Token" linkTo="/faucet" />
                 <AccordionItem title="Burn Token" linkTo="/burn" />
-                <AccordionItem title="Token Price" linkTo="/display" />
+                {/* <AccordionItem title="Token Price" linkTo="/display" /> */}
                 <AccordionItem title="ENS Service" linkTo="/ens" />
                 <AccordionItem title="Mint NFT" linkTo="/mintnft" />
                 <AccordionItem title="Get Collection" linkTo="/getCollection" />
@@ -223,7 +223,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/loginSolana" element={<SolanaLoginPage />} />
-          <Route path="/display" element={<DataDisplayPage />} />
+          {/* <Route path="/display" element={<DataDisplayPage />} /> */}
           <Route path="/ens" element={<ENSPage />} />
           <Route path="/mintnft" element={<MintNFTPage />} />
           <Route path="/getCollection" element={<GetCollectionPage />} />
