@@ -7,6 +7,7 @@ import {
   projectId_walletconnect
 } from "../common/SystemConfiguration";
 import { SupportChains } from "../common/ChainsConfig";
+import { BrowserProvider } from "ethers-v6";
 
 export const switchChain = async (chainId) => {
   const chain = SupportChains.find((c) => c.id === chainId);
@@ -123,6 +124,79 @@ const getProvider = async () => {
     return null;
   }
 };
+
+export const getProviderV6 = async () => {
+  let type = localStorage.getItem("LoginType");
+  if (type === "metamask") {
+    let provider;
+    // await provider.send("eth_requestAccounts", []);
+    // window.ethereum.enable();
+    try {
+      let chainId = await window.ethereum.request({ method: "eth_chainId" });
+
+      let chainId_local = localStorage.getItem("chainId");
+      // if (chainId !== chainId_local) {
+      //   let success = await switchChain(chainId_local);
+      //   if (!success) {
+      //     return null;
+      //   }
+      // }
+      provider = new BrowserProvider(window.ethereum);
+      let accounts = await provider.send("eth_requestAccounts", []);
+      // console.log(accounts);
+      return provider;
+    } catch (error) {
+      console.log("switch failure");
+      return null;
+    }
+  }
+
+  try {
+    if (type === "walletconnect") {
+      let chainId = localStorage.getItem("chainId");
+      const optionalChains = SupportChains.map((c) => parseInt(c.id));
+
+      let provider = await EthereumProvider.init({
+        projectId: projectId_walletconnect,
+        chains: [Number.parseInt(chainId)],
+        optionalChains: optionalChains,
+        methods: [
+          "eth_sendTransaction",
+          "personal_sign",
+          "eth_signTypedData",
+          "eth_signTypedData_v4"
+        ],
+        optionalMethods: [
+          "eth_sendTransaction",
+          "personal_sign",
+          "eth_signTypedData",
+          "eth_signTypedData_v4"
+        ],
+        showQrModal: "true"
+      });
+      // await provider.connector.killSession();
+      //  Enable session (triggers QR Code modal)
+      await provider.enable();
+
+      provider.on("chainChanged", async (chainId) => {
+        console.log("chainChanged");
+        console.log(chainId);
+      });
+      provider.on("disconnect", async () => {
+        localStorage.clear();
+        window.location.reload();
+        console.log("walletconnect 断开连接");
+      });
+      const web3Provider = new ethers.providers.Web3Provider(provider);
+
+      return web3Provider;
+    }
+  } catch (error) {
+    console.log("walletconnect failure");
+    return null;
+  }
+};
+
 const getProviderWeb3 = async () => {
   let chainId = localStorage.getItem("chainId");
   chainId = parseInt(chainId);
@@ -148,6 +222,16 @@ const getSigner = async () => {
   try {
     const provider = await getProvider();
     const signer = provider.getSigner();
+    return signer;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const getSignerV6 = async () => {
+  try {
+    const provider = await getProviderV6();
+    const signer = await provider.getSigner();
     return signer;
   } catch (error) {
     return null;

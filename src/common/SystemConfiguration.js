@@ -72,6 +72,9 @@ const LOGIN_SOLANA_MESSAGE = "Welcome to ethan-yungou.vercel.app!";
 
 const SOLANA_DEV_RPC = "https://rpc.ankr.com/solana_devnet";
 
+export const EIP7702Delegator_Metamask =
+  "0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B";
+
 export {
   PancakeRouter,
   UniswapRouter,
