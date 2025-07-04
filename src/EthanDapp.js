@@ -29,6 +29,7 @@ import GetCollectionPage from "./pages/GetCollectionPage";
 import Web3AuthPage from "./pages/Web3AuthPage";
 import WethPage from "./pages/WethPage";
 import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
+import EIP7702Page from "./pages/EIP7702Page";
 
 window.Buffer = window.Buffer || require("buffer").Buffer;
 // hardhat: 31337 tbsc: 97 0x61 goerli： 0x5
@@ -174,6 +175,7 @@ function App() {
                 <AccordionItem title="Mint NFT" linkTo="/mintnft" />
                 <AccordionItem title="Get Collection" linkTo="/getCollection" />
                 <AccordionItem title="Sign EIP712" linkTo="/signEIP712" />
+                <AccordionItem title="EIP7702" linkTo="/eip7702" />
                 <AccordionItem
                   title="Get OpenSeaData"
                   linkTo="/getOpenSeaData"
@@ -242,6 +244,7 @@ function App() {
           <Route path="/utils" element={<UtilsPage />} />
           {/* <Route path="/crossChainBridge" element={<CrossChainBridgePage />} /> */}
           <Route path="/erc6551" element={<ERC6551Page />} />
+          <Route path="/eip7702" element={<EIP7702Page />} />
           <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
           <Route path="/web3Auth" element={<Web3AuthPage />} />
           <Route path="/web3AuthSolana" element={<Web3AuthSolanaPage />} />
