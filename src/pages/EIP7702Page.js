@@ -130,6 +130,7 @@ const EIP7702Page = () => {
       <button
         onClick={createEIP7702AccountHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         createEIP7702Account
       </button>
@@ -141,6 +142,7 @@ const EIP7702Page = () => {
       <button
         onClick={revokeEIP7702AccountHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         revokeEIP7702Account
       </button>
@@ -168,10 +170,10 @@ const EIP7702Page = () => {
         </div>
 
         <p></p>
-        {currentAccount ? createEIP7702AccountButton() : PleaseLogin()}
+        {createEIP7702AccountButton()}
 
         <p></p>
-        {currentAccount ? revokeEIP7702AccountButton() : PleaseLogin()}
+        {revokeEIP7702AccountButton()}
       </div>
       <div>
         <h2>

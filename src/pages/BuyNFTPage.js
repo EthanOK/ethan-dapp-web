@@ -214,6 +214,7 @@ const BuyNFTPage = () => {
         <button
           onClick={fulfillBasicOrderHandler}
           className="cta-button mint-nft-button"
+          disabled={!currentAccount}
         >
           fulfillBasicOrder(推荐使用)
         </button>
@@ -224,6 +225,7 @@ const BuyNFTPage = () => {
         <button
           onClick={fulfillOrderHandler}
           className="cta-button mint-nft-button"
+          disabled={!currentAccount}
         >
           fulfillOrder
         </button>
@@ -234,6 +236,7 @@ const BuyNFTPage = () => {
         <button
           onClick={fulfillBasicOrder_efficientHandler}
           className="cta-button mint-nft-button"
+          disabled={!currentAccount}
         >
           fulfillBasicOrder_efficient_6GL6yc(gas最优)
         </button>
@@ -247,6 +250,7 @@ const BuyNFTPage = () => {
         <button
           onClick={fulfillAvailableOrdersHandler}
           className="cta-button mint-nft-button"
+          disabled={!currentAccount}
         >
           fulfillAvailableOrders
         </button>
@@ -257,6 +261,7 @@ const BuyNFTPage = () => {
         <button
           onClick={fulfillAvailableAdvancedOrdersHandler}
           className="cta-button mint-nft-button"
+          disabled={!currentAccount}
         >
           fulfillAvailableAdvancedOrders(推荐使用)
         </button>
@@ -294,11 +299,11 @@ const BuyNFTPage = () => {
             </div>
           </div>
           <p></p>
-          {currentAccount ? fulfillOrderButton(0) : PleaseLogin()}
+          {fulfillOrderButton(0)}
           <p></p>
-          {currentAccount ? fulfillOrderButton(1) : PleaseLogin()}
+          {fulfillOrderButton(1)}
           <p></p>
-          {currentAccount ? fulfillOrderButton(2) : PleaseLogin()}
+          {fulfillOrderButton(2)}
         </div>
 
         <div className="bordered-div">
@@ -329,9 +334,9 @@ const BuyNFTPage = () => {
             </div>
           </div>
           <p></p>
-          {currentAccount ? fulfillOrdersButton(0) : PleaseLogin()}
+          {fulfillOrdersButton(0)}
           <p></p>
-          {currentAccount ? fulfillOrdersButton(1) : PleaseLogin()}
+          {fulfillOrdersButton(1)}
         </div>
       </div>
 

@@ -1,25 +1,22 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import DataDisplayPage from "./pages/DataDisplayPage";
 import MintNFTPage from "./pages/MintNFTPage";
 import SignEIP712Page from "./pages/SignEIP712Page";
 import HomePage from "./pages/HomePage";
 import GetOpenSeaDataPage from "./pages/GetOpenSeaDataPage";
 import GetIPFSPage from "./pages/GetIPFSPage";
 import "./App.css";
-import { _TypedDataEncoder } from "@ethersproject/hash";
-import { login } from "./utils/ConnectWallet";
-import { getChainIdAndBalanceETHAndTransactionCount } from "./utils/GetProvider";
-import { DefaultChainId } from "./common/SystemConfiguration";
+import {
+  DefaultChainId,
+  projectId_walletconnect
+} from "./common/SystemConfiguration";
 import BuyNFTPage from "./pages/BuyNFTPage";
 import LuckyBabyPage from "./pages/LuckyBabyPage";
 import ENSPage from "./pages/ENSPage";
 import FaucetTokenPage from "./pages/FaucetTokenPage";
 import { getExtractAddress } from "./utils/Utils";
-import TransferNativePage from "./pages/CreateTransactionPage";
 import UtilsPage from "./pages/UtilsPage";
 import BurnTokenPage from "./pages/BurnTokenPage";
-import CrossChainBridgePage from "./pages/CrossChainBridgePage";
 import SolanaLoginPage from "./pages/SolanaLoginPage";
 import BuyBlurNFTPage from "./pages/BuyBlurNFTPage";
 import ERC6551Page from "./pages/ERC6551Page";
@@ -30,14 +27,37 @@ import Web3AuthPage from "./pages/Web3AuthPage";
 import WethPage from "./pages/WethPage";
 import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
 import EIP7702Page from "./pages/EIP7702Page";
+import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
+import { base, bsc, mainnet, sepolia } from "@reown/appkit/networks";
+import { createAppKit } from "@reown/appkit";
 
 window.Buffer = window.Buffer || require("buffer").Buffer;
 // hardhat: 31337 tbsc: 97 0x61 goerli： 0x5
 
+// 1. Get projectId at https://cloud.reown.com
+const projectId = projectId_walletconnect;
+
+// 2. Create your application's metadata object
+const metadata = {
+  name: "Ethan Dapp Website",
+  description: "My Website description"
+  // url: "https://ethan-dapp.vercel.app", // url must match your domain & subdomain
+  // icons: ["https://avatars.mywebsite.com/"]
+};
+
+// 3. Create a AppKit instance
+export const modal = createAppKit({
+  adapters: [new Ethers5Adapter()],
+  metadata: metadata,
+  networks: [sepolia, mainnet, base, bsc],
+  projectId,
+  features: {
+    analytics: true // Optional - defaults to your Cloud configuration
+  }
+});
+
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
-  const [currentAccountBalance, setCurrentAccountBalance] = useState(null);
-  const [currentAccountNonce, setCurrentAccountNonce] = useState(null);
   const [isExpanded, setIsExpanded] = useState(true);
 
   const [chainId, setChainId] = useState(
@@ -45,8 +65,6 @@ function App() {
   );
 
   const [isMounted, setIsMounted] = useState(false);
-
-  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -68,7 +86,7 @@ function App() {
       }
       let loginType = localStorage.getItem("LoginType");
       if (loginType === null) {
-        localStorage.setItem("LoginType", "metamask");
+        localStorage.setItem("LoginType", null);
       }
 
       if (account !== null) {
@@ -107,14 +125,7 @@ function App() {
     try {
       setCurrentAccount(account);
 
-      let [chainId, balance_ether, nonce] =
-        await getChainIdAndBalanceETHAndTransactionCount(account);
-
       setChainId(localStorage.getItem("chainId"));
-
-      setCurrentAccountBalance(balance_ether);
-
-      setCurrentAccountNonce(nonce);
     } catch (error) {
       console.log(error);
     }

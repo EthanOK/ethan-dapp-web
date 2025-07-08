@@ -234,3 +234,9 @@
   font-size: 16px;
   font-family: monospace;
 }
+
+.cta-button.mint-nft-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #454040;
+}

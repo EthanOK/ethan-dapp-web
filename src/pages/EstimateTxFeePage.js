@@ -73,6 +73,7 @@ const EstimateTxFeePage = () => {
       <button
         onClick={estimateTxFeeHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         estimate txFee
       </button>
@@ -123,7 +124,7 @@ const EstimateTxFeePage = () => {
           </div>
         </div>
         <p></p>
-        {currentAccount ? estimateTxFeeButton() : PleaseLogin()}
+        {estimateTxFeeButton()}
       </div>
       <div>
         <h2>

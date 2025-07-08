@@ -65,6 +65,7 @@ const GetOpenSeaDataPage = () => {
       <button
         onClick={getOrderHashAndSignatureHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         getOrderHashAndSignature
       </button>
@@ -99,7 +100,7 @@ const GetOpenSeaDataPage = () => {
           </div>
         </div>
         <p></p>
-        {currentAccount ? getOrderHashAndSignatureButton() : PleaseLogin()}
+        {getOrderHashAndSignatureButton()}
       </div>
       <div>
         <h2>

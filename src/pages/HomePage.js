@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import seaportAbi from "../contracts/seaport1_5.json";
 
@@ -34,12 +35,14 @@ import {
   chainName_S
 } from "../common/SystemConfiguration.js";
 import { SupportChains } from "../common/ChainsConfig.js";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 
 const HomePage = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [currentAccountBalance, setCurrentAccountBalance] = useState(null);
   const [currentAccountNonce, setCurrentAccountNonce] = useState(null);
-
+  const { address, isConnected } = useAppKitAccount();
+  const { chainId: chainID } = useAppKitNetwork();
   const [chainId, setChainId] = useState(
     localStorage.getItem("chainId") || DefaultChainId
   );
@@ -53,20 +56,31 @@ const HomePage = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    const intervalId = setInterval(updateData, 2000);
+    const intervalId = setInterval(() => updateData(), 3000);
+
     return () => {
       clearInterval(intervalId);
       setIsMounted(false);
     };
-  }, []);
+  }, [isConnected, address, chainID]);
+
   const updateData = () => {
     let chainId_ = localStorage.getItem("chainId");
-    setChainId(chainId_);
+    if (chainID !== undefined && Number(chainId_) !== Number(chainID)) {
+      setChainId(chainID);
+      localStorage.setItem("chainId", chainID);
+    }
+
+    if (isConnected && address) {
+      localStorage.setItem("userAddress", address);
+    }
+
     let currentAccount_ = localStorage.getItem("userAddress");
     if (currentAccount !== currentAccount_) {
       configAccountData(currentAccount_);
     }
   };
+
   useEffect(() => {
     if (isMounted) {
       let account = localStorage.getItem("userAddress");
@@ -569,6 +583,17 @@ const HomePage = () => {
       </button>
     );
   };
+
+  const connectReownButton = () => {
+    return (
+      <appkit-button
+        label="Connect With Reown"
+        style={{ display: "block", margin: "0 auto" }}
+        onClick={() => localStorage.setItem("LoginType", "reown")}
+      />
+    );
+  };
+
   const connectWalletConnect = () => {
     return (
       <button
@@ -579,12 +604,18 @@ const HomePage = () => {
       </button>
     );
   };
+
   const showWalletType = () => {
+    const loginType = localStorage.getItem("LoginType");
+    const typeMap = {
+      metamask: "Metamask",
+      walletconnect: "WalletConnect",
+      reown: "Reown"
+    };
+
     return (
       <button className="cta-button connect-wallet-button">
-        {localStorage.getItem("LoginType") === "metamask"
-          ? "Already logged in with Metamask"
-          : "Already logged in with WalletConnect"}
+        {`Already logged in with ${typeMap[loginType] || "Unknown"}`}
       </button>
     );
   };
@@ -595,6 +626,7 @@ const HomePage = () => {
       <button
         onClick={yunGouAggregatorsHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         YunGou Aggregators
       </button>
@@ -606,6 +638,7 @@ const HomePage = () => {
       <button
         onClick={excuteWithETHHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         YunGou excuteWithETH
       </button>
@@ -617,6 +650,7 @@ const HomePage = () => {
       <button
         onClick={batchExcuteWithETHHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         YunGou batchExcuteWithETH
       </button>
@@ -625,7 +659,11 @@ const HomePage = () => {
   // cancelButton
   const cancelButton = () => {
     return (
-      <button onClick={cancelHandler} className="cta-button mint-nft-button">
+      <button
+        onClick={cancelHandler}
+        className="cta-button mint-nft-button"
+        disabled={!currentAccount}
+      >
         YunGou cancel
       </button>
     );
@@ -637,6 +675,7 @@ const HomePage = () => {
       <button
         onClick={getYunGouOrderHashHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         get YunGou OrderHash
       </button>
@@ -681,10 +720,11 @@ const HomePage = () => {
         <div>
           <div>
             <h2 style={{ color: "red" }}>Login:</h2>
-
+            {isConnected ? connectReownButton() : connectReownButton()}
+            <p></p>
             {currentAccount ? showWalletType() : connectMeatamask()}
             <p></p>
-            {currentAccount ? showWalletType() : connectWalletConnect()}
+            {/* {currentAccount ? showWalletType() : connectWalletConnect()} */}
           </div>
         </div>
         <p></p>
@@ -709,19 +749,19 @@ const HomePage = () => {
               />
             </div>
             <p></p>
-            {currentAccount ? aggregatorsButton() : connectMeatamask()}
+            {aggregatorsButton()}
           </div>
         </center>
       </div>
 
       <h3>YunGou 2.0</h3>
-      {currentAccount ? excuteWithETHButton() : connectMeatamask()}
+      {excuteWithETHButton()}
       <p></p>
-      {currentAccount ? batchExcuteWithETHButton() : connectMeatamask()}
+      {batchExcuteWithETHButton()}
       <p></p>
-      {currentAccount ? cancelButton() : connectMeatamask()}
+      {cancelButton()}
       <p></p>
-      {currentAccount ? getYunGouOrderHashButton() : connectMeatamask()}
+      {getYunGouOrderHashButton()}
 
       <div>
         <h2>

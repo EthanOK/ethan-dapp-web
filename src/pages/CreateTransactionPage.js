@@ -152,6 +152,7 @@ const CreateTransactionPage = () => {
       <button
         onClick={transferNativeHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         transfer
       </button>
@@ -160,7 +161,11 @@ const CreateTransactionPage = () => {
 
   const createTxButton = () => {
     return (
-      <button onClick={createTxHandler} className="cta-button mint-nft-button">
+      <button
+        onClick={createTxHandler}
+        className="cta-button mint-nft-button"
+        disabled={!currentAccount}
+      >
         create Tx
       </button>
     );
@@ -208,7 +213,7 @@ const CreateTransactionPage = () => {
           </div>
         </div>
         <p></p>
-        {currentAccount ? transferNativeButton() : PleaseLogin()}
+        {transferNativeButton()}
       </div>
 
       <p></p>
@@ -248,7 +253,7 @@ const CreateTransactionPage = () => {
           </div>
         </div>
         <p></p>
-        {currentAccount ? createTxButton() : PleaseLogin()}
+        {createTxButton()}
       </div>
       <div>
         <h2>

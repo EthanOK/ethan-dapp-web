@@ -181,7 +181,11 @@ const FaucetTokenPage = () => {
     if (!config) return null;
 
     return (
-      <button onClick={config.handler} className="cta-button mint-nft-button">
+      <button
+        onClick={config.handler}
+        className="cta-button mint-nft-button"
+        disabled={!currentAccount}
+      >
         Faucet {config.amount} {config.label}
       </button>
     );
@@ -261,7 +265,7 @@ const FaucetTokenPage = () => {
       <div className="bordered-div">
         <h2>Faucet YGME</h2>
         <h3>My YGME Balance: {myYgmeBalance}</h3>
-        {currentAccount ? faucetButton("YGME") : PleaseLogin()}
+        {faucetButton("YGME")}
       </div>
       <p></p>
       <div className="bordered-div">
@@ -290,9 +294,7 @@ const FaucetTokenPage = () => {
           My {selectedToken} Balance: {tokenBalance}
         </h3>
 
-        {currentAccount
-          ? faucetButton(selectedToken, currentToken.faucetAmount)
-          : PleaseLogin()}
+        {faucetButton(selectedToken, currentToken.faucetAmount)}
       </div>
     </center>
   );

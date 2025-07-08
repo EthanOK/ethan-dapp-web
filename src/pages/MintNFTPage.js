@@ -67,7 +67,11 @@ const MintNFTPage = () => {
   const mintNftButton = (type) => {
     if (type === 1) {
       return (
-        <button onClick={mintNftHandler} className="cta-button mint-nft-button">
+        <button
+          onClick={mintNftHandler}
+          className="cta-button mint-nft-button"
+          disabled={!currentAccount}
+        >
           Mint NFT
         </button>
       );
@@ -78,6 +82,7 @@ const MintNFTPage = () => {
         <button
           onClick={signEIP712MessageMintNftHandler}
           className="cta-button mint-nft-button"
+          disabled={!currentAccount}
         >
           signEIP712 Message and Mint NFT
         </button>
@@ -113,9 +118,9 @@ const MintNFTPage = () => {
           </select>
         </div>
         <p></p>
-        {currentAccount ? mintNftButton(1) : PleaseLogin()}
+        {mintNftButton(1)}
         <p></p>
-        {currentAccount ? mintNftButton(2) : PleaseLogin()}
+        {mintNftButton(2)}
       </div>
       <div>
         <h2>

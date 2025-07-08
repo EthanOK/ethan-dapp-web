@@ -82,7 +82,11 @@ const BurnTokenPage = () => {
 
   const burnTokenButton = () => {
     return (
-      <button onClick={burnTokenHandler} className="cta-button mint-nft-button">
+      <button
+        onClick={burnTokenHandler}
+        className="cta-button mint-nft-button"
+        disabled={!currentAccount}
+      >
         Burn Token
       </button>
     );
@@ -92,6 +96,7 @@ const BurnTokenPage = () => {
       <button
         onClick={getBalanceHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         Import
       </button>
@@ -122,7 +127,7 @@ const BurnTokenPage = () => {
         </div>
         <p></p>
 
-        {currentAccount ? importButton() : PleaseLogin()}
+        {importButton()}
 
         <p></p>
         <div>
@@ -142,7 +147,7 @@ const BurnTokenPage = () => {
           <p></p>
         </div>
 
-        {currentAccount ? burnTokenButton() : PleaseLogin()}
+        {burnTokenButton()}
       </div>
       <p></p>
     </center>

@@ -16,6 +16,7 @@ import {
   getBlurLoginMessageByNFTGO
 } from "../api/GetData.js";
 import { Seaport } from "@opensea/seaport-js";
+import { login } from "../utils/ConnectWallet.js";
 
 const SignEIP712Page = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -122,12 +123,17 @@ const SignEIP712Page = () => {
     }
   };
 
+  const signEthanDappHandler = async () => {
+    await login();
+  };
+
   // TODO:signTypedDataYunGouButton
   const signTypedDataYunGouButton = () => {
     return (
       <button
         onClick={signEIP712YunGouHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         signEIP712Message YunGou
       </button>
@@ -140,6 +146,7 @@ const SignEIP712Page = () => {
       <button
         onClick={signEIP712OpenSeaHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         signEIP712Message OpenSea
       </button>
@@ -152,6 +159,7 @@ const SignEIP712Page = () => {
       <button
         onClick={signBulkOrderOpenSeaHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         signBulkOrder OpenSea
       </button>
@@ -163,6 +171,7 @@ const SignEIP712Page = () => {
       <button
         onClick={signBulkOrdersHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         signCustomBulkOrders
       </button>
@@ -174,8 +183,21 @@ const SignEIP712Page = () => {
       <button
         onClick={signLoginBlurHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         sign Login Blur
+      </button>
+    );
+  };
+
+  const signLoginEthanDappButton = () => {
+    return (
+      <button
+        onClick={signEthanDappHandler}
+        className="cta-button mint-nft-button"
+        disabled={!currentAccount}
+      >
+        sign Login Ethan Dapp
       </button>
     );
   };
@@ -184,19 +206,19 @@ const SignEIP712Page = () => {
     <center>
       <div>
         <h2>EIP 712</h2>
-        {currentAccount ? signTypedDataYunGouButton() : PleaseLogin()}
+        {signTypedDataYunGouButton()}
 
         <p></p>
-        {currentAccount ? signTypedDataOpenSeaButton() : PleaseLogin()}
+        {signTypedDataOpenSeaButton()}
 
         <p></p>
-        {currentAccount ? signBulkOrderOpenSeaButton() : PleaseLogin()}
+        {signBulkOrderOpenSeaButton()}
 
         <p></p>
-        {currentAccount ? signBulkOrdersButton() : PleaseLogin()}
+        {signBulkOrdersButton()}
 
         <p></p>
-        {/* {currentAccount ? signLoginBlurButton() : PleaseLogin()} */}
+        {signLoginEthanDappButton()}
       </div>
       <div>
         <h2>

@@ -143,7 +143,11 @@ const ENSPage = () => {
 
   const getENSButton = () => {
     return (
-      <button onClick={getENSHandler} className="cta-button mint-nft-button">
+      <button
+        onClick={getENSHandler}
+        className="cta-button mint-nft-button"
+        disabled={!currentAccount}
+      >
         get ENS
       </button>
     );
@@ -154,6 +158,7 @@ const ENSPage = () => {
       <button
         onClick={getAddressHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         get Address
       </button>
@@ -165,6 +170,7 @@ const ENSPage = () => {
       <button
         onClick={getNameByTokenIdHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         get Name By TokenId
       </button>
@@ -186,7 +192,7 @@ const ENSPage = () => {
             </div>
             <p></p>
             <div>
-              {currentAccount ? getENSButton() : PleaseLogin()}
+              {getENSButton()}
               <p></p>
               Result ENS:
               <textarea
@@ -217,7 +223,7 @@ const ENSPage = () => {
             </div>
             <p></p>
             <div>
-              {currentAccount ? getAddressButton() : PleaseLogin()}
+              {getAddressButton()}
               <p></p>
               Result Address:
               <textarea
@@ -248,7 +254,7 @@ const ENSPage = () => {
             </div>
             <p></p>
             <div>
-              {currentAccount ? getNameByTokenIdButton() : PleaseLogin()}
+              {getNameByTokenIdButton()}
               <p></p>
               Result Name:
               <textarea

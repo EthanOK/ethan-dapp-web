@@ -8,6 +8,7 @@ import {
 } from "../common/SystemConfiguration";
 import { SupportChains } from "../common/ChainsConfig";
 import { BrowserProvider } from "ethers-v6";
+import { modal } from "../EthanDapp";
 
 export const switchChain = async (chainId) => {
   const chain = SupportChains.find((c) => c.id === chainId);
@@ -76,6 +77,18 @@ const getProvider = async () => {
     } catch (error) {
       console.log("switch failure");
       return null;
+    }
+  }
+
+  if (type === "reown") {
+    try {
+      const reownProvider = await modal.getWalletProvider();
+      const provider = new ethers.providers.Web3Provider(reownProvider);
+      // let accounts = await provider.send("eth_requestAccounts", []);
+      // console.log(accounts);
+      return provider;
+    } catch (error) {
+      console.log(error);
     }
   }
 
