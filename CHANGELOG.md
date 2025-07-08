@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.3](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.2...v2.2.3) (2025-07-08)
+
+
+### Features
+
+* add EIP7702Page (only privateKey, JSON-RPC is not supported) ([6926670](https://github.com/EthanOK/ethan-bric-web/commit/6926670d6545f2c48501b892bb1d35a0a14e9aa4))
+* use reown/appkit connect wallet ([8a41392](https://github.com/EthanOK/ethan-bric-web/commit/8a41392f7151ce1857256b80269b25016c3870a2))
+
 ### [2.2.2](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.1...v2.2.2) (2025-06-26)
 
 
