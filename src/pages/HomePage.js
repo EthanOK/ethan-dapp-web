@@ -105,11 +105,11 @@ const HomePage = () => {
           // await login();
           await configAccountData(account);
         });
-
-        if (account !== null) {
-          configAccountData(account);
-        }
       }
+
+      // if (account !== null) {
+      //   configAccountData(account);
+      // }
     }
   }, [isMounted]);
 
