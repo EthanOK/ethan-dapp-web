@@ -16,7 +16,8 @@ import {
   getSigner,
   getProvider,
   getChainIdAndBalanceETHAndTransactionCount,
-  switchChain
+  switchChain,
+  getChainId
 } from "../utils/GetProvider.js";
 
 import {
@@ -64,7 +65,9 @@ const HomePage = () => {
 
   const updateData = () => {
     let chainId_ = localStorage.getItem("chainId");
-    if (chainID !== undefined && Number(chainId_) !== Number(chainID)) {
+    let loginType = localStorage.getItem("LoginType");
+    if (loginType === "metamask") {
+    } else if (chainID !== undefined && Number(chainId_) !== Number(chainID)) {
       setChainId(chainID);
       localStorage.setItem("chainId", chainID);
     }
