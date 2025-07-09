@@ -30,6 +30,7 @@ import EIP7702Page from "./pages/EIP7702Page";
 import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
 import { base, bsc, mainnet, sepolia } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
+import { initializeSubscribers } from "./utils/Suscribers";
 
 window.Buffer = window.Buffer || require("buffer").Buffer;
 // hardhat: 31337 tbsc: 97 0x61 goerli： 0x5
@@ -40,8 +41,8 @@ const projectId = projectId_walletconnect;
 // 2. Create your application's metadata object
 const metadata = {
   name: "Ethan Dapp Website",
-  description: "My Website description"
-  // url: "https://ethan-dapp.vercel.app", // url must match your domain & subdomain
+  description: "My Website description",
+  url: "https://ethan-dapp.vercel.app" // url must match your domain & subdomain
   // icons: ["https://avatars.mywebsite.com/"]
 };
 
@@ -55,6 +56,8 @@ export const modal = createAppKit({
     analytics: true // Optional - defaults to your Cloud configuration
   }
 });
+
+initializeSubscribers(modal);
 
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);

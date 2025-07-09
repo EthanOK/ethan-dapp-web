@@ -41,18 +41,16 @@ const HomePage = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [currentAccountBalance, setCurrentAccountBalance] = useState(null);
   const [currentAccountNonce, setCurrentAccountNonce] = useState(null);
-  const { address, isConnected } = useAppKitAccount();
-  const { chainId: chainID } = useAppKitNetwork();
   const [chainId, setChainId] = useState(
     localStorage.getItem("chainId") || DefaultChainId
   );
   const [message, setMessage] = useState("");
-
   const [isMounted, setIsMounted] = useState(false);
-
   const [showAlert, setShowAlert] = useState(false);
-
   const [etherscan, setEtherscan] = useState("");
+
+  const { address, isConnected } = useAppKitAccount();
+  const { chainId: chainID } = useAppKitNetwork();
 
   useEffect(() => {
     setIsMounted(true);

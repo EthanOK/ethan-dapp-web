@@ -54,6 +54,7 @@ export async function createEIP7702Account(signer, auth) {
 
     return tx.hash;
   } catch (error) {
+    console.error("创建授权失败：", error);
     return null;
   }
 }

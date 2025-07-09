@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
 
-import { getSignerV6 } from "../utils/GetProvider.js";
+import { getChainId } from "../utils/GetProvider.js";
 import {
   createAuthorization,
   createEIP7702Account,
   getDelegationAddress,
   revokeEIP7702Account
 } from "../utils/EIP7702Utils.js";
-import { EIP7702Delegator_Metamask } from "../common/SystemConfiguration.js";
+import {
+  ALCHEMY_KEY_V3,
+  EIP7702Delegator_Metamask
+} from "../common/SystemConfiguration.js";
 import { Wallet } from "ethers-v6";
 import { getScanURL } from "../utils/Utils.js";
+import { AlchemyProvider } from "ethers-v6";
 
 const EIP7702Page = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -37,17 +41,15 @@ const EIP7702Page = () => {
     }
   };
 
-  const PleaseLogin = () => {
-    return <h2>UnLogin, Please Login</h2>;
-  };
-
   const createEIP7702AccountHandler = async () => {
     try {
       const url = await getScanURL();
       const privateKey = document.getElementById("privateKey").value;
-      const paySigner = await getSignerV6();
 
-      const signer = new Wallet(privateKey, paySigner.provider);
+      const chainId = await getChainId();
+      const provider = new AlchemyProvider(chainId, ALCHEMY_KEY_V3);
+      const signer = new Wallet(privateKey, provider);
+      const paySigner = signer;
 
       let currentNonce = await signer.getNonce();
 
@@ -58,7 +60,7 @@ const EIP7702Page = () => {
       } else {
         logger = "Update EIP-7702 account";
       }
-      console.log(logger);
+      // console.log(logger);
       alert(logger);
       if (signer.address.toLowerCase() === paySigner.address.toLowerCase()) {
         currentNonce++;
@@ -93,9 +95,11 @@ const EIP7702Page = () => {
     try {
       const url = await getScanURL();
       const privateKey = document.getElementById("privateKey").value;
-      const paySigner = await getSignerV6();
 
-      const signer = new Wallet(privateKey, paySigner.provider);
+      const chainId = await getChainId();
+      const provider = new AlchemyProvider(chainId, ALCHEMY_KEY_V3);
+      const signer = new Wallet(privateKey, provider);
+      const paySigner = signer;
 
       const delegationAddress = await getDelegationAddress(signer);
 
