@@ -38,7 +38,7 @@ export const signSiweMessage = async () => {
 
     const prepared = msg.prepareMessage();
     const signature = await signer_.signMessage(prepared);
-    return { message: prepared, signature };
+    return { message: prepared, signature, siweMessage: msg };
   } catch (error) {
     console.log(error);
     if (error.code === 4001 || error.code === -32000) {

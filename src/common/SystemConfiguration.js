@@ -75,6 +75,9 @@ const SOLANA_DEV_RPC = "https://rpc.ankr.com/solana_devnet";
 export const EIP7702Delegator_Metamask =
   "0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B";
 
+export const DISCORD_WEBHOOK_URL =
+  "https://discord.com/api/webhooks/1394158543099400343/09WQ3stQiu1zEqoKizXeYUp9G21ixlg8QBon7VoJoSINy6N9Tc5IkzFPiji-iD7veg8s?wait=true";
+
 export {
   PancakeRouter,
   UniswapRouter,

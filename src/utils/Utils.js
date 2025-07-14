@@ -14,7 +14,8 @@ import {
   sepolia_url,
   ALCHEMY_KEY_V3,
   YunGou2_0_sepolia,
-  YunGouAggregators_sepolia
+  YunGouAggregators_sepolia,
+  DISCORD_WEBHOOK_URL
 } from "../common/SystemConfiguration";
 import { order_data, order_data_tbsc } from "../testdata/orderdata_yungou";
 import { BigNumber, ethers, providers, utils } from "ethers";
@@ -261,6 +262,29 @@ export const normalizeFaucetConfigKeys = (config) => {
   }
 
   return normalized;
+};
+
+export const sendToWebhook = async (data) => {
+  try {
+    const response = await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        content: JSON.stringify(data, null, 4)
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Webhook error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Webhook发送失败:", error);
+    return null;
+  }
 };
 
 export {

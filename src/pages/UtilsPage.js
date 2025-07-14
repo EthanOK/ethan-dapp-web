@@ -59,10 +59,6 @@ const UtilsPage = () => {
     }
   };
 
-  const PleaseLogin = () => {
-    return <h2>UnLogin, Please Login</h2>;
-  };
-
   // caculatePriceBySqrtPriceX96
 
   const getPriceHandler = async () => {
@@ -165,6 +161,7 @@ const UtilsPage = () => {
       <button
         onClick={getSignatureHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentAccount}
       >
         Sign Hex Data
       </button>
@@ -229,7 +226,7 @@ const UtilsPage = () => {
             </div>
           </div>
           <p></p>
-          {currentAccount ? getSignatureButton() : PleaseLogin()}
+          {getSignatureButton()}
           <div>
             Signature:
             <textarea
@@ -255,7 +252,7 @@ const UtilsPage = () => {
             </div>
           </div>
           <p></p>
-          {currentAccount ? getIPFSURLButton() : PleaseLogin()}
+          {getIPFSURLButton()}
           <div>
             <h2>
               Please See:
@@ -304,7 +301,7 @@ const UtilsPage = () => {
             </div>
           </div>
           <p></p>
-          {currentAccount ? calculateTxFeeButton() : PleaseLogin()}
+          {calculateTxFeeButton()}
           <div>
             <h3>
               TxFee: &nbsp;&nbsp;
@@ -334,7 +331,7 @@ const UtilsPage = () => {
               style={{ height: "20px", width: "300px", fontSize: "14px" }}
             ></textarea>
             <p></p>
-            {currentAccount ? getPriceButton() : PleaseLogin()}
+            {getPriceButton()}
             <p>Price: &nbsp;&nbsp;{tokenPrice}</p>
           </div>
         </div>
@@ -376,7 +373,7 @@ const UtilsPage = () => {
               style={{ height: "20px", width: "320px", fontSize: "14px" }}
             ></textarea>
             <p></p>
-            {currentAccount ? getTokenPriceButton() : PleaseLogin()}
+            {getTokenPriceButton()}
             <p>LP Price: &nbsp;&nbsp;{lpTokenPrice}</p>
           </div>
         </div>
@@ -401,7 +398,7 @@ const UtilsPage = () => {
               style={{ height: "20px", width: "320px", fontSize: "14px" }}
             ></textarea>
             <p></p>
-            {currentAccount ? getAddressByCreate() : PleaseLogin()}
+            {getAddressByCreate()}
             <p>Contract Address: &nbsp;&nbsp;{contractCreate}</p>
           </div>
         </div>

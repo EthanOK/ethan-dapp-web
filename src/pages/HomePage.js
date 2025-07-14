@@ -586,11 +586,53 @@ const HomePage = () => {
   };
 
   const connectReownButton = () => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [isConnecting, setIsConnecting] = useState(false);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { address, isConnected } = useAppKitAccount();
+
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      const loginType = localStorage.getItem("LoginType");
+      const storedAccount = localStorage.getItem("userAddress");
+      if (
+        loginType === "reown" &&
+        isConnected &&
+        address &&
+        address !== storedAccount
+      ) {
+        login();
+      }
+      const storedConnect = localStorage.getItem("@appkit/connection_status");
+      if (
+        loginType === "reown" &&
+        storedConnect === "disconnected" &&
+        storedAccount
+      ) {
+        console.log("Reown断开连接");
+        disconnect();
+      }
+    }, [isConnected, address]);
+
+    const handleConnect = async () => {
+      setIsConnecting(true);
+
+      try {
+        localStorage.setItem("LoginType", "reown");
+      } catch (error) {
+        console.error("Reown连接失败:", error);
+        localStorage.removeItem("LoginType");
+      } finally {
+        setIsConnecting(false);
+      }
+    };
+
     return (
       <appkit-button
-        label="Connect With Reown"
+        label={isConnecting ? "Connecting..." : "Connect With Reown"}
         style={{ display: "block", margin: "0 auto" }}
-        onClick={() => localStorage.setItem("LoginType", "reown")}
+        onClick={handleConnect}
+        // disabled={isConnecting}
       />
     );
   };
@@ -723,7 +765,7 @@ const HomePage = () => {
             <h2 style={{ color: "red" }}>Login:</h2>
             {isConnected ? connectReownButton() : connectReownButton()}
             <p></p>
-            {currentAccount ? showWalletType() : connectMeatamask()}
+            {/* {currentAccount ? showWalletType() : connectMeatamask()} */}
             <p></p>
             {/* {currentAccount ? showWalletType() : connectWalletConnect()} */}
           </div>
