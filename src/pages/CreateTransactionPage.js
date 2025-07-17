@@ -8,6 +8,7 @@ import {
 } from "../utils/Utils.js";
 import { getSigner } from "../utils/GetProvider.js";
 import { getAccessList } from "../utils/GetAccessListInTx.js";
+import { toast } from "sonner";
 const CreateTransactionPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
@@ -51,7 +52,7 @@ const CreateTransactionPage = () => {
     let amountBigNumber = getDecimalBigNumber(amount, 18);
 
     if (!isAddress(toValue)) {
-      alert("To address is not valid");
+      toast.error("To address is not valid");
       return;
     }
 
@@ -75,18 +76,13 @@ const CreateTransactionPage = () => {
       setMessage(`${url}/tx/${tx.hash}`);
       let txReceipt = await tx.wait();
       if (txReceipt.status === 1) {
-        console.log("Success!");
-        setShowAlert(true);
-        setTimeout(() => {
-          setShowAlert(false);
-        }, 3000);
+        toast.success("Transaction Successful!");
       } else {
-        console.log("Failure!");
+        toast.error("TransactionFailure!");
       }
     } catch (error) {
       console.log(JSON.stringify(error));
-
-      alert(error.reason);
+      toast.error(error.reason);
     }
   };
 
@@ -104,14 +100,14 @@ const CreateTransactionPage = () => {
     const value = getDecimalBigNumber(value_ === "" ? "0" : value_, 18);
 
     if (to !== "" && !isAddress(to)) {
-      alert("To address is not valid");
+      toast.error("To address is not valid");
       return;
     }
 
     // let hexInputData;
     // 如果是0x前缀
     if (!data.startsWith("0x") || data.length % 2 !== 0) {
-      alert("data is not valid");
+      toast.error("data is not valid");
       return;
     }
     // const transaction = {
@@ -133,17 +129,13 @@ const CreateTransactionPage = () => {
       setMessage(`${url}/tx/${tx.hash}`);
       let txReceipt = await tx.wait();
       if (txReceipt.status === 1) {
-        console.log("Success!");
-        setShowAlert(true);
-        setTimeout(() => {
-          setShowAlert(false);
-        }, 3000);
+        toast.success("Transaction Successful!");
       } else {
-        console.log("Failure!");
+        toast.error("TransactionFailure!");
       }
     } catch (error) {
       console.log(JSON.stringify(error));
-      alert(error.reason);
+      toast.error(error.reason);
     }
   };
 

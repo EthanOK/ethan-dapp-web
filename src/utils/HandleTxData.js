@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { equalityStringIgnoreCase } from "./Utils";
+import { toast } from "sonner";
 
 // Keccak-256("yungou.io") = 0xba6d2ab102481cc9032426c704c58df5594a14a433ff7ca084e4bd32c9196783
 const YunGou_Suffix = "0xba6d2ab1";
@@ -26,9 +27,9 @@ const getNewTx = async (
   } catch (error) {
     // console.log(error);
     if (error.code === -32000) {
-      alert(error.message);
+      toast.error(error.message);
     } else if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+      toast.error("User Rejected Transaction");
     }
     return null;
   }

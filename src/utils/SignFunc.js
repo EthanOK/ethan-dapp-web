@@ -10,6 +10,7 @@ import { order_data } from "../testdata/orderdata_yungou";
 import { Seaport } from "@opensea/seaport-js";
 import { BulkOrder, EIP_712_BULK_ORDER_TYPE_DEMO } from "signbulkorder-sdk";
 import { SiweMessage } from "siwe";
+import { toast } from "sonner";
 
 export const signSiweMessage = async () => {
   try {
@@ -40,9 +41,8 @@ export const signSiweMessage = async () => {
     const signature = await signer_.signMessage(prepared);
     return { message: prepared, signature, siweMessage: msg };
   } catch (error) {
-    console.log(error);
-    if (error.code === 4001 || error.code === -32000) {
-      alert(error.message);
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
     }
     return null;
   }
@@ -96,11 +96,8 @@ const signEIP712Message = async (signer, chainId) => {
     return params;
   } catch (error) {
     console.log(error);
-    // if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-    //   alert("User Rejected Transaction");
-    // }
-    if (error.code === 4001 || error.code === -32000) {
-      alert(error.message);
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
     }
     return null;
   }
@@ -126,8 +123,8 @@ const signStringMessage = async (signer) => {
     return true;
   } catch (error) {
     console.log(error);
-    if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
     }
     if (error.code === -32000) {
       alert(error.message);
@@ -157,8 +154,8 @@ const signHexDataMessage = async (signer, hexData) => {
     return signatureHex;
   } catch (error) {
     console.log(error);
-    if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
     }
     if (error.code === -32000) {
       alert(error.message);
@@ -229,10 +226,8 @@ const signEIP712YunGouMessage = async (signer, chainId) => {
   } catch (error) {
     console.log(error);
 
-    if (error.code === 500) {
-      alert(error.message);
-    } else if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
     } else if (error.code === -32000) {
       alert(error.message);
     }
@@ -428,8 +423,8 @@ const signEIP712OpenSeaMessage = async (signer, chainId) => {
     return result;
   } catch (error) {
     console.log(error);
-    if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
     }
     if (error.code === -32000) {
       alert(error.message);
@@ -498,7 +493,9 @@ const signBulkOrderOpenSeaMessage = async (signer, chainId) => {
   try {
     ordersWithSign = await seaport.signBulkOrder(orders);
   } catch (error) {
-    console.log(error);
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
+    }
   }
 
   return ordersWithSign;
@@ -563,7 +560,9 @@ const signCustomBulkOrderMessage = async (signer, chainId) => {
       EIP_712_BULK_ORDER_TYPE_DEMO
     );
   } catch (error) {
-    console.log(error);
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
+    }
   }
 
   return ordersWithSign;
@@ -603,8 +602,8 @@ const getSystemSignature = async (orderSignature, data) => {
     return signPromise_;
   } catch (error) {
     console.log(error);
-    if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
     }
     if (error.code === -32000) {
       alert(error.message);
@@ -633,8 +632,8 @@ const signBlurLoginMessage = async (signer, messageString) => {
     return signatureM;
   } catch (error) {
     console.log(error);
-    if (equalityStringIgnoreCase(error.code, "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+      toast.error("User rejected request!");
     }
     if (error.code === -32000) {
       alert(error.message);

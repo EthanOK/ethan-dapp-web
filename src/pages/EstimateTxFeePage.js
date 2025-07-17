@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { isAddress, getDecimalBigNumber } from "../utils/Utils.js";
 import { getProvider, getSigner } from "../utils/GetProvider.js";
 import { estimateTxFee } from "../utils/EstimateTxFee.js";
+import { toast } from "sonner";
 const EstimateTxFeePage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
@@ -40,18 +41,18 @@ const EstimateTxFeePage = () => {
     const value_ = getDecimalBigNumber(value === "" ? "0" : value, 18);
 
     if (!isAddress(from)) {
-      alert("from address is not valid");
+      toast.error("from address is not valid");
       return;
     }
 
     if (Number(to.length) !== 0 && !isAddress(to)) {
       console.log(to.length);
-      alert("to address is not valid");
+      toast.error("to address is not valid");
       return;
     }
 
     if (!data.startsWith("0x")) {
-      alert("data is not valid");
+      toast.error("data is not valid");
       return;
     }
 
@@ -64,7 +65,7 @@ const EstimateTxFeePage = () => {
 
       setMessage(JSON.stringify(result));
     } catch (error) {
-      alert(error.code);
+      toast.error(error.code);
     }
   };
 

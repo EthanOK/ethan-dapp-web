@@ -31,6 +31,7 @@ import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
 import { base, bsc, mainnet, sepolia } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
 import { initializeSubscribers } from "./utils/Suscribers";
+import { Toaster } from "sonner";
 
 window.Buffer = window.Buffer || require("buffer").Buffer;
 // hardhat: 31337 tbsc: 97 0x61 goerli： 0x5
@@ -162,7 +163,16 @@ function App() {
   };
   return (
     <Router>
-      <div></div>
+      <div>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              fontSize: "20px"
+            }
+          }}
+        />
+      </div>
       <div>
         <div className="floating-accordion">
           <div
