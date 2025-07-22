@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.4](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.3...v2.2.4) (2025-07-22)
+
+
+### Features
+
+* add login webhooks ([7de4fad](https://github.com/EthanOK/ethan-bric-web/commit/7de4fad8cf24cbb0fdf3645ea7f0b411022adffd))
+* add toast message ([127a901](https://github.com/EthanOK/ethan-bric-web/commit/127a90194e97c286ca7af34db638d8d6d6110731))
+* initializeSubscribers reown's modal ([3f144bf](https://github.com/EthanOK/ethan-bric-web/commit/3f144bf48f983078c496027ae5912382f0ac0f3b))
+
+
+### Bug Fixes
+
+* add DISCORD_WEBHOOK_URL in env ([80d426f](https://github.com/EthanOK/ethan-bric-web/commit/80d426f17b8f5dd15528b642ea317ca2ef7d8f0f))
+* connnect metamask wrong chainId ([806a56a](https://github.com/EthanOK/ethan-bric-web/commit/806a56ab2af0218e34cddc28faa1edc33d6290a0))
+* update balance ([2041ce3](https://github.com/EthanOK/ethan-bric-web/commit/2041ce3e8f45a56ffebe476c7d4211f306bc2a0e))
+
 ### [2.2.3](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.2...v2.2.3) (2025-07-08)
 
 
