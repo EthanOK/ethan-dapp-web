@@ -6,12 +6,6 @@ const chainName_G = "goerli";
 const chainName_S = "sepolia";
 const chainName_TBSC = "bsctestnet";
 
-const main_url = "https://etherscan.io";
-const goerli_url = "https://goerli.etherscan.io";
-const sepolia_url = "https://sepolia.etherscan.io";
-const tbsc_url = "https://testnet.bscscan.com";
-const bsc_url = "https://bscscan.com";
-
 const OPENSEA_MAIN_API = process.env.REACT_APP_OPENSEA_MAIN_API;
 const PRIVATEKEY_VERIFYER = process.env.REACT_APP_PRIVATEKEY_VERIFYER;
 const YUNGOU = "yungou.io";
@@ -98,11 +92,6 @@ export {
   YunGou2_0_bsc,
   PRIVATEKEY_VERIFYER,
   nftMint_goerli,
-  main_url,
-  goerli_url,
-  sepolia_url,
-  tbsc_url,
-  bsc_url,
   React_Serve_Back,
   YunGouAggregatorsAddress_G,
   DefaultChainId,

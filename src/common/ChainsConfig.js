@@ -18,6 +18,15 @@ export const SupportChains = [
     blockExplorerUrls: ["https://sepolia.etherscan.io"]
   },
   {
+    id: "560048",
+    chainId: "0x88BB0",
+    name: "Hoodi",
+    chainName: "Hoodi Testnet",
+    rpcUrls: ["https://rpc.hoodi.org"],
+    nativeCurrency: { name: "HoodiETH", symbol: "ETH", decimals: 18 },
+    blockExplorerUrls: ["https://hoodi.etherscan.io"]
+  },
+  {
     id: "56",
     chainId: "0x38",
     name: "BSC",
