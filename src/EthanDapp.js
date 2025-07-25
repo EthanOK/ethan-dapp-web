@@ -28,7 +28,7 @@ import WethPage from "./pages/WethPage";
 import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
 import EIP7702Page from "./pages/EIP7702Page";
 import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
-import { base, bsc, mainnet, sepolia } from "@reown/appkit/networks";
+import { base, bsc, mainnet, sepolia, hoodi } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
 import { initializeSubscribers } from "./utils/Suscribers";
 import { Toaster } from "sonner";
@@ -51,7 +51,7 @@ const metadata = {
 export const modal = createAppKit({
   adapters: [new Ethers5Adapter()],
   metadata: metadata,
-  networks: [sepolia, mainnet, base, bsc],
+  networks: [sepolia, hoodi, mainnet, base, bsc],
   projectId,
   features: {
     analytics: true // Optional - defaults to your Cloud configuration

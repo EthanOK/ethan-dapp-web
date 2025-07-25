@@ -1,8 +1,4 @@
 import {
-  main_url,
-  goerli_url,
-  tbsc_url,
-  bsc_url,
   YunGou2_0_main,
   YunGou2_0_goerli,
   YunGou2_0_tbsc,
@@ -11,7 +7,6 @@ import {
   YunGouAggregators_main,
   YunGouAggregators_tbsc,
   YunGouAggregators_goerli,
-  sepolia_url,
   ALCHEMY_KEY_V3,
   YunGou2_0_sepolia,
   YunGouAggregators_sepolia,
@@ -23,6 +18,7 @@ import { Decimal } from "decimal.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { Alchemy, Network } from "alchemy-sdk";
+import { SupportChains } from "../common/ChainsConfig";
 
 const equalityStringIgnoreCase = (string1, string2) => {
   try {
@@ -40,18 +36,16 @@ const getScanURL = async () => {
   let chainId = localStorage.getItem("chainId");
   chainId = parseInt(chainId);
 
-  let scanurl;
-  if (chainId === 1) {
-    scanurl = main_url;
-  } else if (chainId === 5) {
-    scanurl = goerli_url;
-  } else if (chainId === 97) {
-    scanurl = tbsc_url;
-  } else if (chainId === 56) {
-    scanurl = bsc_url;
-  } else if (chainId === 11155111) {
-    scanurl = sepolia_url;
+  const chainInfo = SupportChains.find(
+    (item) => parseInt(item.chainId) === chainId
+  );
+
+  if (!chainInfo) {
+    throw new Error(`Chain info not found for chainId: ${chainId}`);
   }
+
+  let scanurl = chainInfo?.blockExplorerUrls[0];
+
   return scanurl;
 };
 
