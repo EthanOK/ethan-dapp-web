@@ -7,7 +7,7 @@ import {
 } from "../utils/GetContract.js";
 import { ZERO_ADDRESS } from "../common/SystemConfiguration.js";
 import { getDecimal, getDecimalBigNumber } from "../utils/Utils.js";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { addSuffixOfTxData } from "../utils/HandleTxData.js";
 import { switchChain } from "../utils/GetProvider.js";
 import { login } from "../utils/ConnectWallet.js";
@@ -24,10 +24,12 @@ const FaucetTokenPage = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
 
-  const [selectedToken, setSelectedToken] = useState("YGIO");
+  const [selectedToken, setSelectedToken] = useState("USDT");
   const [tokenBalance, setTokenBalance] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   const currentToken = faucetTokenList.find((t) => t.label === selectedToken);
+  const faucetFromAddress = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
 
   useEffect(() => {
     setIsMounted(true);
@@ -82,9 +84,11 @@ const FaucetTokenPage = () => {
 
   const faucetBalance = async () => {
     try {
-      const selectedToken_ = localStorage.getItem("faucetTokenName") || "YGIO";
+      const selectedToken_ = localStorage.getItem("faucetTokenName") || "USDT";
       const result = await getTokenBalance(selectedToken_);
+      const totalAmount = await getTokenTotalClaim(selectedToken_);
       setTokenBalance(result);
+      setTotalAmount(totalAmount);
     } catch (err) {
       console.error("Failed to fetch balance", err);
       setTokenBalance(0);
@@ -102,12 +106,30 @@ const FaucetTokenPage = () => {
     return balanceStandard;
   };
 
+  const getTokenTotalClaim = async (tokenName) => {
+    let chainId = localStorage.getItem("chainId");
+    let tokenAddress = getFaucetTokenAddress(chainId, tokenName);
+    const contract = await getERC20Contract(tokenAddress);
+    const balance1 = await contract.balanceOf(faucetFromAddress);
+    const faucetAddress = faucetConfig[chainId].faucet;
+    const balance2 = await contract.allowance(faucetFromAddress, faucetAddress);
+
+    const minBalance = BigNumber.from(balance1).lt(balance2)
+      ? balance1
+      : balance2;
+    let decimals = await contract.decimals();
+    let balanceStandard = getDecimal(minBalance, decimals);
+    return balanceStandard;
+  };
+
   const updateBalance = async () => {
     try {
       let account = localStorage.getItem("userAddress");
       let chainId = localStorage.getItem("chainId");
       chainId = parseInt(chainId);
       let ygmeAddress = faucetConfig[chainId].ygme;
+
+      if (!account) return;
 
       if (ygmeAddress) {
         let ygmecontract = await getERC721Contract(ygmeAddress);
@@ -128,11 +150,7 @@ const FaucetTokenPage = () => {
     let account = localStorage.getItem("userAddress");
     let chainId = localStorage.getItem("chainId");
     chainId = parseInt(chainId);
-    let accountFrom = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
     let tokenAddress = getFaucetTokenAddress(chainId, tokenName);
-    if (chainId === 5) {
-      accountFrom = "0xa002d00E2Db3Aa0a8a3f0bD23Affda03a694D06A";
-    }
     const decimals = await getERC20Decimals(tokenAddress);
     let tx;
     try {
@@ -147,7 +165,7 @@ const FaucetTokenPage = () => {
       } else {
         tx = await faucetContract.faucet(
           tokenAddress,
-          accountFrom,
+          faucetFromAddress,
           account,
           getDecimalBigNumber(faucetAmount, decimals)
         );
@@ -270,6 +288,7 @@ const FaucetTokenPage = () => {
       <p></p>
       <div className="bordered-div">
         <h2>Faucet Token</h2>
+        <h3>Remaining Supply: {totalAmount}</h3>
 
         <select
           value={selectedToken}
