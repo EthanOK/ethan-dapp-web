@@ -69,7 +69,6 @@ const FaucetTokenPage = () => {
       let account = localStorage.getItem("userAddress");
       setCurrentAccount(account);
       await updateBalance();
-      setSelectedToken(selectedToken);
     } catch (error) {
       console.log(error);
     }
@@ -89,6 +88,7 @@ const FaucetTokenPage = () => {
       const totalAmount = await getTokenTotalClaim(selectedToken_);
       setTokenBalance(result);
       setTotalAmount(totalAmount);
+      setSelectedToken(selectedToken_);
     } catch (err) {
       console.error("Failed to fetch balance", err);
       setTokenBalance(0);
