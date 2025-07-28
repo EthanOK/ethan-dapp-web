@@ -15,6 +15,7 @@ import { getClaimYGIOBalance, getCrossChainSignature } from "../api/GetData.js";
 import { changeCrossChainDatas } from "../api/ChangeData.js";
 import { switchChain } from "../utils/GetProvider.js";
 import { faucetConfig } from "../common/FaucetConfig.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 const CrossChainBridgePage = () => {
   //  const [tableData, setTableData] = useState([]);
 
@@ -29,6 +30,13 @@ const CrossChainBridgePage = () => {
 
   const [balanceOfCC_T, setBalanceOfCC_T] = useState(null);
   const [balanceOfCC_G, setBalanceOfCC_G] = useState(null);
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

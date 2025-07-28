@@ -15,6 +15,7 @@ import {
 import { isAddress } from "../utils/Utils.js";
 import { logDOM } from "@testing-library/react";
 import { BigNumber } from "ethers";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const ENSPage = () => {
   const [tableData, setTableData] = useState([]);
@@ -25,6 +26,13 @@ const ENSPage = () => {
   const [messageName, setMessageName] = useState("");
   const [ethPrice, setEthPrice] = useState("");
   const [bnbPrice, setBnbPrice] = useState("");
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

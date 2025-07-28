@@ -3,10 +3,18 @@ import { isAddress, getDecimalBigNumber } from "../utils/Utils.js";
 import { getProvider, getSigner } from "../utils/GetProvider.js";
 import { estimateTxFee } from "../utils/EstimateTxFee.js";
 import { toast } from "sonner";
+import { useAppKitAccount } from "@reown/appkit/react";
 const EstimateTxFeePage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState(null);
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

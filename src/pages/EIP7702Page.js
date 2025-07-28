@@ -14,12 +14,20 @@ import {
 import { Wallet } from "ethers-v6";
 import { getScanURL } from "../utils/Utils.js";
 import { AlchemyProvider } from "ethers-v6";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const EIP7702Page = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

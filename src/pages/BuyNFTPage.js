@@ -8,11 +8,18 @@ import {
   fulfillAvailableAdvancedOrders,
   fulfillAvailableOrders
 } from "../utils/OpenseaFunc.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const BuyNFTPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState(null);
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

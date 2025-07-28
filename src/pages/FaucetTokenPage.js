@@ -16,6 +16,7 @@ import {
   faucetTokenList,
   getFaucetTokenAddress
 } from "../common/FaucetConfig.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 const FaucetTokenPage = () => {
   //   const [tableData, setTableData] = useState([]);
 
@@ -30,6 +31,13 @@ const FaucetTokenPage = () => {
 
   const currentToken = faucetTokenList.find((t) => t.label === selectedToken);
   const faucetFromAddress = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

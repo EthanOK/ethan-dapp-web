@@ -14,6 +14,7 @@ import {
 
 import { TBVersion, TokenboundClient } from "@tokenbound/sdk";
 import { Contract } from "ethers";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 let url_iframe = "https://iframe-tokenbound.vercel.app";
 
@@ -26,6 +27,12 @@ const ERC6551Page = () => {
   const [srcIframe, setSrcIframe] = useState(null);
   const [txHash, setTxHash] = useState(null);
   const [hashURL, setHashURL] = useState("");
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

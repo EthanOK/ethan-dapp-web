@@ -10,14 +10,10 @@ import yunGou2_0Abi from "../contracts/yungou2_0.json";
 import { BigNumber, ethers } from "ethers";
 import { OpenSeaSDK, Chain } from "opensea-js";
 
-import { login } from "../utils/ConnectWallet.js";
-
 import {
   getSigner,
   getProvider,
-  getChainIdAndBalanceETHAndTransactionCount,
-  switchChain,
-  getChainId
+  getChainIdAndBalanceETHAndTransactionCount
 } from "../utils/GetProvider.js";
 
 import {
@@ -52,6 +48,8 @@ const HomePage = () => {
 
   const { address, isConnected } = useAppKitAccount();
   const { chainId: chainID } = useAppKitNetwork();
+
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -162,51 +160,6 @@ const HomePage = () => {
     }
   };
 
-  const connectandsign = async () => {
-    let connect = await checkWalletIsConnected();
-    if (!connect) {
-      return;
-    }
-
-    localStorage.setItem("LoginType", "metamask");
-    let chainId = await window.ethereum.request({ method: "eth_chainId" });
-    let chainId_local = localStorage.getItem("chainId");
-    console.log(chainId_local);
-    if (chainId !== chainId_local) {
-      let success = await switchChain(chainId_local);
-      if (!success) {
-        return null;
-      }
-    }
-
-    let [result, account] = await login();
-    if (result) {
-      configAccountData(account);
-
-      localStorage.setItem("userAddress", account);
-
-      setShowAlert(true);
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 3000);
-    }
-  };
-
-  const connectandsignWalletConnect = async () => {
-    localStorage.setItem("LoginType", "walletconnect");
-
-    let [result, account] = await login();
-    if (result) {
-      configAccountData(account);
-
-      localStorage.setItem("userAddress", account);
-
-      setShowAlert(true);
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 3000);
-    }
-  };
   const disconnect = async () => {
     // 重新加载当前 URL。此方法的功能类似于浏览器的“刷新”按钮
     window.location.reload();
@@ -574,59 +527,20 @@ const HomePage = () => {
     console.log("orderStatus: " + orderStatus);
   };
 
-  const connectMeatamask = () => {
-    return (
-      <button
-        onClick={connectandsign}
-        className="cta-button connect-wallet-button"
-      >
-        Metamask
-      </button>
-    );
+  const handleConnect = async () => {
+    setIsConnecting(true);
+
+    try {
+      localStorage.setItem("LoginType", "reown");
+    } catch (error) {
+      console.error("Reown连接失败:", error);
+      localStorage.removeItem("LoginType");
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   const connectReownButton = () => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [isConnecting, setIsConnecting] = useState(false);
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { address, isConnected } = useAppKitAccount();
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => {
-      const loginType = localStorage.getItem("LoginType");
-      const storedAccount = localStorage.getItem("userAddress");
-      if (
-        loginType === "reown" &&
-        isConnected &&
-        address &&
-        address !== storedAccount
-      ) {
-        login();
-      }
-      const storedConnect = localStorage.getItem("@appkit/connection_status");
-      if (
-        loginType === "reown" &&
-        storedConnect === "disconnected" &&
-        storedAccount
-      ) {
-        console.log("Reown断开连接");
-        disconnect();
-      }
-    }, [isConnected, address]);
-
-    const handleConnect = async () => {
-      setIsConnecting(true);
-
-      try {
-        localStorage.setItem("LoginType", "reown");
-      } catch (error) {
-        console.error("Reown连接失败:", error);
-        localStorage.removeItem("LoginType");
-      } finally {
-        setIsConnecting(false);
-      }
-    };
-
     return (
       <appkit-button
         label={isConnecting ? "Connecting..." : "Connect With Reown"}
@@ -634,32 +548,6 @@ const HomePage = () => {
         onClick={handleConnect}
         // disabled={isConnecting}
       />
-    );
-  };
-
-  const connectWalletConnect = () => {
-    return (
-      <button
-        onClick={connectandsignWalletConnect}
-        className="cta-button connect-wallet-button"
-      >
-        WalletConnect
-      </button>
-    );
-  };
-
-  const showWalletType = () => {
-    const loginType = localStorage.getItem("LoginType");
-    const typeMap = {
-      metamask: "Metamask",
-      walletconnect: "WalletConnect",
-      reown: "Reown"
-    };
-
-    return (
-      <button className="cta-button connect-wallet-button">
-        {`Already logged in with ${typeMap[loginType] || "Unknown"}`}
-      </button>
     );
   };
 
@@ -762,8 +650,8 @@ const HomePage = () => {
 
         <div>
           <div>
-            <h2 style={{ color: "red" }}>Login:</h2>
-            {isConnected ? connectReownButton() : connectReownButton()}
+            {/* <h2 style={{ color: "red" }}>Login:</h2> */}
+            {/* {isConnected ? connectReownButton() : connectReownButton()} */}
             <p></p>
             {/* {currentAccount ? showWalletType() : connectMeatamask()} */}
             <p></p>

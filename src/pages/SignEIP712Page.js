@@ -17,11 +17,19 @@ import {
 } from "../api/GetData.js";
 import { Seaport } from "@opensea/seaport-js";
 import { login } from "../utils/ConnectWallet.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const SignEIP712Page = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState(null);
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

@@ -7,11 +7,19 @@ import {
   getContractsForOwner,
   getNFTListByOwnerAndContract
 } from "../utils/GetNFTListByOwner.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const GetCollectionPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState(null);
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

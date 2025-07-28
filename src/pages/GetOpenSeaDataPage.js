@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { isAddress } from "../utils/Utils.js";
 import { getOrderHashSignatureOpenSea } from "../api/GetData.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const GetOpenSeaDataPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState(null);
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

@@ -32,6 +32,8 @@ import { base, bsc, mainnet, sepolia, hoodi } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
 import { initializeSubscribers } from "./utils/Suscribers";
 import { Toaster } from "sonner";
+import { useAppKitAccount } from "@reown/appkit/react";
+import { login } from "./utils/ConnectWallet";
 
 window.Buffer = window.Buffer || require("buffer").Buffer;
 // hardhat: 31337 tbsc: 97 0x61 goerli： 0x5
@@ -70,6 +72,9 @@ function App() {
 
   const [isMounted, setIsMounted] = useState(false);
 
+  const { address, isConnected } = useAppKitAccount();
+  const [isConnecting, setIsConnecting] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
     const intervalId = setInterval(updateChianId, 2000);
@@ -78,7 +83,7 @@ function App() {
       clearInterval(intervalId);
       setIsMounted(false);
     };
-  }, []);
+  }, [isConnected, address]);
 
   useEffect(() => {
     if (isMounted) {
@@ -110,6 +115,10 @@ function App() {
   const updateChianId = () => {
     let chainId = localStorage.getItem("chainId");
     setChainId(chainId);
+
+    if (isConnected && address) {
+      localStorage.setItem("userAddress", address);
+    }
     let account = localStorage.getItem("userAddress");
     setCurrentAccount(account);
   };
@@ -133,6 +142,52 @@ function App() {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  useEffect(() => {
+    const loginType = localStorage.getItem("LoginType");
+    const storedAccount = localStorage.getItem("userAddress");
+    if (
+      loginType === "reown" &&
+      isConnected &&
+      address &&
+      address !== storedAccount
+    ) {
+      login();
+    }
+    const storedConnect = localStorage.getItem("@appkit/connection_status");
+    if (
+      loginType === "reown" &&
+      storedConnect === "disconnected" &&
+      storedAccount
+    ) {
+      console.log("Reown断开连接");
+      disconnect();
+    }
+  }, [isConnected, address]);
+
+  const handleConnect = async () => {
+    setIsConnecting(true);
+
+    try {
+      localStorage.setItem("LoginType", "reown");
+    } catch (error) {
+      console.error("Reown连接失败:", error);
+      localStorage.removeItem("LoginType");
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const connectReownButton = () => {
+    return (
+      <appkit-button
+        label={isConnecting ? "Connecting..." : "Connect With Reown"}
+        style={{ display: "block", marginLeft: "auto" }}
+        onClick={handleConnect}
+        // disabled={isConnecting}
+      />
+    );
   };
 
   const disconnect = async () => {
@@ -236,7 +291,9 @@ function App() {
           }}
         >
           <p></p>
-          ChainId: {chainId}&nbsp;{disConnect()}
+          {currentAccount ? connectReownButton() : connectReownButton()}
+          <p></p>
+          ChainId: {chainId}
           <p></p>
           Account:{" "}
           {

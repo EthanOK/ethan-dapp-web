@@ -13,12 +13,19 @@ import {
 } from "../utils/GetProvider.js";
 import { getBlurCalldata } from "../utils/GetBlurCallData.js";
 import { onlyBuyBlurNFT } from "../utils/BlurFunc.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const BuyBlurNFTPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState(null);
   const [blurAccessToken, setBlurAccessToken] = useState(null);
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

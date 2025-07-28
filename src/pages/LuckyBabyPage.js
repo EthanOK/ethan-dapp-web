@@ -10,6 +10,7 @@ import {
 } from "../utils/CallLuckyBaby.js";
 
 import { stringToArray } from "../utils/Utils.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const LuckyBabyPage = () => {
   //   const [tableData, setTableData] = useState([]);
@@ -26,6 +27,13 @@ const LuckyBabyPage = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [currentIssueId, setCurrentIssueId] = useState(null);
   const [openState, setOpenState] = useState("");
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   const handleChangePayType = (event) => {
     setSelectedPayType(event.target.value);

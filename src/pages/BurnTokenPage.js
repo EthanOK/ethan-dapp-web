@@ -3,6 +3,7 @@ import { getFaucetContract, getERC20Contract } from "../utils/GetContract.js";
 
 import { getDecimal, getDecimalBigNumber, isAddress } from "../utils/Utils.js";
 import { BigNumber } from "ethers";
+import { useAppKitAccount } from "@reown/appkit/react";
 const BurnTokenPage = () => {
   //   const [tableData, setTableData] = useState([]);
 
@@ -11,6 +12,13 @@ const BurnTokenPage = () => {
   const [tokenBalance, setTokenBalance] = useState(0);
   const [currentAccount, setCurrentAccount] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);

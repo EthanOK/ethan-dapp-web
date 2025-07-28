@@ -9,6 +9,7 @@ import {
 import { getTokenPrice } from "../utils/GetLpTokenPrice.js";
 import { signHexDataMessage } from "../utils/SignFunc.js";
 import { getSigner } from "../utils/GetProvider.js";
+import { useAppKitAccount } from "@reown/appkit/react";
 
 const UtilsPage = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -27,6 +28,13 @@ const UtilsPage = () => {
 
   const [lpTokenPrice, setLpTokenPrice] = useState(null);
   const [selectedValue, setSelectedValue] = useState("1");
+
+  const { address, isConnected } = useAppKitAccount();
+  useEffect(() => {
+    if (isConnected && address) {
+      setCurrentAccount(address);
+    }
+  }, [isConnected, address]);
 
   useEffect(() => {
     setIsMounted(true);
