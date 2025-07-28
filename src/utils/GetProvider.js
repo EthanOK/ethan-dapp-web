@@ -324,9 +324,13 @@ const getChainIdAndBalanceETHAndTransactionCount = async (account) => {
     const balance = await provider.getBalance(account);
     const balanceETH = ethers.utils.formatEther(balance);
     const nonce = await provider.getTransactionCount(account);
-    return [chainId, balanceETH, nonce];
+    return {
+      chainId,
+      balance: balanceETH,
+      nonce
+    };
   } catch (error) {
-    return [null, null, null];
+    return null;
   }
 };
 

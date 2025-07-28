@@ -5,7 +5,6 @@ import seaportAbi from "../contracts/seaport1_5.json";
 import order_data_t from "../testdata/orderdata.js";
 import orders_data_t from "../testdata/ordersdata.js";
 import yunGouAggregatorsAbi from "../contracts/YunGouAggregators.json";
-
 import yunGou2_0Abi from "../contracts/yungou2_0.json";
 import { BigNumber, ethers } from "ethers";
 import { OpenSeaSDK, Chain } from "opensea-js";
@@ -42,132 +41,24 @@ const HomePage = () => {
     localStorage.getItem("chainId") || DefaultChainId
   );
   const [message, setMessage] = useState("");
-  const [isMounted, setIsMounted] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
   const [etherscan, setEtherscan] = useState("");
 
-  const { address, isConnected } = useAppKitAccount();
-  const { chainId: chainID } = useAppKitNetwork();
-
   const [isConnecting, setIsConnecting] = useState(false);
-
+  const { chainId: currentChainId } = useAppKitNetwork();
+  const { address, isConnected } = useAppKitAccount();
   useEffect(() => {
-    setIsMounted(true);
-    const intervalId = setInterval(() => updateData(), 3000);
-
-    return () => {
-      clearInterval(intervalId);
-      setIsMounted(false);
-    };
-  }, [isConnected, address, chainID]);
-
-  const updateData = () => {
-    let chainId_ = localStorage.getItem("chainId");
-    let loginType = localStorage.getItem("LoginType");
-    if (loginType === "metamask") {
-    } else if (chainID !== undefined && Number(chainId_) !== Number(chainID)) {
-      setChainId(chainID);
-      localStorage.setItem("chainId", chainID);
-    }
-
     if (isConnected && address) {
-      localStorage.setItem("userAddress", address);
+      setCurrentAccount(address);
+      setChainId(currentChainId);
+      getChainIdAndBalanceETHAndTransactionCount(address).then(async (res) => {
+        setCurrentAccountBalance(res?.balance);
+        setCurrentAccountNonce(res?.nonce);
+        setEtherscan(await getScanURL());
+      });
     }
+  }, [isConnected, address, currentChainId]);
 
-    let currentAccount_ = localStorage.getItem("userAddress");
-    if (currentAccount !== currentAccount_) {
-      configAccountData(currentAccount_);
-    }
-  };
-
-  useEffect(() => {
-    if (isMounted) {
-      let account = localStorage.getItem("userAddress");
-
-      let chainId = localStorage.getItem("chainId");
-
-      if (chainId === null) {
-        localStorage.setItem("chainId", DefaultChainId);
-      }
-
-      if (window.ethereum) {
-        window.ethereum.on("chainChanged", async (chainId) => {
-          let chainId_ = Number.parseInt(chainId);
-          localStorage.setItem("chainId", chainId_.toString());
-
-          let account = localStorage.getItem("userAddress");
-          await configAccountData(account);
-        });
-
-        window.ethereum.on("accountsChanged", async (accounts) => {
-          let account = accounts[0];
-
-          localStorage.setItem("userAddress", account);
-          // await login();
-          await configAccountData(account);
-        });
-      }
-
-      // if (account !== null) {
-      //   configAccountData(account);
-      // }
-    }
-  }, [isMounted]);
-
-  const handleSelectChange = (event) => {
-    let account = localStorage.getItem("userAddress");
-    if (account === null) {
-      let networkId = event.target.value;
-
-      setChainId(event.target.value);
-
-      localStorage.setItem("chainId", networkId);
-    }
-  };
-
-  // config AccountData
-  const configAccountData = async (account) => {
-    setCurrentAccount(account);
-
-    let [chainId, balance_ether, nonce] =
-      await getChainIdAndBalanceETHAndTransactionCount(account);
-
-    setChainId(localStorage.getItem("chainId"));
-
-    setCurrentAccountBalance(balance_ether);
-
-    setCurrentAccountNonce(nonce);
-
-    setEtherscan(await getScanURL());
-  };
-
-  const checkWalletIsConnected = async () => {
-    const { ethereum } = window;
-    try {
-      if (!ethereum) {
-        alert("Please install Metamask");
-        console.log("Make sure you have Metamask installed!");
-        console.log("`````````````");
-        return false;
-      } else {
-        console.log("Wallet exists! let's go!");
-
-        return true;
-      }
-    } catch (error) {
-      console.log(error);
-      return false;
-    }
-  };
-
-  const disconnect = async () => {
-    // 重新加载当前 URL。此方法的功能类似于浏览器的“刷新”按钮
-    window.location.reload();
-
-    localStorage.clear();
-
-    console.log("断开连接");
-  };
+  const handleSelectChange = (event) => {};
 
   // TODO:yunGouAggregatorsHandler
   const yunGouAggregatorsHandler = async () => {
@@ -615,11 +506,6 @@ const HomePage = () => {
 
   return (
     <div className="main-app">
-      {showAlert && (
-        <div className="alert">
-          <h1>Login successful!</h1>
-        </div>
-      )}
       <h1>Welcome To Ethan DApp</h1>
 
       <div>
@@ -630,7 +516,7 @@ const HomePage = () => {
           <p>Nonce: {currentAccountNonce}</p>
         </div>
         <div>
-          <h2>Set Network:</h2>
+          <h2>current Network:</h2>
           <select
             value={chainId}
             onChange={handleSelectChange}

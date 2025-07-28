@@ -32,12 +32,24 @@ import { base, bsc, mainnet, sepolia, hoodi } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
 import { initializeSubscribers } from "./utils/Suscribers";
 import { Toaster } from "sonner";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { login } from "./utils/ConnectWallet";
 
 window.Buffer = window.Buffer || require("buffer").Buffer;
 // hardhat: 31337 tbsc: 97 0x61 goerli： 0x5
 
+const storedChainId = localStorage.getItem("chainId") || DefaultChainId;
+
+const getDefaultNetwork = (chainId) => {
+  const networkMap = {
+    [sepolia.id]: sepolia,
+    [hoodi.id]: hoodi,
+    [mainnet.id]: mainnet,
+    [base.id]: base,
+    [bsc.id]: bsc
+  };
+  return networkMap[Number(chainId)] || sepolia; // 默认使用 sepolia
+};
 // 1. Get projectId at https://cloud.reown.com
 const projectId = projectId_walletconnect;
 
@@ -54,6 +66,7 @@ export const modal = createAppKit({
   adapters: [new Ethers5Adapter()],
   metadata: metadata,
   networks: [sepolia, hoodi, mainnet, base, bsc],
+  defaultNetwork: getDefaultNetwork(storedChainId),
   projectId,
   features: {
     analytics: true // Optional - defaults to your Cloud configuration
@@ -65,84 +78,22 @@ initializeSubscribers(modal);
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [isExpanded, setIsExpanded] = useState(true);
-
   const [chainId, setChainId] = useState(
     localStorage.getItem("chainId") || DefaultChainId
   );
 
-  const [isMounted, setIsMounted] = useState(false);
-
   const { address, isConnected } = useAppKitAccount();
+  const { chainId: currentChainId } = useAppKitNetwork();
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    const intervalId = setInterval(updateChianId, 2000);
-
-    return () => {
-      clearInterval(intervalId);
-      setIsMounted(false);
-    };
-  }, [isConnected, address]);
-
-  useEffect(() => {
-    if (isMounted) {
-      let account = localStorage.getItem("userAddress");
-
-      let chainId = localStorage.getItem("chainId");
-      if (chainId === null) {
-        localStorage.setItem("chainId", DefaultChainId);
-      }
-      let loginType = localStorage.getItem("LoginType");
-      if (loginType === null) {
-        localStorage.setItem("LoginType", null);
-      }
-
-      if (account !== null) {
-        configAccountData(account);
-      }
-      if (window.ethereum) {
-        window.ethereum.on("accountsChanged", async (accounts) => {
-          let account = accounts[0];
-
-          localStorage.setItem("userAddress", account);
-          localStorage.removeItem("blurAccessToken");
-        });
-      }
-    }
-  }, [isMounted]);
-
-  const updateChianId = () => {
-    let chainId = localStorage.getItem("chainId");
-    setChainId(chainId);
-
     if (isConnected && address) {
+      setCurrentAccount(address);
+      setChainId(currentChainId);
+      localStorage.setItem("chainId", String(currentChainId));
       localStorage.setItem("userAddress", address);
     }
-    let account = localStorage.getItem("userAddress");
-    setCurrentAccount(account);
-  };
-  const handleSelectChange = (event) => {
-    let account = localStorage.getItem("userAddress");
-    if (account === null) {
-      let networkId = event.target.value;
-
-      setChainId(event.target.value);
-
-      localStorage.setItem("chainId", networkId);
-    }
-  };
-
-  // config AccountData
-  const configAccountData = async (account) => {
-    try {
-      setCurrentAccount(account);
-
-      setChainId(localStorage.getItem("chainId"));
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  }, [isConnected, address, currentChainId]);
 
   useEffect(() => {
     const loginType = localStorage.getItem("LoginType");
@@ -197,20 +148,6 @@ function App() {
     window.location.reload();
 
     console.log("断开连接");
-  };
-  const disConnect = () => {
-    return (
-      <button
-        onClick={disconnect}
-        style={{
-          color: "red",
-          fontSize: "10px",
-          padding: "10px 20px"
-        }}
-      >
-        DisConnect
-      </button>
-    );
   };
 
   const handleAccordionClick = () => {
