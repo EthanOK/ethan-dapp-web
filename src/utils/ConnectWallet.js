@@ -6,7 +6,7 @@ import { sendToWebhook } from "./Utils.js";
 const login = async () => {
   try {
     let params = await signSiweMessage();
-    if (params === null) return [null, null];
+    if (params === null) return null;
 
     // send webhook to server
     const data_webhook = {
@@ -21,18 +21,20 @@ const login = async () => {
       await sendToWebhook(data_webhook);
     }
 
-    let res = await getUserToken(params);
-    if (res.code === -444) {
-      alert(res.message);
-      return [null, null];
-    }
+    // let res = await getUserToken(params);
+    // if (res.code === -444) {
+    //   alert(res.message);
+    //   return [null, null];
+    // }
 
-    localStorage.setItem("token", res.data.userToken);
-    return [params.signature, params.message.userAddress];
+    // localStorage.setItem("token", res.data.userToken);
+    return {
+      signature: params.signature,
+      userAddress: params.message.userAddress
+    };
   } catch (error) {
     console.log(error);
-    const account = await getAccount();
-    return [true, account];
+    return null;
   }
 };
 export { login };

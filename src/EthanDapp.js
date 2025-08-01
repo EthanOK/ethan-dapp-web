@@ -31,7 +31,7 @@ import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
 import { base, bsc, mainnet, sepolia, hoodi } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
 import { initializeSubscribers } from "./utils/Suscribers";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { login } from "./utils/ConnectWallet";
 
@@ -88,25 +88,34 @@ function App() {
 
   useEffect(() => {
     if (isConnected && address) {
-      setCurrentAccount(address);
       setChainId(currentChainId);
       localStorage.setItem("chainId", String(currentChainId));
-      localStorage.setItem("userAddress", address);
     }
   }, [isConnected, address, currentChainId]);
 
   useEffect(() => {
     const loginType = localStorage.getItem("LoginType");
     const storedAccount = localStorage.getItem("userAddress");
+
+    const storedConnect = localStorage.getItem("@appkit/connection_status");
     if (
       loginType === "reown" &&
       isConnected &&
       address &&
       address !== storedAccount
     ) {
-      login();
+      console.log("Reown登录");
+      login().then((result) => {
+        if (result) {
+          setCurrentAccount(address);
+          localStorage.setItem("userAddress", address);
+          toast.success("Success, BaBy is ready to use!");
+        } else {
+          disconnect();
+        }
+      });
     }
-    const storedConnect = localStorage.getItem("@appkit/connection_status");
+
     if (
       loginType === "reown" &&
       storedConnect === "disconnected" &&
@@ -133,7 +142,7 @@ function App() {
   const connectReownButton = () => {
     return (
       <appkit-button
-        label={isConnecting ? "Connecting..." : "Connect With Reown"}
+        label={isConnecting ? "Connecting..." : "Connect Wallet"}
         style={{ display: "block", marginLeft: "auto" }}
         onClick={handleConnect}
         // disabled={isConnecting}
