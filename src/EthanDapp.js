@@ -88,6 +88,7 @@ function App() {
 
   useEffect(() => {
     if (isConnected && address) {
+      setCurrentAccount(address);
       setChainId(currentChainId);
       localStorage.setItem("chainId", String(currentChainId));
     }
@@ -96,7 +97,6 @@ function App() {
   useEffect(() => {
     const loginType = localStorage.getItem("LoginType");
     const storedAccount = localStorage.getItem("userAddress");
-
     const storedConnect = localStorage.getItem("@appkit/connection_status");
     if (
       loginType === "reown" &&
@@ -107,7 +107,6 @@ function App() {
       console.log("Reown登录");
       login().then((result) => {
         if (result) {
-          setCurrentAccount(address);
           localStorage.setItem("userAddress", address);
           toast.success("Success, BaBy is ready to use!");
         } else {
