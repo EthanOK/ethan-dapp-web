@@ -40,7 +40,7 @@ window.Buffer = window.Buffer || require("buffer").Buffer;
 
 const storedChainId = localStorage.getItem("chainId") || DefaultChainId;
 
-const getDefaultNetwork = (chainId) => {
+export const getDefaultNetwork = (chainId) => {
   const networkMap = {
     [sepolia.id]: sepolia,
     [hoodi.id]: hoodi,

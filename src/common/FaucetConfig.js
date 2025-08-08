@@ -23,11 +23,12 @@ const faucetConfigRaw = {
 export const faucetConfig = normalizeFaucetConfigKeys(faucetConfigRaw);
 
 export const faucetTokenList = [
-  // { label: "YGIO", faucetAmount: 1000 },
+  { label: "stETH", faucetAmount: 100 },
   { label: "USDT", faucetAmount: 1000 },
-  { label: "USDC", faucetAmount: 1000 },
-  { label: "stETH", faucetAmount: 100 }
+  { label: "USDC", faucetAmount: 1000 }
 ];
+
+export const faucetChainIdList = [11155111];
 
 export const getFaucetTokenAddress = (chainId, tokenName) => {
   const tokenKey = tokenName.toLowerCase();

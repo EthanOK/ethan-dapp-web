@@ -12,17 +12,21 @@ import { addSuffixOfTxData } from "../utils/HandleTxData.js";
 import { switchChain } from "../utils/GetProvider.js";
 import { login } from "../utils/ConnectWallet.js";
 import {
+  faucetChainIdList,
   faucetConfig,
   faucetTokenList,
   getFaucetTokenAddress
 } from "../common/FaucetConfig.js";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { getDefaultNetwork, modal } from "../EthanDapp.js";
+import { useRef } from "react";
 const FaucetTokenPage = () => {
   //   const [tableData, setTableData] = useState([]);
 
   const [isMounted, setIsMounted] = useState(false);
   const [myYgmeBalance, setMyYgmeBalance] = useState(0);
   const [currentAccount, setCurrentAccount] = useState(null);
+  const [chainId, setChainId] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
 
   const [selectedToken, setSelectedToken] = useState("USDT");
@@ -33,11 +37,20 @@ const FaucetTokenPage = () => {
   const faucetFromAddress = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
 
   const { address, isConnected } = useAppKitAccount();
+  const { chainId: chainIdCurrent } = useAppKitNetwork();
+
+  const hasUpdatedBalanceRef = useRef(false);
+
   useEffect(() => {
     if (isConnected && address) {
       setCurrentAccount(address);
+      setChainId(chainIdCurrent);
+      if (!hasUpdatedBalanceRef.current) {
+        updateBalance();
+        hasUpdatedBalanceRef.current = true;
+      }
     }
-  }, [isConnected, address]);
+  }, [isConnected, address, chainIdCurrent]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -53,34 +66,6 @@ const FaucetTokenPage = () => {
       faucetBalance();
     }
   }, [selectedToken]);
-
-  useEffect(() => {
-    if (isMounted) {
-      configData();
-      if (window.ethereum) {
-        window.ethereum.on("chainChanged", async (chainId) => {
-          let chainId_ = Number.parseInt(chainId);
-          localStorage.setItem("chainId", chainId_.toString());
-        });
-
-        window.ethereum.on("accountsChanged", async (accounts) => {
-          let account = accounts[0];
-
-          localStorage.setItem("userAddress", account);
-        });
-      }
-    }
-  }, [isMounted]);
-
-  const configData = async () => {
-    try {
-      let account = localStorage.getItem("userAddress");
-      setCurrentAccount(account);
-      await updateBalance();
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const handleSelectChange = (event) => {
     const tokenName = event.target.value;
@@ -154,11 +139,30 @@ const FaucetTokenPage = () => {
     }
   };
 
+  const checkAndSwitchChain = async () => {
+    try {
+      if (!faucetChainIdList.includes(chainId)) {
+        console.log(
+          "checkAndSwitchChain",
+          getDefaultNetwork(faucetChainIdList[0])
+        );
+        await modal.switchNetwork(getDefaultNetwork(faucetChainIdList[0]));
+      }
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   const faucetTokenHandler = async (tokenName, faucetAmount) => {
-    let account = localStorage.getItem("userAddress");
-    let chainId = localStorage.getItem("chainId");
-    chainId = parseInt(chainId);
-    let tokenAddress = getFaucetTokenAddress(chainId, tokenName);
+    if (!(await checkAndSwitchChain())) {
+      console.log("switch failure");
+      return;
+    }
+
+    let account = currentAccount;
+    let chainIdC = parseInt(chainId);
+    let tokenAddress = getFaucetTokenAddress(chainIdC, tokenName);
     const decimals = await getERC20Decimals(tokenAddress);
     let tx;
     try {
@@ -289,7 +293,7 @@ const FaucetTokenPage = () => {
       )}{" "}
       <h1>Please Switch To Sepolia</h1>
       <div className="bordered-div">
-        <h2>Faucet YGME</h2>
+        <h2>Faucet YGME NFT</h2>
         <h3>My YGME Balance: {myYgmeBalance}</h3>
         {faucetButton("YGME")}
       </div>
