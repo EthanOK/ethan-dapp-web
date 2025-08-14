@@ -148,20 +148,20 @@ const FaucetTokenPage = () => {
         );
         await modal.switchNetwork(getDefaultNetwork(faucetChainIdList[0]));
       }
-      return true;
+      return faucetChainIdList[0];
     } catch (error) {
-      return false;
+      return null;
     }
   };
 
   const faucetTokenHandler = async (tokenName, faucetAmount) => {
-    if (!(await checkAndSwitchChain())) {
+    let chainIdC = await checkAndSwitchChain();
+    if (chainIdC == null) {
       console.log("switch failure");
       return;
     }
 
     let account = currentAccount;
-    let chainIdC = parseInt(chainId);
     let tokenAddress = getFaucetTokenAddress(chainIdC, tokenName);
     const decimals = await getERC20Decimals(tokenAddress);
     let tx;
@@ -194,7 +194,9 @@ const FaucetTokenPage = () => {
       } else {
         console.log("Failure!");
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const faucetButton = (coinType, faucetAmount = 5) => {
