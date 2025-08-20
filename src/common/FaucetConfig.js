@@ -16,16 +16,20 @@ const faucetConfigRaw = {
     ygme: "0x709B78B36b7208f668A3823c1d1992C0805E4f4d",
     usdt: "0x590dcA422b660071F978E5A69851A18529B45415",
     stETH: "0x1d1d95791Dcc3fa1714Be0c8D81B81b6e84B3C14",
-    usdc: "0x6125c3dA36152A5e68a5AC5686A09d6244690bcf"
+    usdc: "0x6125c3dA36152A5e68a5AC5686A09d6244690bcf",
+    "TSLA-B": "0xFB9B3eB69Ed3aba67ACE2f5aec1FFbFC0b4bE8A1",
+    "NVDA-B": "0xE0fED50FC039aE3A0F83C4c72EB592AE5BaD4062"
   }
 };
 
 export const faucetConfig = normalizeFaucetConfigKeys(faucetConfigRaw);
 
 export const faucetTokenList = [
-  { label: "stETH", faucetAmount: 100 },
   { label: "USDT", faucetAmount: 1000 },
-  { label: "USDC", faucetAmount: 1000 }
+  { label: "USDC", faucetAmount: 1000 },
+  { label: "stETH", faucetAmount: 100 },
+  { label: "TSLA-B", faucetAmount: 100 },
+  { label: "NVDA-B", faucetAmount: 100 }
 ];
 
 export const faucetChainIdList = [11155111];
