@@ -27,13 +27,13 @@ const faucetConfigRaw = {
 export const faucetConfig = normalizeFaucetConfigKeys(faucetConfigRaw);
 
 export const faucetTokenList = [
-  { label: "USDT", faucetAmount: 1000 },
-  { label: "USDC", faucetAmount: 1000 },
-  { label: "stETH", faucetAmount: 100 },
-  { label: "TSLA-B", faucetAmount: 100 },
-  { label: "NVDA-B", faucetAmount: 100 },
-  { label: "APPL-B", faucetAmount: 100 },
-  { label: "META-B", faucetAmount: 100 }
+  { label: "USDT", faucetAmount: 100000 },
+  { label: "USDC", faucetAmount: 100000 },
+  { label: "stETH", faucetAmount: 10000 },
+  { label: "TSLA-B", faucetAmount: 10000 },
+  { label: "NVDA-B", faucetAmount: 10000 },
+  { label: "APPL-B", faucetAmount: 10000 },
+  { label: "META-B", faucetAmount: 10000 }
 ];
 
 export const faucetChainIdList = [11155111];
