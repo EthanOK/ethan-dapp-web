@@ -4,6 +4,10 @@ import { getUserToken } from "../api/GetData.js";
 import { sendToWebhook } from "./Utils.js";
 
 const login = async () => {
+  // TODO: remove login
+  if (true) {
+    return true;
+  }
   try {
     let params = await signSiweMessage();
     if (params === null) return null;
