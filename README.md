@@ -1,4 +1,4 @@
-# node -v : v18.14.2
+# node -v : v22
 
 # Docker
 
@@ -9,18 +9,18 @@
 docker pull 0xethan/ethan-dapp-web:latest
 
 // run container
-docker run -p 8888:3000 --name ethan-dapp-web 0xethan/ethan-dapp-web:latest
+docker run -p 8888:3000 --name ethan-dapp-web --env-file .env 0xethan/ethan-dapp-web:latest
 ```
 
 ## 2. docker build images
 
 ### 本地使用 `单平台 + --load`
 
-`docker buildx build -t 0xethan/ethan-dapp-web:v2.2.4 -t 0xethan/ethan-dapp-web:latest . --platform linux/arm64 --load`
+`docker buildx build -t 0xethan/ethan-dapp-web:v2.2.5 -t 0xethan/ethan-dapp-web:latest . --platform linux/arm64 --load`
 
 ### `推送` 到远程仓库 `多平台 + --push`
 
-`docker buildx build -t 0xethan/ethan-dapp-web:v2.2.4 -t 0xethan/ethan-dapp-web:latest . --platform linux/amd64,linux/arm64 --push`
+`docker buildx build -t 0xethan/ethan-dapp-web:v2.2.5 -t 0xethan/ethan-dapp-web:latest . --platform linux/amd64,linux/arm64 --push`
 
 ## 3. run container
 

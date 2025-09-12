@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.5](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.4...v2.2.5) (2025-09-12)
+
+
+### Features
+
+* add `APPL-B` and `META-B` ([a96a47c](https://github.com/EthanOK/ethan-bric-web/commit/a96a47c845e8c35eec5b687b19490b2d4df23a52))
+* add Faucet BRIC Token ([c9a70e4](https://github.com/EthanOK/ethan-bric-web/commit/c9a70e4ebb04562c3cbfbed74d9928a2674ab9eb))
+* add Faucet TSLA-B and NVDA-B ([55885d9](https://github.com/EthanOK/ethan-bric-web/commit/55885d95f7b73338b3ac7e3ed3598392fd1af38d))
+* add faucet usdc in sepolia ([125489d](https://github.com/EthanOK/ethan-bric-web/commit/125489d79c9b7eb943e8f46787b0543f1c4eb6d9))
+* add hoodi testnet ([b580c40](https://github.com/EthanOK/ethan-bric-web/commit/b580c4086ea4185cb223d5b2dc7fc572589843ec))
+* faucet TokenList add stETH ([011255e](https://github.com/EthanOK/ethan-bric-web/commit/011255e5acbade18078d26ce0d35be41d7eb3a65))
+* publish docker version latest ([e283a01](https://github.com/EthanOK/ethan-bric-web/commit/e283a01ac5767cc391b7bbaa2411fbb3301abcda))
+* update faucetAmount ([f42cb3b](https://github.com/EthanOK/ethan-bric-web/commit/f42cb3b148f679d2b2ed19259b458b5bed79391e))
+* use `useAppKitAccount` Hooks get account ([ed332c9](https://github.com/EthanOK/ethan-bric-web/commit/ed332c9e55f91d157385a50fccc8194fe95e2f5e))
+
+
+### Bug Fixes
+
+* checkAndSwitchChain in faucetTokenHandler ([078f75d](https://github.com/EthanOK/ethan-bric-web/commit/078f75d64bbf4a68371c4c4beeb7d2ac5bb62d78))
+* checkAndSwitchChain in FaucetTokenPage ([69f1d52](https://github.com/EthanOK/ethan-bric-web/commit/69f1d52b416916c3b800c76857b97a8bd06dc2f4))
+* login in must sign message ([1ba0ce3](https://github.com/EthanOK/ethan-bric-web/commit/1ba0ce3216d6ebb0bf2d37ce92f2065bb0aed99d))
+* remove signSiweMessage ([0f1a43f](https://github.com/EthanOK/ethan-bric-web/commit/0f1a43f1e1de79ca418db0fc46a5d24a9a8f6d2b))
+* setCurrentAccount(address) ([882181d](https://github.com/EthanOK/ethan-bric-web/commit/882181deb55e1cefca3c43fb919c686df3dc7e95))
+* update SelectedToken ([8468798](https://github.com/EthanOK/ethan-bric-web/commit/8468798db6b1f9283d5420f4f390c2b939277ae9))
+
 ### [2.2.4](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.3...v2.2.4) (2025-07-22)
 
 
