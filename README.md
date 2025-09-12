@@ -9,7 +9,7 @@
 docker pull 0xethan/ethan-dapp-web:latest
 
 // run container
-docker run -p 8888:3000 --name ethan-dapp-web 0xethan/ethan-dapp-web:latest
+docker run -p 8888:3000 --name ethan-dapp-web --env-file .env 0xethan/ethan-dapp-web:latest
 ```
 
 ## 2. docker build images
