@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import {
   getFaucetContract,
@@ -20,6 +21,7 @@ import {
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { getDefaultNetwork, modal } from "../EthanDapp.js";
 import { useRef } from "react";
+import { toast } from "sonner";
 const FaucetTokenPage = () => {
   //   const [tableData, setTableData] = useState([]);
 
@@ -164,6 +166,12 @@ const FaucetTokenPage = () => {
     let account = currentAccount;
     let tokenAddress = getFaucetTokenAddress(chainIdC, tokenName);
     const decimals = await getERC20Decimals(tokenAddress);
+
+    if (Number(faucetAmount) > totalAmount) {
+      toast.error("Insufficient Supply");
+      return;
+    }
+
     let tx;
     try {
       let faucetContract = await getFaucetContract();
