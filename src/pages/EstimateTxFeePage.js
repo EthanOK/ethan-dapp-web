@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { isAddress, getDecimalBigNumber } from "../utils/Utils.js";
-import { getProvider, getSigner } from "../utils/GetProvider.js";
+import { getProvider } from "../utils/GetProvider.js";
 import { estimateTxFee } from "../utils/EstimateTxFee.js";
 import { toast } from "sonner";
 import { useAppKitAccount } from "@reown/appkit/react";
@@ -34,10 +34,6 @@ const EstimateTxFeePage = () => {
     if (account !== null) {
       setCurrentAccount(account);
     }
-  };
-
-  const PleaseLogin = () => {
-    return <h2>UnLogin, Please Login</h2>;
   };
 
   const estimateTxFeeHandler = async () => {
@@ -139,7 +135,7 @@ const EstimateTxFeePage = () => {
         <h2>
           Please See:
           <p></p>
-          <a target="_blank" rel="noopener noreferrer">
+          <a href={message} target="_blank" rel="noopener noreferrer">
             {message}
           </a>
         </h2>
