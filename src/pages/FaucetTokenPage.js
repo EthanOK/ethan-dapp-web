@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import {
@@ -42,6 +43,8 @@ const FaucetTokenPage = () => {
   const { chainId: chainIdCurrent } = useAppKitNetwork();
 
   const hasUpdatedBalanceRef = useRef(false);
+
+  const [isTransactionProcessing, setIsTransactionProcessing] = useState(false);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -157,23 +160,25 @@ const FaucetTokenPage = () => {
   };
 
   const faucetTokenHandler = async (tokenName, faucetAmount) => {
-    let chainIdC = await checkAndSwitchChain();
-    if (chainIdC == null) {
-      console.log("switch failure");
-      return;
-    }
-
-    let account = currentAccount;
-    let tokenAddress = getFaucetTokenAddress(chainIdC, tokenName);
-    const decimals = await getERC20Decimals(tokenAddress);
-
-    if (Number(faucetAmount) > totalAmount) {
-      toast.error("Insufficient Supply");
-      return;
-    }
-
-    let tx;
+    setIsTransactionProcessing(true);
     try {
+      let chainIdC = await checkAndSwitchChain();
+      if (chainIdC == null) {
+        console.log("switch failure");
+        return;
+      }
+
+      let account = currentAccount;
+      let tokenAddress = getFaucetTokenAddress(chainIdC, tokenName);
+      const decimals = await getERC20Decimals(tokenAddress);
+
+      if (Number(faucetAmount) > totalAmount) {
+        toast.error("Insufficient Supply");
+        return;
+      }
+
+      let tx;
+
       let faucetContract = await getFaucetContract();
       if (tokenName.toLowerCase() === "ygme") {
         let calldata = ethers.utils.defaultAbiCoder.encode(
@@ -204,6 +209,8 @@ const FaucetTokenPage = () => {
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setIsTransactionProcessing(false);
     }
   };
 
@@ -224,9 +231,27 @@ const FaucetTokenPage = () => {
       <button
         onClick={config.handler}
         className="cta-button mint-nft-button"
-        disabled={!currentAccount}
+        disabled={!currentAccount || isTransactionProcessing}
       >
-        Faucet {config.amount} {config.label}
+        {isTransactionProcessing ? (
+          <>
+            <span
+              style={{
+                display: "inline-block",
+                width: "12px",
+                height: "12px",
+                border: "2px solid #ffffff",
+                borderRightColor: "transparent",
+                borderRadius: "50%",
+                animation: "rotate 1s linear infinite",
+                marginRight: "8px"
+              }}
+            ></span>
+            Processing...
+          </>
+        ) : (
+          `Faucet ${config.amount} ${config.label}`
+        )}
       </button>
     );
   };
