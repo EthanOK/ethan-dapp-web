@@ -11,7 +11,6 @@ import {
   projectId_walletconnect
 } from "./common/SystemConfiguration";
 import BuyNFTPage from "./pages/BuyNFTPage";
-import LuckyBabyPage from "./pages/LuckyBabyPage";
 import ENSPage from "./pages/ENSPage";
 import FaucetTokenPage from "./pages/FaucetTokenPage";
 import { getExtractAddress } from "./utils/Utils";
@@ -207,7 +206,7 @@ function App() {
                 <AccordionItem title="Buy NFT (Y,O)" linkTo="/buyNFT" />
                 <AccordionItem title="Buy Blur NFT" linkTo="/buyBlurNFT" />
                 {/* <AccordionItem title="Get IPFS" linkTo="/getIPFS" /> */}
-                <AccordionItem title="Lucky Baby" linkTo="/luckyBaby" />
+                {/* <AccordionItem title="Lucky Baby" linkTo="/luckyBaby" /> */}
                 <AccordionItem title="Utils" linkTo="/utils" />
                 {/* <AccordionItem
                   title="Cross-Chain Bridge"
@@ -260,7 +259,7 @@ function App() {
           <Route path="/buyNFT" element={<BuyNFTPage />} />
           <Route path="/buyBlurNFT" element={<BuyBlurNFTPage />} />
           <Route path="/getIPFS" element={<GetIPFSPage />} />
-          <Route path="/luckyBaby" element={<LuckyBabyPage />} />
+          {/* <Route path="/luckyBaby" element={<LuckyBabyPage />} /> */}
           <Route path="/faucet" element={<FaucetTokenPage />} />
           <Route path="/burn" element={<BurnTokenPage />} />
           <Route
