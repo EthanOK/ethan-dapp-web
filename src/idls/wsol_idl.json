@@ -1,7 +1,7 @@
 {
-  "address": "AGZyRHemK11ttZL1q1RDv4BcVSnoYBPPJ5o61h4ecH5d",
+  "address": "wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn",
   "metadata": {
-    "name": "weth",
+    "name": "wsol",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
@@ -33,13 +33,13 @@
           }
         },
         {
-          "name": "weth_mint",
+          "name": "wsol_mint",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "value": [119, 101, 116, 104, 95, 109, 105, 110, 116]
+                "value": [119, 115, 111, 108, 95, 109, 105, 110, 116]
               }
             ]
           }
@@ -63,7 +63,7 @@
               },
               {
                 "kind": "account",
-                "path": "weth_mint"
+                "path": "wsol_mint"
               }
             ],
             "program": {
@@ -95,7 +95,7 @@
               },
               {
                 "kind": "account",
-                "path": "weth_mint"
+                "path": "wsol_mint"
               }
             ],
             "program": {
@@ -250,13 +250,13 @@
           }
         },
         {
-          "name": "weth_mint",
+          "name": "wsol_mint",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "value": [119, 101, 116, 104, 95, 109, 105, 110, 116]
+                "value": [119, 115, 111, 108, 95, 109, 105, 110, 116]
               }
             ]
           }
@@ -280,7 +280,7 @@
               },
               {
                 "kind": "account",
-                "path": "weth_mint"
+                "path": "wsol_mint"
               }
             ],
             "program": {
@@ -320,8 +320,7 @@
         {
           "name": "signer",
           "writable": true,
-          "signer": true,
-          "address": "3hDmGyaiLbav54TkKyrBUmM5WvNQrvdkrB6bwaThCkeu"
+          "signer": true
         },
         {
           "name": "storage_account",
@@ -336,13 +335,13 @@
           }
         },
         {
-          "name": "weth_mint",
+          "name": "wsol_mint",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "value": [119, 101, 116, 104, 95, 109, 105, 110, 116]
+                "value": [119, 115, 111, 108, 95, 109, 105, 110, 116]
               }
             ]
           }
@@ -392,13 +391,13 @@
           }
         },
         {
-          "name": "weth_mint",
+          "name": "wsol_mint",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "value": [119, 101, 116, 104, 95, 109, 105, 110, 116]
+                "value": [119, 115, 111, 108, 95, 109, 105, 110, 116]
               }
             ]
           }
@@ -422,7 +421,7 @@
               },
               {
                 "kind": "account",
-                "path": "weth_mint"
+                "path": "wsol_mint"
               }
             ],
             "program": {
@@ -454,7 +453,7 @@
               },
               {
                 "kind": "account",
-                "path": "weth_mint"
+                "path": "wsol_mint"
               }
             ],
             "program": {
@@ -509,13 +508,13 @@
           }
         },
         {
-          "name": "weth_mint",
+          "name": "wsol_mint",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "value": [119, 101, 116, 104, 95, 109, 105, 110, 116]
+                "value": [119, 115, 111, 108, 95, 109, 105, 110, 116]
               }
             ]
           }
@@ -539,7 +538,7 @@
               },
               {
                 "kind": "account",
-                "path": "weth_mint"
+                "path": "wsol_mint"
               }
             ],
             "program": {
