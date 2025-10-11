@@ -163,7 +163,7 @@ const FaucetTokenPage = () => {
     setIsTransactionProcessing(true);
     try {
       let chainIdC = await checkAndSwitchChain();
-      if (chainIdC == null) {
+      if (chainIdC === null) {
         console.log("switch failure");
         return;
       }

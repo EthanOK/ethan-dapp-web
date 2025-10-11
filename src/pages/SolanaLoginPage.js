@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 import * as buffer from "buffer";
-
-// import base58 from "bs58";
-
 import {
   Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
-  SYSVAR_RENT_PUBKEY,
   SystemProgram,
-  Transaction,
-  clusterApiUrl
+  Transaction
 } from "@solana/web3.js";
-
 import { getPhantomProvider } from "../utils/GetPhantomProvider";
 import {
   signSolanaMessage,
@@ -24,6 +18,7 @@ import { getSolBalance } from "../utils/SolanaGetBalance";
 import { sendTransactionOfPhantom } from "../utils/PhantomSendTransaction";
 import { getAssociatedAddress, stringToArray } from "../utils/Utils";
 import base58 from "bs58";
+import { toast } from "sonner";
 
 const SolanaLoginPage = () => {
   window.Buffer = buffer.Buffer;
@@ -33,11 +28,11 @@ const SolanaLoginPage = () => {
   const [currentSolanaAccount, setCurrentSolanaAccount] = useState(null);
   const [accountSOLBalance, setAccountSOLBalance] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-
   const [associatedAddress, setAssociatedAddress] = useState("");
   const [solPrivateKey, setSolPrivateKey] = useState("");
   const [solPublicKey, setSolPublicKey] = useState("");
+  const [solKeypair, setSolKeypair] = useState("");
+  const [solKeypairPublicKey, setSolKeypairPublicKey] = useState("");
 
   useEffect(() => {
     setIsMounted(true);
@@ -98,7 +93,7 @@ const SolanaLoginPage = () => {
 
   const signSolanaMessageHandler = async () => {
     if (!window.solana) {
-      alert("Please install Phantom wallet to use this app");
+      toast.error("Please install Phantom wallet to use this app");
       return;
     }
 
@@ -129,7 +124,7 @@ const SolanaLoginPage = () => {
 
     if (signature_string === null) {
       setMessage("");
-      alert("User rejected the signature.");
+      toast.error("User rejected the signature.");
     } else {
       setMessage(signature_string);
 
@@ -155,7 +150,7 @@ const SolanaLoginPage = () => {
 
   const disConnectHandler = async () => {
     if (!window.solana) {
-      alert("Please install Phantom wallet to use this app");
+      toast.error("Please install Phantom wallet to use this app");
       return;
     }
 
@@ -168,7 +163,7 @@ const SolanaLoginPage = () => {
 
   const airDropHandler = async () => {
     if (!window.solana) {
-      alert("Please install Phantom wallet to use this app");
+      toast.error("Please install Phantom wallet to use this app");
       return;
     }
     if (currentSolanaAccount === "" || currentSolanaAccount === null) {
@@ -183,14 +178,14 @@ const SolanaLoginPage = () => {
         2 * LAMPORTS_PER_SOL
       );
       console.log(signature);
-      setAlertMessage("AIRDROP Success!");
+      toast.success("AIRDROP Success!");
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
       }, 2000);
     } catch (error) {
       console.log(error);
-      setAlertMessage("AIRDROP Failure!");
+      toast.error("AIRDROP Failure!");
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
@@ -200,7 +195,7 @@ const SolanaLoginPage = () => {
 
   const transferSOLHandler = async () => {
     if (!window.solana) {
-      alert("Please install Phantom wallet to use this app");
+      toast.error("Please install Phantom wallet to use this app");
       return;
     }
     if (currentSolanaAccount === "" || currentSolanaAccount === null) {
@@ -210,12 +205,12 @@ const SolanaLoginPage = () => {
     const toSolAddressInputValue = toSolAddressInput.value;
     const addressArray = stringToArray(toSolAddressInputValue);
     if (addressArray.length === 0) {
-      alert("To address is null");
+      toast.error("To address is null");
       return;
     }
     addressArray.forEach((address) => {
-      if (address.length !== 44) {
-        alert("To address is not valid");
+      if (address.length !== 44 || address.length !== 43) {
+        toast.error("To address is not valid");
         return;
       }
     });
@@ -248,9 +243,9 @@ const SolanaLoginPage = () => {
 
       console.log(signature);
       if (signature === null) {
-        setAlertMessage("send Sol Failure!");
+        toast.error("send Sol Failure!");
       } else {
-        setAlertMessage("send Sol Success!");
+        toast.success("send Sol Success!");
       }
 
       setShowAlert(true);
@@ -259,7 +254,7 @@ const SolanaLoginPage = () => {
       }, 2000);
     } catch (error) {
       console.log(error);
-      setAlertMessage("send Sol Failure!");
+      toast.error("send Sol Failure!");
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
@@ -281,14 +276,36 @@ const SolanaLoginPage = () => {
   };
 
   const getSOLPrivatekeyHandler = async () => {
-    const keypair = document.getElementById("keypair").value;
+    let keypair = document.getElementById("keypair").value;
+    if (keypair === "") {
+      keypair = document.getElementById("keypair").placeholder;
+    }
     const pair = JSON.parse(keypair);
     const privateKey = base58.encode(pair);
-    setSolPrivateKey(privateKey);
+    try {
+      setSolPrivateKey(privateKey);
 
-    setSolPublicKey(
-      Keypair.fromSecretKey(new Uint8Array(pair)).publicKey.toString()
-    );
+      setSolPublicKey(
+        Keypair.fromSecretKey(new Uint8Array(pair)).publicKey.toString()
+      );
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const getSOLKeypairHandler = async () => {
+    let privateKey = document.getElementById("privateKey").value;
+    if (privateKey === "") {
+      privateKey = document.getElementById("privateKey").placeholder;
+    }
+
+    try {
+      const keypair = Keypair.fromSecretKey(base58.decode(privateKey));
+      setSolKeypair("[" + keypair.secretKey.toString() + "]");
+      setSolKeypairPublicKey(keypair.publicKey.toString());
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const loginSolanaButton = () => {
@@ -346,6 +363,17 @@ const SolanaLoginPage = () => {
     );
   };
 
+  const getSOLKeypairButton = () => {
+    return (
+      <button
+        onClick={getSOLKeypairHandler}
+        className="cta-button mint-nft-button"
+      >
+        getSOLKeypair
+      </button>
+    );
+  };
+
   const airDropButton = () => {
     return (
       <button onClick={airDropHandler} className="cta-button mint-nft-button">
@@ -357,11 +385,7 @@ const SolanaLoginPage = () => {
   return (
     <center>
       <div>
-        {showAlert && (
-          <div className="alert">
-            <h2>{alertMessage}</h2>
-          </div>
-        )}
+        {showAlert && <div className="alert"></div>}
         <h2>Login Solana</h2>
         Solana Account: {currentSolanaAccount}
         <p></p>
@@ -406,7 +430,7 @@ const SolanaLoginPage = () => {
 
       <p></p>
       <div className="bordered-div">
-        <h2>Batch Transfer SOL</h2>
+        <h2>Get Associated Address</h2>
         <label className="label">ownerAddress:</label>
         <textarea
           className="textarea"
@@ -445,6 +469,35 @@ const SolanaLoginPage = () => {
           PrivateKey: {solPrivateKey}
           <p></p>
           PublicKey: {solPublicKey}
+        </div>
+      </div>
+      <p></p>
+      <div className="bordered-div">
+        <h3>PrivateKey To Keypair</h3>
+        <div>
+          <label className="label">privateKey:</label>
+          <textarea
+            className="multiline-textarea"
+            id="privateKey"
+            placeholder="mZeFbFsK1Ezt29Z9pA5ZbSMbw8PZyB4DPTtSEPwHqYr5zfaWJCHRPSrDkwNTjcHKLzJSLQduzLCJhNbrgNXio4f"
+            style={{ height: "70px", width: "500px", fontSize: "14px" }}
+          ></textarea>
+          <p></p>
+          {getSOLKeypairButton()}
+          <p></p>
+          <label>Keypair:</label>
+          <textarea
+            value={solKeypair}
+            readOnly
+            style={{
+              width: "500px",
+              height: "60px",
+              fontSize: "12px",
+              fontFamily: "monospace"
+            }}
+          />
+          <p></p>
+          PublicKey: {solKeypairPublicKey}
         </div>
       </div>
     </center>
