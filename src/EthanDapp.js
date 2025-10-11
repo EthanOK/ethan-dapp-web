@@ -23,7 +23,7 @@ import EstimateTxFeePage from "./pages/EstimateTxFeePage";
 import CreateTransactionPage from "./pages/CreateTransactionPage";
 import GetCollectionPage from "./pages/GetCollectionPage";
 import Web3AuthPage from "./pages/Web3AuthPage";
-import WethPage from "./pages/WethPage";
+import WsolPage from "./pages/WsolPage";
 import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
 import EIP7702Page from "./pages/EIP7702Page";
 import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
@@ -223,7 +223,7 @@ function App() {
               <h2>Solana:</h2>
               <div style={{ height: "300px", overflowY: "auto" }}>
                 <AccordionItem title="Login Solana" linkTo="/loginSolana" />
-                <AccordionItem title="Weth Solana" linkTo="/wethSolana" />
+                <AccordionItem title="WSOL Solana" linkTo="/wsolSolana" />
               </div>
             </div>
           )}
@@ -273,7 +273,7 @@ function App() {
           <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
           <Route path="/web3Auth" element={<Web3AuthPage />} />
           <Route path="/web3AuthSolana" element={<Web3AuthSolanaPage />} />
-          <Route path="/wethSolana" element={<WethPage />} />
+          <Route path="/wsolSolana" element={<WsolPage />} />
         </Routes>
       </div>
     </Router>

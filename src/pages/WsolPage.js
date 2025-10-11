@@ -1,18 +1,6 @@
 import { useEffect, useState } from "react";
 import * as buffer from "buffer";
-
-// import base58 from "bs58";
-
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SYSVAR_RENT_PUBKEY,
-  SystemProgram,
-  Transaction,
-  clusterApiUrl
-} from "@solana/web3.js";
-
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { getPhantomProvider } from "../utils/GetPhantomProvider";
 import {
   signSolanaMessage,
@@ -21,18 +9,17 @@ import {
 } from "../utils/SolanaSignAndVerify";
 import { getDevConnection } from "../utils/GetSolanaConnection";
 import { getSolBalance } from "../utils/SolanaGetBalance";
-import { sendTransactionOfPhantom } from "../utils/PhantomSendTransaction";
-import { getAssociatedAddress, stringToArray } from "../utils/Utils";
-import base58 from "bs58";
+
 import {
   getMetadataPDA,
   getWethMintAddress,
   getWethProgram,
   getWethBalance
-} from "../utils/GetWethProgram";
+} from "../utils/GetWsolProgram";
 import { BN } from "@coral-xyz/anchor";
+import { toast } from "sonner";
 
-const WethPage = () => {
+const WsolPage = () => {
   window.Buffer = buffer.Buffer;
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
@@ -160,36 +147,42 @@ const WethPage = () => {
     const provider = await getPhantomProvider();
     const program = getWethProgram(connection, provider);
 
-    const weth_mint = PublicKey.findProgramAddressSync(
-      [Buffer.from("weth_mint")],
+    const wsol_mint = PublicKey.findProgramAddressSync(
+      [Buffer.from("wsol_mint")],
       program.programId
     )[0];
 
-    const weth_mint_metadata = getMetadataPDA(weth_mint);
+    const wsol_mint_metadata = getMetadataPDA(wsol_mint);
 
-    let state;
+    let state = false;
 
     try {
-      const accountinfo = await connection.getAccountInfo(weth_mint);
-      console.log(accountinfo);
+      const accountinfo = await connection.getAccountInfo(wsol_mint);
 
-      state = true;
+      if (accountinfo) {
+        state = true;
+      }
     } catch (error) {
       state = false;
     }
 
     if (state) {
-      alert("already initialized");
+      toast.error("Already initialized");
     } else {
-      const tx = await program.methods
-        .initialize()
-        .accountsPartial({
-          signer: provider.publicKey,
-          wethMetadata: weth_mint_metadata
-        })
-        // .signers([owner])
-        .rpc();
-      console.log(tx);
+      try {
+        const tx = await program.methods
+          .initialize()
+          .accountsPartial({
+            signer: provider.publicKey,
+            wethMetadata: wsol_mint_metadata
+          })
+          // .signers([owner])
+          .rpc();
+        console.log(tx);
+        toast.success("initialize success");
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
@@ -207,10 +200,10 @@ const WethPage = () => {
         // .signers([owner])
         .rpc();
       console.log(tx);
-      alert("deposit success");
+      toast.success("deposit success");
     } catch (error) {
       console.log(error);
-      setAlertMessage("deposit failed");
+      toast.error("deposit failed");
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
@@ -232,16 +225,16 @@ const WethPage = () => {
         // .signers([owner])
         .rpc();
       console.log(tx);
-      alert("withdraw success");
+      toast.success("withdraw success");
     } catch (error) {
       console.log(error);
-      alert("withdraw failed");
+      toast.error("withdraw failed");
     }
   };
 
   const disConnectHandler = async () => {
     if (!window.solana) {
-      alert("Please install Phantom wallet to use this app");
+      toast.error("Please install Phantom wallet to use this app");
       return;
     }
 
@@ -285,7 +278,7 @@ const WethPage = () => {
   const withdrawButton = () => {
     return (
       <button onClick={withdrwaHandler} className="cta-button mint-nft-button">
-        withdraw 1 weth
+        withdraw 1 WSOL
       </button>
     );
   };
@@ -332,9 +325,9 @@ const WethPage = () => {
           ></textarea>
         </h2>
       </div>
-      <h2>Weth</h2>
+      <h2>WSOL</h2>
       <p>address: {getWethMintAddress()}</p>
-      <p>balance: {accountWethBalance} WETH</p>
+      <p>balance: {accountWethBalance} WSOL</p>
       <div className="bordered-div">
         <h3>Initialize</h3>
         <p></p>
@@ -357,4 +350,4 @@ const WethPage = () => {
   );
 };
 
-export default WethPage;
+export default WsolPage;

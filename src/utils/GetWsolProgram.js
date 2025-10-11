@@ -1,8 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import weth_idl from "../idls/weth_idl.json";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { getAssociatedTokenAddress } from "@solana/spl-token";
+import wsol_idl from "../idls/wsol_idl.json";
+import { PublicKey } from "@solana/web3.js";
 import { getAssociatedAddress } from "./Utils";
 
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
@@ -10,14 +9,14 @@ const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
 );
 const getWethProgram = (connection, wallet) => {
   const provider = new anchor.AnchorProvider(connection, wallet);
-  const program = new Program(weth_idl, provider);
+  const program = new Program(wsol_idl, provider);
   return program;
 };
 
 export const getWethMintAddress = () => {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("weth_mint")],
-    new PublicKey(weth_idl.address)
+    [Buffer.from("wsol_mint")],
+    new PublicKey(wsol_idl.address)
   )[0].toBase58();
 };
 
