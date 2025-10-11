@@ -9,7 +9,6 @@ import {
 } from "../utils/SolanaSignAndVerify";
 import { getDevConnection } from "../utils/GetSolanaConnection";
 import { getSolBalance } from "../utils/SolanaGetBalance";
-
 import {
   getMetadataPDA,
   getWethMintAddress,
@@ -27,8 +26,8 @@ const WsolPage = () => {
   const [currentSolanaAccount, setCurrentSolanaAccount] = useState(null);
   const [accountSOLBalance, setAccountSOLBalance] = useState(null);
   const [accountWethBalance, setAccountWethBalance] = useState(null);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
+  const [isDepositProcessing, setIsDepositProcessing] = useState(false);
+  const [isWithdrawProcessing, setIsWithdrawProcessing] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -187,6 +186,7 @@ const WsolPage = () => {
   };
 
   const depositHandler = async () => {
+    setIsDepositProcessing(true);
     const connection = getDevConnection();
     const provider = await getPhantomProvider();
     const program = getWethProgram(connection, provider);
@@ -204,14 +204,14 @@ const WsolPage = () => {
     } catch (error) {
       console.log(error);
       toast.error("deposit failed");
-      setShowAlert(true);
-      setTimeout(() => {
-        setShowAlert(false);
-      }, 2000);
+      setTimeout(() => {}, 2000);
+    } finally {
+      setIsDepositProcessing(false);
     }
   };
 
   const withdrwaHandler = async () => {
+    setIsWithdrawProcessing(true);
     const connection = getDevConnection();
     const provider = await getPhantomProvider();
     const program = getWethProgram(connection, provider);
@@ -229,6 +229,8 @@ const WsolPage = () => {
     } catch (error) {
       console.log(error);
       toast.error("withdraw failed");
+    } finally {
+      setIsWithdrawProcessing(false);
     }
   };
 
@@ -269,16 +271,60 @@ const WsolPage = () => {
 
   const depositButton = () => {
     return (
-      <button onClick={depositHandler} className="cta-button mint-nft-button">
-        deposit 1 SOL
+      <button
+        onClick={depositHandler}
+        className="cta-button mint-nft-button"
+        disabled={!currentSolanaAccount || isDepositProcessing}
+      >
+        {isDepositProcessing ? (
+          <>
+            <span
+              style={{
+                display: "inline-block",
+                width: "12px",
+                height: "12px",
+                border: "2px solid #ffffff",
+                borderRightColor: "transparent",
+                borderRadius: "50%",
+                animation: "rotate 1s linear infinite",
+                marginRight: "8px"
+              }}
+            ></span>
+            Processing...
+          </>
+        ) : (
+          "deposit 1 SOL"
+        )}
       </button>
     );
   };
 
   const withdrawButton = () => {
     return (
-      <button onClick={withdrwaHandler} className="cta-button mint-nft-button">
-        withdraw 1 WSOL
+      <button
+        onClick={withdrwaHandler}
+        className="cta-button mint-nft-button"
+        disabled={!currentSolanaAccount || isWithdrawProcessing}
+      >
+        {isWithdrawProcessing ? (
+          <>
+            <span
+              style={{
+                display: "inline-block",
+                width: "12px",
+                height: "12px",
+                border: "2px solid #ffffff",
+                borderRightColor: "transparent",
+                borderRadius: "50%",
+                animation: "rotate 1s linear infinite",
+                marginRight: "8px"
+              }}
+            ></span>
+            Processing...
+          </>
+        ) : (
+          "withdraw 1 WSOL"
+        )}
       </button>
     );
   };
@@ -297,11 +343,6 @@ const WsolPage = () => {
   return (
     <center>
       <div className="bordered-div">
-        {showAlert && (
-          <div className="alert">
-            <h2>{alertMessage}</h2>
-          </div>
-        )}
         <h2>Login Solana</h2>
         Solana Account: {currentSolanaAccount}
         <p></p>
@@ -331,20 +372,20 @@ const WsolPage = () => {
       <div className="bordered-div">
         <h3>Initialize</h3>
         <p></p>
-        {currentSolanaAccount ? initializeButton() : PleaseLogin()}
+        {initializeButton()}
       </div>
       <p></p>
       <div className="bordered-div">
         <h3>Deposit</h3>
         <p></p>
-        {currentSolanaAccount ? depositButton() : PleaseLogin()}
+        {depositButton()}
       </div>
 
       <p></p>
       <div className="bordered-div">
         <h3>Withdraw</h3>
         <p></p>
-        {currentSolanaAccount ? withdrawButton() : PleaseLogin()}
+        {withdrawButton()}
       </div>
     </center>
   );
