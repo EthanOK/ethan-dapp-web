@@ -1,9 +1,6 @@
 import { BigNumber, ethers, utils } from "ethers";
 import { _TypedDataEncoder } from "@ethersproject/hash";
-import {
-  equalityStringIgnoreCase,
-  getYunGouAddressAndParameters
-} from "./Utils";
+import { getYunGouAddressAndParameters } from "./Utils";
 import { PRIVATEKEY_VERIFYER } from "../common/SystemConfiguration";
 import { getSignerAndChainId } from "./GetProvider";
 import { order_data } from "../testdata/orderdata_yungou";
