@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as buffer from "buffer";
 import {
+  clusterApiUrl,
   Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction
 } from "@solana/web3.js";
-import { getPhantomProvider } from "../utils/GetPhantomProvider";
 import {
   signSolanaMessage,
   verifySolanaSignature,
@@ -19,8 +19,20 @@ import { sendTransactionOfPhantom } from "../utils/PhantomSendTransaction";
 import { getAssociatedAddress, stringToArray } from "../utils/Utils";
 import base58 from "bs58";
 import { toast } from "sonner";
+import {
+  ConnectionProvider,
+  useAnchorWallet,
+  useWallet,
+  WalletProvider
+} from "@solana/wallet-adapter-react";
+import {
+  WalletModalProvider,
+  WalletMultiButton
+} from "@solana/wallet-adapter-react-ui";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { UnsafeBurnerWalletAdapter } from "@solana/wallet-adapter-wallets";
 
-const SolanaLoginPage = () => {
+const SolanaUtilsContent = () => {
   window.Buffer = buffer.Buffer;
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
@@ -34,6 +46,11 @@ const SolanaLoginPage = () => {
   const [solKeypair, setSolKeypair] = useState("");
   const [solKeypairPublicKey, setSolKeypairPublicKey] = useState("");
 
+  const { connected, publicKey, signMessage, disconnect, sendTransaction } =
+    useWallet();
+
+  const wallet = useAnchorWallet();
+
   useEffect(() => {
     setIsMounted(true);
     const intervalId = setInterval(updateShowData, 3000);
@@ -42,7 +59,7 @@ const SolanaLoginPage = () => {
       clearInterval(intervalId);
       setIsMounted(false);
     };
-  }, []);
+  }, [connected]);
 
   useEffect(() => {
     if (isMounted) {
@@ -56,18 +73,16 @@ const SolanaLoginPage = () => {
     if (account !== null) {
       setCurrentAccount(account);
     }
-    try {
-      const provider = await getPhantomProvider();
-
-      localStorage.setItem(
-        "currentSolanaAccount",
-        provider.publicKey.toBase58()
-      );
-    } catch (error) {
-      localStorage.setItem("currentSolanaAccount", "");
+    if (connected) {
+      localStorage.setItem("currentSolanaAccount", publicKey.toBase58());
     }
   };
   const updateShowData = async () => {
+    if (!connected) {
+      setCurrentSolanaAccount("");
+      setAccountSOLBalance(0);
+      return;
+    }
     try {
       let accountSolana = localStorage.getItem("currentSolanaAccount");
       setCurrentSolanaAccount(accountSolana);
@@ -92,14 +107,7 @@ const SolanaLoginPage = () => {
   };
 
   const signSolanaMessageHandler = async () => {
-    if (!window.solana) {
-      toast.error("Please install Phantom wallet to use this app");
-      return;
-    }
-
-    const provider = await getPhantomProvider();
-
-    const publicKey = provider.publicKey;
+    const publicKey = wallet.publicKey;
 
     const account_Address = publicKey.toBase58();
 
@@ -119,8 +127,16 @@ const SolanaLoginPage = () => {
       account_Address +
       "\nLoginTime: " +
       loginTime;
+    const message_Uint8Array = new TextEncoder().encode(message);
+    let signature_string = null;
 
-    const signature_string = await signSolanaMessage(provider, message);
+    try {
+      const signResult = await signMessage(message_Uint8Array);
+      signature_string = base58.encode(signResult);
+    } catch (error) {
+      toast.error("User rejected the signature.");
+      return;
+    }
 
     if (signature_string === null) {
       setMessage("");
@@ -149,21 +165,20 @@ const SolanaLoginPage = () => {
   };
 
   const disConnectHandler = async () => {
-    if (!window.solana) {
-      toast.error("Please install Phantom wallet to use this app");
+    if (!connected) {
+      toast.error("Please connect your wallet");
       return;
     }
 
-    const provider = await getPhantomProvider();
-    await provider.disconnect();
+    await disconnect();
 
     setMessage("");
     setAccountSOLBalance(0);
   };
 
   const airDropHandler = async () => {
-    if (!window.solana) {
-      toast.error("Please install Phantom wallet to use this app");
+    if (!connected) {
+      toast.error("Please connect your wallet");
       return;
     }
     if (currentSolanaAccount === "" || currentSolanaAccount === null) {
@@ -194,8 +209,8 @@ const SolanaLoginPage = () => {
   };
 
   const transferSOLHandler = async () => {
-    if (!window.solana) {
-      toast.error("Please install Phantom wallet to use this app");
+    if (!connected) {
+      toast.error("Please connect your wallet");
       return;
     }
     if (currentSolanaAccount === "" || currentSolanaAccount === null) {
@@ -209,24 +224,20 @@ const SolanaLoginPage = () => {
       return;
     }
     addressArray.forEach((address) => {
-      if (address.length !== 44 || address.length !== 43) {
+      if (address.length !== 44 && address.length !== 43) {
         toast.error("To address is not valid");
         return;
       }
     });
 
     try {
-      const provider = await getPhantomProvider();
-
       const connection = getDevConnection();
-      console.log(provider);
-      console.log(provider.publicKey.toString());
 
       const items = [];
       addressArray.forEach((toAddress) => {
         items.push(
           SystemProgram.transfer({
-            fromPubkey: provider.publicKey,
+            fromPubkey: wallet.publicKey,
             toPubkey: new PublicKey(toAddress),
             lamports: 0.5 * LAMPORTS_PER_SOL
           })
@@ -235,11 +246,7 @@ const SolanaLoginPage = () => {
 
       const transaction = new Transaction().add(...items);
 
-      const signature = await sendTransactionOfPhantom(
-        connection,
-        provider,
-        transaction
-      );
+      const signature = await sendTransaction(transaction, connection);
 
       console.log(signature);
       if (signature === null) {
@@ -314,7 +321,7 @@ const SolanaLoginPage = () => {
         onClick={signSolanaMessageHandler}
         className="cta-button mint-nft-button"
       >
-        Login Solana
+        Sign Solana Message
       </button>
     );
   };
@@ -386,11 +393,12 @@ const SolanaLoginPage = () => {
     <center>
       <div>
         {showAlert && <div className="alert"></div>}
-        <h2>Login Solana</h2>
+        <h2>Solana Utils</h2>
         Solana Account: {currentSolanaAccount}
         <p></p>
         Balance(DEV): {accountSOLBalance} SOL
         <p></p>
+        <WalletMultiButton />
         <p></p>
         {currentAccount ? loginSolanaButton() : PleaseLogin()}
         <p></p>
@@ -504,4 +512,42 @@ const SolanaLoginPage = () => {
   );
 };
 
-export default SolanaLoginPage;
+const SolanaUtilsPage = () => {
+  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
+  const network = WalletAdapterNetwork.Devnet;
+
+  // You can also provide a custom RPC endpoint.
+  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+
+  const wallets = useMemo(
+    () => [
+      /**
+       * Wallets that implement either of these standards will be available automatically.
+       *
+       *   - Solana Mobile Stack Mobile Wallet Adapter Protocol
+       *     (https://github.com/solana-mobile/mobile-wallet-adapter)
+       *   - Solana Wallet Standard
+       *     (https://github.com/anza-xyz/wallet-standard)
+       *
+       * If you wish to support a wallet that supports neither of those standards,
+       * instantiate its legacy wallet adapter here. Common legacy adapters can be found
+       * in the npm package `@solana/wallet-adapter-wallets`.
+       */
+      new UnsafeBurnerWalletAdapter()
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [network]
+  );
+
+  return (
+    <ConnectionProvider endpoint={endpoint}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <SolanaUtilsContent />
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+  );
+};
+
+export default SolanaUtilsPage;

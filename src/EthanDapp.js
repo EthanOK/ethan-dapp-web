@@ -16,7 +16,7 @@ import FaucetTokenPage from "./pages/FaucetTokenPage";
 import { getExtractAddress } from "./utils/Utils";
 import UtilsPage from "./pages/UtilsPage";
 import BurnTokenPage from "./pages/BurnTokenPage";
-import SolanaLoginPage from "./pages/SolanaLoginPage";
+import SolanaUtilsPage from "./pages/SolanaUtilsPage";
 import BuyBlurNFTPage from "./pages/BuyBlurNFTPage";
 import ERC6551Page from "./pages/ERC6551Page";
 import EstimateTxFeePage from "./pages/EstimateTxFeePage";
@@ -222,7 +222,7 @@ function App() {
               </div>
               <h2>Solana:</h2>
               <div style={{ height: "300px", overflowY: "auto" }}>
-                <AccordionItem title="Login Solana" linkTo="/loginSolana" />
+                <AccordionItem title="Solana Utils" linkTo="/solanaUtils" />
                 <AccordionItem title="WSOL Solana" linkTo="/wsolSolana" />
               </div>
             </div>
@@ -249,7 +249,7 @@ function App() {
         {/* 使用 <Routes> 包含所有的路由 */}
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/loginSolana" element={<SolanaLoginPage />} />
+          <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
           {/* <Route path="/display" element={<DataDisplayPage />} /> */}
           <Route path="/ens" element={<ENSPage />} />
           <Route path="/mintnft" element={<MintNFTPage />} />

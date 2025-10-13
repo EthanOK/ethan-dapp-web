@@ -428,7 +428,6 @@ const WsolPageContent = () => {
   );
 };
 
-// 外层包装组件，提供 Provider
 const WsolPage = () => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
   const network = WalletAdapterNetwork.Devnet;
