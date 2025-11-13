@@ -30,7 +30,7 @@ const FaucetTokenPage = () => {
   const [showAlert, setShowAlert] = useState(false);
 
   const [selectedChainId, setSelectedChainId] = useState(null);
-  const [selectedToken, setSelectedToken] = useState("USDT");
+  const [selectedToken, setSelectedToken] = useState("");
   const [tokenBalance, setTokenBalance] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
 
@@ -44,14 +44,14 @@ const FaucetTokenPage = () => {
   const { address, isConnected } = useAppKitAccount();
   const { chainId: chainIdCurrent } = useAppKitNetwork();
 
-  const hasUpdatedBalanceRef = useRef(false);
-
   const [isTransactionProcessing, setIsTransactionProcessing] = useState(false);
 
   useEffect(() => {
     if (isConnected && address) {
       setCurrentAccount(address);
       setChainId(chainIdCurrent);
+      // 保存用户地址到 localStorage
+      localStorage.setItem("userAddress", address);
       // 初始化选择的链ID
       if (!selectedChainId && faucetChainIdList.includes(chainIdCurrent)) {
         setSelectedChainId(chainIdCurrent);
@@ -59,10 +59,8 @@ const FaucetTokenPage = () => {
         // 如果当前链不在支持列表中，默认选择第一个支持的链
         setSelectedChainId(faucetChainIdList[0]);
       }
-      if (!hasUpdatedBalanceRef.current) {
-        updateBalance();
-        hasUpdatedBalanceRef.current = true;
-      }
+      // 移除 updateBalance() 调用，因为 selectedToken 和 selectedChainId 设置好后
+      // 会通过第128-133行的 useEffect 自动调用 faucetBalance()
     }
   }, [isConnected, address, chainIdCurrent]);
 
@@ -86,8 +84,8 @@ const FaucetTokenPage = () => {
 
         setSelectedToken(tokenToSelect);
         localStorage.setItem("faucetChainId", selectedChainId.toString());
-        // 链切换时更新余额
-        faucetBalance();
+        // 移除这里的 faucetBalance() 调用，因为 selectedToken 状态更新是异步的
+        // 会通过第126-131行的 useEffect 在 selectedToken 和 selectedChainId 都设置好后自动调用
       } else {
         // 如果链上没有可用代币，清空选择
         setSelectedToken("");
@@ -126,11 +124,14 @@ const FaucetTokenPage = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedToken && selectedChainId) {
+    // 当 selectedChainId 设置好时，更新余额
+    // selectedToken 可以为空，faucetBalance() 内部会处理
+    // Remaining Supply 不依赖钱包连接状态，但用户余额需要钱包连接
+    if (selectedChainId) {
       faucetBalance();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedToken, selectedChainId]);
+  }, [selectedToken, selectedChainId, isConnected, address]);
 
   const handleSelectChange = (event) => {
     const tokenName = event.target.value;
@@ -167,7 +168,7 @@ const FaucetTokenPage = () => {
         return;
       }
 
-      // 使用当前选择的代币（已经在 useEffect 中验证过可用性）
+      // 使用当前选择的代币，如果为空则使用第一个可用代币
       const selectedToken_ = selectedToken || tokens[0].label;
 
       // 再次验证代币是否可用（防止状态不同步）
@@ -182,16 +183,47 @@ const FaucetTokenPage = () => {
             fallbackToken
           );
         }
+        // 先更新 Remaining Supply（不依赖钱包连接）
+        const totalAmount = await getTokenTotalClaim(
+          fallbackToken,
+          selectedChainId
+        );
+        setTotalAmount(totalAmount);
+
+        // 再更新用户余额（需要钱包连接）
+        try {
+          const result = await getTokenBalance(fallbackToken, selectedChainId);
+          setTokenBalance(result);
+        } catch (err) {
+          // 如果钱包未连接，用户余额保持为 0
+          console.log(
+            "Failed to fetch user balance (wallet may not be connected):",
+            err
+          );
+          setTokenBalance(0);
+        }
         return;
       }
 
-      const result = await getTokenBalance(selectedToken_, selectedChainId);
+      // 先更新 Remaining Supply（不依赖钱包连接）
       const totalAmount = await getTokenTotalClaim(
         selectedToken_,
         selectedChainId
       );
-      setTokenBalance(result);
       setTotalAmount(totalAmount);
+
+      // 再更新用户余额（需要钱包连接）
+      try {
+        const result = await getTokenBalance(selectedToken_, selectedChainId);
+        setTokenBalance(result);
+      } catch (err) {
+        // 如果钱包未连接，用户余额保持为 0
+        console.log(
+          "Failed to fetch user balance (wallet may not be connected):",
+          err
+        );
+        setTokenBalance(0);
+      }
     } catch (err) {
       console.error("Failed to fetch balance", err);
       setTokenBalance(0);
