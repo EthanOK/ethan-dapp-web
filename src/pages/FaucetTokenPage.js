@@ -4,20 +4,18 @@ import { useEffect, useState } from "react";
 import {
   getFaucetContract,
   getERC20Contract,
-  getERC721Contract,
   getERC20Decimals
 } from "../utils/GetContract.js";
-import { ZERO_ADDRESS } from "../common/SystemConfiguration.js";
 import { getDecimal, getDecimalBigNumber } from "../utils/Utils.js";
-import { BigNumber, ethers } from "ethers";
-import { addSuffixOfTxData } from "../utils/HandleTxData.js";
+import { BigNumber } from "ethers";
 import { switchChain } from "../utils/GetProvider.js";
 import { login } from "../utils/ConnectWallet.js";
 import {
   faucetChainIdList,
   faucetConfig,
-  faucetTokenList,
-  getFaucetTokenAddress
+  getFaucetTokenAddress,
+  getFaucetTokenListByChain,
+  getChainName
 } from "../common/FaucetConfig.js";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { getDefaultNetwork, modal } from "../EthanDapp.js";
@@ -27,16 +25,20 @@ const FaucetTokenPage = () => {
   //   const [tableData, setTableData] = useState([]);
 
   const [isMounted, setIsMounted] = useState(false);
-  const [myYgmeBalance, setMyYgmeBalance] = useState(0);
   const [currentAccount, setCurrentAccount] = useState(null);
   const [chainId, setChainId] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
 
+  const [selectedChainId, setSelectedChainId] = useState(null);
   const [selectedToken, setSelectedToken] = useState("USDT");
   const [tokenBalance, setTokenBalance] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  const currentToken = faucetTokenList.find((t) => t.label === selectedToken);
+  // 根据选择的链获取代币列表
+  const availableTokens = selectedChainId
+    ? getFaucetTokenListByChain(selectedChainId)
+    : [];
+  const currentToken = availableTokens.find((t) => t.label === selectedToken);
   const faucetFromAddress = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
 
   const { address, isConnected } = useAppKitAccount();
@@ -50,6 +52,13 @@ const FaucetTokenPage = () => {
     if (isConnected && address) {
       setCurrentAccount(address);
       setChainId(chainIdCurrent);
+      // 初始化选择的链ID
+      if (!selectedChainId && faucetChainIdList.includes(chainIdCurrent)) {
+        setSelectedChainId(chainIdCurrent);
+      } else if (!selectedChainId) {
+        // 如果当前链不在支持列表中，默认选择第一个支持的链
+        setSelectedChainId(faucetChainIdList[0]);
+      }
       if (!hasUpdatedBalanceRef.current) {
         updateBalance();
         hasUpdatedBalanceRef.current = true;
@@ -57,8 +66,58 @@ const FaucetTokenPage = () => {
     }
   }, [isConnected, address, chainIdCurrent]);
 
+  // 当选择的链改变时，恢复该链之前选择的代币
+  useEffect(() => {
+    if (selectedChainId) {
+      const tokens = getFaucetTokenListByChain(selectedChainId);
+      if (tokens.length > 0) {
+        // 尝试恢复该链之前选择的代币
+        const savedTokenKey = `faucetTokenName_${selectedChainId}`;
+        const savedTokenName = localStorage.getItem(savedTokenKey);
+
+        let tokenToSelect = savedTokenName;
+        // 检查保存的代币是否在当前链上可用
+        const tokenExists = tokens.find((t) => t.label === savedTokenName);
+        if (!tokenExists || !savedTokenName) {
+          // 如果保存的代币不可用或不存在，使用第一个可用代币
+          tokenToSelect = tokens[0].label;
+          localStorage.setItem(savedTokenKey, tokenToSelect);
+        }
+
+        setSelectedToken(tokenToSelect);
+        localStorage.setItem("faucetChainId", selectedChainId.toString());
+        // 链切换时更新余额
+        faucetBalance();
+      } else {
+        // 如果链上没有可用代币，清空选择
+        setSelectedToken("");
+        setTokenBalance(0);
+        setTotalAmount(0);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChainId]);
+
   useEffect(() => {
     setIsMounted(true);
+    // 从 localStorage 恢复选择的链
+    const savedChainId = localStorage.getItem("faucetChainId");
+    if (savedChainId && faucetChainIdList.includes(parseInt(savedChainId))) {
+      const chainId = parseInt(savedChainId);
+      setSelectedChainId(chainId);
+      // 恢复该链之前选择的代币
+      const savedTokenKey = `faucetTokenName_${chainId}`;
+      const savedTokenName = localStorage.getItem(savedTokenKey);
+      if (savedTokenName) {
+        const tokens = getFaucetTokenListByChain(chainId);
+        const tokenExists = tokens.find((t) => t.label === savedTokenName);
+        if (tokenExists) {
+          setSelectedToken(savedTokenName);
+        }
+      }
+    } else if (faucetChainIdList.length > 0) {
+      setSelectedChainId(faucetChainIdList[0]);
+    }
     const intervalId = setInterval(updateBalance, 5000);
     return () => {
       clearInterval(intervalId);
@@ -67,36 +126,88 @@ const FaucetTokenPage = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedToken) {
+    if (selectedToken && selectedChainId) {
       faucetBalance();
     }
-  }, [selectedToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedToken, selectedChainId]);
 
   const handleSelectChange = (event) => {
     const tokenName = event.target.value;
     setSelectedToken(tokenName);
+    // 按链保存代币选择
+    if (selectedChainId) {
+      localStorage.setItem(`faucetTokenName_${selectedChainId}`, tokenName);
+    }
+  };
 
-    localStorage.setItem("faucetTokenName", tokenName);
+  const handleChainSelectChange = async (event) => {
+    const chainId = parseInt(event.target.value);
+    setSelectedChainId(chainId);
+    localStorage.setItem("faucetChainId", chainId.toString());
+
+    // 切换到选择的链
+    if (chainId !== chainIdCurrent) {
+      try {
+        await modal.switchNetwork(getDefaultNetwork(chainId));
+      } catch (error) {
+        console.error("Failed to switch chain:", error);
+        toast.error("切换链失败，请手动切换");
+      }
+    }
   };
 
   const faucetBalance = async () => {
     try {
-      const selectedToken_ = localStorage.getItem("faucetTokenName") || "USDT";
-      const result = await getTokenBalance(selectedToken_);
-      const totalAmount = await getTokenTotalClaim(selectedToken_);
+      if (!selectedChainId) return;
+      const tokens = getFaucetTokenListByChain(selectedChainId);
+      if (tokens.length === 0) {
+        setTokenBalance(0);
+        setTotalAmount(0);
+        return;
+      }
+
+      // 使用当前选择的代币（已经在 useEffect 中验证过可用性）
+      const selectedToken_ = selectedToken || tokens[0].label;
+
+      // 再次验证代币是否可用（防止状态不同步）
+      const tokenExists = tokens.find((t) => t.label === selectedToken_);
+      if (!tokenExists) {
+        // 如果代币不可用，使用第一个可用代币
+        const fallbackToken = tokens[0].label;
+        setSelectedToken(fallbackToken);
+        if (selectedChainId) {
+          localStorage.setItem(
+            `faucetTokenName_${selectedChainId}`,
+            fallbackToken
+          );
+        }
+        return;
+      }
+
+      const result = await getTokenBalance(selectedToken_, selectedChainId);
+      const totalAmount = await getTokenTotalClaim(
+        selectedToken_,
+        selectedChainId
+      );
       setTokenBalance(result);
       setTotalAmount(totalAmount);
-      setSelectedToken(selectedToken_);
     } catch (err) {
       console.error("Failed to fetch balance", err);
       setTokenBalance(0);
+      setTotalAmount(0);
     }
   };
 
-  const getTokenBalance = async (tokenName) => {
+  const getTokenBalance = async (tokenName, chainIdParam = null) => {
     let account = localStorage.getItem("userAddress");
-    let chainId = localStorage.getItem("chainId");
+    let chainId =
+      chainIdParam || selectedChainId || localStorage.getItem("chainId");
     let tokenAddress = getFaucetTokenAddress(chainId, tokenName);
+    if (!tokenAddress) {
+      console.error(`Token ${tokenName} not found for chain ${chainId}`);
+      return 0;
+    }
     let contract = await getERC20Contract(tokenAddress);
     let ygioBalance = await contract.balanceOf(account);
     let decimals = await contract.decimals();
@@ -104,12 +215,21 @@ const FaucetTokenPage = () => {
     return balanceStandard;
   };
 
-  const getTokenTotalClaim = async (tokenName) => {
-    let chainId = localStorage.getItem("chainId");
+  const getTokenTotalClaim = async (tokenName, chainIdParam = null) => {
+    let chainId =
+      chainIdParam || selectedChainId || localStorage.getItem("chainId");
     let tokenAddress = getFaucetTokenAddress(chainId, tokenName);
+    if (!tokenAddress) {
+      console.error(`Token ${tokenName} not found for chain ${chainId}`);
+      return 0;
+    }
     const contract = await getERC20Contract(tokenAddress);
     const balance1 = await contract.balanceOf(faucetFromAddress);
-    const faucetAddress = faucetConfig[chainId].faucet;
+    const faucetAddress = faucetConfig[chainId]?.faucet;
+    if (!faucetAddress) {
+      console.error(`Faucet address not found for chain ${chainId}`);
+      return 0;
+    }
     const balance2 = await contract.allowance(faucetFromAddress, faucetAddress);
 
     const minBalance = BigNumber.from(balance1).lt(balance2)
@@ -123,22 +243,11 @@ const FaucetTokenPage = () => {
   const updateBalance = async () => {
     try {
       let account = localStorage.getItem("userAddress");
-      let chainId = localStorage.getItem("chainId");
-      chainId = parseInt(chainId);
-      let ygmeAddress = faucetConfig[chainId].ygme;
 
-      if (!account) return;
+      if (!account || !selectedChainId) return;
 
-      if (ygmeAddress) {
-        let ygmecontract = await getERC721Contract(ygmeAddress);
-
-        let ygmeBalance = await ygmecontract.balanceOf(account);
-
-        setMyYgmeBalance(ygmeBalance.toString());
-
-        // update faucet balance
-        await faucetBalance();
-      }
+      // update faucet balance
+      await faucetBalance();
     } catch (error) {
       console.log(error);
     }
@@ -146,15 +255,14 @@ const FaucetTokenPage = () => {
 
   const checkAndSwitchChain = async () => {
     try {
-      if (!faucetChainIdList.includes(chainId)) {
-        console.log(
-          "checkAndSwitchChain",
-          getDefaultNetwork(faucetChainIdList[0])
-        );
-        await modal.switchNetwork(getDefaultNetwork(faucetChainIdList[0]));
+      const targetChainId = selectedChainId || faucetChainIdList[0];
+      if (chainId !== targetChainId) {
+        console.log("checkAndSwitchChain", getDefaultNetwork(targetChainId));
+        await modal.switchNetwork(getDefaultNetwork(targetChainId));
       }
-      return faucetChainIdList[0];
+      return targetChainId;
     } catch (error) {
+      console.error("Failed to switch chain:", error);
       return null;
     }
   };
@@ -180,21 +288,12 @@ const FaucetTokenPage = () => {
       let tx;
 
       let faucetContract = await getFaucetContract();
-      if (tokenName.toLowerCase() === "ygme") {
-        let calldata = ethers.utils.defaultAbiCoder.encode(
-          ["address", "address", "uint256"],
-          [account, ZERO_ADDRESS, faucetAmount]
-        );
-        let data = await addSuffixOfTxData("0xdf791e50", calldata);
-        tx = await faucetContract.faucetDatas(tokenAddress, data);
-      } else {
-        tx = await faucetContract.faucet(
-          tokenAddress,
-          faucetFromAddress,
-          account,
-          getDecimalBigNumber(faucetAmount, decimals)
-        );
-      }
+      tx = await faucetContract.faucet(
+        tokenAddress,
+        faucetFromAddress,
+        account,
+        getDecimalBigNumber(faucetAmount, decimals)
+      );
 
       let result = await tx.wait();
       if (result.status === 1) {
@@ -326,42 +425,78 @@ const FaucetTokenPage = () => {
           <h1>Claim Successful!</h1>
         </div>
       )}{" "}
-      <h1>Please Switch To Sepolia</h1>
+      <h1>Faucet Token</h1>
       <div className="bordered-div">
-        <h2>Faucet YGME NFT</h2>
-        <h3>My YGME Balance: {myYgmeBalance}</h3>
-        {faucetButton("YGME")}
-      </div>
-      <p></p>
-      <div className="bordered-div">
-        <h2>Faucet Token</h2>
-        <h3>Remaining Supply: {totalAmount}</h3>
-
+        <h2>Select Chain</h2>
         <select
-          value={selectedToken}
-          onChange={handleSelectChange}
+          value={selectedChainId || ""}
+          onChange={handleChainSelectChange}
           style={{
             width: "120px",
             height: "30px",
             fontSize: "14px",
             fontWeight: "bold",
             textAlign: "center",
-            textAlignLast: "center"
+            textAlignLast: "center",
+            backgroundColor: "green"
           }}
         >
-          {faucetTokenList.map((token) => (
-            <option key={token.label} value={token.label}>
-              {token.label}
+          {faucetChainIdList.map((chainId) => (
+            <option key={chainId} value={chainId}>
+              {getChainName(chainId)}
             </option>
           ))}
         </select>
-
-        <h3>
-          My {selectedToken} Balance: {tokenBalance}
-        </h3>
-
-        {faucetButton(selectedToken, currentToken.faucetAmount)}
+        {selectedChainId && (
+          <>
+            <h3>Current Chain: {getChainName(selectedChainId)}</h3>
+            {chainId !== selectedChainId && (
+              <p style={{ color: "orange" }}>
+                Please switch to {getChainName(selectedChainId)} network
+              </p>
+            )}
+          </>
+        )}
       </div>
+      <p></p>
+      {selectedChainId && (
+        <div className="bordered-div">
+          <h2>Faucet Token</h2>
+          <h3>Remaining Supply: {totalAmount}</h3>
+
+          {availableTokens.length > 0 ? (
+            <>
+              <select
+                value={selectedToken}
+                onChange={handleSelectChange}
+                style={{
+                  width: "120px",
+                  height: "30px",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  textAlignLast: "center"
+                }}
+              >
+                {availableTokens.map((token) => (
+                  <option key={token.label} value={token.label}>
+                    {token.label}
+                  </option>
+                ))}
+              </select>
+
+              <h3>
+                My {selectedToken} Balance: {tokenBalance}
+              </h3>
+
+              {currentToken &&
+                faucetButton(selectedToken, currentToken.faucetAmount)}
+            </>
+          ) : (
+            <p>No tokens available for this chain</p>
+          )}
+        </div>
+      )}
     </center>
   );
 };
