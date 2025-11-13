@@ -23,24 +23,54 @@ const faucetConfigRaw = {
     "NVDA-B": "0xE0fED50FC039aE3A0F83C4c72EB592AE5BaD4062",
     "APPL-B": "0xfBFaDc2405640350a79307C406df832cd09CAAfB",
     "META-B": "0xa5955BB625Da796fC0Af249aBCddEf2cC8Cd48cD"
+  },
+  560048: {
+    // Hoodi
+    faucet: "0x88272A2F9481A18B648A03a076FbfaB5381e31D2",
+    stETH: "0xC291F277f3Bc02fbe69D6d940AeD674E077e5749"
   }
 };
 
 export const faucetConfig = normalizeFaucetConfigKeys(faucetConfigRaw);
 
-export const faucetTokenList = [
-  { label: "USDT", faucetAmount: 100000 },
-  { label: "USDC", faucetAmount: 100000 },
-  { label: "stETH", faucetAmount: 10000 },
-  { label: "USDe", faucetAmount: 100000 },
-  { label: "BRIC", faucetAmount: 10000 },
-  { label: "TSLA-B", faucetAmount: 10000 },
-  { label: "NVDA-B", faucetAmount: 10000 },
-  { label: "APPL-B", faucetAmount: 10000 },
-  { label: "META-B", faucetAmount: 10000 }
-];
+// 按链分组的代币列表
+export const faucetTokenListByChain = {
+  11155111: [
+    // Sepolia
+    { label: "USDT", faucetAmount: 100000 },
+    { label: "USDC", faucetAmount: 100000 },
+    { label: "stETH", faucetAmount: 10000 },
+    { label: "USDe", faucetAmount: 100000 },
+    { label: "BRIC", faucetAmount: 10000 },
+    { label: "TSLA-B", faucetAmount: 10000 },
+    { label: "NVDA-B", faucetAmount: 10000 },
+    { label: "APPL-B", faucetAmount: 10000 },
+    { label: "META-B", faucetAmount: 10000 }
+  ],
+  560048: [
+    // Hoodi
+    { label: "stETH", faucetAmount: 10000 }
+  ]
+};
 
-export const faucetChainIdList = [11155111];
+// 兼容旧代码，保留默认的 Sepolia 代币列表
+export const faucetTokenList = faucetTokenListByChain[11155111];
+
+// 根据链ID获取代币列表
+export const getFaucetTokenListByChain = (chainId) => {
+  return faucetTokenListByChain[chainId] || [];
+};
+
+export const faucetChainIdList = [11155111, 560048];
+
+// 获取链名称
+export const getChainName = (chainId) => {
+  const chainNames = {
+    11155111: "Sepolia",
+    560048: "Hoodi"
+  };
+  return chainNames[chainId] || `Chain ${chainId}`;
+};
 
 export const getFaucetTokenAddress = (chainId, tokenName) => {
   const tokenKey = tokenName.toLowerCase();
