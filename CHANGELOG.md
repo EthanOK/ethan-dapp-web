@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.6](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.5...v2.2.6) (2026-03-05)
+
+
+### Features
+
+* add PrivateKeyToKeypair in SolanaLoginPage ([3311dee](https://github.com/EthanOK/ethan-dapp-web/commit/3311dee82eb9a8f2aed8c9b0b94526fedfc0ebfa))
+* add USDe in Hoodi FaucetConfig ([1fe2f7f](https://github.com/EthanOK/ethan-dapp-web/commit/1fe2f7f21c255c777163eb10c47de95a2adaf8e5))
+* Added Dark Mode ([d7f3de4](https://github.com/EthanOK/ethan-dapp-web/commit/d7f3de40da724fb0c9418a0e760aefac588934d1))
+* disable faucet button during transaction processing ([e6f9646](https://github.com/EthanOK/ethan-dapp-web/commit/e6f9646f0b6caadbd4336d355f446d02f4035bb1))
+* faucet USDe ([2d6d26c](https://github.com/EthanOK/ethan-dapp-web/commit/2d6d26c52d725cfd65cf4779e842d77d58b9d2a1))
+* support hoodi testnet in faucetTokenPage ([dba2f00](https://github.com/EthanOK/ethan-dapp-web/commit/dba2f003f893efe8a8323358c610bc0477502e5b))
+* use @solana/wallet-adapter-react get wallet in solana utils page ([b694249](https://github.com/EthanOK/ethan-dapp-web/commit/b694249cfcd53a9d171fac382503628a0899db35))
+* use @solana/wallet-adapter-react get wallet in wsol page ([7ac2528](https://github.com/EthanOK/ethan-dapp-web/commit/7ac2528b3e3ca520f8fc85d07faa2c7965fd6c79))
+
+
+### Bug Fixes
+
+* add vercel.json and build directory ([572417a](https://github.com/EthanOK/ethan-dapp-web/commit/572417a577659ee457b9d9f1fdf0aee60af1387a))
+* update balance when connect wallet in FaucetTokenPage ([b15f9d4](https://github.com/EthanOK/ethan-dapp-web/commit/b15f9d467de2355f836728d684a88d3a46f0df5f))
+* update Wsol config ([b690146](https://github.com/EthanOK/ethan-dapp-web/commit/b69014632c0ceb9bea5cb2932597a950916cfa4b))
+
 ### [2.2.5](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.4...v2.2.5) (2025-09-12)
 
 
