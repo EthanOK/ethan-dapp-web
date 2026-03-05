@@ -451,85 +451,92 @@ const FaucetTokenPage = () => {
   };
 
   return (
-    <center>
+    <div className="feature-page main-app">
       {showAlert && (
-        <div className="alert">
-          <h1>Claim Successful!</h1>
-        </div>
-      )}{" "}
-      <h1>Faucet Token</h1>
-      <div className="bordered-div">
-        <h2>Select Chain</h2>
-        <select
-          value={selectedChainId || ""}
-          onChange={handleChainSelectChange}
-          style={{
-            width: "120px",
-            height: "30px",
-            fontSize: "14px",
-            fontWeight: "bold",
-            textAlign: "center",
-            textAlignLast: "center",
-            backgroundColor: "green"
-          }}
-        >
-          {faucetChainIdList.map((chainId) => (
-            <option key={chainId} value={chainId}>
-              {getChainName(chainId)}
-            </option>
-          ))}
-        </select>
-        {selectedChainId && (
-          <>
-            <h3>Current Chain: {getChainName(selectedChainId)}</h3>
-            {chainId !== selectedChainId && (
-              <p style={{ color: "orange" }}>
-                Please switch to {getChainName(selectedChainId)} network
-              </p>
-            )}
-          </>
-        )}
-      </div>
-      <p></p>
-      {selectedChainId && (
-        <div className="bordered-div">
-          <h2>Faucet Token</h2>
-          <h3>Remaining Supply: {totalAmount}</h3>
-
-          {availableTokens.length > 0 ? (
-            <>
-              <select
-                value={selectedToken}
-                onChange={handleSelectChange}
-                style={{
-                  width: "120px",
-                  height: "30px",
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  textAlign: "center",
-                  textAlignLast: "center"
-                }}
-              >
-                {availableTokens.map((token) => (
-                  <option key={token.label} value={token.label}>
-                    {token.label}
-                  </option>
-                ))}
-              </select>
-
-              <h3>
-                My {selectedToken} Balance: {tokenBalance}
-              </h3>
-
-              {currentToken &&
-                faucetButton(selectedToken, currentToken.faucetAmount)}
-            </>
-          ) : (
-            <p>No tokens available for this chain</p>
-          )}
+        <div className="feature-alert">
+          <strong>Claim Successful!</strong>
         </div>
       )}
-    </center>
+
+      <section className="feature-hero">
+        <h1>Faucet Token</h1>
+        <p>Select chain and token to claim testnet tokens</p>
+      </section>
+
+      <section className="feature-panel">
+        <h3>Select Chain</h3>
+        <div className="feature-field">
+          <label htmlFor="faucet-chain">Chain</label>
+          <select
+            id="faucet-chain"
+            value={selectedChainId || ""}
+            onChange={handleChainSelectChange}
+            aria-label="Select chain"
+          >
+            {faucetChainIdList.map((chainId) => (
+              <option key={chainId} value={chainId}>
+                {getChainName(chainId)}
+              </option>
+            ))}
+          </select>
+        </div>
+        {selectedChainId && (
+          <>
+            <p className="feature-field" style={{ marginBottom: 0 }}>
+              Current: <strong>{getChainName(selectedChainId)}</strong>
+              {chainId !== selectedChainId && (
+                <span style={{ color: "var(--w3-accent)", marginLeft: 8 }}>
+                  → Please switch to this network
+                </span>
+              )}
+            </p>
+          </>
+        )}
+      </section>
+
+      {selectedChainId && (
+        <section className="feature-panel">
+          <h3>Faucet Token</h3>
+          <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
+            Remaining Supply:{" "}
+            <strong style={{ color: "var(--w3-text)" }}>{totalAmount}</strong>
+          </p>
+          {availableTokens.length > 0 ? (
+            <>
+              <div className="feature-field">
+                <label htmlFor="faucet-token">Token</label>
+                <select
+                  id="faucet-token"
+                  value={selectedToken}
+                  onChange={handleSelectChange}
+                  aria-label="Select token"
+                >
+                  {availableTokens.map((token) => (
+                    <option key={token.label} value={token.label}>
+                      {token.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
+                My {selectedToken} Balance:{" "}
+                <strong style={{ color: "var(--w3-text)" }}>
+                  {tokenBalance}
+                </strong>
+              </p>
+              <div className="feature-actions">
+                {currentToken &&
+                  faucetButton(selectedToken, currentToken.faucetAmount)}
+              </div>
+            </>
+          ) : (
+            <p style={{ color: "var(--w3-text-muted)" }}>
+              No tokens available for this chain
+            </p>
+          )}
+        </section>
+      )}
+    </div>
   );
 };
 

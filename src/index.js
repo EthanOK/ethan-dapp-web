@@ -3,6 +3,15 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 // TODO: Change start page
 import App from "./EthanDapp";
+
+// 首屏即应用上次选择的主题，避免闪烁
+try {
+  const saved = localStorage.getItem("app-theme");
+  document.documentElement.setAttribute(
+    "data-theme",
+    saved === "light" ? "light" : "dark"
+  );
+} catch (_) {}
 import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

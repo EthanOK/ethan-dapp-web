@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  NavLink
+} from "react-router-dom";
 import MintNFTPage from "./pages/MintNFTPage";
 import SignEIP712Page from "./pages/SignEIP712Page";
 import HomePage from "./pages/HomePage";
@@ -13,7 +18,6 @@ import {
 import BuyNFTPage from "./pages/BuyNFTPage";
 import ENSPage from "./pages/ENSPage";
 import FaucetTokenPage from "./pages/FaucetTokenPage";
-import { getExtractAddress } from "./utils/Utils";
 import UtilsPage from "./pages/UtilsPage";
 import BurnTokenPage from "./pages/BurnTokenPage";
 import SolanaUtilsPage from "./pages/SolanaUtilsPage";
@@ -22,6 +26,7 @@ import ERC6551Page from "./pages/ERC6551Page";
 import EstimateTxFeePage from "./pages/EstimateTxFeePage";
 import CreateTransactionPage from "./pages/CreateTransactionPage";
 import GetCollectionPage from "./pages/GetCollectionPage";
+import YunGouAggregatorsPage from "./pages/YunGouAggregatorsPage";
 import Web3AuthPage from "./pages/Web3AuthPage";
 import WsolPage from "./pages/WsolPage";
 import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
@@ -33,6 +38,12 @@ import { initializeSubscribers } from "./utils/Suscribers";
 import { toast, Toaster } from "sonner";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { login } from "./utils/ConnectWallet";
+import { SupportChains } from "./common/ChainsConfig";
+
+const HEADER_CHAIN_IDS = [1, 11155111, 560048, 56, 8453];
+const headerChains = SupportChains.filter((c) =>
+  HEADER_CHAIN_IDS.includes(parseInt(c.id, 10))
+);
 
 window.Buffer = window.Buffer || require("buffer").Buffer;
 // hardhat: 31337 tbsc: 97 0x61 goerli： 0x5
@@ -74,16 +85,40 @@ export const modal = createAppKit({
 
 initializeSubscribers(modal);
 
+const THEME_KEY = "app-theme";
+const getStoredTheme = () => {
+  try {
+    const t = localStorage.getItem(THEME_KEY);
+    return t === "light" ? "light" : "dark";
+  } catch {
+    return "dark";
+  }
+};
+
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [chainId, setChainId] = useState(
     localStorage.getItem("chainId") || DefaultChainId
   );
+  const [theme, setTheme] = useState(getStoredTheme);
 
   const { address, isConnected } = useAppKitAccount();
   const { chainId: currentChainId } = useAppKitNetwork();
   const [isConnecting, setIsConnecting] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (e) {
+      console.warn("localStorage theme save failed", e);
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
 
   useEffect(() => {
     if (isConnected && address) {
@@ -157,136 +192,192 @@ function App() {
     console.log("断开连接");
   };
 
-  const handleAccordionClick = () => {
-    setIsExpanded(!isExpanded);
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
   };
+
+  const handleHeaderNetworkChange = async (e) => {
+    const nextId = e?.target?.value;
+    if (!nextId) return;
+    setChainId(nextId);
+    localStorage.setItem("chainId", nextId);
+    try {
+      await modal.switchNetwork(getDefaultNetwork(parseInt(nextId, 10)));
+    } catch (err) {
+      console.error("Switch network failed:", err);
+      toast.error("切换网络失败，请重试");
+    }
+  };
+
+  const ethNavItems = [
+    { title: "Login DApp", linkTo: "/" },
+    { title: "Estimate TxFee", linkTo: "/estimateTxFee" },
+    { title: "Create Transaction", linkTo: "/createTransaction" },
+    { title: "Faucet Token", linkTo: "/faucet" },
+    { title: "Burn Token", linkTo: "/burn" },
+    { title: "ENS Service", linkTo: "/ens" },
+    { title: "Mint NFT", linkTo: "/mintnft" },
+    { title: "Get Collection", linkTo: "/getCollection" },
+    { title: "YunGou Aggregators", linkTo: "/yunGouAggregators" },
+    { title: "Sign EIP712", linkTo: "/signEIP712" },
+    { title: "EIP7702", linkTo: "/eip7702" },
+    { title: "Get OpenSeaData", linkTo: "/getOpenSeaData" },
+    { title: "Buy NFT (Y,O)", linkTo: "/buyNFT" },
+    { title: "Buy Blur NFT", linkTo: "/buyBlurNFT" },
+    { title: "Utils", linkTo: "/utils" },
+    { title: "ERC6551", linkTo: "/erc6551" },
+    { title: "Web3Auth", linkTo: "/web3Auth" },
+    { title: "Web3Auth Solana", linkTo: "/web3AuthSolana" }
+  ];
+
+  const solanaNavItems = [
+    { title: "Solana Utils", linkTo: "/solanaUtils" },
+    { title: "WSOL Solana", linkTo: "/wsolSolana" }
+  ];
+
   return (
     <Router>
-      <div>
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            style: {
-              fontSize: "20px"
-            }
-          }}
-        />
-      </div>
-      <div>
-        <div className="floating-accordion">
-          <div
-            className={`accordion-header ${isExpanded ? "open" : ""}`}
-            onClick={handleAccordionClick}
-          >
-            <h3 className="accordion-title">Function</h3>
-            <span className="accordion-icon">▼</span>
-          </div>
-          {isExpanded && (
-            <div>
-              <h2>Ethereum:</h2>
-              <div style={{ height: "300px", overflowY: "auto" }}>
-                <AccordionItem title="Login DApp" linkTo="/" />
-                <AccordionItem title="Estimate TxFee" linkTo="/estimateTxFee" />
-                <AccordionItem
-                  title="Create Transaction"
-                  linkTo="/createTransaction"
-                />
-                <AccordionItem title="Faucet Token" linkTo="/faucet" />
-                <AccordionItem title="Burn Token" linkTo="/burn" />
-                {/* <AccordionItem title="Token Price" linkTo="/display" /> */}
-                <AccordionItem title="ENS Service" linkTo="/ens" />
-                <AccordionItem title="Mint NFT" linkTo="/mintnft" />
-                <AccordionItem title="Get Collection" linkTo="/getCollection" />
-                <AccordionItem title="Sign EIP712" linkTo="/signEIP712" />
-                <AccordionItem title="EIP7702" linkTo="/eip7702" />
-                <AccordionItem
-                  title="Get OpenSeaData"
-                  linkTo="/getOpenSeaData"
-                />
-                <AccordionItem title="Buy NFT (Y,O)" linkTo="/buyNFT" />
-                <AccordionItem title="Buy Blur NFT" linkTo="/buyBlurNFT" />
-                {/* <AccordionItem title="Get IPFS" linkTo="/getIPFS" /> */}
-                {/* <AccordionItem title="Lucky Baby" linkTo="/luckyBaby" /> */}
-                <AccordionItem title="Utils" linkTo="/utils" />
-                {/* <AccordionItem
-                  title="Cross-Chain Bridge"
-                  linkTo="/crossChainBridge"
-                />{" "} */}
-                <AccordionItem title="ERC6551" linkTo="/erc6551" />
-                <AccordionItem title="Web3Auth" linkTo="/web3Auth" />
-                <AccordionItem
-                  title="Web3Auth Solana"
-                  linkTo="/web3AuthSolana"
-                />
-                {/* ...添加更多的折叠项 */}
-              </div>
-              <h2>Solana:</h2>
-              <div style={{ height: "300px", overflowY: "auto" }}>
-                <AccordionItem title="Solana Utils" linkTo="/solanaUtils" />
-                <AccordionItem title="WSOL Solana" linkTo="/wsolSolana" />
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div
-          style={{
-            textAlign: "right"
-          }}
-        >
-          <p></p>
-          {currentAccount ? connectReownButton() : connectReownButton()}
-          <p></p>
-          ChainId: {chainId}
-          <p></p>
-          Account:{" "}
-          {
-            // currentAccount 保留前4后4
-            getExtractAddress(currentAccount)
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            fontSize: "14px",
+            background: "var(--w3-bg-elevated)",
+            border: "1px solid var(--w3-border)",
+            color: "var(--w3-text)"
           }
-        </div>
+        }}
+      />
+      <div className="app-shell">
+        <header className="app-header">
+          <div className="app-header-left">
+            <NavLink to="/" className="app-logo">
+              <span className="app-logo-accent">0x</span>Ethan DApp
+            </NavLink>
+          </div>
+          <div className="app-header-right">
+            <button
+              type="button"
+              className="app-header-theme-toggle"
+              onClick={toggleTheme}
+              title={theme === "dark" ? "切换到浅色" : "切换到深色"}
+              aria-label={
+                theme === "dark" ? "切换到浅色模式" : "切换到深色模式"
+              }
+            >
+              {theme === "dark" ? (
+                <span className="app-header-theme-icon" aria-hidden>
+                  ☀️
+                </span>
+              ) : (
+                <span className="app-header-theme-icon" aria-hidden>
+                  🌙
+                </span>
+              )}
+            </button>
+            <label htmlFor="app-network" className="app-header-network-label">
+              Current Network
+            </label>
+            <select
+              id="app-network"
+              className="app-header-network-select"
+              value={String(chainId ?? "")}
+              onChange={handleHeaderNetworkChange}
+              aria-label="当前网络"
+            >
+              {headerChains.map((chain) => (
+                <option key={chain.id} value={chain.id}>
+                  {chain.name}
+                </option>
+              ))}
+            </select>
+            <div className="w3-connect-wrap">{connectReownButton()}</div>
+          </div>
+        </header>
 
-        {/* 使用 <Routes> 包含所有的路由 */}
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
-          {/* <Route path="/display" element={<DataDisplayPage />} /> */}
-          <Route path="/ens" element={<ENSPage />} />
-          <Route path="/mintnft" element={<MintNFTPage />} />
-          <Route path="/getCollection" element={<GetCollectionPage />} />
-          <Route path="/signEIP712" element={<SignEIP712Page />} />
-          <Route path="/getOpenSeaData" element={<GetOpenSeaDataPage />} />
-          <Route path="/buyNFT" element={<BuyNFTPage />} />
-          <Route path="/buyBlurNFT" element={<BuyBlurNFTPage />} />
-          <Route path="/getIPFS" element={<GetIPFSPage />} />
-          {/* <Route path="/luckyBaby" element={<LuckyBabyPage />} /> */}
-          <Route path="/faucet" element={<FaucetTokenPage />} />
-          <Route path="/burn" element={<BurnTokenPage />} />
-          <Route
-            path="/createTransaction"
-            element={<CreateTransactionPage />}
-          />
-          <Route path="/utils" element={<UtilsPage />} />
-          {/* <Route path="/crossChainBridge" element={<CrossChainBridgePage />} /> */}
-          <Route path="/erc6551" element={<ERC6551Page />} />
-          <Route path="/eip7702" element={<EIP7702Page />} />
-          <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
-          <Route path="/web3Auth" element={<Web3AuthPage />} />
-          <Route path="/web3AuthSolana" element={<Web3AuthSolanaPage />} />
-          <Route path="/wsolSolana" element={<WsolPage />} />
-        </Routes>
+        <div className="app-body">
+          <aside
+            className={`app-sidebar ${isSidebarOpen ? "open" : "collapsed"}`}
+          >
+            <nav className="sidebar-nav">
+              <div className="sidebar-section">
+                <div className="sidebar-section-title">Ethereum</div>
+                {ethNavItems.map((item) => (
+                  <NavLink
+                    key={item.linkTo}
+                    to={item.linkTo}
+                    className={({ isActive }) =>
+                      "sidebar-link" + (isActive ? " active" : "")
+                    }
+                    end={item.linkTo === "/"}
+                  >
+                    <span className="sidebar-link-text">{item.title}</span>
+                  </NavLink>
+                ))}
+              </div>
+              <div className="sidebar-section">
+                <div className="sidebar-section-title">Solana</div>
+                {solanaNavItems.map((item) => (
+                  <NavLink
+                    key={item.linkTo}
+                    to={item.linkTo}
+                    className={({ isActive }) =>
+                      "sidebar-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <span className="sidebar-link-text">{item.title}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </nav>
+            <button
+              type="button"
+              className="sidebar-collapse-tab"
+              onClick={toggleSidebar}
+              aria-label={isSidebarOpen ? "收起菜单" : "展开菜单"}
+              title={isSidebarOpen ? "收起菜单" : "展开菜单"}
+            >
+              <span className="sidebar-collapse-icon" aria-hidden>
+                {isSidebarOpen ? "◀" : "▶"}
+              </span>
+            </button>
+          </aside>
+
+          <main className="app-main">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
+              <Route path="/ens" element={<ENSPage />} />
+              <Route path="/mintnft" element={<MintNFTPage />} />
+              <Route path="/getCollection" element={<GetCollectionPage />} />
+              <Route
+                path="/yunGouAggregators"
+                element={<YunGouAggregatorsPage />}
+              />
+              <Route path="/signEIP712" element={<SignEIP712Page />} />
+              <Route path="/getOpenSeaData" element={<GetOpenSeaDataPage />} />
+              <Route path="/buyNFT" element={<BuyNFTPage />} />
+              <Route path="/buyBlurNFT" element={<BuyBlurNFTPage />} />
+              <Route path="/getIPFS" element={<GetIPFSPage />} />
+              <Route path="/faucet" element={<FaucetTokenPage />} />
+              <Route path="/burn" element={<BurnTokenPage />} />
+              <Route
+                path="/createTransaction"
+                element={<CreateTransactionPage />}
+              />
+              <Route path="/utils" element={<UtilsPage />} />
+              <Route path="/erc6551" element={<ERC6551Page />} />
+              <Route path="/eip7702" element={<EIP7702Page />} />
+              <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
+              <Route path="/web3Auth" element={<Web3AuthPage />} />
+              <Route path="/web3AuthSolana" element={<Web3AuthSolanaPage />} />
+              <Route path="/wsolSolana" element={<WsolPage />} />
+            </Routes>
+          </main>
+        </div>
       </div>
     </Router>
   );
 }
 
-const AccordionItem = ({ title, linkTo }) => {
-  return (
-    <div className="accordion-item">
-      <div className="accordion-header">
-        <Link to={linkTo}>{title}</Link>
-      </div>
-    </div>
-  );
-};
 export default App;
