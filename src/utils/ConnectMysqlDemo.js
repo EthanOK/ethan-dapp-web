@@ -1,5 +1,5 @@
-const { getPoolMysql } = require("./ConnectMysql.js");
-const { getResultSelectDB } = require("./OperateMysql.js");
+const { getPoolMysql } = require("./ConnectMysql");
+const { getResultSelectDB } = require("./OperateMysql");
 
 let pool = getPoolMysql();
 let sql = "SELECT * FROM system";
