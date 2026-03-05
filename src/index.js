@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 // TODO: Change start page
 import App from "./EthanDapp";
+import reportWebVitals from "./reportWebVitals";
 
 // 首屏即应用上次选择的主题，避免闪烁
 try {
@@ -12,7 +13,6 @@ try {
     saved === "light" ? "light" : "dark"
   );
 } catch (_) {}
-import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
