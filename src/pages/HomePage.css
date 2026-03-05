@@ -34,9 +34,40 @@
 /* 信息卡片网格 */
 .home-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
+  width: 100%;
+}
+
+.home-cards-stats,
+.home-cards-prices {
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.home-cards-stats {
+  margin-bottom: 16px;
+}
+
+.home-cards-prices {
   margin-bottom: 32px;
+}
+
+@media (max-width: 960px) {
+  .home-cards-stats,
+  .home-cards-prices {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 520px) {
+  .home-cards-stats,
+  .home-cards-prices {
+    grid-template-columns: 1fr;
+    max-width: 360px;
+  }
 }
 
 .home-card {
@@ -275,11 +306,11 @@
   background: var(--w3-bg-card);
   border: 1px solid var(--w3-border);
   border-radius: var(--w3-radius);
-  padding: 12px 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-width: 200px;
+  min-width: 160px;
   flex-shrink: 0;
   transition:
     border-color 0.2s,

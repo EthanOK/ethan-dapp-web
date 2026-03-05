@@ -282,7 +282,7 @@ function App() {
               </span>
             </button>
             <label htmlFor="app-network" className="app-header-network-label">
-              Current Network
+              Network
             </label>
             <select
               id="app-network"

@@ -66,7 +66,7 @@ const BuyNFTPage = () => {
   };
 
   const runFulfill = async (
-    fn: (a: string, b: string, c: string | null) => Promise<unknown>
+    fn: (a: string, b: string, c: string) => Promise<unknown>
   ) => {
     const contractEl = document.getElementById(
       "contract"
@@ -75,6 +75,10 @@ const BuyNFTPage = () => {
       "tokenId"
     ) as HTMLTextAreaElement | null;
     if (!contractEl || !tokenIdEl) return;
+    if (!currentAccount) {
+      alert("请先连接钱包");
+      return;
+    }
     const contractValue = contractEl.value;
     const tokenIdValue = tokenIdEl.value;
     const res =
@@ -109,7 +113,7 @@ const BuyNFTPage = () => {
     runFulfill(fulfillBasicOrder_efficient);
 
   const runFulfillMultiple = async (
-    fn: (a: string[], b: string[], c: string | null) => Promise<unknown>
+    fn: (a: string[], b: string[], c: string) => Promise<unknown>
   ) => {
     const contractsEl = document.getElementById(
       "contracts"
@@ -118,6 +122,10 @@ const BuyNFTPage = () => {
       "tokenIds"
     ) as HTMLTextAreaElement | null;
     if (!contractsEl || !tokenIdsEl) return;
+    if (!currentAccount) {
+      alert("请先连接钱包");
+      return;
+    }
     const contractsValue = stringToArray(contractsEl.value);
     const tokenIdsValue = stringToArray(tokenIdsEl.value);
     try {

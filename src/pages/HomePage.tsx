@@ -276,7 +276,7 @@ const HomePage = () => {
         </h1>
         <p>Connect wallet · Multi-chain · NFT & DeFi tools</p>
       </section>
-      <div className="home-cards">
+      <div className="home-cards home-cards-stats">
         <div className="home-card">
           <div className="home-card-label">Chain ID</div>
           <div className="home-card-value accent">{chainId || "—"}</div>
@@ -301,6 +301,8 @@ const HomePage = () => {
           <div className="home-card-label">Nonce</div>
           <div className="home-card-value">{currentAccountNonce ?? "—"}</div>
         </div>
+      </div>
+      <div className="home-cards home-cards-prices">
         <div className="home-card">
           <div className="home-card-label">BTC</div>
           <div className="home-card-value accent">{spotPrices.btc ?? "—"}</div>

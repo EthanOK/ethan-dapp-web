@@ -102,7 +102,17 @@ const BuyBlurNFTPage = () => {
       return;
     }
     try {
+      if (!currentAccount) {
+        alert("请先连接钱包");
+        return;
+      }
+
       const blurToken = localStorage.getItem("blurAccessToken");
+      if (!blurToken) {
+        alert("请先登录 Blur");
+        return;
+      }
+
       const result = await onlyBuyBlurNFT(
         contract,
         tokenId,
@@ -114,14 +124,11 @@ const BuyBlurNFTPage = () => {
       if (message_ != null && typeof message_ === "string") {
         setMessage(message_);
       }
-      if (
-        tx &&
-        typeof (tx as { wait?: () => Promise<{ status: number }> }).wait ===
-          "function"
-      ) {
-        const rsult = await (
-          tx as { wait: () => Promise<{ status: number }> }
-        ).wait();
+      const waitableTx = tx as unknown as {
+        wait?: () => Promise<{ status: number }>;
+      };
+      if (waitableTx && typeof waitableTx.wait === "function") {
+        const rsult = await waitableTx.wait();
         if (rsult?.status === 1) console.log("Success!");
         else console.log("Failure!");
       }
