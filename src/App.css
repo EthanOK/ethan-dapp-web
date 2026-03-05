@@ -279,7 +279,7 @@
 
 /* ========== 通用组件（保留并统一 Web3 风格） ========== */
 .main-app {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   text-align: left;
 }

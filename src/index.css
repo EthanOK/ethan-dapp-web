@@ -74,18 +74,16 @@ html[data-theme="light"] {
   --w3-header-bg: rgba(255, 255, 255, 0.92);
   --w3-sidebar-bg: rgba(248, 250, 252, 0.95);
   --w3-sidebar-active-bg: rgba(14, 116, 144, 0.12);
-  --w3-card-shadow: 0 1px 3px rgba(15, 23, 42, 0.08),
-    0 1px 2px rgba(15, 23, 42, 0.04);
+  --w3-card-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
   --w3-scrollbar-track: #e2e8f0;
   --w3-scrollbar-thumb: #cbd5e1;
   --w3-scrollbar-thumb-hover: #94a3b8;
 }
 
 html[data-theme="light"] body::before {
-  background-image: linear-gradient(
-      rgba(14, 116, 144, 0.08) 1px,
-      transparent 1px
-    ),
+  background-image:
+    linear-gradient(rgba(14, 116, 144, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(14, 116, 144, 0.08) 1px, transparent 1px);
 }
 
@@ -140,10 +138,8 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: linear-gradient(
-      rgba(34, 211, 238, 0.03) 1px,
-      transparent 1px
-    ),
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
   background-size: 48px 48px;
   pointer-events: none;
