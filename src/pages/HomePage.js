@@ -1,37 +1,167 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react";
-import seaportAbi from "../contracts/seaport1_5.json";
-
-import order_data_t from "../testdata/orderdata.js";
-import orders_data_t from "../testdata/ordersdata.js";
-import yunGouAggregatorsAbi from "../contracts/YunGouAggregators.json";
-import yunGou2_0Abi from "../contracts/yungou2_0.json";
-import { BigNumber, ethers } from "ethers";
-import { OpenSeaSDK, Chain } from "opensea-js";
-
-import {
-  getSigner,
-  getProvider,
-  getChainIdAndBalanceETHAndTransactionCount
-} from "../utils/GetProvider.js";
-
-import {
-  getYunGouAddress,
-  getScanURL,
-  getYunGouAddressAndOrder,
-  stringToArray,
-  getYunGouAggregatorsAddress
-} from "../utils/Utils.js";
-import Orders from "../utils/GetOrder.js";
-import OrdersTest from "../utils/GetOrdersTestnet.js";
-import {
-  OPENSEA_MAIN_API,
-  YUNGOU_END,
-  DefaultChainId,
-  chainName_S
-} from "../common/SystemConfiguration.js";
-import { SupportChains } from "../common/ChainsConfig.js";
+import { useEffect, useState, useCallback } from "react";
+import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider.js";
+import { DefaultChainId } from "../common/SystemConfiguration.js";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import "./HomePage.css";
+
+const COINGECKO_MARKETS_URL =
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1&sparkline=false&price_change_percentage=24h";
+
+const MARKET_CACHE_KEY = "home_market_cache";
+
+function getCachedMarketData() {
+  try {
+    const raw = localStorage.getItem(MARKET_CACHE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data?.tickerList?.length || !data?.updatedAt) return null;
+    return {
+      tickerList: data.tickerList,
+      spotPrices: data.spotPrices || {},
+      updatedAt: data.updatedAt
+    };
+  } catch {
+    return null;
+  }
+}
+
+function setCachedMarketData(tickerList, spotPrices) {
+  try {
+    localStorage.setItem(
+      MARKET_CACHE_KEY,
+      JSON.stringify({
+        tickerList,
+        spotPrices,
+        updatedAt: Date.now()
+      })
+    );
+  } catch (e) {
+    console.warn("Market cache write failed:", e);
+  }
+}
+
+const emptyCoin = (symbol) => ({
+  symbol,
+  price: "—",
+  change: "—",
+  isUp: true,
+  image: null,
+  marketCap: "—",
+  high24h: "—",
+  low24h: "—"
+});
+
+const fallbackTickerList = [
+  "BTC",
+  "ETH",
+  "SOL",
+  "DOGE",
+  "BNB",
+  "XRP",
+  "ADA",
+  "HYPE",
+  "LINK",
+  "AVAX",
+  "DOT",
+  "MATIC",
+  "TRX",
+  "LEO",
+  "BCH",
+  "ATOM"
+].map(emptyCoin);
+
+function formatPrice(num) {
+  if (num == null || Number.isNaN(num)) return "—";
+  if (num >= 1000)
+    return "$" + num.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  if (num >= 1)
+    return (
+      "$" +
+      num.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4
+      })
+    );
+  if (num >= 0.01) return "$" + num.toFixed(4);
+  if (num > 0) return "$" + num.toFixed(6);
+  return "$0";
+}
+
+function formatChange(val) {
+  if (val == null || Number.isNaN(val)) return { text: "—", isUp: true };
+  const isUp = val >= 0;
+  const text = (isUp ? "+" : "") + val.toFixed(2) + "%";
+  return { text, isUp };
+}
+
+function formatMarketCap(num) {
+  if (num == null || Number.isNaN(num)) return "—";
+  if (num >= 1e12) return "$" + (num / 1e12).toFixed(2) + "T";
+  if (num >= 1e9) return "$" + (num / 1e9).toFixed(2) + "B";
+  if (num >= 1e6) return "$" + (num / 1e6).toFixed(2) + "M";
+  if (num >= 1e3) return "$" + (num / 1e3).toFixed(2) + "K";
+  return "$" + num.toFixed(0);
+}
+
+async function fetchTickerFromCoinGecko() {
+  const res = await fetch(COINGECKO_MARKETS_URL);
+  if (!res.ok) throw new Error("CoinGecko request failed");
+  const data = await res.json();
+  return data.map((item) => {
+    const { text, isUp } = formatChange(
+      item.price_change_percentage_24h_in_currency ??
+        item.price_change_percentage_24h
+    );
+    return {
+      symbol: (item.symbol || "").toUpperCase(),
+      price: formatPrice(item.current_price),
+      change: text,
+      isUp,
+      image: item.image || null,
+      marketCap: formatMarketCap(item.market_cap),
+      high24h: formatPrice(item.high_24h),
+      low24h: formatPrice(item.low_24h)
+    };
+  });
+}
+
+const CoinCard = ({ item }) => (
+  <div className="home-coin-card">
+    <div className="home-coin-card-head">
+      {item.image && (
+        <img
+          src={item.image}
+          alt=""
+          className="home-coin-card-icon"
+          width={28}
+          height={28}
+        />
+      )}
+      <div className="home-coin-card-title">
+        <span className="home-coin-card-symbol">{item.symbol}</span>
+        <span className={`home-coin-card-change ${item.isUp ? "up" : "down"}`}>
+          {item.change}
+        </span>
+      </div>
+    </div>
+    <div className="home-coin-card-price">{item.price}</div>
+    <div className="home-coin-card-meta">
+      <div className="home-coin-card-meta-row">
+        <span className="home-coin-card-meta-label">Market Cap</span>
+        <span className="home-coin-card-meta-value">{item.marketCap}</span>
+      </div>
+      <div className="home-coin-card-meta-row">
+        <span className="home-coin-card-meta-label">24h High</span>
+        <span className="home-coin-card-meta-value">{item.high24h}</span>
+      </div>
+      <div className="home-coin-card-meta-row">
+        <span className="home-coin-card-meta-label">24h Low</span>
+        <span className="home-coin-card-meta-value">{item.low24h}</span>
+      </div>
+    </div>
+  </div>
+);
 
 const HomePage = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
@@ -40,555 +170,157 @@ const HomePage = () => {
   const [chainId, setChainId] = useState(
     localStorage.getItem("chainId") || DefaultChainId
   );
-  const [message, setMessage] = useState("");
-  const [etherscan, setEtherscan] = useState("");
+  const [tickerList, setTickerList] = useState(fallbackTickerList);
+  const [spotPrices, setSpotPrices] = useState({
+    btc: null,
+    eth: null,
+    sol: null,
+    bnb: null
+  });
+  const [marketUpdatedAt, setMarketUpdatedAt] = useState(null);
 
-  const [isConnecting, setIsConnecting] = useState(false);
   const { chainId: currentChainId } = useAppKitNetwork();
   const { address, isConnected } = useAppKitAccount();
+
+  const loadTicker = useCallback(async () => {
+    const cached = getCachedMarketData();
+    if (cached) {
+      setTickerList(cached.tickerList);
+      setSpotPrices(cached.spotPrices);
+      setMarketUpdatedAt(cached.updatedAt);
+    }
+
+    try {
+      const list = await fetchTickerFromCoinGecko();
+      const bySymbol = Object.fromEntries(list.map((x) => [x.symbol, x]));
+      const spots = {
+        btc: bySymbol.BTC?.price ?? null,
+        eth: bySymbol.ETH?.price ?? null,
+        sol: bySymbol.SOL?.price ?? null,
+        bnb: bySymbol.BNB?.price ?? null
+      };
+      setTickerList(list);
+      setSpotPrices(spots);
+      setMarketUpdatedAt(Date.now());
+      setCachedMarketData(list, spots);
+    } catch (e) {
+      console.warn("CoinGecko ticker load failed:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTicker();
+    const interval = setInterval(loadTicker, 60000);
+    return () => clearInterval(interval);
+  }, [loadTicker]);
+
+  const marketUpdatedLabel = marketUpdatedAt
+    ? new Date(marketUpdatedAt).toLocaleString("en-US", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      })
+    : null;
+
   useEffect(() => {
     if (isConnected && address) {
       setCurrentAccount(address);
       setChainId(currentChainId);
-      getChainIdAndBalanceETHAndTransactionCount(address).then(async (res) => {
+      getChainIdAndBalanceETHAndTransactionCount(address).then((res) => {
         setCurrentAccountBalance(res?.balance);
         setCurrentAccountNonce(res?.nonce);
-        setEtherscan(await getScanURL());
       });
     }
   }, [isConnected, address, currentChainId]);
 
-  const handleSelectChange = (event) => {};
-
-  // TODO:yunGouAggregatorsHandler
-  const yunGouAggregatorsHandler = async () => {
-    const tradeDetails = [];
-    const contractsInput = document.getElementById("contracts");
-    let contractsValue = contractsInput.value;
-    const tokenIdsInput = document.getElementById("tokenIds");
-    let tokenIdsValue = tokenIdsInput.value;
-    contractsValue = stringToArray(contractsValue);
-    tokenIdsValue = stringToArray(tokenIdsValue);
-    const { ethereum } = window;
-    if (!ethereum) {
-      alert("ethereum object does not exist!");
-    }
-    try {
-      const provider = await getProvider();
-      const signer = provider.getSigner();
-      const chainId = localStorage.getItem("chainId");
-
-      let protocolAddress,
-        currentPriceSum,
-        advancedOrders,
-        criteriaResolvers,
-        offerFulfillments,
-        considerationFulfillments,
-        fulfillerConduitKey,
-        maximumFulfilled;
-      console.log(contractsValue);
-      if (contractsValue === "" || tokenIdsValue === "") {
-        console.log("contractAddress or tokenIds is null");
-        return;
-      }
-
-      let orders;
-      let valueEth = BigNumber.from("0");
-
-      if (chainId === "1") {
-        const openseaSDK = new OpenSeaSDK(provider, {
-          chain: Chain.Mainnet,
-          apiKey: OPENSEA_MAIN_API
-        });
-        [
-          protocolAddress,
-          currentPriceSum,
-          advancedOrders,
-          criteriaResolvers,
-          offerFulfillments,
-          considerationFulfillments,
-          fulfillerConduitKey,
-          maximumFulfilled
-        ] = await Orders.getFulfillAvailableAdvancedOrders_datas(
-          openseaSDK,
-          currentAccount,
-          contractsValue,
-          tokenIdsValue
-        );
-      } else if (chainId === "56") {
-        const openseaSDK = new OpenSeaSDK(provider, {
-          chain: Chain.BNB,
-          apiKey: OPENSEA_MAIN_API
-        });
-        [
-          protocolAddress,
-          currentPriceSum,
-          advancedOrders,
-          criteriaResolvers,
-          offerFulfillments,
-          considerationFulfillments,
-          fulfillerConduitKey,
-          maximumFulfilled
-        ] = await Orders.getFulfillAvailableAdvancedOrders_datas(
-          openseaSDK,
-          currentAccount,
-          contractsValue,
-          tokenIdsValue
-        );
-      } else if (chainId === "11155111") {
-        orders = [order_data_t.order_data];
-        for (let i = 0; i < orders.length; i++) {
-          valueEth = valueEth.add(orders[i].totalPayment);
-        }
-        const Orders_datas =
-          await OrdersTest.getFulfillAvailableAdvancedOrders_datas(
-            chainName_S,
-            currentAccount,
-            contractsValue,
-            tokenIdsValue
-          );
-        if (Orders_datas === null) {
-          console.log("Orders_datas is null");
-          return null;
-        }
-        [
-          protocolAddress,
-          currentPriceSum,
-          advancedOrders,
-          criteriaResolvers,
-          offerFulfillments,
-          considerationFulfillments,
-          fulfillerConduitKey,
-          maximumFulfilled
-        ] = Orders_datas;
-      }
-      const YunGouAggregatorsAddress_ = await getYunGouAggregatorsAddress();
-      const ygAggregators = new ethers.Contract(
-        YunGouAggregatorsAddress_,
-        yunGouAggregatorsAbi,
-        signer
-      );
-
-      // function fulfillAvailableAdvancedOrders(
-      //   AdvancedOrder[] calldata,
-      //   CriteriaResolver[] calldata,
-      //   FulfillmentComponent[][] calldata,
-      //   FulfillmentComponent[][] calldata,
-      //   bytes32 fulfillerConduitKey,
-      //   address recipient,
-      //   uint256 maximumFulfilled)
-      const fulfillerConduitKey_0 =
-        "0x0000000000000000000000000000000000000000000000000000000000000000";
-      const seaport = new ethers.Contract(protocolAddress, seaportAbi, signer);
-      let result_seaport =
-        await seaport.populateTransaction.fulfillAvailableAdvancedOrders(
-          advancedOrders,
-          criteriaResolvers,
-          offerFulfillments,
-          considerationFulfillments,
-          fulfillerConduitKey_0,
-          currentAccount,
-          maximumFulfilled
-        );
-      const inputData = result_seaport.data;
-      const extraData = YUNGOU_END;
-      const inputDataWithExtra = ethers.utils.hexConcat([inputData, extraData]);
-
-      // const tx = await signer.sendTransaction({
-      //   to: ygAggregators.address,
-      //   data: inputDataWithExtra,
-      //   value: ethers.BigNumber.from(currentPriceSum.toString()),
-      // });
-
-      // TODO Add YunGou data
-      /*       let YunGou2_0 = await getYunGouAddress();
-      const yungou2_0 = new ethers.Contract(YunGou2_0, yunGou2_0Abi, signer);
-      let result_yg = await yungou2_0.populateTransaction.batchExcuteWithETH(
-        orders,
-        currentAccount
-      );
-      const ygdata = result_yg.data;
-      const tradeDetail_yg = {
-        marketId: 1,
-        // value: valueEth.add(ethers.utils.parseEther("0.02")),
-        value: valueEth,
-        tradeData: ygdata,
-      };
-      tradeDetails.push(tradeDetail_yg); */
-
-      // TODO Add opsnea data
-      let currentPriceSumOpensea = BigNumber.from(currentPriceSum);
-      const tradeDetail_opensea = {
-        marketId: 2,
-        value: currentPriceSumOpensea,
-        tradeData: inputDataWithExtra
-      };
-
-      tradeDetails.push(tradeDetail_opensea);
-      // sum Value
-      let _sumValue = BigNumber.from(0);
-      for (let i = 0; i < tradeDetails.length; i++) {
-        _sumValue = _sumValue.add(BigNumber.from(tradeDetails[i].value));
-      }
-      console.log("all orders tatal payment:" + _sumValue.toString());
-
-      let result_ygAggregators =
-        await ygAggregators.populateTransaction.batchBuyWithETH(tradeDetails);
-      const inputData_yg = result_ygAggregators.data;
-      const inputDataWithExtra_YG = ethers.utils.hexConcat([
-        inputData_yg,
-        extraData
-      ]);
-      // console.log(inputDataWithExtra_YG);
-      const tx = await signer.sendTransaction({
-        to: ygAggregators.address,
-        data: inputDataWithExtra_YG,
-        value: _sumValue
-      });
-
-      // let tx = await ygAggregators.batchBuyWithETH(tradeDetails, {
-      //   value: ethers.BigNumber.from(currentPriceSum.toString()),
-      // });
-      console.log("Minting..please await");
-
-      console.log(`Please See: ${etherscan}/tx/${tx.hash}`);
-      let message_ = `${etherscan}/tx/${tx.hash}`;
-      setMessage(message_);
-      await tx.wait();
-      console.log("Success Minted!");
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  // TODO:excuteWithETHHandler
-  const excuteWithETHHandler = async () => {
-    const { ethereum } = window;
-    if (!ethereum) {
-      alert("ethereum object does not exist!");
-    }
-    try {
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
-
-      let [YG_Address, order] = await getYunGouAddressAndOrder();
-
-      const yungou2_0 = new ethers.Contract(YG_Address, yunGou2_0Abi, signer);
-      let result_ = await yungou2_0.populateTransaction.excuteWithETH(
-        order,
-        currentAccount
-      );
-      console.log(result_);
-
-      const inputData = result_.data;
-      const extraData = YUNGOU_END;
-      const inputDataWithExtra = ethers.utils.hexConcat([inputData, extraData]);
-
-      // 可以附加 后缀
-      const tx = await signer.sendTransaction({
-        to: result_.to,
-        data: inputDataWithExtra,
-        value: order.totalPayment
-      });
-      // 直接调用合约
-      // let tx = await yungou1_5.excuteWithETH(order, currentAccount, {
-      //   value: order.totalPayment,
-      // });
-
-      console.log(`Please See: ${etherscan}/tx/${tx.hash}`);
-      let message_ = `${etherscan}/tx/${tx.hash}`;
-      setMessage(message_);
-      await tx.wait();
-      console.log("Success!");
-    } catch (error) {
-      console.log(error);
-      // TODO:get Error data
-      console.log(error.error.data.originalError);
-    }
-  };
-  // TODO:batchExcuteWithETHHandler
-  const batchExcuteWithETHHandler = async () => {
-    const { ethereum } = window;
-    if (!ethereum) {
-      alert("ethereum object does not exist!");
-    }
-    try {
-      const provider = await getProvider();
-      const signer = provider.getSigner();
-      const chainId = localStorage.getItem("chainId");
-      let orders;
-      let valueEth = BigNumber.from("0");
-      if (chainId === "1") {
-      } else if (chainId === "5") {
-        orders = orders_data_t.orders;
-        for (let i = 0; i < orders.length; i++) {
-          valueEth = valueEth.add(orders[i].totalPayment);
-        }
-        // let order = order_data_t.order_data;
-        // orders = [order];
-      }
-      console.log(orders);
-      // console.log(valueEth);
-      let YunGou2_0 = await getYunGouAddress();
-      const yungou2_0 = new ethers.Contract(YunGou2_0, yunGou2_0Abi, signer);
-      let result_ = await yungou2_0.populateTransaction.batchExcuteWithETH(
-        orders,
-        currentAccount
-      );
-      console.log(result_);
-
-      const inputData = result_.data;
-      const extraData = YUNGOU_END;
-      const inputDataWithExtra = ethers.utils.hexConcat([inputData, extraData]);
-
-      // 可以附加 后缀
-      const tx = await signer.sendTransaction({
-        to: result_.to,
-        data: inputDataWithExtra,
-        value: valueEth
-        // value: "100000000000000000",
-      });
-      // 直接调用合约;
-      // let tx = await yungou2_0.batchExcuteWithETH(orders, currentAccount, {
-      //   value: "100000000000000000",
-      // });
-
-      console.log(`Please See: ${etherscan}/tx/${tx.hash}`);
-      let message_ = `${etherscan}/tx/${tx.hash}`;
-      setMessage(message_);
-      await tx.wait();
-      console.log("Success!");
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  // cancelHandler
-  const cancelHandler = async () => {
-    const signer = await getSigner();
-
-    let parameters = order_data_t.order_data.parameters;
-    // TODO: cancel contract
-    let YunGou2_0 = await getYunGouAddress();
-    const yungou2_0 = new ethers.Contract(YunGou2_0, yunGou2_0Abi, signer);
-    let tx = await yungou2_0.cancel([parameters]);
-
-    console.log(`Please See: ${etherscan}/tx/${tx.hash}`);
-    let message_ = `${etherscan}/tx/${tx.hash}`;
-    setMessage(message_);
-    await tx.wait();
-    console.log("Success!");
-  };
-
-  // TODO:getYunGouOrderHashHandler
-  const getYunGouOrderHashHandler = async () => {
-    const signer = await getSigner();
-
-    //   struct BasicOrderParameters {
-    //     OrderType orderType;
-    //     address payable offerer;
-    //     address offerToken;
-    //     uint256 offerTokenId;
-    //     uint256 unitPrice;
-    //     uint256 sellAmount;
-    //     uint256 startTime;
-    //     uint256 endTime;
-    //     address paymentToken;
-    //     uint256 paymentTokenId;
-    //     uint256 salt;
-    //     uint256 royaltyFee;
-    //     uint256 platformFee;
-    //     uint256 afterTaxPrice;
-    // }
-
-    let parameters, chainId;
-    chainId = localStorage.getItem("chainId");
-    if (chainId === 5) {
-      parameters = order_data_t.order_data.parameters;
-    } else if (chainId === 97) {
-      parameters = order_data_t.order_data_tbsc.parameters;
-    }
-    let YunGou2_0 = await getYunGouAddress();
-    console.log(chainId);
-    console.log(YunGou2_0);
-    console.log(parameters);
-    // TODO: get orderHash
-    const yungou2_0 = new ethers.Contract(YunGou2_0, yunGou2_0Abi, signer);
-    let orderHash = await yungou2_0.getOrderHash(parameters);
-    console.log("orderHash: " + orderHash);
-    let orderStatus = await yungou2_0.getOrderStatus(orderHash);
-    console.log("orderStatus: " + orderStatus);
-  };
-
-  const handleConnect = async () => {
-    setIsConnecting(true);
-
-    try {
-      localStorage.setItem("LoginType", "reown");
-    } catch (error) {
-      console.error("Reown连接失败:", error);
-      localStorage.removeItem("LoginType");
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const connectReownButton = () => {
-    return (
-      <appkit-button
-        label={isConnecting ? "Connecting..." : "Connect With Reown"}
-        style={{ display: "block", margin: "0 auto" }}
-        onClick={handleConnect}
-        // disabled={isConnecting}
-      />
-    );
-  };
-
-  // TODO:aggregatorsButton
-  const aggregatorsButton = () => {
-    return (
-      <button
-        onClick={yunGouAggregatorsHandler}
-        className="cta-button mint-nft-button"
-        disabled={!currentAccount}
-      >
-        YunGou Aggregators
-      </button>
-    );
-  };
-  // TODO:excuteWithETHButton
-  const excuteWithETHButton = () => {
-    return (
-      <button
-        onClick={excuteWithETHHandler}
-        className="cta-button mint-nft-button"
-        disabled={!currentAccount}
-      >
-        YunGou excuteWithETH
-      </button>
-    );
-  };
-  // TODO:batchExcuteWithETHButton
-  const batchExcuteWithETHButton = () => {
-    return (
-      <button
-        onClick={batchExcuteWithETHHandler}
-        className="cta-button mint-nft-button"
-        disabled={!currentAccount}
-      >
-        YunGou batchExcuteWithETH
-      </button>
-    );
-  };
-  // cancelButton
-  const cancelButton = () => {
-    return (
-      <button
-        onClick={cancelHandler}
-        className="cta-button mint-nft-button"
-        disabled={!currentAccount}
-      >
-        YunGou cancel
-      </button>
-    );
-  };
-
-  // TODO:getYunGouOrderHashButton
-  const getYunGouOrderHashButton = () => {
-    return (
-      <button
-        onClick={getYunGouOrderHashHandler}
-        className="cta-button mint-nft-button"
-        disabled={!currentAccount}
-      >
-        get YunGou OrderHash
-      </button>
-    );
-  };
-
   return (
-    <div className="main-app">
-      <h1>Welcome To Ethan DApp</h1>
+    <div className="home-page main-app">
+      <section className="home-hero">
+        <h1>
+          Welcome to <span className="hero-accent">0xEthan DApp</span>
+        </h1>
+        <p>Connect wallet · Multi-chain · NFT & DeFi tools</p>
+      </section>
 
-      <div>
-        <div>
-          <p>ChainId: {chainId}</p>
-          <p>Account: {currentAccount}</p>
-          <p>Balance: {currentAccountBalance}</p>
-          <p>Nonce: {currentAccountNonce}</p>
+      <div className="home-cards">
+        <div className="home-card">
+          <div className="home-card-label">Chain ID</div>
+          <div className="home-card-value accent">{chainId || "—"}</div>
         </div>
-        <div>
-          <h2>current Network:</h2>
-          <select
-            value={chainId}
-            onChange={handleSelectChange}
-            style={{ width: "100px", height: "30px", fontSize: "12px" }}
-          >
-            {SupportChains.map((chain) => (
-              <option
-                key={chain.id}
-                value={chain.id}
-                style={{ textAlign: "center" }}
-              >
-                {chain.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <div>
-            {/* <h2 style={{ color: "red" }}>Login:</h2> */}
-            {/* {isConnected ? connectReownButton() : connectReownButton()} */}
-            <p></p>
-            {/* {currentAccount ? showWalletType() : connectMeatamask()} */}
-            <p></p>
-            {/* {currentAccount ? showWalletType() : connectWalletConnect()} */}
+        <div className="home-card">
+          <div className="home-card-label">Account</div>
+          <div className="home-card-value" title={currentAccount || ""}>
+            {currentAccount
+              ? `${currentAccount.slice(0, 6)}…${currentAccount.slice(-4)}`
+              : "—"}
           </div>
         </div>
-        <p></p>
-        <center>
-          <h2>YunGouAggregators</h2>
-          <div className="bordered-div">
-            <h4>OpenSea Orders</h4>
-            <div>
-              <label>输入contracts:</label>
-              <textarea
-                id="contracts"
-                placeholder="[0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b,0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b]"
-                style={{ height: "100px", width: "400px" }}
-              />
-            </div>
-            <div>
-              <label>输入tokenIds:</label>
-              <textarea
-                id="tokenIds"
-                placeholder="[1,2]"
-                style={{ height: "100px", width: "400px" }}
-              />
-            </div>
-            <p></p>
-            {aggregatorsButton()}
+        <div className="home-card">
+          <div className="home-card-label">Balance</div>
+          <div className="home-card-value">
+            {currentAccountBalance != null
+              ? Number(currentAccountBalance).toFixed(8)
+              : "—"}
           </div>
-        </center>
+        </div>
+        <div className="home-card">
+          <div className="home-card-label">Nonce</div>
+          <div className="home-card-value">{currentAccountNonce ?? "—"}</div>
+        </div>
+        <div className="home-card">
+          <div className="home-card-label">BTC</div>
+          <div className="home-card-value accent">{spotPrices.btc ?? "—"}</div>
+        </div>
+        <div className="home-card">
+          <div className="home-card-label">ETH</div>
+          <div className="home-card-value accent">{spotPrices.eth ?? "—"}</div>
+        </div>
+        <div className="home-card">
+          <div className="home-card-label">BNB</div>
+          <div className="home-card-value accent">{spotPrices.bnb ?? "—"}</div>
+        </div>
+        <div className="home-card">
+          <div className="home-card-label">SOL</div>
+          <div className="home-card-value accent">{spotPrices.sol ?? "—"}</div>
+        </div>
       </div>
 
-      <h3>YunGou 2.0</h3>
-      {excuteWithETHButton()}
-      <p></p>
-      {batchExcuteWithETHButton()}
-      <p></p>
-      {cancelButton()}
-      <p></p>
-      {getYunGouOrderHashButton()}
-
-      <div>
-        <h2>
-          Please See:
-          <p></p>
-          <a href={message} target="_blank" rel="noopener noreferrer">
-            {message}
-          </a>
-        </h2>
-      </div>
+      <section className="home-market-wrap">
+        <div className="home-market-header">
+          <h2 className="home-market-title">Market</h2>
+          {marketUpdatedLabel && (
+            <span className="home-market-updated" title="Data last updated">
+              Updated at {marketUpdatedLabel}
+            </span>
+          )}
+        </div>
+        <div className="home-market-scroll-row">
+          <div className="home-market-track">
+            {(() => {
+              const row1 = tickerList.slice(
+                0,
+                Math.ceil(tickerList.length / 2)
+              );
+              return [...row1, ...row1].map((item, i) => (
+                <CoinCard key={`r1-${item.symbol}-${i}`} item={item} />
+              ));
+            })()}
+          </div>
+        </div>
+        <div className="home-market-scroll-row">
+          <div className="home-market-track home-market-track-reverse">
+            {(() => {
+              const row2 = tickerList.slice(Math.ceil(tickerList.length / 2));
+              return [...row2, ...row2].map((item, i) => (
+                <CoinCard key={`r2-${item.symbol}-${i}`} item={item} />
+              ));
+            })()}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

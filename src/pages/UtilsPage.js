@@ -217,204 +217,197 @@ const UtilsPage = () => {
   };
 
   return (
-    <center>
-      <div>
-        <h2>Utils</h2>
-        <div className="bordered-div">
-          <h3>Sign Hex Data</h3>
-          <div className="container">
-            <div className="input-container">
-              <label className="label">Hex Data:</label>
-              <textarea
-                className="textarea"
-                id="hexData"
-                placeholder="0xc0e8f831a90406f3a15e808f3f1ec26ea4bc214cfb986cdb4b0623b22bbf8ed3"
-                style={{ height: "20px", width: "500px", fontSize: "14px" }}
-              ></textarea>
-            </div>
-          </div>
-          <p></p>
-          {getSignatureButton()}
-          <div>
-            Signature:
-            <textarea
-              type="text"
-              value={signatureHex}
-              readOnly
-              style={{ width: "400px", height: "60px" }}
-            ></textarea>
-          </div>
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>Utils</h1>
+        <p>
+          Sign hex data, IPFS URLs, gas, SqrtPriceX96, LP price, contract
+          address
+        </p>
+      </section>
+
+      <section className="feature-panel">
+        <h3>Sign Hex Data</h3>
+        <div className="feature-field">
+          <label htmlFor="hexData">Hex Data</label>
+          <textarea
+            id="hexData"
+            placeholder="0xc0e8f831a90406f3a15e808f3f1ec26ea4bc214cfb986cdb4b0623b22bbf8ed3"
+            rows={2}
+          />
         </div>
-        <p></p>
-        <div className="bordered-div">
-          <h3>IPFS</h3>
-          <div className="container">
-            <div className="input-container">
-              <label className="label">CID:</label>
-              <textarea
-                className="textarea"
-                id="cid"
-                placeholder="QmSFZ84W8uNjoZJMkGkVDuJR5PBNtsHorDBmcHCjzACdXY"
-                style={{ height: "20px", width: "460px", fontSize: "14px" }}
-              ></textarea>
-            </div>
-          </div>
-          <p></p>
-          {getIPFSURLButton()}
-          <div>
-            <h2>
-              Please See:
-              <p></p>
+        <div className="feature-actions">{getSignatureButton()}</div>
+        <div className="feature-field">
+          <label>Signature</label>
+          <textarea value={signatureHex} readOnly rows={3} />
+        </div>
+      </section>
+
+      <section className="feature-panel">
+        <h3>IPFS</h3>
+        <div className="feature-field">
+          <label htmlFor="cid">CID</label>
+          <textarea
+            id="cid"
+            placeholder="QmSFZ84W8uNjoZJMkGkVDuJR5PBNtsHorDBmcHCjzACdXY"
+            rows={2}
+          />
+        </div>
+        <div className="feature-actions">{getIPFSURLButton()}</div>
+        {(message || message1) && (
+          <div className="feature-tx-link" style={{ marginTop: 16 }}>
+            <p>Gateways</p>
+            {message && (
               <a href={message} target="_blank" rel="noopener noreferrer">
                 {message.substring(0, message.lastIndexOf("/") + 2)}
               </a>
-              <p></p>
-              <a href={message1} target="_blank" rel="noopener noreferrer">
-                {message1.substring(0, message1.lastIndexOf("/") + 2)}
-              </a>
-              <p></p>
-              <a href={message2} target="_blank" rel="noopener noreferrer">
-                {message2.substring(0, message2.lastIndexOf("/") + 2)}
-              </a>
-              <p></p>
-              <a href={message3} target="_blank" rel="noopener noreferrer">
-                {message3.substring(0, message3.lastIndexOf("/") + 2)}
-              </a>
-              <p></p>
-              <a href={message4} target="_blank" rel="noopener noreferrer">
-                {message4.substring(0, message4.lastIndexOf("/") + 2)}
-              </a>
-            </h2>
+            )}
+            {message1 && (
+              <>
+                <br />
+                <a href={message1} target="_blank" rel="noopener noreferrer">
+                  {message1.substring(0, message1.lastIndexOf("/") + 2)}
+                </a>
+              </>
+            )}
+            {message2 && (
+              <>
+                <br />
+                <a href={message2} target="_blank" rel="noopener noreferrer">
+                  {message2.substring(0, message2.lastIndexOf("/") + 2)}
+                </a>
+              </>
+            )}
+            {message3 && (
+              <>
+                <br />
+                <a href={message3} target="_blank" rel="noopener noreferrer">
+                  {message3.substring(0, message3.lastIndexOf("/") + 2)}
+                </a>
+              </>
+            )}
+            {message4 && (
+              <>
+                <br />
+                <a href={message4} target="_blank" rel="noopener noreferrer">
+                  {message4.substring(0, message4.lastIndexOf("/") + 2)}
+                </a>
+              </>
+            )}
           </div>
-        </div>
-        <p></p>
-        <div className="bordered-div">
-          <h3>计算 Gas</h3>
-          <div className="container">
-            <div className="input-container">
-              <label className="label">Gas Used:</label>
-              <textarea
-                id="gasUsed"
-                placeholder="158170"
-                style={{ height: "20px", width: "360px", fontSize: "14px" }}
-              ></textarea>
-            </div>{" "}
-            <div className="input-container">
-              <label className="label">Gas Price(Gwei):</label>
-              <textarea
-                id="gasPrice"
-                placeholder="1.5"
-                style={{ height: "20px", width: "300px", fontSize: "14px" }}
-              ></textarea>
-            </div>
-          </div>
-          <p></p>
-          {calculateTxFeeButton()}
-          <div>
-            <h3>
-              TxFee: &nbsp;&nbsp;
-              <a target="_blank" rel="noopener noreferrer">
-                {transactionFee} ether
-              </a>
-              <p></p>
-              <a target="_blank" rel="noopener noreferrer">
-                {(parseFloat(transactionFee) * parseFloat(etherPrice)).toFixed(
-                  4
-                )}
-                &nbsp; USD
-              </a>
-            </h3>
-          </div>
-        </div>
+        )}
+      </section>
 
-        <p></p>
-        <div className="bordered-div">
-          <h3>SqrtPriceX96</h3>
-          <div>
-            <label className="label">sqrtPriceX96:</label>
-            <textarea
-              className="textarea"
-              id="sqrtPriceX96"
-              placeholder="5379665721256550655574226248"
-              style={{ height: "20px", width: "300px", fontSize: "14px" }}
-            ></textarea>
-            <p></p>
-            {getPriceButton()}
-            <p>Price: &nbsp;&nbsp;{tokenPrice}</p>
-          </div>
+      <section className="feature-panel">
+        <h3>计算 Gas</h3>
+        <div className="feature-field">
+          <label htmlFor="gasUsed">Gas Used</label>
+          <input id="gasUsed" type="text" placeholder="158170" />
         </div>
-
-        <p></p>
-        <div className="bordered-div">
-          <h3>LPToken Price V2</h3>
-          <div>
-            <label className="label">platform:</label>
-
-            <select
-              id="mintAmount"
-              style={{ width: "160px", height: "30px", fontSize: "12px" }}
-              value={selectedValue} // 设置当前选中的值
-              onChange={handleChangeValue} // 添加事件处理函数
-            >
-              <option value="1" style={{ textAlign: "center" }}>
-                UniSwap V2(ETH)
-              </option>
-              <option value="56" style={{ textAlign: "center" }}>
-                PancakeSwap V2(BSC)
-              </option>
-            </select>
-
-            <p></p>
-            <label className="label">Token0:</label>
-            <textarea
-              className="textarea"
-              id="token0"
-              placeholder="0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-              style={{ height: "20px", width: "320px", fontSize: "14px" }}
-            ></textarea>
-            <p></p>
-            <label className="label">Token1:</label>
-            <textarea
-              className="textarea"
-              id="token1"
-              placeholder="0xdAC17F958D2ee523a2206206994597C13D831ec7"
-              style={{ height: "20px", width: "320px", fontSize: "14px" }}
-            ></textarea>
-            <p></p>
-            {getTokenPriceButton()}
-            <p>LP Price: &nbsp;&nbsp;{lpTokenPrice}</p>
-          </div>
+        <div className="feature-field">
+          <label htmlFor="gasPrice">Gas Price (Gwei)</label>
+          <input id="gasPrice" type="text" placeholder="1.5" />
         </div>
+        <div className="feature-actions">{calculateTxFeeButton()}</div>
+        <p style={{ color: "var(--w3-text-muted)", marginTop: 12 }}>
+          TxFee:{" "}
+          <strong style={{ color: "var(--w3-text)" }}>{transactionFee}</strong>{" "}
+          ether
+          {" · "}
+          {etherPrice
+            ? (
+                parseFloat(transactionFee || 0) * parseFloat(etherPrice)
+              ).toFixed(4)
+            : "—"}{" "}
+          USD
+        </p>
+      </section>
 
-        <p></p>
-        <div className="bordered-div">
-          <h3>Get Contract Address(By Create)</h3>
-          <div>
-            <label className="label">Account:</label>
-            <textarea
-              className="textarea"
-              id="account_create"
-              placeholder="0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2"
-              style={{ height: "20px", width: "320px", fontSize: "14px" }}
-            ></textarea>
-            <p></p>
-            <label className="label">Nonce:</label>
-            <textarea
-              className="textarea"
-              id="nonce_create"
-              placeholder="11"
-              style={{ height: "20px", width: "320px", fontSize: "14px" }}
-            ></textarea>
-            <p></p>
-            {getAddressByCreate()}
-            <p>Contract Address: &nbsp;&nbsp;{contractCreate}</p>
-          </div>
+      <section className="feature-panel">
+        <h3>SqrtPriceX96</h3>
+        <div className="feature-field">
+          <label htmlFor="sqrtPriceX96">sqrtPriceX96</label>
+          <input
+            id="sqrtPriceX96"
+            type="text"
+            placeholder="5379665721256550655574226248"
+          />
         </div>
-      </div>
-      <div>
-        <p></p>
-      </div>
-    </center>
+        <div className="feature-actions">{getPriceButton()}</div>
+        <p style={{ color: "var(--w3-text-muted)", marginTop: 12 }}>
+          Price:{" "}
+          <strong style={{ color: "var(--w3-text)" }}>
+            {tokenPrice ?? "—"}
+          </strong>
+        </p>
+      </section>
+
+      <section className="feature-panel">
+        <h3>LP Token Price V2</h3>
+        <div className="feature-field">
+          <label htmlFor="utils-platform">Platform</label>
+          <select
+            id="utils-platform"
+            value={selectedValue}
+            onChange={handleChangeValue}
+          >
+            <option value="1">UniSwap V2 (ETH)</option>
+            <option value="56">PancakeSwap V2 (BSC)</option>
+          </select>
+        </div>
+        <div className="feature-field">
+          <label htmlFor="token0">Token0</label>
+          <input
+            id="token0"
+            type="text"
+            placeholder="0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+          />
+        </div>
+        <div className="feature-field">
+          <label htmlFor="token1">Token1</label>
+          <input
+            id="token1"
+            type="text"
+            placeholder="0xdAC17F958D2ee523a2206206994597C13D831ec7"
+          />
+        </div>
+        <div className="feature-actions">{getTokenPriceButton()}</div>
+        <p style={{ color: "var(--w3-text-muted)", marginTop: 12 }}>
+          LP Price:{" "}
+          <strong style={{ color: "var(--w3-text)" }}>
+            {lpTokenPrice ?? "—"}
+          </strong>
+        </p>
+      </section>
+
+      <section className="feature-panel">
+        <h3>Get Contract Address (By Create)</h3>
+        <div className="feature-field">
+          <label htmlFor="account_create">Account</label>
+          <input
+            id="account_create"
+            type="text"
+            placeholder="0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2"
+          />
+        </div>
+        <div className="feature-field">
+          <label htmlFor="nonce_create">Nonce</label>
+          <input id="nonce_create" type="text" placeholder="11" />
+        </div>
+        <div className="feature-actions">{getAddressByCreate()}</div>
+        <p style={{ color: "var(--w3-text-muted)", marginTop: 12 }}>
+          Contract Address:{" "}
+          <strong
+            style={{
+              color: "var(--w3-text)",
+              fontFamily: "var(--w3-font-mono)"
+            }}
+          >
+            {contractCreate ?? "—"}
+          </strong>
+        </p>
+      </section>
+    </div>
   );
 };
 

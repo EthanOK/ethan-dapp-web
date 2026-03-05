@@ -98,48 +98,43 @@ const MintNFTPage = () => {
     }
   };
 
-  const PleaseLogin = () => {
-    return <h2>UnLogin, Please Login</h2>;
-  };
-
   return (
-    <center>
-      <div>
-        <h2>Mint YGME</h2>
-        <div>
-          <label htmlFor="mintAmount">Mint amount: </label>
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>Mint YGME</h1>
+        <p>Mint or sign EIP712 and mint NFT</p>
+      </section>
+
+      <section className="feature-panel">
+        <h3>Mint Amount</h3>
+        <div className="feature-field">
+          <label htmlFor="mintAmount">Amount</label>
           <select
             id="mintAmount"
-            style={{ width: "80px", height: "30px", fontSize: "12px" }}
-            value={selectedAmount} // 设置当前选中的值
-            onChange={handleChangeAmount} // 添加事件处理函数
+            value={selectedAmount}
+            onChange={handleChangeAmount}
+            aria-label="Mint amount"
           >
-            <option value="1" style={{ textAlign: "center" }}>
-              1
-            </option>
-            <option value="5" style={{ textAlign: "center" }}>
-              5
-            </option>
-            <option value="10" style={{ textAlign: "center" }}>
-              10
-            </option>
+            <option value="1">1</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
           </select>
         </div>
-        <p></p>
-        {mintNftButton(1)}
-        <p></p>
-        {mintNftButton(2)}
-      </div>
-      <div>
-        <h2>
-          Please See:
-          <p></p>
+        <div className="feature-actions">
+          {mintNftButton(1)}
+          {mintNftButton(2)}
+        </div>
+      </section>
+
+      {message && (
+        <div className="feature-tx-link">
+          <p>Transaction</p>
           <a href={message} target="_blank" rel="noopener noreferrer">
             {message}
           </a>
-        </h2>
-      </div>
-    </center>
+        </div>
+      )}
+    </div>
   );
 };
 

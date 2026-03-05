@@ -1,0 +1,366 @@
+/* HomePage - Web3 风格 */
+.home-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100%;
+  padding-bottom: 48px;
+}
+
+.home-hero {
+  text-align: center;
+  padding: 48px 24px 40px;
+  margin-bottom: 32px;
+}
+
+.home-hero h1 {
+  font-family: var(--w3-font-sans);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  letter-spacing: 0.02em;
+  color: var(--w3-text);
+  margin: 0 0 8px;
+}
+
+.home-hero .hero-accent {
+  color: var(--w3-accent);
+}
+
+.home-hero p {
+  color: var(--w3-text-muted);
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* 信息卡片网格 */
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.home-card {
+  background: var(--w3-bg-card);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  padding: 16px 20px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.home-card:hover {
+  border-color: var(--w3-border-accent);
+  box-shadow: 0 0 20px var(--w3-accent-glow);
+}
+
+.home-card-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--w3-text-dim);
+  margin-bottom: 6px;
+}
+
+.home-card-value {
+  font-family: var(--w3-font-mono);
+  font-size: 0.95rem;
+  color: var(--w3-text);
+  word-break: break-all;
+}
+
+.home-card-value.accent {
+  color: var(--w3-accent);
+}
+
+/* 区块标题 */
+.home-section {
+  margin-bottom: 32px;
+}
+
+.home-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--w3-text-muted);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--w3-border);
+}
+
+/* 网络选择 */
+.home-network-wrap {
+  margin-bottom: 24px;
+}
+
+.home-network-wrap label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--w3-text-muted);
+  margin-bottom: 8px;
+}
+
+.home-network-wrap select {
+  padding: 10px 14px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-card);
+  color: var(--w3-text);
+  font-family: var(--w3-font-sans);
+  font-size: 0.9rem;
+  min-width: 160px;
+  cursor: pointer;
+}
+
+.home-network-wrap select:focus {
+  outline: none;
+  border-color: var(--w3-border-accent);
+}
+
+/* YunGou 卡片 */
+.home-panel {
+  background: var(--w3-bg-card);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.home-panel h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--w3-text);
+  margin: 0 0 16px;
+}
+
+.home-panel h4 {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--w3-text-muted);
+  margin: 0 0 12px;
+}
+
+.home-field {
+  margin-bottom: 16px;
+}
+
+.home-field label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--w3-text-muted);
+  margin-bottom: 6px;
+}
+
+.home-field textarea {
+  width: 100%;
+  max-width: 100%;
+  min-height: 80px;
+  padding: 12px 14px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-main);
+  color: var(--w3-text);
+  font-family: var(--w3-font-mono);
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.home-field textarea::placeholder {
+  color: var(--w3-text-dim);
+}
+
+.home-field textarea:focus {
+  outline: none;
+  border-color: var(--w3-border-accent);
+}
+
+/* 按钮组 */
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.home-tx-link {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--w3-bg-elevated);
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+}
+
+.home-tx-link a {
+  color: var(--w3-accent);
+  font-family: var(--w3-font-mono);
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.home-tx-link a:hover {
+  text-decoration: underline;
+}
+
+.home-tx-link p {
+  font-size: 0.8rem;
+  color: var(--w3-text-dim);
+  margin: 0 0 6px;
+}
+
+/* 行情横向滑动 - 紧凑卡片 */
+.home-market-wrap {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--w3-border);
+}
+
+.home-market-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.home-market-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--w3-text);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.home-market-updated {
+  font-size: 0.8rem;
+  color: var(--w3-text-dim);
+  font-family: var(--w3-font-mono);
+}
+
+.home-market-scroll-row {
+  overflow: hidden;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+}
+
+.home-market-scroll-row:last-child {
+  margin-bottom: 0;
+}
+
+.home-market-track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  padding: 4px 0;
+  animation: home-market-scroll 50s linear infinite;
+}
+
+.home-market-track-reverse {
+  animation-direction: reverse;
+}
+
+.home-market-scroll-row:hover .home-market-track {
+  animation-play-state: paused;
+}
+
+@keyframes home-market-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.home-coin-card {
+  background: var(--w3-bg-card);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 200px;
+  flex-shrink: 0;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.home-coin-card:hover {
+  border-color: var(--w3-border-accent);
+  box-shadow: 0 0 20px var(--w3-accent-glow);
+}
+
+.home-coin-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-coin-card-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.home-coin-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.home-coin-card-symbol {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--w3-text);
+  letter-spacing: 0.02em;
+}
+
+.home-coin-card-change {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.home-coin-card-change.up {
+  color: #22c55e;
+}
+
+.home-coin-card-change.down {
+  color: #ef4444;
+}
+
+.home-coin-card-price {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--w3-text);
+  font-family: var(--w3-font-mono);
+  letter-spacing: 0.02em;
+}
+
+.home-coin-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--w3-border);
+}
+
+.home-coin-card-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.home-coin-card-meta-label {
+  color: var(--w3-text-muted);
+}
+
+.home-coin-card-meta-value {
+  color: var(--w3-text);
+  font-family: var(--w3-font-mono);
+  font-size: 0.75rem;
+}

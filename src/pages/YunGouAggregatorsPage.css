@@ -1,0 +1,117 @@
+/* YunGou Aggregators 独立模块 - Web3 风格 */
+.yg-page {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.yg-hero {
+  text-align: center;
+  padding: 24px 16px 32px;
+  margin-bottom: 24px;
+}
+
+.yg-hero h1 {
+  font-family: var(--w3-font-sans);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3vw, 1.85rem);
+  letter-spacing: 0.02em;
+  color: var(--w3-text);
+  margin: 0 0 8px;
+}
+
+.yg-hero .hero-accent {
+  color: var(--w3-accent);
+}
+
+.yg-hero p {
+  color: var(--w3-text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.yg-panel {
+  background: var(--w3-bg-card);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.yg-panel h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--w3-text);
+  margin: 0 0 8px;
+}
+
+.yg-desc {
+  font-size: 0.85rem;
+  color: var(--w3-text-muted);
+  margin: 0 0 16px;
+}
+
+.yg-field {
+  margin-bottom: 16px;
+}
+
+.yg-field label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--w3-text-muted);
+  margin-bottom: 6px;
+}
+
+.yg-field textarea {
+  width: 100%;
+  max-width: 100%;
+  min-height: 80px;
+  padding: 12px 14px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-main);
+  color: var(--w3-text);
+  font-family: var(--w3-font-mono);
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.yg-field textarea::placeholder {
+  color: var(--w3-text-dim);
+}
+
+.yg-field textarea:focus {
+  outline: none;
+  border-color: var(--w3-border-accent);
+}
+
+.yg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.yg-tx-link {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--w3-bg-elevated);
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+}
+
+.yg-tx-link p {
+  font-size: 0.8rem;
+  color: var(--w3-text-dim);
+  margin: 0 0 6px;
+}
+
+.yg-tx-link a {
+  color: var(--w3-accent);
+  font-family: var(--w3-font-mono);
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.yg-tx-link a:hover {
+  text-decoration: underline;
+}
