@@ -213,6 +213,9 @@ function App() {
     if (!nextId) return;
     setChainId(nextId);
     localStorage.setItem("chainId", nextId);
+    window.dispatchEvent(
+      new CustomEvent("app-network-changed", { detail: { chainId: nextId } })
+    );
     try {
       await modal.switchNetwork(getDefaultNetwork(parseInt(nextId, 10)));
     } catch (err) {
