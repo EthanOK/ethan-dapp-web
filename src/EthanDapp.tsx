@@ -76,7 +76,7 @@ const metadata = {
   name: "Ethan Dapp Website",
   description: "My Website description",
   url: "https://ethan-dapp.vercel.app",
-  icons: [""]
+  icons: ["https://ethan-dapp.vercel.app/logo512.png"]
 };
 
 // 使用 data URI 作为链图标，避免从 CDN 拉取时出现 403

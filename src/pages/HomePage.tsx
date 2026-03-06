@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider";
 import { DefaultChainId } from "../common/SystemConfiguration";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
@@ -212,6 +212,13 @@ const HomePage = () => {
     okb: null
   });
   const [marketUpdatedAt, setMarketUpdatedAt] = useState<number | null>(null);
+  const [marketSearch, setMarketSearch] = useState("");
+
+  const marketFilteredList = useMemo(() => {
+    const q = marketSearch.trim().toLowerCase();
+    if (!q) return tickerList;
+    return tickerList.filter((c) => c.symbol.toLowerCase().includes(q));
+  }, [tickerList, marketSearch]);
 
   const { chainId: currentChainId } = useAppKitNetwork();
   const { address, isConnected } = useAppKitAccount();
@@ -352,35 +359,63 @@ const HomePage = () => {
       <section className="home-market-wrap">
         <div className="home-market-header">
           <h2 className="home-market-title">Market</h2>
-          {marketUpdatedLabel && (
-            <span className="home-market-updated" title="Data last updated">
-              Updated at {marketUpdatedLabel}
-            </span>
-          )}
-        </div>
-        <div className="home-market-scroll-row">
-          <div className="home-market-track">
-            {(() => {
-              const row1 = tickerList.slice(
-                0,
-                Math.ceil(tickerList.length / 2)
-              );
-              return [...row1, ...row1].map((item, i) => (
-                <CoinCard key={`r1-${item.symbol}-${i}`} item={item} />
-              ));
-            })()}
+          <div className="home-market-toolbar">
+            <input
+              type="text"
+              className="home-market-search"
+              placeholder="Symbol (e.g. BTC, ETH)"
+              value={marketSearch}
+              onChange={(e) => setMarketSearch(e.target.value)}
+              aria-label="Search coins"
+            />
+            {marketUpdatedLabel && (
+              <span className="home-market-updated" title="Data last updated">
+                Updated at {marketUpdatedLabel}
+              </span>
+            )}
           </div>
         </div>
-        <div className="home-market-scroll-row">
-          <div className="home-market-track home-market-track-reverse">
-            {(() => {
-              const row2 = tickerList.slice(Math.ceil(tickerList.length / 2));
-              return [...row2, ...row2].map((item, i) => (
-                <CoinCard key={`r2-${item.symbol}-${i}`} item={item} />
-              ));
-            })()}
+        {marketSearch.trim() ? (
+          <div className="home-market-grid-wrap">
+            {marketFilteredList.length > 0 ? (
+              <div className="home-market-grid">
+                {marketFilteredList.map((item) => (
+                  <CoinCard key={item.symbol} item={item} />
+                ))}
+              </div>
+            ) : (
+              <p className="home-market-empty">在 100 条数据中未找到匹配币种</p>
+            )}
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="home-market-scroll-row">
+              <div className="home-market-track">
+                {(() => {
+                  const row1 = tickerList.slice(
+                    0,
+                    Math.ceil(tickerList.length / 2)
+                  );
+                  return [...row1, ...row1].map((item, i) => (
+                    <CoinCard key={`r1-${item.symbol}-${i}`} item={item} />
+                  ));
+                })()}
+              </div>
+            </div>
+            <div className="home-market-scroll-row">
+              <div className="home-market-track home-market-track-reverse">
+                {(() => {
+                  const row2 = tickerList.slice(
+                    Math.ceil(tickerList.length / 2)
+                  );
+                  return [...row2, ...row2].map((item, i) => (
+                    <CoinCard key={`r2-${item.symbol}-${i}`} item={item} />
+                  ));
+                })()}
+              </div>
+            </div>
+          </>
+        )}
       </section>
     </div>
   );
