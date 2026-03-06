@@ -6,7 +6,7 @@ import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import "./HomePage.css";
 
 const COINGECKO_MARKETS_URL =
-  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1&sparkline=false&price_change_percentage=24h";
+  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h";
 
 const MARKET_CACHE_KEY = "home_market_cache";
 
@@ -208,7 +208,8 @@ const HomePage = () => {
     btc: null,
     eth: null,
     sol: null,
-    bnb: null
+    bnb: null,
+    okb: null
   });
   const [marketUpdatedAt, setMarketUpdatedAt] = useState<number | null>(null);
 
@@ -225,11 +226,12 @@ const HomePage = () => {
     try {
       const list = await fetchTickerFromCoinGecko();
       const bySymbol = Object.fromEntries(list.map((x) => [x.symbol, x]));
-      const spots = {
+      const spots: Record<string, string | null> = {
         btc: bySymbol.BTC?.price ?? null,
         eth: bySymbol.ETH?.price ?? null,
         sol: bySymbol.SOL?.price ?? null,
-        bnb: bySymbol.BNB?.price ?? null
+        bnb: bySymbol.BNB?.price ?? null,
+        okb: bySymbol.OKB?.price ?? null
       };
       setTickerList(list);
       setSpotPrices(spots);
@@ -302,23 +304,40 @@ const HomePage = () => {
           <div className="home-card-value">{currentAccountNonce ?? "—"}</div>
         </div>
       </div>
-      <div className="home-cards home-cards-prices">
-        <div className="home-card">
-          <div className="home-card-label">BTC</div>
-          <div className="home-card-value accent">{spotPrices.btc ?? "—"}</div>
-        </div>
-        <div className="home-card">
-          <div className="home-card-label">ETH</div>
-          <div className="home-card-value accent">{spotPrices.eth ?? "—"}</div>
-        </div>
-        <div className="home-card">
-          <div className="home-card-label">BNB</div>
-          <div className="home-card-value accent">{spotPrices.bnb ?? "—"}</div>
-        </div>
-        <div className="home-card">
-          <div className="home-card-label">SOL</div>
-          <div className="home-card-value accent">{spotPrices.sol ?? "—"}</div>
-        </div>
+      <div className="home-spot-row">
+        {(() => {
+          const bySymbol = Object.fromEntries(
+            tickerList.map((x) => [x.symbol, x])
+          );
+          return (
+            [
+              { key: "btc", label: "BTC" },
+              { key: "eth", label: "ETH" },
+              { key: "bnb", label: "BNB" },
+              { key: "sol", label: "SOL" },
+              { key: "okb", label: "OKB" }
+            ] as const
+          ).map(({ key, label }) => {
+            const spot = spotPrices[key];
+            const item = bySymbol[label];
+            const change = item?.change ?? "—";
+            const isUp = item?.isUp ?? true;
+            return (
+              <div key={key} className="home-spot-card">
+                <div className="home-spot-card-top">
+                  <span className="home-spot-card-symbol">{label}</span>
+                  <span
+                    className={`home-spot-card-badge ${isUp ? "up" : "down"}`}
+                    title="24h"
+                  >
+                    {change}
+                  </span>
+                </div>
+                <div className="home-spot-card-price">{spot ?? "—"}</div>
+              </div>
+            );
+          });
+        })()}
       </div>
       <section className="home-market-wrap">
         <div className="home-market-header">
