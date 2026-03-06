@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.7](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.6...v2.2.7) (2026-03-06)
+
+
+### Features
+
+* add OKB price to home page ([1102cbb](https://github.com/EthanOK/ethan-dapp-web/commit/1102cbbe37980884fa6ab693206703ee9fa5c095))
+
+
+### Bug Fixes
+
+* optimize homepage and use craco build ([cc881d7](https://github.com/EthanOK/ethan-dapp-web/commit/cc881d7f753eaa260aea7c34e9e3c4cfe454a159))
+
 ### [2.2.6](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.5...v2.2.6) (2026-03-05)
 
 
