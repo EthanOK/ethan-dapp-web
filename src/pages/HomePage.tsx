@@ -270,6 +270,16 @@ const HomePage = () => {
     }
   }, [isConnected, address, currentChainId]);
 
+  useEffect(() => {
+    const onNetworkChanged = (e: Event) => {
+      const detail = (e as CustomEvent<{ chainId: string }>).detail;
+      if (detail?.chainId != null) setChainId(String(detail.chainId));
+    };
+    window.addEventListener("app-network-changed", onNetworkChanged);
+    return () =>
+      window.removeEventListener("app-network-changed", onNetworkChanged);
+  }, []);
+
   return (
     <div className="home-page main-app">
       <section className="home-hero">
