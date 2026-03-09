@@ -1,4 +1,5 @@
 import { normalizeFaucetConfigKeys } from "../utils/Utils";
+import { SupportChains } from "./ChainsConfig";
 
 type FaucetConfigRaw = Record<number, Record<string, string>>;
 
@@ -65,11 +66,8 @@ export const getFaucetTokenListByChain = (
 export const faucetChainIdList = [11155111, 560048];
 
 export const getChainName = (chainId: number): string => {
-  const chainNames: Record<number, string> = {
-    11155111: "Sepolia",
-    560048: "Hoodi"
-  };
-  return chainNames[chainId] ?? `Chain ${chainId}`;
+  const chain = SupportChains.find((c) => Number(c.id) === chainId);
+  return chain?.name ?? `Chain ${chainId}`;
 };
 
 export const getFaucetTokenAddress = (

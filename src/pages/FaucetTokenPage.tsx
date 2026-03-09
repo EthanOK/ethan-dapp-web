@@ -7,7 +7,7 @@ import {
 } from "../utils/GetContract";
 import { getDecimal, getDecimalBigNumber } from "../utils/Utils";
 import { BigNumber } from "ethers";
-import { switchChain } from "../utils/GetProvider";
+import { switchChain, getSignerAndChainId } from "../utils/GetProvider";
 import { login } from "../utils/ConnectWallet";
 import {
   faucetChainIdList,
@@ -32,6 +32,7 @@ const FaucetTokenPage = () => {
   const [tokenBalance, setTokenBalance] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isTransactionProcessing, setIsTransactionProcessing] = useState(false);
+  const [isSwitchingChain, setIsSwitchingChain] = useState(false);
 
   const { address, isConnected } = useAppKitAccount();
   const { chainId: chainIdCurrent } = useAppKitNetwork();
@@ -225,16 +226,60 @@ const FaucetTokenPage = () => {
     await faucetBalance();
   };
 
-  const checkAndSwitchChain = async (): Promise<number | null> => {
+  const switchToTargetChain = async (): Promise<boolean> => {
+    const targetChainId = selectedChainId ?? faucetChainIdList[0];
+    if (chainId === targetChainId) return true;
     try {
-      const targetChainId = selectedChainId ?? faucetChainIdList[0];
-      if (chainId !== targetChainId) {
-        await modal.switchNetwork(getDefaultNetwork(targetChainId));
+      // toast.info("Please switch to " + getChainName(targetChainId));
+      await modal.switchNetwork(getDefaultNetwork(targetChainId));
+      const deadline = Date.now() + 15000;
+      while (Date.now() < deadline) {
+        const [, current] = await getSignerAndChainId();
+        if (current === targetChainId) {
+          setChainId(targetChainId);
+          localStorage.setItem("chainId", String(targetChainId));
+          window.dispatchEvent(
+            new CustomEvent("app-network-changed", {
+              detail: { chainId: String(targetChainId) }
+            })
+          );
+          // toast.success("Switched to " + getChainName(targetChainId));
+          return true;
+        }
+        await new Promise((r) => setTimeout(r, 400));
       }
-      return targetChainId;
+      const [, current] = await getSignerAndChainId();
+      if (current !== targetChainId) {
+        toast.error(
+          "Switching network timeout or not completed, please switch manually and try again"
+        );
+        return false;
+      }
+      return true;
     } catch (error) {
-      console.error("Failed to switch chain:", error);
-      return null;
+      toast.error(
+        "Switching network failed or canceled, please switch manually and try again"
+      );
+      return false;
+    }
+  };
+
+  const checkAndSwitchChain = async (): Promise<number | null> => {
+    const targetChainId = selectedChainId ?? faucetChainIdList[0];
+    if (chainId !== targetChainId) {
+      const ok = await switchToTargetChain();
+      return ok ? targetChainId : null;
+    }
+    return targetChainId;
+  };
+
+  const switchToTargetChainHandler = async () => {
+    setIsSwitchingChain(true);
+    try {
+      const ok = await switchToTargetChain();
+      if (ok) await updateBalance();
+    } finally {
+      setIsSwitchingChain(false);
     }
   };
 
@@ -382,12 +427,14 @@ const FaucetTokenPage = () => {
         </div>
         {selectedChainId && (
           <p className="feature-field" style={{ marginBottom: 0 }}>
-            Current: <strong>{getChainName(selectedChainId)}</strong>
-            {chainId !== selectedChainId && (
-              <span style={{ color: "var(--w3-accent)", marginLeft: 8 }}>
-                → Please switch to this network
-              </span>
-            )}
+            Current: <strong>{chainId ? getChainName(chainId) : "—"}</strong>
+            {/* {chainId != null &&
+              selectedChainId != null &&
+              chainId !== selectedChainId && (
+                <span style={{ color: "var(--w3-accent)", marginLeft: 8 }}>
+                  → Please switch to target network
+                </span>
+              )} */}
           </p>
         )}
       </section>
@@ -422,8 +469,39 @@ const FaucetTokenPage = () => {
                 </strong>
               </p>
               <div className="feature-actions">
-                {currentToken &&
-                  faucetButton(selectedToken, currentToken.faucetAmount)}
+                {selectedChainId != null &&
+                chainId != null &&
+                chainId !== selectedChainId ? (
+                  <button
+                    type="button"
+                    onClick={switchToTargetChainHandler}
+                    className="cta-button mint-nft-button"
+                    disabled={!currentAccount || isSwitchingChain}
+                  >
+                    {isSwitchingChain ? (
+                      <>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: "12px",
+                            height: "12px",
+                            border: "2px solid currentColor",
+                            borderRightColor: "transparent",
+                            borderRadius: "50%",
+                            animation: "rotate 1s linear infinite",
+                            marginRight: "8px"
+                          }}
+                        />
+                        Switching...
+                      </>
+                    ) : (
+                      `Switch to ${getChainName(selectedChainId)}`
+                    )}
+                  </button>
+                ) : (
+                  currentToken &&
+                  faucetButton(selectedToken, currentToken.faucetAmount)
+                )}
               </div>
             </>
           ) : (

@@ -225,7 +225,7 @@ function App() {
   };
 
   const ethNavItems = [
-    { title: "Login DApp", linkTo: "/" },
+    { title: "0xEthan DApp", linkTo: "/" },
     { title: "Estimate TxFee", linkTo: "/estimateTxFee" },
     { title: "Create Transaction", linkTo: "/createTransaction" },
     { title: "Faucet Token", linkTo: "/faucet" },
@@ -266,6 +266,17 @@ function App() {
       <div className="app-shell">
         <header className="app-header">
           <div className="app-header-left">
+            <button
+              type="button"
+              className="app-header-menu-btn"
+              onClick={toggleSidebar}
+              aria-label={isSidebarOpen ? "关闭菜单" : "打开菜单"}
+              title={isSidebarOpen ? "关闭菜单" : "打开菜单"}
+            >
+              <span className="app-header-menu-icon" aria-hidden>
+                {isSidebarOpen ? "✕" : "☰"}
+              </span>
+            </button>
             <NavLink to="/" className="app-logo">
               <span className="app-logo-accent">0x</span>Ethan DApp
             </NavLink>
@@ -305,6 +316,11 @@ function App() {
         </header>
 
         <div className="app-body">
+          <div
+            className={`app-sidebar-overlay ${isSidebarOpen ? "visible" : ""}`}
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden
+          />
           <aside
             className={`app-sidebar ${isSidebarOpen ? "open" : "collapsed"}`}
           >
@@ -319,6 +335,11 @@ function App() {
                       "sidebar-link" + (isActive ? " active" : "")
                     }
                     end={item.linkTo === "/"}
+                    onClick={() => {
+                      if (window.matchMedia("(max-width: 768px)").matches) {
+                        setIsSidebarOpen(false);
+                      }
+                    }}
                   >
                     <span className="sidebar-link-text">{item.title}</span>
                   </NavLink>
@@ -333,6 +354,11 @@ function App() {
                     className={({ isActive }) =>
                       "sidebar-link" + (isActive ? " active" : "")
                     }
+                    onClick={() => {
+                      if (window.matchMedia("(max-width: 768px)").matches) {
+                        setIsSidebarOpen(false);
+                      }
+                    }}
                   >
                     <span className="sidebar-link-text">{item.title}</span>
                   </NavLink>
