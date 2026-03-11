@@ -3,6 +3,8 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider";
 import { DefaultChainId } from "../common/SystemConfiguration";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import "./HomePage.css";
 
 const COINGECKO_MARKETS_URL =
@@ -220,8 +222,13 @@ const HomePage = () => {
     return tickerList.filter((c) => c.symbol.toLowerCase().includes(q));
   }, [tickerList, marketSearch]);
 
-  const { chainId: currentChainId } = useAppKitNetwork();
+  const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
   const { address, isConnected } = useAppKitAccount();
+  const solanaAccount = useAppKitAccount({ namespace: "solana" });
+  const { connection: solanaConnection } = useAppKitConnection();
+  const isSolanaNetwork = caipNetwork?.chainNamespace === "solana";
+  const balanceSymbol =
+    caipNetwork?.nativeCurrency?.symbol ?? (isSolanaNetwork ? "SOL" : "ETH");
 
   const loadTicker = useCallback(async () => {
     const cached = getCachedMarketData();
@@ -267,6 +274,7 @@ const HomePage = () => {
     : null;
 
   useEffect(() => {
+    if (isSolanaNetwork) return;
     if (isConnected && address) {
       setCurrentAccount(address);
       setChainId(String(currentChainId ?? ""));
@@ -275,7 +283,45 @@ const HomePage = () => {
         setCurrentAccountNonce(res?.nonce ?? null);
       });
     }
-  }, [isConnected, address, currentChainId]);
+  }, [isConnected, address, currentChainId, isSolanaNetwork]);
+
+  useEffect(() => {
+    if (!isSolanaNetwork) return;
+    const solAddress = solanaAccount?.address;
+    if (!solanaConnection || !solAddress) {
+      setCurrentAccount(solAddress ?? null);
+      setCurrentAccountBalance(null);
+      setCurrentAccountNonce(null);
+      return;
+    }
+    let isActive = true;
+    const refreshSolanaStats = async () => {
+      try {
+        const lamports = await solanaConnection.getBalance(
+          new PublicKey(solAddress)
+        );
+        if (!isActive) return;
+        setCurrentAccount(solAddress);
+        setChainId(String(currentChainId ?? ""));
+        setCurrentAccountBalance(String(lamports / LAMPORTS_PER_SOL));
+        setCurrentAccountNonce(null);
+      } catch (error) {
+        if (!isActive) return;
+        console.warn("Load Solana balance failed:", error);
+      }
+    };
+    refreshSolanaStats();
+    const timerId = setInterval(refreshSolanaStats, 5000);
+    return () => {
+      isActive = false;
+      clearInterval(timerId);
+    };
+  }, [
+    isSolanaNetwork,
+    solanaAccount?.address,
+    solanaConnection,
+    currentChainId
+  ]);
 
   useEffect(() => {
     const onNetworkChanged = (e: Event) => {
@@ -312,7 +358,7 @@ const HomePage = () => {
           <div className="home-card-label">Balance</div>
           <div className="home-card-value">
             {currentAccountBalance != null
-              ? Number(currentAccountBalance).toFixed(8)
+              ? `${Number(currentAccountBalance).toFixed(8)} ${balanceSymbol}`
               : "—"}
           </div>
         </div>

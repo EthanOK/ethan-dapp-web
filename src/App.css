@@ -1,8 +1,10 @@
 /* ========== Web3 主布局 ========== */
 .app-shell {
+  height: 100vh;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: var(--w3-bg-deep);
 }
 
@@ -183,7 +185,8 @@
 .app-body {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 56px);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .app-sidebar {
@@ -250,6 +253,7 @@
 
 .sidebar-nav {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px 0;
@@ -303,6 +307,7 @@
 /* ----- 主内容区 ----- */
 .app-main {
   flex: 1;
+  min-height: 0;
   padding: 24px;
   overflow: auto;
   background: var(--w3-bg-main);
@@ -585,6 +590,11 @@
   color: #ef4444;
 }
 
+.feature-tx-result-badge--rejected {
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--w3-text-muted);
+}
+
 .feature-tx-result--inline.feature-tx-result--pending {
   background: rgba(251, 191, 36, 0.06);
   border: 1px solid rgba(251, 191, 36, 0.2);
@@ -598,6 +608,11 @@
 .feature-tx-result--inline.feature-tx-result--failed {
   background: rgba(239, 68, 68, 0.06);
   border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.feature-tx-result--inline.feature-tx-result--rejected {
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.16);
 }
 
 .feature-tx-result-label {
