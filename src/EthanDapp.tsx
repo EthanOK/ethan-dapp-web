@@ -315,7 +315,9 @@ function App() {
           </div>
         </header>
 
-        <div className="app-body">
+        <div
+          className={`app-body ${isSidebarOpen ? "sidebar-open" : "sidebar-collapsed"}`}
+        >
           <div
             className={`app-sidebar-overlay ${isSidebarOpen ? "visible" : ""}`}
             onClick={() => setIsSidebarOpen(false)}
