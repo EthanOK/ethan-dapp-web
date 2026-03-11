@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // @ts-nocheck — TODO: 逐步补充类型
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as buffer from "buffer";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import {
@@ -20,24 +20,9 @@ import {
 import { BN } from "@coral-xyz/anchor";
 import { toast } from "sonner";
 
-import React, { useMemo } from "react";
-import {
-  ConnectionProvider,
-  useAnchorWallet,
-  useWallet,
-  WalletProvider
-} from "@solana/wallet-adapter-react";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { UnsafeBurnerWalletAdapter } from "@solana/wallet-adapter-wallets";
-import {
-  WalletModalProvider,
-  WalletDisconnectButton,
-  WalletMultiButton
-} from "@solana/wallet-adapter-react-ui";
-import { clusterApiUrl } from "@solana/web3.js";
-
-// Default styles that can be overridden by your app
-import "@solana/wallet-adapter-react-ui/styles.css";
+import type { Provider } from "@reown/appkit-adapter-solana/react";
+import { useAppKitProvider } from "@reown/appkit/react";
+import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import base58 from "bs58";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -45,6 +30,10 @@ import {
 } from "@solana/spl-token";
 
 const WsolPageContent = () => {
+  const { walletProvider } = useAppKitProvider<Provider>("solana");
+  const { connection: appKitConnection } = useAppKitConnection();
+  const connection = appKitConnection ?? getDevConnection();
+
   window.Buffer = buffer.Buffer;
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
@@ -55,10 +44,17 @@ const WsolPageContent = () => {
   const [isDepositProcessing, setIsDepositProcessing] = useState(false);
   const [isWithdrawProcessing, setIsWithdrawProcessing] = useState(false);
 
-  const { connected, publicKey, signMessage, disconnect, sendTransaction } =
-    useWallet();
+  const connected = !!walletProvider?.publicKey;
+  const publicKey = walletProvider?.publicKey;
+  const signMessage = walletProvider?.signMessage?.bind(walletProvider);
+  const disconnect = walletProvider?.disconnect?.bind(walletProvider);
+  const sendTransaction = walletProvider?.sendTransaction?.bind(walletProvider);
+  const wallet = walletProvider;
 
-  const wallet = useAnchorWallet();
+  const connectionRef = useRef(connection);
+  useEffect(() => {
+    connectionRef.current = connection;
+  }, [connection]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -75,6 +71,12 @@ const WsolPageContent = () => {
       configData();
     }
   }, [isMounted]);
+
+  useEffect(() => {
+    if (connected && publicKey) {
+      localStorage.setItem("currentSolanaAccount", publicKey.toBase58());
+    }
+  }, [connected, publicKey]);
 
   const configData = async () => {
     setCurrentAccount("0x");
@@ -98,18 +100,36 @@ const WsolPageContent = () => {
         return;
       }
 
-      const connection = getDevConnection();
-      const balance = await getSolBalance(connection, accountSolana);
+      const balance = await getSolBalance(connectionRef.current, accountSolana);
 
       setAccountSOLBalance(balance / LAMPORTS_PER_SOL);
 
       setAccountWethBalance(
-        (await getWethBalance(connection, accountSolana)) / LAMPORTS_PER_SOL
+        (await getWethBalance(connectionRef.current, accountSolana)) /
+          LAMPORTS_PER_SOL
       );
     } catch (error) {
       console.log(error);
     }
   };
+
+  const sendPreparedTransaction = async (
+    txTransaction: Transaction,
+    connection: Connection
+  ) => {
+    const latestBlockhash = await connection.getLatestBlockhash();
+    txTransaction.feePayer = wallet.publicKey;
+    txTransaction.recentBlockhash = latestBlockhash.blockhash;
+    return sendTransaction(txTransaction, connection);
+  };
+
+  // 网络切换（connection 改变）时立刻刷新一次余额
+  useEffect(() => {
+    if (connected) {
+      updateShowData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, connection]);
 
   const PleaseLogin = () => {
     return (
@@ -174,7 +194,6 @@ const WsolPageContent = () => {
   };
 
   const initializeHandler = async () => {
-    const connection = getDevConnection();
     const program = getWethProgram(connection, wallet);
 
     const wsol_mint = PublicKey.findProgramAddressSync(
@@ -207,7 +226,7 @@ const WsolPageContent = () => {
             wethMetadata: wsol_mint_metadata
           })
           .transaction();
-        const tx = await sendTransaction(txTransaction, connection);
+        const tx = await sendPreparedTransaction(txTransaction, connection);
         console.log(tx);
         toast.success("initialize success");
       } catch (error) {
@@ -219,7 +238,6 @@ const WsolPageContent = () => {
 
   const depositHandler = async () => {
     setIsDepositProcessing(true);
-    const connection = getDevConnection();
     const program = getWethProgram(connection, wallet);
 
     try {
@@ -240,7 +258,7 @@ const WsolPageContent = () => {
           systemProgram: SystemProgram.programId
         })
         .transaction();
-      const tx = await sendTransaction(txTransaction, connection);
+      const tx = await sendPreparedTransaction(txTransaction, connection);
       console.log(tx);
       toast.success("deposit success");
     } catch (error) {
@@ -254,7 +272,6 @@ const WsolPageContent = () => {
 
   const withdrwaHandler = async () => {
     setIsWithdrawProcessing(true);
-    const connection = getDevConnection();
     const program = getWethProgram(connection, wallet);
 
     try {
@@ -264,7 +281,7 @@ const WsolPageContent = () => {
           signer: wallet.publicKey
         })
         .transaction();
-      const tx = await sendTransaction(txTransaction, connection);
+      const tx = await sendPreparedTransaction(txTransaction, connection);
       console.log(tx);
       toast.success("withdraw success");
     } catch (error) {
@@ -381,11 +398,11 @@ const WsolPageContent = () => {
     <center>
       <div className="bordered-div">
         <h2>Login Solana</h2>
-        <WalletMultiButton />
+        {/* <appkit-button /> */}
         <p></p>
         Solana Account: {currentSolanaAccount}
         <p></p>
-        Balance(DEV): {accountSOLBalance} SOL
+        Balance: {accountSOLBalance} SOL
         <p></p>
         <p></p>
         {currentAccount ? loginSolanaButton() : PleaseLogin()}
@@ -431,41 +448,7 @@ const WsolPageContent = () => {
 };
 
 const WsolPage = () => {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const network = WalletAdapterNetwork.Devnet;
-
-  // You can also provide a custom RPC endpoint.
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
-  const wallets = useMemo(
-    () => [
-      /**
-       * Wallets that implement either of these standards will be available automatically.
-       *
-       *   - Solana Mobile Stack Mobile Wallet Adapter Protocol
-       *     (https://github.com/solana-mobile/mobile-wallet-adapter)
-       *   - Solana Wallet Standard
-       *     (https://github.com/anza-xyz/wallet-standard)
-       *
-       * If you wish to support a wallet that supports neither of those standards,
-       * instantiate its legacy wallet adapter here. Common legacy adapters can be found
-       * in the npm package `@solana/wallet-adapter-wallets`.
-       */
-      new UnsafeBurnerWalletAdapter()
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [network]
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <WsolPageContent />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <WsolPageContent />;
 };
 
 export default WsolPage;

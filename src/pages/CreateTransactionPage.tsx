@@ -19,7 +19,8 @@ const truncateHash = (hash: string, start = 18, end = 16): string => {
 const CreateTransactionPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
-  type TxResult = { link: string; status: "pending" | "success" | "failed" };
+  type TxStatus = "pending" | "success" | "failed" | "rejected";
+  type TxResult = { link?: string; status: TxStatus };
   const [transferTx, setTransferTx] = useState<TxResult | null>(null);
   const [createTx, setCreateTx] = useState<TxResult | null>(null);
   const [isTransferring, setIsTransferring] = useState(false);
@@ -84,11 +85,27 @@ const CreateTransactionPage = () => {
       if (receipt.status === 1) toast.success("Transaction successful");
       else toast.error("Transaction failed");
     } catch (err: unknown) {
-      const e = err as { reason?: string };
-      toast.error(e?.reason ?? "Error");
-      setTransferTx((prev) =>
-        prev ? { ...prev, status: "failed" as const } : null
-      );
+      const e = err as {
+        code?: number | string;
+        reason?: string;
+        message?: string;
+      };
+      const rejected =
+        String(e?.code) === "4001" ||
+        /rejected|denied|user rejected/i.test(
+          String(e?.message ?? e?.reason ?? "")
+        );
+      if (rejected) {
+        toast("Transaction rejected");
+        setTransferTx((prev) =>
+          prev ? { ...prev, status: "rejected" } : { status: "rejected" }
+        );
+      } else {
+        toast.error(e?.reason ?? e?.message ?? "Error");
+        setTransferTx((prev) =>
+          prev ? { ...prev, status: "failed" } : { status: "failed" }
+        );
+      }
     } finally {
       setIsTransferring(false);
     }
@@ -131,11 +148,27 @@ const CreateTransactionPage = () => {
       if (receipt.status === 1) toast.success("Transaction successful");
       else toast.error("Transaction failed");
     } catch (err: unknown) {
-      const e = err as { reason?: string };
-      toast.error(e?.reason ?? "Error");
-      setCreateTx((prev) =>
-        prev ? { ...prev, status: "failed" as const } : null
-      );
+      const e = err as {
+        code?: number | string;
+        reason?: string;
+        message?: string;
+      };
+      const rejected =
+        String(e?.code) === "4001" ||
+        /rejected|denied|user rejected/i.test(
+          String(e?.message ?? e?.reason ?? "")
+        );
+      if (rejected) {
+        toast("Transaction rejected");
+        setCreateTx((prev) =>
+          prev ? { ...prev, status: "rejected" } : { status: "rejected" }
+        );
+      } else {
+        toast.error(e?.reason ?? e?.message ?? "Error");
+        setCreateTx((prev) =>
+          prev ? { ...prev, status: "failed" } : { status: "failed" }
+        );
+      }
     } finally {
       setIsCreating(false);
     }
@@ -211,16 +244,19 @@ const CreateTransactionPage = () => {
                 {transferTx.status === "pending" && "Pending"}
                 {transferTx.status === "success" && "Success"}
                 {transferTx.status === "failed" && "Failed"}
+                {transferTx.status === "rejected" && "Rejected"}
               </span>
-              <a
-                href={transferTx.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="feature-tx-result-link"
-                title={transferTx.link.split("/").pop() ?? ""}
-              >
-                {truncateHash(transferTx.link.split("/").pop() ?? "")}
-              </a>
+              {transferTx.link && (
+                <a
+                  href={transferTx.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="feature-tx-result-link"
+                  title={transferTx.link.split("/").pop() ?? ""}
+                >
+                  {truncateHash(transferTx.link.split("/").pop() ?? "")}
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -288,16 +324,19 @@ const CreateTransactionPage = () => {
                 {createTx.status === "pending" && "Pending"}
                 {createTx.status === "success" && "Success"}
                 {createTx.status === "failed" && "Failed"}
+                {createTx.status === "rejected" && "Rejected"}
               </span>
-              <a
-                href={createTx.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="feature-tx-result-link"
-                title={createTx.link.split("/").pop() ?? ""}
-              >
-                {truncateHash(createTx.link.split("/").pop() ?? "")}
-              </a>
+              {createTx.link && (
+                <a
+                  href={createTx.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="feature-tx-result-link"
+                  title={createTx.link.split("/").pop() ?? ""}
+                >
+                  {truncateHash(createTx.link.split("/").pop() ?? "")}
+                </a>
+              )}
             </div>
           )}
         </div>

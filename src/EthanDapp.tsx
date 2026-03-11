@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -32,18 +32,21 @@ import WsolPage from "./pages/WsolPage";
 import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
 import EIP7702Page from "./pages/EIP7702Page";
 import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
-import { base, bsc, mainnet, sepolia, hoodi } from "@reown/appkit/networks";
+import {
+  base,
+  bsc,
+  mainnet,
+  sepolia,
+  hoodi,
+  solanaDevnet,
+  solana
+} from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
 import { initializeSubscribers } from "./utils/Suscribers";
 import { toast, Toaster } from "sonner";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { login } from "./utils/ConnectWallet";
-import { SupportChains } from "./common/ChainsConfig";
-
-const HEADER_CHAIN_IDS = [1, 11155111, 560048, 56, 8453];
-const headerChains = SupportChains.filter((c) =>
-  HEADER_CHAIN_IDS.includes(parseInt(c.id, 10))
-);
+import { SolanaAdapter } from "@reown/appkit-adapter-solana";
 
 if (typeof window !== "undefined") {
   (window as Window).Buffer =
@@ -57,26 +60,63 @@ type AppKitNetwork =
   | typeof hoodi
   | typeof mainnet
   | typeof base
-  | typeof bsc;
+  | typeof bsc
+  | typeof solanaDevnet
+  | typeof solana;
 
 export const getDefaultNetwork = (chainId: string | number): AppKitNetwork => {
-  const networkMap: Record<number, AppKitNetwork> = {
-    [sepolia.id]: sepolia,
-    [hoodi.id]: hoodi,
-    [mainnet.id]: mainnet,
-    [base.id]: base,
-    [bsc.id]: bsc
-  };
-  return networkMap[Number(chainId)] ?? sepolia;
+  const all: AppKitNetwork[] = [
+    sepolia,
+    hoodi,
+    mainnet,
+    base,
+    bsc,
+    solanaDevnet,
+    solana
+  ];
+  const asString = String(chainId);
+
+  // Prefer CAIP network id match (e.g. "solana:..."/"eip155:...") when present.
+  const byCaip = all.find((n) => (n as any).caipNetworkId === asString);
+  if (byCaip) return byCaip;
+
+  // Fall back to numeric chain id match for EVM networks.
+  const asNumber =
+    typeof chainId === "number"
+      ? chainId
+      : /^\d+$/.test(asString)
+        ? Number(asString)
+        : undefined;
+  if (typeof asNumber === "number") {
+    const byId = all.find((n) => (n as any).id === asNumber);
+    if (byId) return byId;
+  }
+
+  // Solana's `id` is a string (not CAIP).
+  const bySolanaId = all.find((n) => (n as any).id === asString);
+  if (bySolanaId) return bySolanaId;
+
+  return sepolia;
 };
+
+// 头部下拉：用 CAIP network id 做 value，确保 Solana/EVM 都能正确显示与切换
+const headerNetworksAll: AppKitNetwork[] = [
+  mainnet,
+  sepolia,
+  hoodi,
+  bsc,
+  base,
+  solanaDevnet,
+  solana
+];
 
 const projectId = projectId_walletconnect;
 
 const metadata = {
   name: "Ethan Dapp Website",
-  description: "My Website description",
+  description: "Ethan Dapp Website",
   url: "https://ethan-dapp.vercel.app",
-  icons: ["https://ethan-dapp.vercel.app/logo512.png"]
+  icons: ["https://ethan-dapp.vercel.app/favicon.ico"]
 };
 
 // 使用 data URI 作为链图标，避免从 CDN 拉取时出现 403
@@ -84,9 +124,9 @@ const FALLBACK_CHAIN_ICON =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 export const modal = createAppKit({
-  adapters: [new Ethers5Adapter()],
+  adapters: [new Ethers5Adapter(), new SolanaAdapter()],
   metadata,
-  networks: [sepolia, hoodi, mainnet, base, bsc],
+  networks: [sepolia, hoodi, mainnet, base, bsc, solanaDevnet, solana],
   defaultNetwork: getDefaultNetwork(storedChainId),
   projectId: projectId ?? "",
   chainImages: {
@@ -122,8 +162,10 @@ function App() {
   const [theme, setTheme] = useState<"light" | "dark">(getStoredTheme);
 
   const { address, isConnected } = useAppKitAccount();
-  const { chainId: currentChainId } = useAppKitNetwork();
+  const solanaAccount = useAppKitAccount({ namespace: "solana" });
+  const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
   const [isConnecting, setIsConnecting] = useState(false);
+  const prevIsConnectedRef = useRef(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -140,11 +182,36 @@ function App() {
 
   useEffect(() => {
     if (isConnected && address) {
+      if (currentChainId === undefined || currentChainId === null) return;
       setCurrentAccount(address);
-      setChainId(String(currentChainId));
-      localStorage.setItem("chainId", String(currentChainId));
+      const active = getDefaultNetwork(currentChainId);
+      const activeValue = String(
+        (active as any).caipNetworkId ?? (active as any).id
+      );
+      setChainId(activeValue);
+      localStorage.setItem("chainId", activeValue);
     }
   }, [isConnected, address, currentChainId]);
+
+  // Solana 网络切换后，主动刷新一次 native balance，避免 AppKit 按钮停留在旧余额/0
+  useEffect(() => {
+    const isSolana = caipNetwork?.chainNamespace === "solana";
+    const solAddress = solanaAccount?.address;
+    if (!isSolana || !solanaAccount?.isConnected || !solAddress) return;
+    if (currentChainId === undefined || currentChainId === null) return;
+
+    try {
+      // fire-and-forget
+      modal?.updateNativeBalance(solAddress, currentChainId as any, "solana");
+    } catch (e) {
+      console.warn("updateNativeBalance (solana) failed", e);
+    }
+  }, [
+    caipNetwork?.chainNamespace,
+    solanaAccount?.isConnected,
+    solanaAccount?.address,
+    currentChainId
+  ]);
 
   const disconnect = async () => {
     const savedChainId = localStorage.getItem("chainId");
@@ -157,9 +224,12 @@ function App() {
     const loginType = localStorage.getItem("LoginType");
     const storedAccount = localStorage.getItem("userAddress");
     const storedConnect = localStorage.getItem("@appkit/connection_status");
+    const justConnected = !prevIsConnectedRef.current && isConnected;
+    prevIsConnectedRef.current = isConnected;
+
     if (
       loginType === "reown" &&
-      isConnected &&
+      justConnected &&
       address &&
       address !== storedAccount
     ) {
@@ -217,7 +287,8 @@ function App() {
       new CustomEvent("app-network-changed", { detail: { chainId: nextId } })
     );
     try {
-      await modal.switchNetwork(getDefaultNetwork(parseInt(nextId, 10)));
+      const nextNetwork = getDefaultNetwork(nextId);
+      await modal.switchNetwork(nextNetwork);
     } catch (err) {
       console.error("Switch network failed:", err);
       toast.error("切换网络失败，请重试");
@@ -305,11 +376,16 @@ function App() {
               onChange={handleHeaderNetworkChange}
               aria-label="当前网络"
             >
-              {headerChains.map((chain) => (
-                <option key={chain.id} value={chain.id}>
-                  {chain.name}
-                </option>
-              ))}
+              {headerNetworksAll.map((network) => {
+                const value = String(
+                  (network as any).caipNetworkId ?? (network as any).id
+                );
+                return (
+                  <option key={value} value={value}>
+                    {network.name}
+                  </option>
+                );
+              })}
             </select>
             <div className="w3-connect-wrap">{connectReownButton()}</div>
           </div>

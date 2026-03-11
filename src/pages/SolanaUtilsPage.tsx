@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // @ts-nocheck — TODO: 逐步补充类型
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as buffer from "buffer";
 import {
-  clusterApiUrl,
   Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -17,24 +16,20 @@ import {
 } from "../utils/SolanaSignAndVerify";
 import { getDevConnection } from "../utils/GetSolanaConnection";
 import { getSolBalance } from "../utils/SolanaGetBalance";
-import { sendTransactionOfPhantom } from "../utils/PhantomSendTransaction";
 import { getAssociatedAddress, stringToArray } from "../utils/Utils";
 import base58 from "bs58";
 import { toast } from "sonner";
-import {
-  ConnectionProvider,
-  useAnchorWallet,
-  useWallet,
-  WalletProvider
-} from "@solana/wallet-adapter-react";
-import {
-  WalletModalProvider,
-  WalletMultiButton
-} from "@solana/wallet-adapter-react-ui";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { UnsafeBurnerWalletAdapter } from "@solana/wallet-adapter-wallets";
+import type { Provider } from "@reown/appkit-adapter-solana/react";
+import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
+import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 
 const SolanaUtilsContent = () => {
+  const { walletProvider } = useAppKitProvider<Provider>("solana");
+  const { connection: appKitConnection } = useAppKitConnection();
+  const connection = appKitConnection ?? getDevConnection();
+  // const { switchNetwork } = useAppKitNetwork()
+  const { isConnected, address } = useAppKitAccount();
+
   window.Buffer = buffer.Buffer;
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
@@ -48,10 +43,16 @@ const SolanaUtilsContent = () => {
   const [solKeypair, setSolKeypair] = useState("");
   const [solKeypairPublicKey, setSolKeypairPublicKey] = useState("");
 
-  const { connected, publicKey, signMessage, disconnect, sendTransaction } =
-    useWallet();
+  const connected = !!walletProvider?.publicKey;
+  const publicKey = walletProvider?.publicKey;
+  const signMessage = walletProvider?.signMessage?.bind(walletProvider);
+  const disconnect = walletProvider?.disconnect?.bind(walletProvider);
+  const sendTransaction = walletProvider?.sendTransaction?.bind(walletProvider);
 
-  const wallet = useAnchorWallet();
+  const connectionRef = useRef(connection);
+  useEffect(() => {
+    connectionRef.current = connection;
+  }, [connection]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -68,6 +69,12 @@ const SolanaUtilsContent = () => {
       configData();
     }
   }, [isMounted]);
+
+  useEffect(() => {
+    if (connected && publicKey) {
+      localStorage.setItem("currentSolanaAccount", publicKey.toBase58());
+    }
+  }, [connected, publicKey]);
 
   const configData = async () => {
     setCurrentAccount("0x");
@@ -93,14 +100,21 @@ const SolanaUtilsContent = () => {
         return;
       }
 
-      const connection = getDevConnection();
-      const balance = await getSolBalance(connection, accountSolana);
+      const balance = await getSolBalance(connectionRef.current, accountSolana);
 
       setAccountSOLBalance(balance / LAMPORTS_PER_SOL);
     } catch (error) {
       console.log(error);
     }
   };
+
+  // 网络切换（connection 改变）时立刻刷新一次余额
+  useEffect(() => {
+    if (connected) {
+      updateShowData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, connection]);
 
   const PleaseLogin = () => {
     return (
@@ -109,8 +123,7 @@ const SolanaUtilsContent = () => {
   };
 
   const signSolanaMessageHandler = async () => {
-    const publicKey = wallet.publicKey;
-
+    if (!publicKey) return;
     const account_Address = publicKey.toBase58();
 
     console.log(
@@ -233,22 +246,28 @@ const SolanaUtilsContent = () => {
     });
 
     try {
-      const connection = getDevConnection();
+      const latestBlockhash = await connection.getLatestBlockhash();
 
       const items = [];
       addressArray.forEach((toAddress) => {
         items.push(
           SystemProgram.transfer({
-            fromPubkey: wallet.publicKey,
+            fromPubkey: publicKey,
             toPubkey: new PublicKey(toAddress),
             lamports: 0.5 * LAMPORTS_PER_SOL
           })
         );
       });
 
-      const transaction = new Transaction().add(...items);
+      const transaction = new Transaction({
+        feePayer: new PublicKey(address),
+        recentBlockhash: latestBlockhash?.blockhash
+      }).add(...items);
 
-      const signature = await sendTransaction(transaction, connection);
+      const signature = await walletProvider.sendTransaction(
+        transaction,
+        connection
+      );
 
       console.log(signature);
       if (signature === null) {
@@ -398,16 +417,16 @@ const SolanaUtilsContent = () => {
         <h2>Solana Utils</h2>
         Solana Account: {currentSolanaAccount}
         <p></p>
-        Balance(DEV): {accountSOLBalance} SOL
+        Balance: {accountSOLBalance} SOL
         <p></p>
-        <WalletMultiButton />
+        {/* <appkit-button /> */}
         <p></p>
-        {currentAccount ? loginSolanaButton() : PleaseLogin()}
+        {currentSolanaAccount ? loginSolanaButton() : PleaseLogin()}
         <p></p>
-        {currentAccount ? airDropButton() : PleaseLogin()}
+        {currentSolanaAccount ? airDropButton() : PleaseLogin()}
         <p></p>
         <p></p>
-        {currentAccount ? disConnectButton() : PleaseLogin()}
+        {/* {currentAccount ? disConnectButton() : PleaseLogin()} */}
       </div>
       <div>
         <h2>
@@ -515,41 +534,7 @@ const SolanaUtilsContent = () => {
 };
 
 const SolanaUtilsPage = () => {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-  const network = WalletAdapterNetwork.Devnet;
-
-  // You can also provide a custom RPC endpoint.
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
-  const wallets = useMemo(
-    () => [
-      /**
-       * Wallets that implement either of these standards will be available automatically.
-       *
-       *   - Solana Mobile Stack Mobile Wallet Adapter Protocol
-       *     (https://github.com/solana-mobile/mobile-wallet-adapter)
-       *   - Solana Wallet Standard
-       *     (https://github.com/anza-xyz/wallet-standard)
-       *
-       * If you wish to support a wallet that supports neither of those standards,
-       * instantiate its legacy wallet adapter here. Common legacy adapters can be found
-       * in the npm package `@solana/wallet-adapter-wallets`.
-       */
-      new UnsafeBurnerWalletAdapter()
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [network]
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <SolanaUtilsContent />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  return <SolanaUtilsContent />;
 };
 
 export default SolanaUtilsPage;
