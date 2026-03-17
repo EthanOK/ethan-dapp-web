@@ -13,6 +13,7 @@ import {
 } from "../api/GetData";
 import { login } from "../utils/ConnectWallet";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { toast } from "sonner";
 
 const SignEIP712Page = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -31,13 +32,11 @@ const SignEIP712Page = () => {
   }, []);
 
   useEffect(() => {
-    if (isMounted) configData();
+    if (isMounted) {
+      const account = localStorage.getItem("userAddress");
+      if (account !== null) setCurrentAccount(account);
+    }
   }, [isMounted]);
-
-  const configData = async () => {
-    const account = localStorage.getItem("userAddress");
-    if (account !== null) setCurrentAccount(account);
-  };
 
   const signEIP712YunGouHandler = async () => {
     const [signer, chainId] = await getSignerAndChainId();
@@ -76,7 +75,7 @@ const SignEIP712Page = () => {
       await signer.getAddress()
     );
     if (loginData === null) {
-      alert("获取登陆信息是失败");
+      toast.error("获取登陆信息失败");
       return;
     }
     const messageString = (loginData as { message?: string }).message ?? "";
@@ -98,70 +97,116 @@ const SignEIP712Page = () => {
     await login();
   };
 
+  const copyResult = async () => {
+    if (!message) return;
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success("Copied to clipboard");
+    } catch (e) {
+      try {
+        const el = document.createElement("textarea");
+        el.value = message;
+        el.setAttribute("readonly", "true");
+        el.style.position = "fixed";
+        el.style.top = "-1000px";
+        el.style.left = "-1000px";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+        toast.success("Copied to clipboard");
+      } catch (err) {
+        console.error("copy failed", e, err);
+        toast.error("Copy failed. Please select and copy manually.");
+      }
+    }
+  };
+
   return (
-    <center>
-      <div>
-        <h2>EIP 712</h2>
-        <button
-          onClick={signEIP712YunGouHandler}
-          className="cta-button mint-nft-button"
-          disabled={!currentAccount}
-        >
-          signEIP712Message YunGou
-        </button>
-        <p />
-        <button
-          onClick={signEIP712OpenSeaHandler}
-          className="cta-button mint-nft-button"
-          disabled={!currentAccount}
-        >
-          signEIP712Message OpenSea
-        </button>
-        <p />
-        <button
-          onClick={signBulkOrderOpenSeaHandler}
-          className="cta-button mint-nft-button"
-          disabled={!currentAccount}
-        >
-          signBulkOrder OpenSea
-        </button>
-        <p />
-        <button
-          onClick={signBulkOrdersHandler}
-          className="cta-button mint-nft-button"
-          disabled={!currentAccount}
-        >
-          signCustomBulkOrders
-        </button>
-        <p />
-        <button
-          onClick={signLoginBlurHandler}
-          className="cta-button mint-nft-button"
-          disabled={!currentAccount}
-        >
-          sign Login Blur
-        </button>
-        <p />
-        <button
-          onClick={signEthanDappHandler}
-          className="cta-button mint-nft-button"
-          disabled={!currentAccount}
-        >
-          sign Login Ethan Dapp
-        </button>
-      </div>
-      <div>
-        <h2>
-          Please See:
-          <p />
-          <textarea
-            value={message}
-            readOnly
-            style={{ width: "1200px", height: "280px" }}
-          />
-        </h2>
-      </div>
-    </center>
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>EIP-712 Sign</h1>
+        <p>Sign typed data (YunGou, OpenSea, Blur, etc.)</p>
+      </section>
+      <section className="feature-panel">
+        <h3>Actions</h3>
+        <div className="feature-actions feature-actions-row">
+          <button
+            onClick={signEIP712YunGouHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Sign EIP-712 YunGou
+          </button>
+          <button
+            onClick={signEIP712OpenSeaHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Sign EIP-712 OpenSea
+          </button>
+          <button
+            onClick={signBulkOrderOpenSeaHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Sign bulk order OpenSea
+          </button>
+          <button
+            onClick={signBulkOrdersHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Sign custom bulk orders
+          </button>
+          {/* <button
+            onClick={signLoginBlurHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Sign login Blur
+          </button>
+          <button
+            onClick={signEthanDappHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Sign login Ethan DApp
+          </button> */}
+        </div>
+      </section>
+      {message && (
+        <section className="feature-panel">
+          <div className="feature-panel-header">
+            <h3>Result</h3>
+            <button
+              type="button"
+              onClick={copyResult}
+              className="mini-action-button"
+              title="Copy result"
+            >
+              Copy
+            </button>
+          </div>
+          <pre
+            style={{
+              margin: 0,
+              padding: 16,
+              background: "var(--w3-bg-elevated)",
+              border: "1px solid var(--w3-border)",
+              borderRadius: "var(--w3-radius-sm)",
+              fontSize: "0.8rem",
+              overflow: "auto",
+              maxHeight: 320,
+              fontFamily: "var(--w3-font-mono)",
+              lineHeight: 1.35
+            }}
+          >
+            {message}
+          </pre>
+        </section>
+      )}
+    </div>
   );
 };
 

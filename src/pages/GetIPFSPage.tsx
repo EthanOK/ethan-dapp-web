@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 
 const GetIPFSPage = () => {
   const [isMounted, setIsMounted] = useState(false);
-  const [message, setMessage] = useState("");
+  const [cid, setCid] = useState("");
+  const [ipfsUrl, setIpfsUrl] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 
   const { address, isConnected } = useAppKitAccount();
@@ -18,59 +19,58 @@ const GetIPFSPage = () => {
   }, []);
 
   useEffect(() => {
-    if (isMounted) configData();
+    if (isMounted) {
+      const account = localStorage.getItem("userAddress");
+      if (account !== null) setCurrentAccount(account);
+    }
   }, [isMounted]);
 
-  const configData = async () => {
-    const account = localStorage.getItem("userAddress");
-    if (account !== null) setCurrentAccount(account);
-  };
-
-  const getIPFSURLHandler = async () => {
-    const contractInput = document.getElementById(
-      "cid"
-    ) as HTMLTextAreaElement | null;
-    if (!contractInput) return;
-    const contractValue = contractInput.value;
-    setMessage("https://ipfs.io/ipfs/" + contractValue);
+  const getIPFSURLHandler = () => {
+    const trimmed = cid.trim();
+    if (!trimmed) return;
+    setIpfsUrl("https://ipfs.io/ipfs/" + trimmed);
   };
 
   return (
-    <center>
-      <div>
-        <h2>IPFS</h2>
-        <div className="container">
-          <div className="input-container">
-            <label className="label">CID:</label>
-            <textarea
-              className="textarea"
-              id="cid"
-              placeholder="QmSFZ84W8uNjoZJMkGkVDuJR5PBNtsHorDBmcHCjzACdXY"
-            />
-          </div>
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>IPFS</h1>
+        <p>Resolve IPFS CID to gateway URL</p>
+      </section>
+      <section className="feature-panel">
+        <h3>CID</h3>
+        <div className="feature-field">
+          <label htmlFor="ipfs-cid">Content ID (CID)</label>
+          <input
+            id="ipfs-cid"
+            type="text"
+            value={cid}
+            onChange={(e) => setCid(e.target.value)}
+            placeholder="QmSFZ84W8uNjoZJMkGkVDuJR5PBNtsHorDBmcHCjzACdXY"
+            spellCheck={false}
+            autoComplete="off"
+          />
         </div>
-        <p />
-        {currentAccount ? (
+        <div className="feature-actions">
           <button
+            type="button"
             onClick={getIPFSURLHandler}
             className="cta-button mint-nft-button"
+            disabled={!currentAccount || !cid.trim()}
           >
-            getIPFSURL
+            Get IPFS URL
           </button>
-        ) : (
-          <h2>UnLogin, Please Login</h2>
+        </div>
+        {ipfsUrl && (
+          <div className="feature-tx-link" style={{ marginTop: 16 }}>
+            <p>URL</p>
+            <a href={ipfsUrl} target="_blank" rel="noopener noreferrer">
+              {ipfsUrl}
+            </a>
+          </div>
         )}
-      </div>
-      <div>
-        <h2>
-          Please See:
-          <p />
-          <a href={message} target="_blank" rel="noopener noreferrer">
-            {message}
-          </a>
-        </h2>
-      </div>
-    </center>
+      </section>
+    </div>
   );
 };
 

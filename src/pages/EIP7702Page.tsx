@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getChainId } from "../utils/GetProvider";
 import {
   createAuthorization,
@@ -14,55 +14,36 @@ import { Wallet } from "ethers-v6";
 import { getScanURL } from "../utils/Utils";
 import { AlchemyProvider } from "ethers-v6";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { toast } from "sonner";
 
 const EIP7702Page = () => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [message, setMessage] = useState("");
-  const [currentAccount, setCurrentAccount] = useState<string | null>(null);
-  const [showAlert, setShowAlert] = useState(false);
+  const [privateKey, setPrivateKey] = useState("");
+  const [txLink, setTxLink] = useState("");
 
-  const { address, isConnected } = useAppKitAccount();
-
-  useEffect(() => {
-    if (isConnected && address) setCurrentAccount(address);
-  }, [isConnected, address]);
-
-  useEffect(() => {
-    setIsMounted(true);
-    return () => setIsMounted(false);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted) configData();
-  }, [isMounted]);
-
-  const configData = async () => {
-    const account = localStorage.getItem("userAddress");
-    if (account !== null) setCurrentAccount(account);
-  };
+  const { address } = useAppKitAccount();
 
   const createEIP7702AccountHandler = async () => {
+    const pk = privateKey.trim();
+    if (!pk) {
+      toast.error("Please enter private key");
+      return;
+    }
     try {
       const url = await getScanURL();
-      const el = document.getElementById(
-        "privateKey"
-      ) as HTMLTextAreaElement | null;
-      if (!el?.value) return;
-      const privateKey = el.value;
       const chainId = await getChainId();
       if (chainId === null) {
-        alert("无法获取链 ID，请先连接钱包");
+        toast.error("无法获取链 ID，请先连接钱包");
         return;
       }
       const provider = new AlchemyProvider(chainId, ALCHEMY_KEY_V3 ?? "");
-      const signer = new Wallet(privateKey, provider);
+      const signer = new Wallet(pk, provider);
       let currentNonce = await signer.getNonce();
       const delegationAddress = await getDelegationAddress(signer);
       const logger =
         delegationAddress === null
           ? "Create EIP-7702 account"
           : "Update EIP-7702 account";
-      alert(logger);
+      toast(logger);
       currentNonce++;
       const delegator: string | null = EIP7702Delegator_Metamask;
       if (!delegator) return;
@@ -73,101 +54,100 @@ const EIP7702Page = () => {
       );
       const hash = await createEIP7702Account(signer, auth);
       if (!hash) return;
-      setMessage(`${url}/tx/${hash}`);
+      setTxLink(`${url}/tx/${hash}`);
       const prov = signer.provider;
       if (prov) {
         const txReceipt = await prov.waitForTransaction(hash);
-        if (txReceipt?.status === 1) {
-          setShowAlert(true);
-          setTimeout(() => setShowAlert(false), 3000);
-        }
+        if (txReceipt?.status === 1) toast.success("EIP-7702 success");
+        else toast.error("Transaction failed");
       }
     } catch (error) {
-      console.log(error);
+      toast.error((error as Error)?.message ?? "Failed");
     }
   };
 
   const revokeEIP7702AccountHandler = async () => {
+    const pk = privateKey.trim();
+    if (!pk) {
+      toast.error("Please enter private key");
+      return;
+    }
     try {
       const url = await getScanURL();
-      const el = document.getElementById(
-        "privateKey"
-      ) as HTMLTextAreaElement | null;
-      if (!el?.value) return;
-      const privateKey = el.value;
       const chainId = await getChainId();
       if (chainId === null) {
-        alert("无法获取链 ID，请先连接钱包");
+        toast.error("无法获取链 ID，请先连接钱包");
         return;
       }
       const provider = new AlchemyProvider(chainId, ALCHEMY_KEY_V3 ?? "");
-      const signer = new Wallet(privateKey, provider);
+      const signer = new Wallet(pk, provider);
       const delegationAddress = await getDelegationAddress(signer);
       if (delegationAddress === null) {
-        alert("Not EIP-7702 account");
+        toast.error("Not EIP-7702 account");
         return;
       }
       const hash = await revokeEIP7702Account(signer);
-      setMessage(`${url}/tx/${hash}`);
+      setTxLink(`${url}/tx/${hash}`);
       const prov = signer.provider;
       if (prov) {
         const txReceipt = await prov.waitForTransaction(hash);
-        if (txReceipt?.status === 1) {
-          setShowAlert(true);
-          setTimeout(() => setShowAlert(false), 3000);
-        }
+        if (txReceipt?.status === 1) toast.success("Revoke success");
+        else toast.error("Transaction failed");
       }
     } catch (error) {
-      console.log(error);
+      toast.error((error as Error)?.message ?? "Failed");
     }
   };
 
   return (
-    <center>
-      {showAlert && (
-        <div className="alert">
-          <h1>&quot;EIP7702 success&quot;</h1>
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>EIP-7702</h1>
+        <p>Delegation and revoke for EOA</p>
+      </section>
+      <section className="feature-panel">
+        <h3>Private key (delegator)</h3>
+        <div className="feature-field">
+          <label htmlFor="eip7702-pk">Private key</label>
+          <input
+            id="eip7702-pk"
+            type="password"
+            value={privateKey}
+            onChange={(e) => setPrivateKey(e.target.value)}
+            placeholder="0x..."
+            className="estimate-address-input"
+            spellCheck={false}
+            autoComplete="off"
+          />
         </div>
-      )}
-      <div>
-        <h2>EIP 7702</h2>
-        <div className="container">
-          <div>
-            <textarea
-              className="textarea"
-              id="privateKey"
-              placeholder="privateKey"
-              style={{ width: "600px", height: "40px" }}
-            />
+        <div className="feature-actions">
+          <button
+            type="button"
+            onClick={createEIP7702AccountHandler}
+            className="cta-button mint-nft-button"
+            disabled={!address}
+          >
+            Create EIP-7702 account
+          </button>
+          <button
+            type="button"
+            onClick={revokeEIP7702AccountHandler}
+            className="cta-button mint-nft-button"
+            disabled={!address}
+          >
+            Revoke EIP-7702 account
+          </button>
+        </div>
+        {txLink && (
+          <div className="feature-tx-link" style={{ marginTop: 16 }}>
+            <p>Transaction</p>
+            <a href={txLink} target="_blank" rel="noopener noreferrer">
+              {txLink}
+            </a>
           </div>
-        </div>
-        <p />
-        <button
-          onClick={createEIP7702AccountHandler}
-          className="cta-button mint-nft-button"
-          disabled={!currentAccount}
-        >
-          createEIP7702Account
-        </button>
-        <p />
-        <button
-          onClick={revokeEIP7702AccountHandler}
-          className="cta-button mint-nft-button"
-          disabled={!currentAccount}
-        >
-          revokeEIP7702Account
-        </button>
-      </div>
-      <div>
-        <h2>
-          Please See:
-          <p />
-          <a href={message} target="_blank" rel="noopener noreferrer">
-            {message}
-          </a>
-        </h2>
-      </div>
-    </center>
+        )}
+      </section>
+    </div>
   );
 };
 

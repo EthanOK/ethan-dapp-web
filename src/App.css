@@ -417,6 +417,104 @@
   text-align: left;
 }
 
+/* Result panel header (title + small actions) */
+.feature-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.feature-panel-header h3 {
+  margin: 0;
+}
+
+.mini-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 10px;
+  min-width: auto;
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-card);
+  color: var(--w3-text-muted);
+  font-size: 0.85rem;
+  font-family: var(--w3-font-sans);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
+}
+
+.mini-action-button:hover:not(:disabled) {
+  border-color: var(--w3-border-accent);
+  background: var(--w3-bg-hover);
+  color: var(--w3-accent);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.12);
+}
+
+.mini-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Actions layout: row-based, responsive */
+.feature-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.feature-actions-grid .cta-button {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .feature-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Actions toolbar: single row with horizontal scroll */
+.feature-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px; /* room for scrollbar */
+  -webkit-overflow-scrolling: touch;
+}
+
+.feature-actions-row::-webkit-scrollbar {
+  height: 8px;
+}
+
+.feature-actions-row::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+}
+
+.feature-actions-row::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.28);
+}
+
+.feature-actions-row .cta-button {
+  min-width: 0; /* override global 200px */
+  width: auto;
+  white-space: nowrap;
+  padding: 10px 14px;
+  border-radius: var(--w3-radius-sm);
+  font-size: 0.9rem;
+}
+
 .feature-hero {
   text-align: center;
   padding: 24px 16px 32px;
@@ -639,6 +737,85 @@
   padding: 12px 16px;
   border-radius: var(--w3-radius-sm);
   margin-bottom: 20px;
+}
+
+/* Solana Utils page */
+.solana-hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--w3-text-muted);
+  justify-content: center;
+  text-align: center;
+}
+.solana-hero-account-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.solana-hero-copy {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--w3-accent);
+  background: transparent;
+  border: 1px solid var(--w3-border-accent);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.solana-hero-copy:hover {
+  background: rgba(34, 211, 238, 0.1);
+}
+.solana-hero-value {
+  color: var(--w3-text);
+  font-family: var(--w3-font-mono);
+  font-weight: 600;
+  word-break: break-all;
+}
+.solana-output-pre,
+.solana-result-pre {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--w3-bg-elevated);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  font-family: var(--w3-font-mono);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--w3-text);
+}
+.solana-result-box {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--w3-bg-elevated);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+}
+.solana-result-value {
+  display: block;
+  font-family: var(--w3-font-mono);
+  font-size: 0.85rem;
+  color: var(--w3-accent);
+  word-break: break-all;
+}
+.solana-result-mono {
+  color: var(--w3-text);
+}
+.solana-result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+@media (max-width: 640px) {
+  .solana-result-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Estimate TxFee page: address inputs & result */

@@ -5,13 +5,9 @@ import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import { toast } from "sonner";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { truncateHash } from "../utils/format";
 
 const PLACEHOLDER_ADDRESS = "0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b";
-
-const truncateHash = (hash: string, start = 16, end = 14): string => {
-  if (!hash || hash.length <= start + end) return hash;
-  return `${hash.slice(0, start)}…${hash.slice(-end)}`;
-};
 
 const BurnTokenPage = () => {
   const [isMounted, setIsMounted] = useState(false);

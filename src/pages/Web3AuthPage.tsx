@@ -31,39 +31,53 @@ const web3auth = new Web3Auth({
   privateKeyProvider
 });
 
+let web3authInitPromise: Promise<void> | null = null;
+const initWeb3AuthModal = async () => {
+  if (!web3authInitPromise) web3authInitPromise = web3auth.initModal();
+  return web3authInitPromise;
+};
+
 const Web3AuthPage = () => {
   const [provider, setProvider] = useState<unknown>(null);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [consoleOutput, setConsoleOutput] = useState<string>("");
+  const uiConsole = (...args: unknown[]) => {
+    const str = JSON.stringify(args?.length ? args : {}, null, 2);
+    setConsoleOutput(str);
+    console.log(...args);
+  };
 
   useEffect(() => {
     const init = async () => {
       try {
-        await web3auth.initModal();
+        await initWeb3AuthModal();
         setProvider(web3auth.provider);
         if (web3auth.connected) setLoggedIn(true);
+        setIsReady(true);
       } catch (error) {
         console.error(error);
+        uiConsole({ error: "Web3Auth initModal failed", detail: error });
       }
     };
     init();
   }, []);
 
   const loginHandler = async () => {
-    const web3authProvider = await web3auth.connect();
-    setProvider(web3authProvider);
-    if (web3auth.connected) setLoggedIn(true);
-  };
-
-  const uiConsole = (...args: unknown[]) => {
-    const el = document.querySelector("#console>p");
-    if (el) {
-      (el as HTMLElement).innerHTML = JSON.stringify(
-        args?.length ? args : {},
-        null,
-        2
-      );
+    if (isConnecting) return;
+    setIsConnecting(true);
+    try {
+      if (!isReady) await initWeb3AuthModal();
+      const web3authProvider = await web3auth.connect();
+      setProvider(web3authProvider);
+      if (web3auth.connected) setLoggedIn(true);
+    } catch (error) {
+      console.error(error);
+      uiConsole({ error: "Web3Auth connect failed", detail: error });
+    } finally {
+      setIsConnecting(false);
     }
-    console.log(...args);
   };
 
   const getSigner = async () => {
@@ -145,72 +159,124 @@ const Web3AuthPage = () => {
   };
 
   return (
-    <center>
-      <div>
-        <h2>
-          <a href="https://web3auth.io/" target="_blank" rel="noreferrer">
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>
+          <a
+            href="https://web3auth.io/"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: "inherit" }}
+          >
             Web3Auth
           </a>
-        </h2>
-        <div className="bordered-div">
-          <div className="container">
-            <p />
-            <div className="grid">
-              {loggedIn ? (
-                <>
-                  <div className="flex-container">
-                    <div>
-                      <button onClick={getUserInfo} className="card">
-                        Get User Info
-                      </button>
-                    </div>
-                    <div>
-                      <button onClick={getAccounts} className="card">
-                        Get Accounts
-                      </button>
-                    </div>
-                    <div>
-                      <button onClick={getBalance} className="card">
-                        Get Balance
-                      </button>
-                    </div>
-                    <div>
-                      <button onClick={signMessage} className="card">
-                        Sign Message
-                      </button>
-                    </div>
-                    <div>
-                      <button onClick={getPrivateKey} className="card">
-                        Get PrivateKey
-                      </button>
-                    </div>
-                    <div>
-                      <button onClick={signSnapShot} className="card">
-                        Sign SnapShot
-                      </button>
-                    </div>
-                    <div>
-                      <button onClick={logout} className="card">
-                        Log Out
-                      </button>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <button onClick={loginHandler} className="card">
-                  Login
-                </button>
-              )}
-            </div>
-          </div>
+        </h1>
+        <p>Social / email login for Ethereum</p>
+      </section>
+      <section className="feature-panel">
+        <h3>Actions</h3>
+        <div
+          className="feature-actions"
+          style={{ flexDirection: "column", alignItems: "flex-start" }}
+        >
+          {loggedIn ? (
+            <>
+              <button
+                type="button"
+                onClick={getUserInfo}
+                className="cta-button mint-nft-button"
+              >
+                Get User Info
+              </button>
+              <button
+                type="button"
+                onClick={getAccounts}
+                className="cta-button mint-nft-button"
+              >
+                Get Accounts
+              </button>
+              <button
+                type="button"
+                onClick={getBalance}
+                className="cta-button mint-nft-button"
+              >
+                Get Balance
+              </button>
+              <button
+                type="button"
+                onClick={signMessage}
+                className="cta-button mint-nft-button"
+              >
+                Sign Message
+              </button>
+              <button
+                type="button"
+                onClick={getPrivateKey}
+                className="cta-button mint-nft-button"
+              >
+                Get PrivateKey
+              </button>
+              <button
+                type="button"
+                onClick={signSnapShot}
+                className="cta-button mint-nft-button"
+              >
+                Sign SnapShot
+              </button>
+              <button
+                type="button"
+                onClick={logout}
+                className="cta-button mint-nft-button"
+              >
+                Log Out
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={loginHandler}
+              className="cta-button mint-nft-button"
+              disabled={!isReady || isConnecting}
+              aria-disabled={!isReady || isConnecting}
+              title={
+                !isReady
+                  ? "Web3Auth 正在初始化…"
+                  : isConnecting
+                    ? "正在打开登录…"
+                    : "Login"
+              }
+            >
+              {!isReady
+                ? "Initializing..."
+                : isConnecting
+                  ? "Connecting..."
+                  : "Login"}
+            </button>
+          )}
         </div>
-        <div>
-          <div id="console" style={{ whiteSpace: "pre-line" }}>
-            <p style={{ whiteSpace: "pre-line" }} />
+        {consoleOutput && (
+          <div className="feature-field" style={{ marginTop: 16 }}>
+            <label>Output</label>
+            <pre
+              style={{
+                margin: 0,
+                padding: 12,
+                background: "var(--w3-bg-elevated)",
+                border: "1px solid var(--w3-border)",
+                borderRadius: "var(--w3-radius-sm)",
+                fontSize: "0.8rem",
+                overflow: "auto",
+                maxHeight: 200,
+                fontFamily: "var(--w3-font-mono)",
+                whiteSpace: "pre-wrap"
+              }}
+            >
+              {consoleOutput}
+            </pre>
           </div>
-        </div>
-      </div>
-    </center>
+        )}
+      </section>
+    </div>
   );
 };
 

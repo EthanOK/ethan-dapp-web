@@ -22,8 +22,12 @@ import { toast } from "sonner";
 import type { Provider } from "@reown/appkit-adapter-solana/react";
 import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
+import { truncateHash } from "../utils/format";
 
 const SolanaUtilsContent = () => {
+  type TxStatus = "pending" | "success" | "failed" | "rejected";
+  type TxResult = { link?: string; status: TxStatus };
+
   const { walletProvider } = useAppKitProvider<Provider>("solana");
   const { connection: appKitConnection } = useAppKitConnection();
   const connection = appKitConnection ?? getDevConnection();
@@ -42,12 +46,20 @@ const SolanaUtilsContent = () => {
   const [solPublicKey, setSolPublicKey] = useState("");
   const [solKeypair, setSolKeypair] = useState("");
   const [solKeypairPublicKey, setSolKeypairPublicKey] = useState("");
+  const [transferTx, setTransferTx] = useState<TxResult | null>(null);
+  const [isTransferProcessing, setIsTransferProcessing] = useState(false);
 
   const connected = !!walletProvider?.publicKey;
   const publicKey = walletProvider?.publicKey;
   const signMessage = walletProvider?.signMessage?.bind(walletProvider);
   const disconnect = walletProvider?.disconnect?.bind(walletProvider);
   const sendTransaction = walletProvider?.sendTransaction?.bind(walletProvider);
+
+  const isUserRejected = (err: any) => {
+    const code = err?.code ?? err?.error?.code;
+    const msg = String(err?.message ?? err?.error?.message ?? "");
+    return code === 4001 || /rejected|declined|cancel/i.test(msg);
+  };
 
   const connectionRef = useRef(connection);
   useEffect(() => {
@@ -56,7 +68,12 @@ const SolanaUtilsContent = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    const intervalId = setInterval(updateShowData, 3000);
+    const POLL_MS = 15000; // 15s 轮询，减少 WalletConnect RPC 请求频率
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        updateShowData();
+      }
+    }, POLL_MS);
 
     return () => {
       clearInterval(intervalId);
@@ -209,6 +226,7 @@ const SolanaUtilsContent = () => {
       );
       console.log(signature);
       toast.success("AIRDROP Success!");
+      updateShowData();
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
@@ -223,29 +241,73 @@ const SolanaUtilsContent = () => {
     }
   };
 
+  const isValidSolanaAddress = (s: string): boolean => {
+    const t = s.trim();
+    if (t.length < 32 || t.length > 44) return false;
+    try {
+      new PublicKey(t);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const transferSOLHandler = async () => {
+    if (isTransferProcessing) return;
     if (!connected) {
       toast.error("Please connect your wallet");
       return;
     }
     if (currentSolanaAccount === "" || currentSolanaAccount === null) {
+      toast.error("Solana account not connected");
       return;
     }
-    const toSolAddressInput = document.getElementById("toSolAddress");
-    const toSolAddressInputValue = toSolAddressInput.value;
-    const addressArray = stringToArray(toSolAddressInputValue);
-    if (addressArray.length === 0) {
-      toast.error("To address is null");
+    setTransferTx(null);
+    const toSolAddressInput = document.getElementById(
+      "toSolAddress"
+    ) as HTMLTextAreaElement | null;
+    const raw = toSolAddressInput?.value?.trim() ?? "";
+    if (!raw) {
+      toast.error("Please enter at least one recipient address");
       return;
     }
-    addressArray.forEach((address) => {
-      if (address.length !== 44 && address.length !== 43) {
-        toast.error("To address is not valid");
-        return;
+    let addressArray: string[];
+    // 支持单个地址（不包 JSON 数组）
+    if (isValidSolanaAddress(raw)) {
+      addressArray = [raw];
+    } else {
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+          toast.error(
+            'Input must be a Solana address or a non-empty JSON array of addresses, e.g. ["addr1","addr2"]'
+          );
+          setTransferTx(null);
+          return;
+        }
+        addressArray = parsed.map((a: unknown) =>
+          typeof a === "string" ? a.trim() : String(a).trim()
+        );
+      } catch {
+        addressArray = stringToArray(raw);
+        if (addressArray.length === 0) {
+          toast.error(
+            'Invalid format. Use a Solana address or JSON array of addresses, e.g. ["addr1","addr2"]'
+          );
+          setTransferTx(null);
+          return;
+        }
       }
-    });
+    }
+    const invalid = addressArray.find((a) => !a || !isValidSolanaAddress(a));
+    if (invalid !== undefined) {
+      toast.error(`Invalid Solana address: ${invalid.slice(0, 12)}...`);
+      setTransferTx(null);
+      return;
+    }
 
     try {
+      setIsTransferProcessing(true);
       const latestBlockhash = await connection.getLatestBlockhash();
 
       const items = [];
@@ -260,7 +322,7 @@ const SolanaUtilsContent = () => {
       });
 
       const transaction = new Transaction({
-        feePayer: new PublicKey(address),
+        feePayer: publicKey,
         recentBlockhash: latestBlockhash?.blockhash
       }).add(...items);
 
@@ -272,8 +334,19 @@ const SolanaUtilsContent = () => {
       console.log(signature);
       if (signature === null) {
         toast.error("send Sol Failure!");
+        setTransferTx({ status: "failed" });
       } else {
-        toast.success("send Sol Success!");
+        const sig =
+          typeof signature === "string" ? signature : String(signature);
+        const link = `https://explorer.solana.com/tx/${sig}?cluster=devnet`;
+        setTransferTx({ link, status: "pending" });
+
+        const confirm = await connection.confirmTransaction(sig, "confirmed");
+        const ok = !confirm?.value?.err;
+        setTransferTx({ link, status: ok ? "success" : "failed" });
+        if (ok) toast.success("Transaction successful");
+        else toast.error("Transaction failed");
+        updateShowData();
       }
 
       setShowAlert(true);
@@ -282,57 +355,127 @@ const SolanaUtilsContent = () => {
       }, 2000);
     } catch (error) {
       console.log(error);
-      toast.error("send Sol Failure!");
+      const rejected = isUserRejected(error);
+      if (rejected) {
+        toast("Transaction rejected");
+        setTransferTx((prev) =>
+          prev ? { ...prev, status: "rejected" } : { status: "rejected" }
+        );
+      } else {
+        toast.error("send Sol Failure!");
+        setTransferTx((prev) =>
+          prev ? { ...prev, status: "failed" } : { status: "failed" }
+        );
+      }
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
       }, 2000);
+    } finally {
+      setIsTransferProcessing(false);
     }
   };
 
   const getAssociatedAddressHandler = async () => {
-    const ownerAddress = document.getElementById("ownerAddress").value;
-    const mintAddress = document.getElementById("mintAddress").value;
-
-    const associatedAddress = await getAssociatedAddress(
-      mintAddress,
-      ownerAddress
-    );
-
-    console.log(associatedAddress);
-    setAssociatedAddress(associatedAddress);
+    const ownerEl = document.getElementById(
+      "ownerAddress"
+    ) as HTMLInputElement | null;
+    const mintEl = document.getElementById(
+      "mintAddress"
+    ) as HTMLInputElement | null;
+    const ownerAddress = ownerEl?.value?.trim() ?? "";
+    const mintAddress = mintEl?.value?.trim() ?? "";
+    if (!ownerAddress || !mintAddress) {
+      toast.error("Please fill in both owner and mint address");
+      return;
+    }
+    if (!isValidSolanaAddress(ownerAddress)) {
+      toast.error("Invalid owner address");
+      return;
+    }
+    if (!isValidSolanaAddress(mintAddress)) {
+      toast.error("Invalid mint address");
+      return;
+    }
+    try {
+      const associatedAddress = await getAssociatedAddress(
+        mintAddress,
+        ownerAddress
+      );
+      setAssociatedAddress(associatedAddress);
+    } catch (err) {
+      toast.error(
+        (err as Error)?.message ?? "Failed to get associated address"
+      );
+    }
   };
 
   const getSOLPrivatekeyHandler = async () => {
-    let keypair = document.getElementById("keypair").value;
-    if (keypair === "") {
-      keypair = document.getElementById("keypair").placeholder;
+    const el = document.getElementById("keypair") as HTMLTextAreaElement | null;
+    const keypair = el?.value?.trim() ?? "";
+    if (!keypair) {
+      toast.error("Please paste a keypair JSON array (64 numbers)");
+      return;
     }
-    const pair = JSON.parse(keypair);
-    const privateKey = base58.encode(pair);
+    let pair: number[];
     try {
-      setSolPrivateKey(privateKey);
-
+      const parsed = JSON.parse(keypair);
+      if (!Array.isArray(parsed) || parsed.length !== 64) {
+        toast.error(
+          "Keypair must be a JSON array of exactly 64 numbers (0–255)"
+        );
+        return;
+      }
+      pair = parsed;
+      if (
+        pair.some(
+          (n) =>
+            typeof n !== "number" || n < 0 || n > 255 || !Number.isInteger(n)
+        )
+      ) {
+        toast.error("Each keypair element must be an integer 0–255");
+        return;
+      }
+    } catch {
+      toast.error("Invalid JSON. Paste keypair as array, e.g. [38,109,...]");
+      return;
+    }
+    try {
+      setSolPrivateKey(base58.encode(pair));
       setSolPublicKey(
         Keypair.fromSecretKey(new Uint8Array(pair)).publicKey.toString()
       );
-    } catch (error) {
-      toast.error(error.message);
+    } catch (err) {
+      toast.error((err as Error)?.message ?? "Invalid keypair");
     }
   };
 
   const getSOLKeypairHandler = async () => {
-    let privateKey = document.getElementById("privateKey").value;
-    if (privateKey === "") {
-      privateKey = document.getElementById("privateKey").placeholder;
+    const el = document.getElementById(
+      "privateKey"
+    ) as HTMLTextAreaElement | null;
+    const privateKey = (el?.value?.trim() ?? "").replace(/\s/g, "");
+    if (!privateKey) {
+      toast.error("Please paste a base58 private key");
+      return;
     }
-
+    let decoded: Uint8Array;
     try {
-      const keypair = Keypair.fromSecretKey(base58.decode(privateKey));
+      decoded = base58.decode(privateKey);
+    } catch {
+      toast.error("Invalid base58 private key");
+      return;
+    }
+    if (decoded.length !== 64) {
+      toast.error("Private key must decode to 64 bytes");
+      return;
+    }
+    try {
+      const keypair = Keypair.fromSecretKey(decoded);
       setSolKeypair("[" + keypair.secretKey.toString() + "]");
       setSolKeypairPublicKey(keypair.publicKey.toString());
-    } catch (error) {
-      toast.error(error.message);
+    } catch (err) {
+      toast.error((err as Error)?.message ?? "Invalid private key");
     }
   };
 
@@ -363,8 +506,27 @@ const SolanaUtilsContent = () => {
       <button
         onClick={transferSOLHandler}
         className="cta-button mint-nft-button"
+        disabled={!currentSolanaAccount || isTransferProcessing}
       >
-        Everyone transfer 0.5 SOL
+        {isTransferProcessing ? (
+          <>
+            <span
+              style={{
+                display: "inline-block",
+                width: "12px",
+                height: "12px",
+                border: "2px solid #ffffff",
+                borderRightColor: "transparent",
+                borderRadius: "50%",
+                animation: "rotate 1s linear infinite",
+                marginRight: "8px"
+              }}
+            ></span>
+            Processing...
+          </>
+        ) : (
+          "Everyone transfer 0.5 SOL"
+        )}
       </button>
     );
   };
@@ -411,125 +573,203 @@ const SolanaUtilsContent = () => {
   };
 
   return (
-    <center>
-      <div>
-        {showAlert && <div className="alert"></div>}
-        <h2>Solana Utils</h2>
-        Solana Account: {currentSolanaAccount}
-        <p></p>
-        Balance: {accountSOLBalance} SOL
-        <p></p>
-        {/* <appkit-button /> */}
-        <p></p>
-        {currentSolanaAccount ? loginSolanaButton() : PleaseLogin()}
-        <p></p>
-        {currentSolanaAccount ? airDropButton() : PleaseLogin()}
-        <p></p>
-        <p></p>
-        {/* {currentAccount ? disConnectButton() : PleaseLogin()} */}
-      </div>
-      <div>
-        <h2>
-          Please See:
-          <p></p>
-          <textarea
-            type="text"
-            value={message}
-            readOnly
-            style={{ width: "1200px", height: "100px" }}
-          ></textarea>
-        </h2>
-      </div>
-
-      <p></p>
-
-      <div className="bordered-div">
-        <h2>Batch Transfer SOL</h2>
-        <label className="label">ToAddress:</label>
-        <textarea
-          className="textarea"
-          id="toSolAddress"
-          placeholder="[3c5MLawkv9DY4C4zh39xHMic8MCTfBLVEZRSG4cWjjiH,AQAMLqdN3LSvaHx5tCVeWZWDRTGqL7QuvNgojCb3pS6Z]"
-          style={{ width: "400px", height: "100px" }}
-        ></textarea>
-
-        <p></p>
-        {currentSolanaAccount ? transferSOLButton() : PleaseLogin()}
-      </div>
-
-      <p></p>
-      <div className="bordered-div">
-        <h2>Get Associated Address</h2>
-        <label className="label">ownerAddress:</label>
-        <textarea
-          className="textarea"
-          id="ownerAddress"
-          placeholder="2xuEyZoSkiiNBAgL21XobUCraojPUZ82GHuWpCPgpyXF"
-          style={{ width: "450px", height: "16px" }}
-        ></textarea>
-        <p></p>
-        <label className="label">mintAddress:</label>
-        <textarea
-          className="textarea"
-          id="mintAddress"
-          placeholder="2xuEyZoSkiiNBAgL21XobUCraojPUZ82GHuWpCPgpyXF"
-          style={{ width: "450px", height: "16px" }}
-        ></textarea>
-        <p></p>
-        {getAssociatedAddressButton()}
-        <p></p>
-        Associated Address: {associatedAddress}
-      </div>
-
-      <p></p>
-      <div className="bordered-div">
-        <h3>Keypair To PrivateKey</h3>
-        <div>
-          <label className="label">keypair:</label>
-          <textarea
-            className="multiline-textarea"
-            id="keypair"
-            placeholder="[38,109,228,83,26,37,10,17,191,88,35,2,57,168,81,242,69,45,39,19,105,131,213,152,160,107,31,59,226,22,114,180,137,182,45,71,20,19,69,96,3,136,126,234,234,23,153,66,217,243,223,192,247,89,16,24,11,17,240,172,138,172,13,244]"
-            style={{ height: "70px", width: "500px", fontSize: "14px" }}
-          ></textarea>
-          <p></p>
-          {getSOLPrivatekeyButton()}
-          <p></p>
-          PrivateKey: {solPrivateKey}
-          <p></p>
-          PublicKey: {solPublicKey}
+    <div className="feature-page main-app">
+      {showAlert && <div className="feature-alert" />}
+      <section className="feature-hero">
+        <h1>Solana Utils</h1>
+        <p>Sign message, airdrop, batch transfer, and keypair tools</p>
+        <div className="solana-hero-stats">
+          <span className="solana-hero-account-row">
+            Account:{" "}
+            <strong className="solana-hero-value">
+              {currentSolanaAccount
+                ? `${currentSolanaAccount.slice(0, 8)}…${currentSolanaAccount.slice(-8)}`
+                : "—"}
+            </strong>
+            {currentSolanaAccount && (
+              <button
+                type="button"
+                className="solana-hero-copy"
+                onClick={() => {
+                  navigator.clipboard.writeText(currentSolanaAccount).then(
+                    () => toast.success("Address copied"),
+                    () => toast.error("Copy failed")
+                  );
+                }}
+                title="Copy full address"
+              >
+                Copy
+              </button>
+            )}
+          </span>
+          <span>
+            Balance:{" "}
+            <strong className="solana-hero-value">
+              {accountSOLBalance != null
+                ? `${Number(accountSOLBalance).toFixed(4)} SOL`
+                : "—"}
+            </strong>
+          </span>
         </div>
-      </div>
-      <p></p>
-      <div className="bordered-div">
-        <h3>PrivateKey To Keypair</h3>
-        <div>
-          <label className="label">privateKey:</label>
+        <div className="feature-actions" style={{ marginTop: 16 }}>
+          {currentSolanaAccount ? loginSolanaButton() : PleaseLogin()}
+          {currentSolanaAccount ? airDropButton() : null}
+          {currentSolanaAccount ? disConnectButton() : null}
+        </div>
+      </section>
+      {message && (
+        <section className="feature-panel">
+          <h3>Signature / Output</h3>
+          <pre className="solana-output-pre">{message}</pre>
+        </section>
+      )}
+      <section className="feature-panel">
+        <h3>Batch Transfer SOL</h3>
+        <p className="feature-field-hint">
+          Send 0.5 SOL to each address. Input a single base58 address or a JSON
+          array of addresses.
+        </p>
+        <div className="feature-field">
+          <label htmlFor="toSolAddress">To address(es)</label>
           <textarea
-            className="multiline-textarea"
-            id="privateKey"
-            placeholder="mZeFbFsK1Ezt29Z9pA5ZbSMbw8PZyB4DPTtSEPwHqYr5zfaWJCHRPSrDkwNTjcHKLzJSLQduzLCJhNbrgNXio4f"
-            style={{ height: "70px", width: "500px", fontSize: "14px" }}
-          ></textarea>
-          <p></p>
-          {getSOLKeypairButton()}
-          <p></p>
-          <label>Keypair:</label>
-          <textarea
-            value={solKeypair}
-            readOnly
-            style={{
-              width: "500px",
-              height: "60px",
-              fontSize: "12px",
-              fontFamily: "monospace"
-            }}
+            id="toSolAddress"
+            placeholder='["address1","address2"]'
+            rows={4}
+            spellCheck={false}
           />
-          <p></p>
-          PublicKey: {solKeypairPublicKey}
         </div>
-      </div>
-    </center>
+        <div className="feature-actions feature-actions--inline">
+          {currentSolanaAccount ? transferSOLButton() : PleaseLogin()}
+          {transferTx && (
+            <div
+              className={`feature-tx-result feature-tx-result--inline feature-tx-result--${transferTx.status}`}
+            >
+              <span
+                className={`feature-tx-result-badge feature-tx-result-badge--${transferTx.status}`}
+              >
+                {transferTx.status === "pending" && "Pending"}
+                {transferTx.status === "success" && "Success"}
+                {transferTx.status === "failed" && "Failed"}
+                {transferTx.status === "rejected" && "Rejected"}
+              </span>
+              {transferTx.link && (
+                <a
+                  href={transferTx.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="feature-tx-result-link"
+                  title={transferTx.link.split("/").pop()?.split("?")[0] ?? ""}
+                >
+                  {truncateHash(
+                    transferTx.link.split("/").pop()?.split("?")[0] ?? ""
+                  )}
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+      <section className="feature-panel">
+        <h3>Get Associated Address</h3>
+        <p className="feature-field-hint">
+          Compute SPL token associated token account address for owner + mint.
+        </p>
+        <div className="feature-field">
+          <label htmlFor="ownerAddress">Owner address</label>
+          <input
+            id="ownerAddress"
+            type="text"
+            placeholder="2xuEyZoSkiiNBAgL21XobUCraojPUZ82GHuWpCPgpyXF"
+            className="estimate-address-input"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+        <div className="feature-field">
+          <label htmlFor="mintAddress">Mint address</label>
+          <input
+            id="mintAddress"
+            type="text"
+            placeholder="2xuEyZoSkiiNBAgL21XobUCraojPUZ82GHuWpCPgpyXF"
+            className="estimate-address-input"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+        <div className="feature-actions">{getAssociatedAddressButton()}</div>
+        {associatedAddress && (
+          <div className="feature-field solana-result-box">
+            <span className="feature-field-hint">Associated address</span>
+            <span className="solana-result-value">{associatedAddress}</span>
+          </div>
+        )}
+      </section>
+      <section className="feature-panel">
+        <h3>Keypair → Private key</h3>
+        <p className="feature-field-hint">
+          Paste keypair as JSON array (e.g. from Phantom export), get base58
+          private key and public key.
+        </p>
+        <div className="feature-field">
+          <label htmlFor="keypair">Keypair (JSON array)</label>
+          <textarea
+            id="keypair"
+            placeholder="[38,109,228,83,...]"
+            rows={3}
+            spellCheck={false}
+          />
+        </div>
+        <div className="feature-actions">{getSOLPrivatekeyButton()}</div>
+        {(solPrivateKey || solPublicKey) && (
+          <div className="solana-result-grid">
+            <div className="feature-field solana-result-box">
+              <span className="feature-field-hint">Private key (base58)</span>
+              <span className="solana-result-value solana-result-mono">
+                {solPrivateKey || "—"}
+              </span>
+            </div>
+            <div className="feature-field solana-result-box">
+              <span className="feature-field-hint">Public key</span>
+              <span className="solana-result-value solana-result-mono">
+                {solPublicKey || "—"}
+              </span>
+            </div>
+          </div>
+        )}
+      </section>
+      <section className="feature-panel">
+        <h3>Private key → Keypair</h3>
+        <p className="feature-field-hint">
+          Paste base58 private key, get keypair array and public key.
+        </p>
+        <div className="feature-field">
+          <label htmlFor="privateKey">Private key (base58)</label>
+          <textarea
+            id="privateKey"
+            placeholder="mZeFbFsK1Ezt29Z9pA5ZbSMbw8PZyB4DPTtSEPwHqYr5..."
+            rows={2}
+            spellCheck={false}
+          />
+        </div>
+        <div className="feature-actions">{getSOLKeypairButton()}</div>
+        {(solKeypair || solKeypairPublicKey) && (
+          <div className="solana-result-grid">
+            <div className="feature-field solana-result-box">
+              <span className="feature-field-hint">Keypair (JSON)</span>
+              <pre className="solana-output-pre solana-result-pre">
+                {solKeypair || "—"}
+              </pre>
+            </div>
+            <div className="feature-field solana-result-box">
+              <span className="feature-field-hint">Public key</span>
+              <span className="solana-result-value solana-result-mono">
+                {solKeypairPublicKey || "—"}
+              </span>
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
   );
 };
 
