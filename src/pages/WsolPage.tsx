@@ -3,10 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as buffer from "buffer";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
-import {
-  verifySolanaSignature,
-  verifySolanaSignatureV2
-} from "../utils/SolanaSignAndVerify";
 import { getDevConnection } from "../utils/GetSolanaConnection";
 import { getSolBalance } from "../utils/SolanaGetBalance";
 import {
@@ -23,11 +19,11 @@ import { toast } from "sonner";
 import type { Provider } from "@reown/appkit-adapter-solana/react";
 import { useAppKitProvider } from "@reown/appkit/react";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
-import base58 from "bs58";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
+import { truncateHash } from "../utils/format";
 
 const WsolPageContent = () => {
   const { walletProvider } = useAppKitProvider<Provider>("solana");
@@ -36,17 +32,23 @@ const WsolPageContent = () => {
 
   window.Buffer = buffer.Buffer;
   const [isMounted, setIsMounted] = useState(false);
-  const [message, setMessage] = useState("");
-  const [currentAccount, setCurrentAccount] = useState(null);
   const [currentSolanaAccount, setCurrentSolanaAccount] = useState(null);
   const [accountSOLBalance, setAccountSOLBalance] = useState(null);
   const [accountWethBalance, setAccountWethBalance] = useState(null);
   const [isDepositProcessing, setIsDepositProcessing] = useState(false);
   const [isWithdrawProcessing, setIsWithdrawProcessing] = useState(false);
 
+  const getSigFromTxLink = (link: string): string => {
+    const last = link.split("/").pop() ?? "";
+    return last.split("?")[0] ?? "";
+  };
+  type TxStatus = "pending" | "success" | "failed" | "rejected";
+  type TxResult = { link?: string; status: TxStatus };
+  const [depositTx, setDepositTx] = useState<TxResult | null>(null);
+  const [withdrawTx, setWithdrawTx] = useState<TxResult | null>(null);
+
   const connected = !!walletProvider?.publicKey;
   const publicKey = walletProvider?.publicKey;
-  const signMessage = walletProvider?.signMessage?.bind(walletProvider);
   const disconnect = walletProvider?.disconnect?.bind(walletProvider);
   const sendTransaction = walletProvider?.sendTransaction?.bind(walletProvider);
   const wallet = walletProvider;
@@ -58,7 +60,12 @@ const WsolPageContent = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    const intervalId = setInterval(updateShowData, 3000);
+    const POLL_MS = 15000; // 15s 轮询，减少 WalletConnect RPC 请求频率
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        updateShowData();
+      }
+    }, POLL_MS);
 
     return () => {
       clearInterval(intervalId);
@@ -68,7 +75,7 @@ const WsolPageContent = () => {
 
   useEffect(() => {
     if (isMounted) {
-      configData();
+      // no-op (reserved)
     }
   }, [isMounted]);
 
@@ -78,13 +85,6 @@ const WsolPageContent = () => {
     }
   }, [connected, publicKey]);
 
-  const configData = async () => {
-    setCurrentAccount("0x");
-    let account = localStorage.getItem("userAddress");
-    if (account !== null) {
-      setCurrentAccount(account);
-    }
-  };
   const updateShowData = async () => {
     if (!connected) {
       setCurrentSolanaAccount("");
@@ -131,68 +131,6 @@ const WsolPageContent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, connection]);
 
-  const PleaseLogin = () => {
-    return (
-      <button className="cta-button unlogin-nft-button">PleaseLogin</button>
-    );
-  };
-
-  const signSolanaMessageHandler = async () => {
-    if (!connected) {
-      toast.error("Please connect your wallet");
-      return;
-    }
-
-    const account_Address = publicKey.toBase58();
-
-    localStorage.setItem("currentSolanaAccount", account_Address);
-
-    const loginTime = new Date().toLocaleString();
-
-    const LOGIN_MESSAGE =
-      `Welcome to ${origin} !` +
-      "\nAccount: " +
-      account_Address +
-      "\nLoginTime: " +
-      loginTime;
-
-    const message = new TextEncoder().encode(LOGIN_MESSAGE);
-    let signature_string = null;
-    try {
-      const signResult = await signMessage(message);
-
-      signature_string = base58.encode(signResult);
-    } catch (error) {
-      toast.error("User rejected the signature.");
-      return;
-    }
-
-    if (signature_string === null) {
-      setMessage("");
-      alert("User rejected the signature.");
-    } else {
-      setMessage(signature_string);
-
-      console.log(signature_string.length);
-
-      const verifyR = await verifySolanaSignature(
-        signature_string,
-        message,
-        account_Address
-      );
-
-      console.log(verifyR);
-
-      const verifyR2 = await verifySolanaSignatureV2(
-        signature_string,
-        message,
-        account_Address
-      );
-
-      console.log(verifyR2);
-    }
-  };
-
   const initializeHandler = async () => {
     const program = getWethProgram(connection, wallet);
 
@@ -229,6 +167,7 @@ const WsolPageContent = () => {
         const tx = await sendPreparedTransaction(txTransaction, connection);
         console.log(tx);
         toast.success("initialize success");
+        updateShowData();
       } catch (error) {
         console.log(error);
         toast.error("initialize failed");
@@ -238,6 +177,7 @@ const WsolPageContent = () => {
 
   const depositHandler = async () => {
     setIsDepositProcessing(true);
+    setDepositTx(null);
     const program = getWethProgram(connection, wallet);
 
     try {
@@ -259,12 +199,35 @@ const WsolPageContent = () => {
         })
         .transaction();
       const tx = await sendPreparedTransaction(txTransaction, connection);
-      console.log(tx);
-      toast.success("deposit success");
-    } catch (error) {
-      console.log(error);
-      toast.error("deposit failed");
-      setTimeout(() => {}, 2000);
+      const signature = String(tx ?? "");
+      const link = `https://explorer.solana.com/tx/${signature}?cluster=devnet`;
+      setDepositTx({ link, status: "pending" });
+
+      const confirm = await connection.confirmTransaction(
+        signature,
+        "confirmed"
+      );
+      const ok = !confirm?.value?.err;
+      setDepositTx({ link, status: ok ? "success" : "failed" });
+      if (ok) toast.success("Transaction successful");
+      else toast.error("Transaction failed");
+      updateShowData();
+    } catch (err: unknown) {
+      const e = err as { code?: number | string; message?: string };
+      const rejected =
+        String(e?.code) === "4001" ||
+        /rejected|denied|user rejected/i.test(String(e?.message ?? ""));
+      if (rejected) {
+        toast("Transaction rejected");
+        setDepositTx((prev) =>
+          prev ? { ...prev, status: "rejected" } : { status: "rejected" }
+        );
+      } else {
+        toast.error(String(e?.message ?? "Error"));
+        setDepositTx((prev) =>
+          prev ? { ...prev, status: "failed" } : { status: "failed" }
+        );
+      }
     } finally {
       setIsDepositProcessing(false);
     }
@@ -272,6 +235,7 @@ const WsolPageContent = () => {
 
   const withdrwaHandler = async () => {
     setIsWithdrawProcessing(true);
+    setWithdrawTx(null);
     const program = getWethProgram(connection, wallet);
 
     try {
@@ -282,11 +246,35 @@ const WsolPageContent = () => {
         })
         .transaction();
       const tx = await sendPreparedTransaction(txTransaction, connection);
-      console.log(tx);
-      toast.success("withdraw success");
-    } catch (error) {
-      console.log(error);
-      toast.error("withdraw failed");
+      const signature = String(tx ?? "");
+      const link = `https://explorer.solana.com/tx/${signature}?cluster=devnet`;
+      setWithdrawTx({ link, status: "pending" });
+
+      const confirm = await connection.confirmTransaction(
+        signature,
+        "confirmed"
+      );
+      const ok = !confirm?.value?.err;
+      setWithdrawTx({ link, status: ok ? "success" : "failed" });
+      if (ok) toast.success("Transaction successful");
+      else toast.error("Transaction failed");
+      updateShowData();
+    } catch (err: unknown) {
+      const e = err as { code?: number | string; message?: string };
+      const rejected =
+        String(e?.code) === "4001" ||
+        /rejected|denied|user rejected/i.test(String(e?.message ?? ""));
+      if (rejected) {
+        toast("Transaction rejected");
+        setWithdrawTx((prev) =>
+          prev ? { ...prev, status: "rejected" } : { status: "rejected" }
+        );
+      } else {
+        toast.error(String(e?.message ?? "Error"));
+        setWithdrawTx((prev) =>
+          prev ? { ...prev, status: "failed" } : { status: "failed" }
+        );
+      }
     } finally {
       setIsWithdrawProcessing(false);
     }
@@ -295,21 +283,8 @@ const WsolPageContent = () => {
   const disConnectHandler = async () => {
     await disconnect();
     localStorage.removeItem("currentSolanaAccount");
-
-    setMessage("");
     setAccountSOLBalance(0);
     setCurrentSolanaAccount("");
-  };
-
-  const loginSolanaButton = () => {
-    return (
-      <button
-        onClick={signSolanaMessageHandler}
-        className="cta-button mint-nft-button"
-      >
-        Login Solana
-      </button>
-    );
   };
 
   const initializeButton = () => {
@@ -395,55 +370,123 @@ const WsolPageContent = () => {
   };
 
   return (
-    <center>
-      <div className="bordered-div">
-        <h2>Login Solana</h2>
-        {/* <appkit-button /> */}
-        <p></p>
-        Solana Account: {currentSolanaAccount}
-        <p></p>
-        Balance: {accountSOLBalance} SOL
-        <p></p>
-        <p></p>
-        {currentAccount ? loginSolanaButton() : PleaseLogin()}
-        <p></p>
-        <p></p>
-        {currentAccount ? disConnectButton() : PleaseLogin()}
-      </div>
-      <div>
-        <h2>
-          Please See:
-          <p></p>
-          <textarea
-            type="text"
-            value={message}
-            readOnly
-            style={{ width: "600px", height: "60px" }}
-          ></textarea>
-        </h2>
-      </div>
-      <h2>WSOL</h2>
-      <p>address: {getWethMintAddress()}</p>
-      <p>balance: {accountWethBalance} WSOL</p>
-      <div className="bordered-div">
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>WSOL (Solana)</h1>
+        <p>Wrap SOL and manage WSOL balance</p>
+      </section>
+      <section className="feature-panel">
+        <h3>SOL</h3>
+        <div className="solana-hero-stats" style={{ marginTop: 0 }}>
+          <span className="solana-hero-account-row">
+            Account:{" "}
+            <strong className="solana-hero-value">
+              {currentSolanaAccount
+                ? `${currentSolanaAccount.slice(0, 8)}…${currentSolanaAccount.slice(-8)}`
+                : "—"}
+            </strong>
+            {currentSolanaAccount && (
+              <button
+                type="button"
+                className="solana-hero-copy"
+                onClick={() => {
+                  navigator.clipboard.writeText(currentSolanaAccount).then(
+                    () => toast.success("Address copied"),
+                    () => toast.error("Copy failed")
+                  );
+                }}
+                title="Copy full address"
+              >
+                Copy
+              </button>
+            )}
+          </span>
+          <span>
+            Balance:{" "}
+            <strong className="solana-hero-value">
+              {accountSOLBalance != null
+                ? `${Number(accountSOLBalance).toFixed(4)} SOL`
+                : "—"}
+            </strong>
+          </span>
+        </div>
+        {/* Optional: keep disconnect control accessible */}
+        {/* <div className="feature-actions">{disConnectButton()}</div> */}
+      </section>
+      <section className="feature-panel">
+        <h3>WSOL</h3>
+        <p className="feature-field-hint">Mint: {getWethMintAddress()}</p>
+        <p className="feature-field-hint">
+          Balance: {accountWethBalance != null ? accountWethBalance : "—"} WSOL
+        </p>
+      </section>
+      <section className="feature-panel">
         <h3>Initialize</h3>
-        <p></p>
-        {initializeButton()}
-      </div>
-      <p></p>
-      <div className="bordered-div">
+        <div className="feature-actions">{initializeButton()}</div>
+      </section>
+      <section className="feature-panel">
         <h3>Deposit</h3>
-        <p></p>
-        {depositButton()}
-      </div>
-
-      <p></p>
-      <div className="bordered-div">
+        <div className="feature-actions feature-actions--inline">
+          {depositButton()}
+          {depositTx && (
+            <div
+              className={`feature-tx-result feature-tx-result--inline feature-tx-result--${depositTx.status}`}
+            >
+              <span
+                className={`feature-tx-result-badge feature-tx-result-badge--${depositTx.status}`}
+              >
+                {depositTx.status === "pending" && "Pending"}
+                {depositTx.status === "success" && "Success"}
+                {depositTx.status === "failed" && "Failed"}
+                {depositTx.status === "rejected" && "Rejected"}
+              </span>
+              {depositTx.link && (
+                <a
+                  href={depositTx.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="feature-tx-result-link"
+                  title={getSigFromTxLink(depositTx.link)}
+                >
+                  {truncateHash(getSigFromTxLink(depositTx.link))}
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+      <section className="feature-panel">
         <h3>Withdraw</h3>
-        <p></p>
-        {withdrawButton()}
-      </div>
-    </center>
+        <div className="feature-actions feature-actions--inline">
+          {withdrawButton()}
+          {withdrawTx && (
+            <div
+              className={`feature-tx-result feature-tx-result--inline feature-tx-result--${withdrawTx.status}`}
+            >
+              <span
+                className={`feature-tx-result-badge feature-tx-result-badge--${withdrawTx.status}`}
+              >
+                {withdrawTx.status === "pending" && "Pending"}
+                {withdrawTx.status === "success" && "Success"}
+                {withdrawTx.status === "failed" && "Failed"}
+                {withdrawTx.status === "rejected" && "Rejected"}
+              </span>
+              {withdrawTx.link && (
+                <a
+                  href={withdrawTx.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="feature-tx-result-link"
+                  title={getSigFromTxLink(withdrawTx.link)}
+                >
+                  {truncateHash(getSigFromTxLink(withdrawTx.link))}
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
   );
 };
 

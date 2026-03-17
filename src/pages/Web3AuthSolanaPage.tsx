@@ -58,30 +58,57 @@ const web3auth = new Web3Auth({
   privateKeyProvider: privateKeyProvider_solana
 });
 
+let web3authInitPromise: Promise<void> | null = null;
+const initWeb3AuthModal = async () => {
+  if (!web3authInitPromise) web3authInitPromise = web3auth.initModal();
+  return web3authInitPromise;
+};
+
 const Web3AuthSolanaPage = () => {
   const [provider, setProvider] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [solanaWallet, setSolanaWallet] = useState(null);
   const [connection, setConnection] = useState(null);
+  const [isReady, setIsReady] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     const init = async () => {
       try {
         // IMP START - SDK Initialization
-        await web3auth.initModal();
+        await initWeb3AuthModal();
         // IMP END - SDK Initialization
-        setProvider(web3auth.provider);
-        const solanaWallet = new SolanaWallet(web3auth.provider);
-        setSolanaWallet(solanaWallet);
+        // initModal 完成即可认为页面 ready（即便未连接时 provider 可能为 null）
+        setIsReady(true);
 
-        const connection = await getConnnection(solanaWallet);
-        setConnection(connection);
+        const p = web3auth.provider;
+        setProvider(p);
 
-        if (web3auth.connected) {
+        // 只有在已连接时，provider 才具备完整的 solana rpc methods（否则可能出现 Method not found）
+        if (web3auth.connected && p) {
           setLoggedIn(true);
+          const sw = new SolanaWallet(p);
+          setSolanaWallet(sw);
+          try {
+            const conn = await getConnnection(sw);
+            setConnection(conn);
+          } catch (error) {
+            console.error(error);
+            uiConsole({
+              error: "Get solana provider config failed",
+              detail: error
+            });
+          }
+        } else {
+          setLoggedIn(false);
+          setSolanaWallet(null);
+          setConnection(null);
         }
       } catch (error) {
         console.error(error);
+        uiConsole({ error: "Web3Auth initModal failed", detail: error });
+        // 即便初始化失败，也允许用户点击尝试重新触发连接（避免“彻底没反应”）
+        setIsReady(true);
       }
     };
 
@@ -89,24 +116,47 @@ const Web3AuthSolanaPage = () => {
   }, []);
 
   const loginHandler = async () => {
-    // IMP START - Login
-    const web3authProvider = await web3auth.connect();
-    // IMP END - Login
-    setProvider(web3authProvider);
-    const solanaWallet = new SolanaWallet(web3auth.provider);
-    setSolanaWallet(solanaWallet);
-    const connection = await getConnnection(solanaWallet);
-    setConnection(connection);
-    console.log("solanaWallet", solanaWallet);
+    if (isConnecting) return;
+    setIsConnecting(true);
+    try {
+      if (!isReady) await initWeb3AuthModal();
+      // IMP START - Login
+      const web3authProvider = await web3auth.connect();
+      // IMP END - Login
+      setProvider(web3authProvider);
+      const sw = new SolanaWallet(web3authProvider);
+      setSolanaWallet(sw);
+      const conn = await getConnnection(sw);
+      setConnection(conn);
+      console.log("solanaWallet", sw);
 
-    if (web3auth.connected) {
-      setLoggedIn(true);
+      if (web3auth.connected) {
+        setLoggedIn(true);
+      }
+    } catch (error) {
+      console.error(error);
+      uiConsole({ error: "Web3Auth connect failed", detail: error });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
   const unloggedInView = (
-    <button onClick={loginHandler} className="card">
-      Login
+    <button
+      type="button"
+      onClick={loginHandler}
+      className="cta-button mint-nft-button"
+      disabled={!isReady || isConnecting}
+      aria-disabled={!isReady || isConnecting}
+      title={
+        !isReady
+          ? "Web3Auth 正在初始化…"
+          : isConnecting
+            ? "正在打开登录…"
+            : "Login"
+      }
+    >
+      {!isReady ? "Initializing..." : isConnecting ? "Connecting..." : "Login"}
     </button>
   );
 
@@ -219,80 +269,106 @@ const Web3AuthSolanaPage = () => {
     uiConsole(privateKey_base58);
   };
 
+  const [consoleOutput, setConsoleOutput] = useState("");
   function uiConsole(...args) {
-    const el = document.querySelector("#console>p");
-    if (el) {
-      el.innerHTML = JSON.stringify(args || {}, null, 2);
-    }
+    const str = JSON.stringify(args?.length ? args : {}, null, 2);
+    setConsoleOutput(str);
     console.log(...args);
   }
 
   const loggedInView = (
     <>
-      <div className="flex-container">
-        <div>
-          <button onClick={getUserInfo} className="card">
-            Get User Info
-          </button>
-        </div>
-        <div>
-          <button onClick={getAccounts} className="card">
-            Get Accounts
-          </button>
-        </div>
-        <div>
-          <button onClick={getBalance} className="card">
-            Get Balance
-          </button>
-        </div>
-        <div>
-          <button onClick={signMessage} className="card">
-            Sign Message
-          </button>
-        </div>
-
-        <div>
-          <button onClick={getPrivateKey} className="card">
-            Get PrivateKey
-          </button>
-        </div>
-        <div>
-          <button onClick={logout} className="card">
-            Log Out
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={getUserInfo}
+        className="cta-button mint-nft-button"
+      >
+        Get User Info
+      </button>
+      <button
+        type="button"
+        onClick={getAccounts}
+        className="cta-button mint-nft-button"
+      >
+        Get Accounts
+      </button>
+      <button
+        type="button"
+        onClick={getBalance}
+        className="cta-button mint-nft-button"
+      >
+        Get Balance
+      </button>
+      <button
+        type="button"
+        onClick={signMessage}
+        className="cta-button mint-nft-button"
+      >
+        Sign Message
+      </button>
+      <button
+        type="button"
+        onClick={getPrivateKey}
+        className="cta-button mint-nft-button"
+      >
+        Get PrivateKey
+      </button>
+      <button
+        type="button"
+        onClick={logout}
+        className="cta-button mint-nft-button"
+      >
+        Log Out
+      </button>
     </>
   );
 
   return (
-    <center>
-      <div>
-        <h2>
-          <a href="https://web3auth.io/" target="_blank">
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>
+          <a
+            href="https://web3auth.io/"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: "inherit" }}
+          >
             Web3Auth Solana
           </a>
-        </h2>
-
-        <div className="bordered-div">
-          <div className="container">
-            <p></p>
-            <div className="grid">
-              {loggedIn ? loggedInView : unloggedInView}
-            </div>
-
-            <div>
-              <div id="console" style={{ whiteSpace: "pre-line" }}>
-                <p style={{ whiteSpace: "pre-line" }}></p>
-              </div>
-            </div>
-          </div>
-
-          <p></p>
-          <p></p>
+        </h1>
+        <p>Social / email login for Solana</p>
+      </section>
+      <section className="feature-panel">
+        <h3>Actions</h3>
+        <div
+          className="feature-actions"
+          style={{ flexDirection: "column", alignItems: "flex-start" }}
+        >
+          {loggedIn ? loggedInView : unloggedInView}
         </div>
-      </div>
-    </center>
+        {consoleOutput && (
+          <div className="feature-field" style={{ marginTop: 16 }}>
+            <label>Output</label>
+            <pre
+              style={{
+                margin: 0,
+                padding: 12,
+                background: "var(--w3-bg-elevated)",
+                border: "1px solid var(--w3-border)",
+                borderRadius: "var(--w3-radius-sm)",
+                fontSize: "0.8rem",
+                overflow: "auto",
+                maxHeight: 200,
+                fontFamily: "var(--w3-font-mono)",
+                whiteSpace: "pre-wrap"
+              }}
+            >
+              {consoleOutput}
+            </pre>
+          </div>
+        )}
+      </section>
+    </div>
   );
 };
 

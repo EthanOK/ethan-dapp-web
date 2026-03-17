@@ -4,12 +4,16 @@ import { getSignerAndChainId } from "../utils/GetProvider";
 import { TBVersion, TokenboundClient } from "@tokenbound/sdk";
 import { Contract, Signer } from "ethers";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { toast } from "sonner";
 
 const url_iframe = "https://iframe-tokenbound.vercel.app";
 
 const ERC6551Page = () => {
   const [isMounted, setIsMounted] = useState(false);
-  const [message, setMessage] = useState("");
+  const [contract, setContract] = useState("");
+  const [tokenId, setTokenId] = useState("");
+  const [contractCreate, setContractCreate] = useState("");
+  const [tokenIdCreate, setTokenIdCreate] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [tbAccount, setTbAccount] = useState<string | null>(null);
   const [created, setCreated] = useState<string | null>(null);
@@ -31,8 +35,16 @@ const ERC6551Page = () => {
     };
   }, []);
 
+  const updateData = () => {
+    const account = localStorage.getItem("userAddress");
+    if (account !== null) setCurrentAccount(account);
+  };
+
   useEffect(() => {
-    if (isMounted) configData();
+    if (isMounted) {
+      const account = localStorage.getItem("userAddress");
+      if (account !== null) setCurrentAccount(account);
+    }
   }, [isMounted]);
 
   const getTokenboundClient = async (
@@ -47,43 +59,15 @@ const ERC6551Page = () => {
     });
   };
 
-  const ERC6551_Is_V3 = async (
-    signer: unknown,
-    account: string
-  ): Promise<boolean> => {
-    const abi = [
-      "function supportsInterface(bytes4 interfaceId) external view returns (bool)"
-    ];
-    const erc6551 = new Contract(account, abi, signer as Signer);
-    return await erc6551.supportsInterface("0x6faff5f1");
-  };
-
-  const updateData = async () => {
-    const account = localStorage.getItem("userAddress");
-    if (account !== null) setCurrentAccount(account);
-  };
-
-  const configData = async () => {
-    const account = localStorage.getItem("userAddress");
-    if (account !== null) setCurrentAccount(account);
-  };
-
   const getTBAHandler = async () => {
-    const contractEl = document.getElementById(
-      "contract"
-    ) as HTMLTextAreaElement | null;
-    const tokenIdEl = document.getElementById(
-      "tokenId"
-    ) as HTMLTextAreaElement | null;
-    if (!contractEl || !tokenIdEl) return;
-    const contract = contractEl.value;
-    const tokenId = tokenIdEl.value;
-    if (!isAddress(contract)) {
-      alert("contract is not address");
+    const c = contract.trim();
+    const t = tokenId.trim();
+    if (!isAddress(c)) {
+      toast.error("Contract is not a valid address");
       return;
     }
-    if (tokenId === "") {
-      alert("tokenId is empty");
+    if (t === "") {
+      toast.error("Token ID is required");
       return;
     }
     try {
@@ -91,8 +75,8 @@ const ERC6551Page = () => {
       if (!signer || chainId == null) return;
       const tokenboundClient = await getTokenboundClient(signer, chainId);
       const account = tokenboundClient.getAccount({
-        tokenContract: contract as `0x${string}`,
-        tokenId
+        tokenContract: c as `0x${string}`,
+        tokenId: t
       });
       setTbAccount(account);
       const isCreate = await tokenboundClient.checkAccountDeployment({
@@ -100,32 +84,24 @@ const ERC6551Page = () => {
       });
       setCreated(String(isCreate));
       if (isCreate) {
-        const iframe = `${url_iframe}/${contract}/${tokenId}/${chainId}`;
-        setSrcIframe(iframe);
+        setSrcIframe(`${url_iframe}/${c}/${t}/${chainId}`);
       } else {
         setSrcIframe(null);
       }
     } catch (error) {
-      console.log(error);
+      toast.error((error as Error)?.message ?? "Failed");
     }
   };
 
   const createHandler = async () => {
-    const contractEl = document.getElementById(
-      "contract_create"
-    ) as HTMLTextAreaElement | null;
-    const tokenIdEl = document.getElementById(
-      "tokenId_create"
-    ) as HTMLTextAreaElement | null;
-    if (!contractEl || !tokenIdEl) return;
-    const contract = contractEl.value;
-    const tokenId = tokenIdEl.value;
-    if (!isAddress(contract)) {
-      alert("contract is not address");
+    const c = contractCreate.trim();
+    const t = tokenIdCreate.trim();
+    if (!isAddress(c)) {
+      toast.error("Contract is not a valid address");
       return;
     }
-    if (tokenId === "") {
-      alert("tokenId is empty");
+    if (t === "") {
+      toast.error("Token ID is required");
       return;
     }
     try {
@@ -133,23 +109,22 @@ const ERC6551Page = () => {
       if (!signer || chainId == null) return;
       const tokenboundClient = await getTokenboundClient(signer, chainId);
       const account = tokenboundClient.getAccount({
-        tokenContract: contract as `0x${string}`,
-        tokenId
+        tokenContract: c as `0x${string}`,
+        tokenId: t
       });
       setTbAccount(account);
       const isCreate = await tokenboundClient.checkAccountDeployment({
         accountAddress: account
       });
-      setCreated(String(isCreate));
       if (isCreate) {
-        alert("Account is already created");
-        setSrcIframe(`${url_iframe}/${contract}/${tokenId}/${chainId}`);
+        toast("Account already created");
+        setSrcIframe(`${url_iframe}/${c}/${t}/${chainId}`);
         return;
       }
       setSrcIframe(null);
       const multiCallTx_data = await tokenboundClient.prepareCreateAccount({
-        tokenContract: contract as `0x${string}`,
-        tokenId
+        tokenContract: c as `0x${string}`,
+        tokenId: t
       });
       const tx = await signer.sendTransaction(
         multiCallTx_data as Parameters<Signer["sendTransaction"]>[0]
@@ -159,134 +134,158 @@ const ERC6551Page = () => {
         const etherscanURL = await getScanURL();
         setHashURL(`${etherscanURL}/tx/${tx.hash}`);
         const result = await tx.wait();
-        if (result?.status === 1) console.log("Success!");
-        else console.log("Failure!");
+        if (result?.status === 1) toast.success("Success");
+        else toast.error("Failed");
       }
     } catch (error) {
-      console.log(error);
+      toast.error((error as Error)?.message ?? "Failed");
     }
   };
 
   return (
-    <center>
-      <div>
-        <h2>ERC6551</h2>
-        <h3>
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>ERC-6551</h1>
+        <p>
           <a
             href="https://docs.tokenbound.org/contracts/deployments"
             target="_blank"
             rel="noreferrer"
+            style={{ color: "var(--w3-accent)" }}
           >
-            tokenbound v0.3.1
+            Tokenbound v0.3.1
           </a>
-        </h3>
-        <div className="bordered-div">
-          <div className="container">
-            <div className="input-container">
-              <label className="label" htmlFor="contract">
-                contract:
-              </label>
-              <textarea
-                className="textarea"
-                id="contract"
-                placeholder="0x11400ee484355c7bdf804702bf3367ebc7667e54"
-              />
-            </div>
-            <div className="input-container">
-              <label className="label" htmlFor="tokenId">
-                tokenId:
-              </label>
-              <textarea className="textarea" id="tokenId" placeholder="1053" />
-            </div>
-          </div>
-          <p />
-          {currentAccount ? (
-            <button
-              onClick={getTBAHandler}
-              className="cta-button mint-nft-button"
-            >
-              get TBA
-            </button>
-          ) : (
-            <button className="cta-button unlogin-nft-button">
-              Please Login DApp
-            </button>
-          )}
-          <div className="container">TB Account: {tbAccount}</div>
-          <div className="container">Created: {created}</div>
-        </div>
-        <p />
-        <p />
-        <div className="bordered-div">
-          <div className="container">
-            <div className="input-container">
-              <label className="label" htmlFor="contract_create">
-                contract:
-              </label>
-              <textarea
-                className="textarea"
-                id="contract_create"
-                placeholder="0x11400ee484355c7bdf804702bf3367ebc7667e54"
-              />
-            </div>
-            <div className="input-container">
-              <label className="label" htmlFor="tokenId_create">
-                tokenId:
-              </label>
-              <textarea
-                className="textarea"
-                id="tokenId_create"
-                placeholder="1053"
-              />
-            </div>
-          </div>
-          <p />
-          {currentAccount ? (
-            <button
-              onClick={createHandler}
-              className="cta-button mint-nft-button"
-            >
-              Create TBA
-            </button>
-          ) : (
-            <button className="cta-button unlogin-nft-button">
-              Please Login DApp
-            </button>
-          )}
-          <div className="container">TB Account: {tbAccount}</div>
-          <div className="container">Created: {created}</div>
-          {txHash && (
-            <div className="container" style={{ display: "inline" }}>
-              TxHash:{" "}
-              <a href={hashURL} target="_blank" rel="noopener noreferrer">
-                {txHash}
-              </a>
-            </div>
-          )}
-        </div>
-        <p />
-        <div>
-          {srcIframe != null && (
-            <iframe
-              style={{ width: "600px", height: "600px" }}
-              src={srcIframe}
-              title="Tokenbound"
-            />
-          )}
-        </div>
-      </div>
-      <div>
-        <h2>
-          Please See:
-          <p />
-          <textarea
-            value={message}
-            readOnly
-            style={{ width: "1200px", height: "100px" }}
+        </p>
+      </section>
+      <section className="feature-panel">
+        <h3>Get TBA</h3>
+        <div className="feature-field">
+          <label htmlFor="erc6551-contract">Contract</label>
+          <input
+            id="erc6551-contract"
+            type="text"
+            value={contract}
+            onChange={(e) => setContract(e.target.value)}
+            placeholder="0x11400ee484355c7bdf804702bf3367ebc7667e54"
+            className="estimate-address-input"
+            spellCheck={false}
+            autoComplete="off"
           />
-        </h2>
-      </div>
-    </center>
+        </div>
+        <div className="feature-field">
+          <label htmlFor="erc6551-tokenid">Token ID</label>
+          <input
+            id="erc6551-tokenid"
+            type="text"
+            value={tokenId}
+            onChange={(e) => setTokenId(e.target.value)}
+            placeholder="1053"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+        <div className="feature-actions">
+          <button
+            type="button"
+            onClick={getTBAHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Get TBA
+          </button>
+        </div>
+        {tbAccount != null && (
+          <div className="feature-field" style={{ marginTop: 12 }}>
+            <span className="feature-field-hint">TB Account: </span>
+            <span style={{ fontFamily: "var(--w3-font-mono)" }}>
+              {tbAccount}
+            </span>
+          </div>
+        )}
+        {created != null && (
+          <div className="feature-field">
+            <span className="feature-field-hint">Created: </span>
+            <span>{created}</span>
+          </div>
+        )}
+      </section>
+      <section className="feature-panel">
+        <h3>Create TBA</h3>
+        <div className="feature-field">
+          <label htmlFor="erc6551-contract-create">Contract</label>
+          <input
+            id="erc6551-contract-create"
+            type="text"
+            value={contractCreate}
+            onChange={(e) => setContractCreate(e.target.value)}
+            placeholder="0x11400ee484355c7bdf804702bf3367ebc7667e54"
+            className="estimate-address-input"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+        <div className="feature-field">
+          <label htmlFor="erc6551-tokenid-create">Token ID</label>
+          <input
+            id="erc6551-tokenid-create"
+            type="text"
+            value={tokenIdCreate}
+            onChange={(e) => setTokenIdCreate(e.target.value)}
+            placeholder="1053"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+        <div className="feature-actions">
+          <button
+            type="button"
+            onClick={createHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Create TBA
+          </button>
+        </div>
+        {tbAccount != null && (
+          <div className="feature-field" style={{ marginTop: 12 }}>
+            <span className="feature-field-hint">TB Account: </span>
+            <span style={{ fontFamily: "var(--w3-font-mono)" }}>
+              {tbAccount}
+            </span>
+          </div>
+        )}
+        {created != null && (
+          <div className="feature-field">
+            <span className="feature-field-hint">Created: </span>
+            <span>{created}</span>
+          </div>
+        )}
+        {txHash && hashURL && (
+          <div className="feature-tx-link" style={{ marginTop: 12 }}>
+            <p>Tx</p>
+            <a href={hashURL} target="_blank" rel="noopener noreferrer">
+              {txHash}
+            </a>
+          </div>
+        )}
+      </section>
+      {srcIframe != null && (
+        <section className="feature-panel">
+          <h3>Tokenbound</h3>
+          <iframe
+            style={{
+              width: "100%",
+              maxWidth: 600,
+              height: 600,
+              border: "1px solid var(--w3-border)",
+              borderRadius: "var(--w3-radius-sm)"
+            }}
+            src={srcIframe}
+            title="Tokenbound"
+          />
+        </section>
+      )}
+    </div>
   );
 };
 

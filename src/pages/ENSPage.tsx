@@ -1,24 +1,22 @@
 import { useEffect, useState } from "react";
 import {
-  getSystemData,
   getENSUniversalResolver,
   getAddressOfENSTheGraph,
-  getENSByTokenId,
-  getPriceBaseUSDT
+  getENSByTokenId
 } from "../api/GetData";
 import { isAddress } from "../utils/Utils";
-import { BigNumber } from "ethers";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { toast } from "sonner";
 
 const ENSPage = () => {
-  const [, setTableData] = useState<unknown[]>([]);
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [addressInput, setAddressInput] = useState("");
+  const [ensInput, setEnsInput] = useState("");
+  const [tokenIdInput, setTokenIdInput] = useState("");
   const [messageENS, setMessageENS] = useState("");
   const [messageAddress, setMessageAddress] = useState("");
   const [messageName, setMessageName] = useState("");
-  const [, setEthPrice] = useState("");
-  const [, setBnbPrice] = useState("");
 
   const { address, isConnected } = useAppKitAccount();
 
@@ -35,216 +33,216 @@ const ENSPage = () => {
     };
   }, []);
 
+  const updatePrices = async () => {
+    // keep for any future price display
+  };
+
   useEffect(() => {
     if (isMounted) {
-      configData();
-      updatePrices();
+      const account = localStorage.getItem("userAddress");
+      if (account !== null) setCurrentAccount(account);
     }
   }, [isMounted]);
 
-  const updatePrices = async () => {
-    try {
-      const result = (await getPriceBaseUSDT()) as {
-        code?: number;
-        data?: { ethPrice?: string; bnbPrice?: string };
-      };
-      if (result?.code === 200 && result.data) {
-        setEthPrice(result.data.ethPrice ?? "");
-        setBnbPrice(result.data.bnbPrice ?? "");
+  const parseAddress = (val: string): string | null => {
+    const trimmed = val.trim();
+    if (trimmed.length === 44 && trimmed.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(trimmed) as string;
+        return isAddress(parsed) ? parsed : null;
+      } catch {
+        return null;
       }
-    } catch {}
-  };
-
-  const configData = async () => {
-    try {
-      const account = localStorage.getItem("userAddress");
-      if (account !== null) setCurrentAccount(account);
-      const data = await getSystemData();
-      setTableData(Array.isArray(data) ? data : []);
-    } catch {}
+    }
+    return isAddress(trimmed) ? trimmed : null;
   };
 
   const getENSHandler = async () => {
-    const addressInput = document.getElementById(
-      "addressString"
-    ) as HTMLTextAreaElement | null;
-    if (!addressInput) return;
-    const addressValue = addressInput.value;
-    const res =
-      addressValue.length === 44 && addressValue.startsWith("[")
-        ? isAddress(JSON.parse(addressValue) as string)
-        : isAddress(addressValue);
-    if (!res) {
-      alert("地址错误");
+    const addr = parseAddress(addressInput);
+    if (!addr) {
+      toast.error("Invalid address");
       return;
     }
-    const result = await getENSUniversalResolver(addressValue);
+    const result = await getENSUniversalResolver(addr);
     if (result.code !== 200) {
-      alert((result as { message?: string }).message);
+      toast.error((result as { message?: string }).message);
       return;
     }
-    setMessageENS(result.data === null ? "null" : result.data);
+    setMessageENS(result.data === null ? "null" : String(result.data));
   };
 
   const getAddressHandler = async () => {
-    const ensInput = document.getElementById(
-      "ensString"
-    ) as HTMLTextAreaElement | null;
-    if (!ensInput) return;
-    const ensValue = ensInput.value;
-    if (ensValue.length < 4) {
-      alert("输入错误");
+    const ens = ensInput.trim();
+    if (ens.length < 4) {
+      toast.error("ENS name too short");
       return;
     }
-    const result = (await getAddressOfENSTheGraph(ensValue)) as {
+    const result = (await getAddressOfENSTheGraph(ens)) as {
       code?: number;
       message?: string;
       data?: string | null;
     };
     if (result.code !== 200) {
-      alert(result.message);
+      toast.error(result.message);
       return;
     }
     setMessageAddress(result.data === null ? "null" : (result.data ?? "null"));
   };
 
   const getNameByTokenIdHandler = async () => {
-    const tokenIdInput = document.getElementById(
-      "enstokenId"
-    ) as HTMLTextAreaElement | null;
-    if (!tokenIdInput) return;
-    const tokenIdValue = tokenIdInput.value;
-    if (tokenIdValue.length < 64) {
-      alert("输入错误");
+    const tokenId = tokenIdInput.trim();
+    if (tokenId.length < 64) {
+      toast.error("Token ID must be at least 64 chars");
       return;
     }
-    const result = (await getENSByTokenId(tokenIdValue)) as {
+    const result = (await getENSByTokenId(tokenId)) as {
       code?: number;
       message?: string;
       data?: string | null;
     };
     if (result.code !== 200) {
-      alert(result.message);
+      toast.error(result.message);
       return;
     }
     setMessageName(result.data === null ? "null" : (result.data ?? "null"));
   };
 
   return (
-    <center>
-      <div>
-        <div>
-          <h1>ENS Service</h1>
-          <div className="bordered-div">
-            <div>
-              <label>address:</label>
-              <textarea
-                id="addressString"
-                placeholder="0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b"
-                style={{ height: "24px", width: "400px", fontSize: "16px" }}
-              />
-            </div>
-            <p />
-            <div>
-              <button
-                onClick={getENSHandler}
-                className="cta-button mint-nft-button"
-                disabled={!currentAccount}
-              >
-                get ENS
-              </button>
-              <p />
-              Result ENS:
-              <textarea
-                value={messageENS}
-                readOnly
-                style={{
-                  width: "160px",
-                  height: "20px",
-                  color: "red",
-                  fontSize: "16px",
-                  textAlign: "center"
-                }}
-              />
-            </div>
-          </div>
-          <p />
-          <p />
-          <div className="bordered-div">
-            <div>
-              <label>ENS: </label>
-              <textarea
-                id="ensString"
-                placeholder="abc.eth"
-                style={{ height: "24px", width: "400px", fontSize: "16px" }}
-              />
-            </div>
-            <p />
-            <div>
-              <button
-                onClick={getAddressHandler}
-                className="cta-button mint-nft-button"
-                disabled={!currentAccount}
-              >
-                get Address
-              </button>
-              <p />
-              Result Address:
-              <textarea
-                value={messageAddress}
-                readOnly
-                style={{
-                  width: "400px",
-                  height: "24px",
-                  color: "red",
-                  fontSize: "16px",
-                  textAlign: "center"
-                }}
-              />
-              <p />
-            </div>
-          </div>
-          <p />
-          <p />
-          <div className="bordered-div">
-            <div>
-              <label>ENS TokenId: </label>
-              <textarea
-                id="enstokenId"
-                placeholder="79233663829379634837589865448569342784712482819484549289560981379859480642508"
-                style={{ height: "24px", width: "660px", fontSize: "16px" }}
-              />
-            </div>
-            <p />
-            <div>
-              <button
-                onClick={getNameByTokenIdHandler}
-                className="cta-button mint-nft-button"
-                disabled={!currentAccount}
-              >
-                get Name By TokenId
-              </button>
-              <p />
-              Result Name:
-              <textarea
-                value={messageName}
-                readOnly
-                style={{
-                  width: "400px",
-                  height: "24px",
-                  color: "red",
-                  fontSize: "16px",
-                  textAlign: "center"
-                }}
-              />
-              <p />
-            </div>
-          </div>
-          <p />
-          <p />
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>ENS Service</h1>
+        <p>Resolve ENS names and addresses</p>
+      </section>
+      <section className="feature-panel">
+        <h3>Get ENS by address</h3>
+        <div className="feature-field">
+          <label htmlFor="ens-address">Address</label>
+          <input
+            id="ens-address"
+            type="text"
+            value={addressInput}
+            onChange={(e) => setAddressInput(e.target.value)}
+            placeholder="0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b"
+            className="estimate-address-input"
+            spellCheck={false}
+            autoComplete="off"
+          />
         </div>
-      </div>
-    </center>
+        <div className="feature-actions">
+          <button
+            type="button"
+            onClick={getENSHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Get ENS
+          </button>
+        </div>
+        {messageENS && (
+          <div className="feature-field" style={{ marginTop: 12 }}>
+            <label>Result</label>
+            <div
+              style={{
+                padding: "10px 12px",
+                background: "var(--w3-bg-elevated)",
+                borderRadius: "var(--w3-radius-sm)",
+                border: "1px solid var(--w3-border)",
+                fontFamily: "var(--w3-font-mono)",
+                color: "var(--w3-accent)"
+              }}
+            >
+              {messageENS}
+            </div>
+          </div>
+        )}
+      </section>
+      <section className="feature-panel">
+        <h3>Get address by ENS</h3>
+        <div className="feature-field">
+          <label htmlFor="ens-name">ENS name</label>
+          <input
+            id="ens-name"
+            type="text"
+            value={ensInput}
+            onChange={(e) => setEnsInput(e.target.value)}
+            placeholder="abc.eth"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+        <div className="feature-actions">
+          <button
+            type="button"
+            onClick={getAddressHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Get address
+          </button>
+        </div>
+        {messageAddress && (
+          <div className="feature-field" style={{ marginTop: 12 }}>
+            <label>Result</label>
+            <div
+              style={{
+                padding: "10px 12px",
+                background: "var(--w3-bg-elevated)",
+                borderRadius: "var(--w3-radius-sm)",
+                border: "1px solid var(--w3-border)",
+                fontFamily: "var(--w3-font-mono)",
+                color: "var(--w3-accent)",
+                wordBreak: "break-all"
+              }}
+            >
+              {messageAddress}
+            </div>
+          </div>
+        )}
+      </section>
+      <section className="feature-panel">
+        <h3>Get name by token ID</h3>
+        <div className="feature-field">
+          <label htmlFor="ens-tokenid">ENS token ID</label>
+          <input
+            id="ens-tokenid"
+            type="text"
+            value={tokenIdInput}
+            onChange={(e) => setTokenIdInput(e.target.value)}
+            placeholder="79233663829379634837589865448569342784712482819484549289560981379859480642508"
+            className="estimate-address-input"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+        <div className="feature-actions">
+          <button
+            type="button"
+            onClick={getNameByTokenIdHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount}
+          >
+            Get name by token ID
+          </button>
+        </div>
+        {messageName && (
+          <div className="feature-field" style={{ marginTop: 12 }}>
+            <label>Result</label>
+            <div
+              style={{
+                padding: "10px 12px",
+                background: "var(--w3-bg-elevated)",
+                borderRadius: "var(--w3-radius-sm)",
+                border: "1px solid var(--w3-border)",
+                fontFamily: "var(--w3-font-mono)",
+                color: "var(--w3-accent)"
+              }}
+            >
+              {messageName}
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
   );
 };
 

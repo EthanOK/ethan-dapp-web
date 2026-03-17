@@ -428,78 +428,72 @@ const CrossChainBridgePage = () => {
   };
 
   return (
-    <center>
+    <div className="feature-page main-app">
       {showAlert && (
-        <div className="alert">
-          <h1>Claim Successful!</h1>
+        <div className="feature-alert">
+          <strong>Claim Successful!</strong>
         </div>
-      )}{" "}
-      <h1>Please Switch To Goerli OR TBSC</h1>
-      <h2>Cross-Chain Bridge(YGIO)</h2>
-      <div>
-        <div className="bordered-div">
-          <h2>Goerli {"==>"} TBSC </h2>
-          <div>
-            <label>Send YGIO Amount:&nbsp;</label>
-            <textarea
-              id="amountSend"
-              placeholder="10000"
-              style={{ height: "24px", width: "400px", fontSize: "16px" }}
-            />
-          </div>
-          <p></p>
-
-          {currentAccount ? sendButton("toTBSC") : PleaseLogin()}
-
-          <p></p>
-          <div>
-            <p>Balance: {balanceOfCC_T}</p>
-            <label>Claim YGIO Amount: &nbsp;</label>
-            <textarea
-              id="amountClaim"
-              defaultValue={balanceOfCC_T}
-              style={{ height: "24px", width: "400px", fontSize: "16px" }}
-            />
-            <p> </p>
-          </div>
-
-          {currentAccount ? claimTokenButton("inTBSC") : PleaseLogin()}
-        </div>
-      </div>
-      <p></p>
-      <div>
-        <div className="bordered-div">
-          <h2> TBSC {"==>"} Goerli </h2>
-          <div>
-            <label>Send YGIO Amount:&nbsp;</label>
-            <textarea
-              id="amountSend_T"
-              placeholder="10000"
-              style={{ height: "24px", width: "400px", fontSize: "16px" }}
-            />
-          </div>
-          <p></p>
-
-          {currentAccount ? sendButton("toGoerli") : PleaseLogin()}
-
-          <p></p>
-          <div>
-            <p>Balance: {balanceOfCC_G}</p>
-            <label>Claim YGIO Amount: &nbsp;</label>
-            <textarea
-              id="amountClaim_G"
-              defaultValue={balanceOfCC_G}
-              style={{ height: "24px", width: "400px", fontSize: "16px" }}
-            />
-          </div>
-
-          {currentAccount ? claimTokenButton("inGoerli") : PleaseLogin()}
-        </div>
+      )}
+      <section className="feature-hero">
+        <h1>Cross-Chain Bridge (YGIO)</h1>
+        <p>Please switch to Goerli or TBSC</p>
+      </section>
+      <section className="feature-panel">
+        <h3>Goerli → TBSC</h3>
         <div>
-          <p></p>{" "}
+          <label>Send YGIO Amount:&nbsp;</label>
+          <textarea
+            id="amountSend"
+            placeholder="10000"
+            style={{ height: "24px", width: "400px", fontSize: "16px" }}
+          />
         </div>
-      </div>
-    </center>
+        <p></p>
+
+        {currentAccount ? sendButton("toTBSC") : PleaseLogin()}
+
+        <p></p>
+        <div>
+          <p>Balance: {balanceOfCC_T}</p>
+          <label>Claim YGIO Amount: &nbsp;</label>
+          <textarea
+            id="amountClaim"
+            defaultValue={balanceOfCC_T}
+            style={{ height: "24px", width: "400px", fontSize: "16px" }}
+          />
+          <p> </p>
+        </div>
+
+        {currentAccount ? claimTokenButton("inTBSC") : PleaseLogin()}
+      </section>
+      <section className="feature-panel">
+        <h3>TBSC → Goerli</h3>
+        <div>
+          <label>Send YGIO Amount:&nbsp;</label>
+          <textarea
+            id="amountSend_T"
+            placeholder="10000"
+            style={{ height: "24px", width: "400px", fontSize: "16px" }}
+          />
+        </div>
+        <p></p>
+
+        {currentAccount ? sendButton("toGoerli") : PleaseLogin()}
+
+        <p></p>
+        <div>
+          <p>Balance: {balanceOfCC_G}</p>
+          <label>Claim YGIO Amount: &nbsp;</label>
+          <textarea
+            id="amountClaim_G"
+            defaultValue={balanceOfCC_G}
+            style={{ height: "24px", width: "400px", fontSize: "16px" }}
+          />
+        </div>
+
+        {currentAccount ? claimTokenButton("inGoerli") : PleaseLogin()}
+      </section>
+    </div>
   );
 };
 

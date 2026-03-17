@@ -8,13 +8,9 @@ import {
 import { getSigner } from "../utils/GetProvider";
 import { toast } from "sonner";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { truncateHash } from "../utils/format";
 
 const PLACEHOLDER_ADDRESS = "0xe698a7917eEE4fDf03296add549eE4A7167DD406";
-
-const truncateHash = (hash: string, start = 18, end = 16): string => {
-  if (!hash || hash.length <= start + end) return hash;
-  return `${hash.slice(0, start)}…${hash.slice(-end)}`;
-};
 
 const CreateTransactionPage = () => {
   const [isMounted, setIsMounted] = useState(false);

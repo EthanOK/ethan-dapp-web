@@ -55,25 +55,36 @@ const DataDisplayPage = () => {
   };
 
   return (
-    <center>
-      <div>
-        <h2>
-          ETH Price:&nbsp;
-          <span style={{ color: "red" }}>{ethPrice}</span>
-          &nbsp;USD
-          <p />
-          BNB Price:&nbsp;
-          <span style={{ color: "red" }}>{bnbPrice}</span>
-          &nbsp;USD
-        </h2>
-      </div>
-      <div>
-        <div>
-          <h1>Data Table</h1>
-          <DataTable data={tableData} />
+    <div className="feature-page main-app">
+      <section className="feature-hero">
+        <h1>Data Display</h1>
+        <p>System data and price feed</p>
+      </section>
+      <section className="feature-panel">
+        <h3>Prices (USDT)</h3>
+        <div
+          className="feature-field"
+          style={{ display: "flex", gap: 24, flexWrap: "wrap" }}
+        >
+          <div>
+            <span className="feature-field-hint">ETH</span>
+            <span style={{ color: "var(--w3-accent)", fontWeight: 600 }}>
+              {ethPrice || "—"}
+            </span>
+          </div>
+          <div>
+            <span className="feature-field-hint">BNB</span>
+            <span style={{ color: "var(--w3-accent)", fontWeight: 600 }}>
+              {bnbPrice || "—"}
+            </span>
+          </div>
         </div>
-      </div>
-    </center>
+      </section>
+      <section className="feature-panel">
+        <h3>Data Table</h3>
+        <DataTable data={tableData} />
+      </section>
+    </div>
   );
 };
 
