@@ -2,7 +2,11 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider";
 import { DefaultChainId } from "../common/SystemConfiguration";
-import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import {
+  useAppKitAccount,
+  useAppKitBalance,
+  useAppKitNetwork
+} from "@reown/appkit/react";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { toast } from "sonner";
@@ -265,10 +269,14 @@ const HomePage = () => {
   const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
   const { address, isConnected } = useAppKitAccount();
   const solanaAccount = useAppKitAccount({ namespace: "solana" });
+  const bitcoinAccount = useAppKitAccount({ namespace: "bip122" });
+  const { fetchBalance } = useAppKitBalance();
   const { connection: solanaConnection } = useAppKitConnection();
   const isSolanaNetwork = caipNetwork?.chainNamespace === "solana";
+  const isBitcoinNetwork = caipNetwork?.chainNamespace === "bip122";
   const balanceSymbol =
-    caipNetwork?.nativeCurrency?.symbol ?? (isSolanaNetwork ? "SOL" : "ETH");
+    caipNetwork?.nativeCurrency?.symbol ??
+    (isSolanaNetwork ? "SOL" : isBitcoinNetwork ? "BTC" : "ETH");
 
   const evmChainIdForQr = useMemo(() => {
     return (
@@ -330,7 +338,7 @@ const HomePage = () => {
     : null;
 
   useEffect(() => {
-    if (isSolanaNetwork) return;
+    if (isSolanaNetwork || isBitcoinNetwork) return;
     if (isConnected && address) {
       setCurrentAccount(address);
       setChainId(String(currentChainId ?? ""));
@@ -339,7 +347,57 @@ const HomePage = () => {
         setCurrentAccountNonce(res?.nonce ?? null);
       });
     }
-  }, [isConnected, address, currentChainId, isSolanaNetwork]);
+  }, [isConnected, address, currentChainId, isSolanaNetwork, isBitcoinNetwork]);
+
+  useEffect(() => {
+    if (!isBitcoinNetwork) return;
+    // 与 AppKit 一致：优先 accountState；部分钱包在 balance 拉取前 address 会出现在 allAccounts
+    const fromAll = bitcoinAccount?.allAccounts?.[0]?.caipAddress;
+    const btcAddress =
+      bitcoinAccount?.address ??
+      (fromAll ? fromAll.split(":").slice(2).join(":") : undefined) ??
+      address;
+    if (!btcAddress) {
+      setCurrentAccount(null);
+      setCurrentAccountBalance(null);
+      setCurrentAccountNonce(null);
+      return;
+    }
+    // 先展示地址，再异步拉余额（fetchBalance 失败时不应挡住地址）
+    setCurrentAccount(btcAddress);
+    setChainId(String(currentChainId ?? ""));
+    setCurrentAccountNonce(null);
+
+    let isActive = true;
+    const refreshBitcoinStats = async () => {
+      try {
+        const res = await fetchBalance();
+        if (!isActive) return;
+        if (res.isSuccess && res.data?.balance != null) {
+          setCurrentAccountBalance(res.data.balance);
+        } else {
+          setCurrentAccountBalance(null);
+        }
+      } catch (error) {
+        if (!isActive) return;
+        console.warn("Load Bitcoin balance failed:", error);
+        setCurrentAccountBalance(null);
+      }
+    };
+    refreshBitcoinStats();
+    const timerId = setInterval(refreshBitcoinStats, 15000);
+    return () => {
+      isActive = false;
+      clearInterval(timerId);
+    };
+  }, [
+    isBitcoinNetwork,
+    bitcoinAccount?.address,
+    bitcoinAccount?.allAccounts?.[0]?.caipAddress,
+    address,
+    currentChainId,
+    fetchBalance
+  ]);
 
   useEffect(() => {
     if (!isSolanaNetwork) return;
