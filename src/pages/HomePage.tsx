@@ -2,9 +2,15 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider";
 import { DefaultChainId } from "../common/SystemConfiguration";
-import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import {
+  useAppKitAccount,
+  useAppKitBalance,
+  useAppKitNetwork
+} from "@reown/appkit/react";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import { toast } from "sonner";
+import AddressStyledQR from "../components/AddressStyledQR";
 import "./HomePage.css";
 
 const COINGECKO_MARKETS_URL =
@@ -126,6 +132,43 @@ function formatMarketCap(num: number | null | undefined): string {
   return "$" + num.toFixed(0);
 }
 
+/** 与 ChainsConfig / AppKit 中配置的 EVM 链 id 一致 */
+const EVM_QR_SCHEME_BY_CHAIN_ID: Record<number, string> = {
+  1: "ethereum",
+  11155111: "sepolia",
+  8453: "base",
+  560048: "hoodi",
+  56: "bsc"
+};
+
+function parsePositiveChainId(
+  v: number | string | undefined | null
+): number | undefined {
+  if (v == null) return undefined;
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const t = v.trim();
+    if (/^\d+$/.test(t)) return Number(t);
+    if (/^0x[0-9a-fA-F]+$/i.test(t)) return parseInt(t, 16);
+  }
+  return undefined;
+}
+
+/** 扫码用：Solana / Bitcoin 固定前缀；EVM 仅四条链带 scheme，其余纯地址 */
+function walletPaymentUriForQr(
+  address: string,
+  chainNamespace: string | undefined,
+  evmChainId: number | undefined
+): string {
+  if (chainNamespace === "solana") return `solana:${address}`;
+  if (chainNamespace === "bip122") return `bitcoin:${address}`;
+
+  const scheme =
+    evmChainId != null ? EVM_QR_SCHEME_BY_CHAIN_ID[evmChainId] : undefined;
+  if (scheme) return `${scheme}:${address}`;
+  return address;
+}
+
 async function fetchTickerFromCoinGecko(): Promise<CoinItem[]> {
   const res = await fetch(COINGECKO_MARKETS_URL);
   if (!res.ok) throw new Error("CoinGecko request failed");
@@ -215,6 +258,7 @@ const HomePage = () => {
   });
   const [marketUpdatedAt, setMarketUpdatedAt] = useState<number | null>(null);
   const [marketSearch, setMarketSearch] = useState("");
+  const [addressQrOpen, setAddressQrOpen] = useState(false);
 
   const marketFilteredList = useMemo(() => {
     const q = marketSearch.trim().toLowerCase();
@@ -225,10 +269,30 @@ const HomePage = () => {
   const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
   const { address, isConnected } = useAppKitAccount();
   const solanaAccount = useAppKitAccount({ namespace: "solana" });
+  const bitcoinAccount = useAppKitAccount({ namespace: "bip122" });
+  const { fetchBalance } = useAppKitBalance();
   const { connection: solanaConnection } = useAppKitConnection();
   const isSolanaNetwork = caipNetwork?.chainNamespace === "solana";
+  const isBitcoinNetwork = caipNetwork?.chainNamespace === "bip122";
   const balanceSymbol =
-    caipNetwork?.nativeCurrency?.symbol ?? (isSolanaNetwork ? "SOL" : "ETH");
+    caipNetwork?.nativeCurrency?.symbol ??
+    (isSolanaNetwork ? "SOL" : isBitcoinNetwork ? "BTC" : "ETH");
+
+  const evmChainIdForQr = useMemo(() => {
+    return (
+      parsePositiveChainId(caipNetwork?.id) ??
+      parsePositiveChainId(currentChainId as string | number | undefined)
+    );
+  }, [caipNetwork?.id, currentChainId]);
+
+  const addressQrPayload = useMemo(() => {
+    if (!currentAccount) return "";
+    return walletPaymentUriForQr(
+      currentAccount,
+      caipNetwork?.chainNamespace,
+      evmChainIdForQr
+    );
+  }, [currentAccount, caipNetwork?.chainNamespace, evmChainIdForQr]);
 
   const loadTicker = useCallback(async () => {
     const cached = getCachedMarketData();
@@ -274,7 +338,7 @@ const HomePage = () => {
     : null;
 
   useEffect(() => {
-    if (isSolanaNetwork) return;
+    if (isSolanaNetwork || isBitcoinNetwork) return;
     if (isConnected && address) {
       setCurrentAccount(address);
       setChainId(String(currentChainId ?? ""));
@@ -283,7 +347,57 @@ const HomePage = () => {
         setCurrentAccountNonce(res?.nonce ?? null);
       });
     }
-  }, [isConnected, address, currentChainId, isSolanaNetwork]);
+  }, [isConnected, address, currentChainId, isSolanaNetwork, isBitcoinNetwork]);
+
+  useEffect(() => {
+    if (!isBitcoinNetwork) return;
+    // 与 AppKit 一致：优先 accountState；部分钱包在 balance 拉取前 address 会出现在 allAccounts
+    const fromAll = bitcoinAccount?.allAccounts?.[0]?.caipAddress;
+    const btcAddress =
+      bitcoinAccount?.address ??
+      (fromAll ? fromAll.split(":").slice(2).join(":") : undefined) ??
+      address;
+    if (!btcAddress) {
+      setCurrentAccount(null);
+      setCurrentAccountBalance(null);
+      setCurrentAccountNonce(null);
+      return;
+    }
+    // 先展示地址，再异步拉余额（fetchBalance 失败时不应挡住地址）
+    setCurrentAccount(btcAddress);
+    setChainId(String(currentChainId ?? ""));
+    setCurrentAccountNonce(null);
+
+    let isActive = true;
+    const refreshBitcoinStats = async () => {
+      try {
+        const res = await fetchBalance();
+        if (!isActive) return;
+        if (res.isSuccess && res.data?.balance != null) {
+          setCurrentAccountBalance(res.data.balance);
+        } else {
+          setCurrentAccountBalance(null);
+        }
+      } catch (error) {
+        if (!isActive) return;
+        console.warn("Load Bitcoin balance failed:", error);
+        setCurrentAccountBalance(null);
+      }
+    };
+    refreshBitcoinStats();
+    const timerId = setInterval(refreshBitcoinStats, 15000);
+    return () => {
+      isActive = false;
+      clearInterval(timerId);
+    };
+  }, [
+    isBitcoinNetwork,
+    bitcoinAccount?.address,
+    bitcoinAccount?.allAccounts?.[0]?.caipAddress,
+    address,
+    currentChainId,
+    fetchBalance
+  ]);
 
   useEffect(() => {
     if (!isSolanaNetwork) return;
@@ -333,6 +447,19 @@ const HomePage = () => {
       window.removeEventListener("app-network-changed", onNetworkChanged);
   }, []);
 
+  useEffect(() => {
+    if (!addressQrOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAddressQrOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [addressQrOpen]);
+
+  useEffect(() => {
+    if (!currentAccount) setAddressQrOpen(false);
+  }, [currentAccount]);
+
   return (
     <div className="home-page main-app">
       <section className="home-hero">
@@ -348,11 +475,18 @@ const HomePage = () => {
         </div>
         <div className="home-card">
           <div className="home-card-label">Account</div>
-          <div className="home-card-value" title={currentAccount ?? ""}>
-            {currentAccount
-              ? `${currentAccount.slice(0, 6)}…${currentAccount.slice(-4)}`
-              : "—"}
-          </div>
+          {currentAccount ? (
+            <button
+              type="button"
+              className="home-card-value home-card-address-trigger"
+              title={`${currentAccount} — click for QR`}
+              onClick={() => setAddressQrOpen(true)}
+            >
+              {`${currentAccount.slice(0, 6)}…${currentAccount.slice(-4)}`}
+            </button>
+          ) : (
+            <div className="home-card-value">—</div>
+          )}
         </div>
         <div className="home-card">
           <div className="home-card-label">Balance</div>
@@ -463,6 +597,67 @@ const HomePage = () => {
           </>
         )}
       </section>
+
+      {addressQrOpen && currentAccount && (
+        <div
+          className="home-qr-overlay"
+          onClick={() => setAddressQrOpen(false)}
+          role="presentation"
+        >
+          <div
+            className="home-qr-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="home-qr-heading"
+          >
+            <button
+              type="button"
+              className="home-qr-close"
+              onClick={() => setAddressQrOpen(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="home-qr-code-box">
+              <AddressStyledQR
+                value={addressQrPayload}
+                className="home-qr-styled-root"
+              />
+            </div>
+            <p id="home-qr-heading" className="home-qr-hint">
+              Copy your address or scan this QR code
+            </p>
+            <button
+              type="button"
+              className="home-qr-copy"
+              onClick={() => {
+                navigator.clipboard.writeText(currentAccount).then(
+                  () => toast.success("Address copied"),
+                  () => toast.error("Copy failed")
+                );
+              }}
+            >
+              <svg
+                className="home-qr-copy-icon"
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              Copy address
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

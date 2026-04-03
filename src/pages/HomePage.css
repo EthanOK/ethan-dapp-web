@@ -563,3 +563,156 @@
   font-family: var(--w3-font-mono);
   font-size: 0.75rem;
 }
+
+/* Address → QR modal */
+.home-card-address-trigger {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  font-family: var(--w3-font-mono);
+  font-size: 0.95rem;
+  color: var(--w3-text);
+  word-break: break-all;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.home-card-address-trigger:hover {
+  color: var(--w3-accent);
+}
+
+.home-card-address-trigger:focus-visible {
+  outline: 2px solid var(--w3-accent);
+  outline-offset: 2px;
+}
+
+.home-qr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(6px);
+}
+
+.home-qr-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 32px 28px 24px;
+  background: linear-gradient(
+    165deg,
+    var(--w3-bg-elevated) 0%,
+    var(--w3-bg-card) 100%
+  );
+  border: 1px solid var(--w3-border);
+  border-radius: calc(var(--w3-radius-lg) + 2px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 28px 64px rgba(0, 0, 0, 0.55);
+}
+
+.home-qr-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--w3-radius-sm);
+  background: transparent;
+  color: var(--w3-text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.home-qr-close:hover {
+  color: var(--w3-text);
+  background: var(--w3-bg-hover);
+}
+
+.home-qr-code-box {
+  margin: 4px 0 20px;
+  padding: 22px 20px 20px;
+  background: #f3f3f5;
+  border-radius: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 8px 24px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-qr-styled-root {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  line-height: 0;
+}
+
+.home-qr-styled-root svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
+.home-qr-copy-icon {
+  flex-shrink: 0;
+  opacity: 0.88;
+}
+
+.home-qr-hint {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--w3-text);
+}
+
+.home-qr-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 10px 20px;
+  border: 1px solid var(--w3-border);
+  border-radius: 9999px;
+  background: var(--w3-bg-card);
+  color: var(--w3-text);
+  font-size: 0.9rem;
+  font-family: var(--w3-font-sans);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.home-qr-copy:hover {
+  border-color: var(--w3-border-accent);
+  background: var(--w3-bg-hover);
+}

@@ -39,7 +39,9 @@ import {
   sepolia,
   hoodi,
   solanaDevnet,
-  solana
+  solana,
+  bitcoin,
+  bitcoinTestnet
 } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
 import { initializeSubscribers } from "./utils/Suscribers";
@@ -47,6 +49,7 @@ import { toast, Toaster } from "sonner";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { login } from "./utils/ConnectWallet";
 import { SolanaAdapter } from "@reown/appkit-adapter-solana";
+import { BitcoinAdapter } from "@reown/appkit-adapter-bitcoin";
 
 if (typeof window !== "undefined") {
   (window as Window).Buffer =
@@ -62,7 +65,9 @@ type AppKitNetwork =
   | typeof base
   | typeof bsc
   | typeof solanaDevnet
-  | typeof solana;
+  | typeof solana
+  | typeof bitcoin
+  | typeof bitcoinTestnet;
 
 export const getDefaultNetwork = (chainId: string | number): AppKitNetwork => {
   const all: AppKitNetwork[] = [
@@ -72,7 +77,9 @@ export const getDefaultNetwork = (chainId: string | number): AppKitNetwork => {
     base,
     bsc,
     solanaDevnet,
-    solana
+    solana,
+    bitcoin,
+    bitcoinTestnet
   ];
   const asString = String(chainId);
 
@@ -106,8 +113,10 @@ const headerNetworksAll: AppKitNetwork[] = [
   hoodi,
   bsc,
   base,
+  solana,
   solanaDevnet,
-  solana
+  bitcoin,
+  bitcoinTestnet
 ];
 
 const projectId = projectId_walletconnect;
@@ -124,9 +133,19 @@ const FALLBACK_CHAIN_ICON =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 export const modal = createAppKit({
-  adapters: [new Ethers5Adapter(), new SolanaAdapter()],
+  adapters: [new Ethers5Adapter(), new SolanaAdapter(), new BitcoinAdapter()],
   metadata,
-  networks: [sepolia, hoodi, mainnet, base, bsc, solanaDevnet, solana],
+  networks: [
+    sepolia,
+    hoodi,
+    mainnet,
+    base,
+    bsc,
+    solana,
+    solanaDevnet,
+    bitcoin,
+    bitcoinTestnet
+  ],
   defaultNetwork: getDefaultNetwork(storedChainId),
   projectId: projectId ?? "",
   chainImages: {
@@ -163,6 +182,7 @@ function App() {
 
   const { address, isConnected } = useAppKitAccount();
   const solanaAccount = useAppKitAccount({ namespace: "solana" });
+  const bitcoinAccount = useAppKitAccount({ namespace: "bip122" });
   const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
   const [isConnecting, setIsConnecting] = useState(false);
   const prevIsConnectedRef = useRef(false);
@@ -193,6 +213,24 @@ function App() {
     }
   }, [isConnected, address, currentChainId]);
 
+  // 仅连接 Bitcoin 时同步头部网络值（默认 account hook 可能无 EVM address）
+  useEffect(() => {
+    if (caipNetwork?.chainNamespace !== "bip122") return;
+    if (!bitcoinAccount?.isConnected || !bitcoinAccount?.address) return;
+    if (currentChainId === undefined || currentChainId === null) return;
+    const active = getDefaultNetwork(currentChainId);
+    const activeValue = String(
+      (active as any).caipNetworkId ?? (active as any).id
+    );
+    setChainId(activeValue);
+    localStorage.setItem("chainId", activeValue);
+  }, [
+    caipNetwork?.chainNamespace,
+    bitcoinAccount?.isConnected,
+    bitcoinAccount?.address,
+    currentChainId
+  ]);
+
   // Solana 网络切换后，主动刷新一次 native balance，避免 AppKit 按钮停留在旧余额/0
   useEffect(() => {
     const isSolana = caipNetwork?.chainNamespace === "solana";
@@ -210,6 +248,25 @@ function App() {
     caipNetwork?.chainNamespace,
     solanaAccount?.isConnected,
     solanaAccount?.address,
+    currentChainId
+  ]);
+
+  // Bitcoin 网络切换后刷新 native balance（与 Solana 一致）
+  useEffect(() => {
+    const isBitcoin = caipNetwork?.chainNamespace === "bip122";
+    const btcAddress = bitcoinAccount?.address;
+    if (!isBitcoin || !bitcoinAccount?.isConnected || !btcAddress) return;
+    if (currentChainId === undefined || currentChainId === null) return;
+
+    try {
+      modal?.updateNativeBalance(btcAddress, currentChainId as any, "bip122");
+    } catch (e) {
+      console.warn("updateNativeBalance (bip122) failed", e);
+    }
+  }, [
+    caipNetwork?.chainNamespace,
+    bitcoinAccount?.isConnected,
+    bitcoinAccount?.address,
     currentChainId
   ]);
 
