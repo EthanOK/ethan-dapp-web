@@ -2,15 +2,13 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider";
 import { DefaultChainId } from "../common/SystemConfiguration";
-import {
-  useAppKitAccount,
-  useAppKitBalance,
-  useAppKitNetwork
-} from "@reown/appkit/react";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { bitcoinTestnet } from "@reown/appkit/networks";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { toast } from "sonner";
 import AddressStyledQR from "../components/AddressStyledQR";
+import { getBitCoinBalance } from "../utils/BitcoinBalance";
 import "./HomePage.css";
 
 const COINGECKO_MARKETS_URL =
@@ -270,7 +268,6 @@ const HomePage = () => {
   const { address, isConnected } = useAppKitAccount();
   const solanaAccount = useAppKitAccount({ namespace: "solana" });
   const bitcoinAccount = useAppKitAccount({ namespace: "bip122" });
-  const { fetchBalance } = useAppKitBalance();
   const { connection: solanaConnection } = useAppKitConnection();
   const isSolanaNetwork = caipNetwork?.chainNamespace === "solana";
   const isBitcoinNetwork = caipNetwork?.chainNamespace === "bip122";
@@ -363,21 +360,22 @@ const HomePage = () => {
       setCurrentAccountNonce(null);
       return;
     }
-    // 先展示地址，再异步拉余额（fetchBalance 失败时不应挡住地址）
+    // 先展示地址，再异步拉余额（mempool.space UTXO）
     setCurrentAccount(btcAddress);
     setChainId(String(currentChainId ?? ""));
     setCurrentAccountNonce(null);
 
+    const btcTestnet =
+      caipNetwork?.caipNetworkId === bitcoinTestnet.caipNetworkId;
+
     let isActive = true;
     const refreshBitcoinStats = async () => {
       try {
-        const res = await fetchBalance();
+        const sats = await getBitCoinBalance(btcAddress, {
+          // testnet: btcTestnet
+        });
         if (!isActive) return;
-        if (res.isSuccess && res.data?.balance != null) {
-          setCurrentAccountBalance(res.data.balance);
-        } else {
-          setCurrentAccountBalance(null);
-        }
+        setCurrentAccountBalance(String(sats / 1e8));
       } catch (error) {
         if (!isActive) return;
         console.warn("Load Bitcoin balance failed:", error);
@@ -396,7 +394,7 @@ const HomePage = () => {
     bitcoinAccount?.allAccounts?.[0]?.caipAddress,
     address,
     currentChainId,
-    fetchBalance
+    caipNetwork?.caipNetworkId
   ]);
 
   useEffect(() => {
