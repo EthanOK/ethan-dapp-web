@@ -691,6 +691,29 @@
   color: var(--w3-text);
 }
 
+.home-qr-address {
+  margin: -6px auto 14px;
+  width: 100%;
+  max-width: 360px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--w3-border);
+  background: color-mix(in srgb, var(--w3-bg-card) 88%, black);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+
+.home-qr-address-text {
+  display: block;
+  width: 100%;
+  font-family: var(--w3-font-mono);
+  font-size: 0.85rem;
+  color: var(--w3-text);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: text;
+}
+
 .home-qr-copy {
   display: flex;
   align-items: center;
@@ -715,4 +738,156 @@
 .home-qr-copy:hover {
   border-color: var(--w3-border-accent);
   background: var(--w3-bg-hover);
+}
+
+/* Footer */
+.home-footer {
+  max-width: 980px;
+  margin: 48px auto 0;
+  padding: 18px 12px 40px;
+}
+
+.home-footer-inner {
+  position: relative;
+  width: min(760px, 100%);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--w3-border);
+  background:
+    radial-gradient(
+      120% 180% at 12% 10%,
+      var(--w3-accent-glow),
+      rgba(0, 0, 0, 0) 60%
+    ),
+    linear-gradient(180deg, var(--w3-bg-elevated), var(--w3-bg-card));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 14px 34px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(0, 0, 0, 0.18) inset;
+  backdrop-filter: blur(12px);
+}
+
+.home-footer-inner::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  pointer-events: none;
+  box-shadow: 0 0 26px var(--w3-accent-glow);
+  opacity: 0.65;
+}
+
+.home-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.home-footer-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 30% 30%,
+    color-mix(in srgb, var(--w3-accent) 75%, white),
+    var(--w3-accent) 45%,
+    var(--w3-accent-dim)
+  );
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--w3-accent) 18%, transparent),
+    0 0 18px var(--w3-accent-glow);
+}
+
+.home-footer-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--w3-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-card);
+  color: var(--w3-text);
+  text-decoration: none;
+  font-size: 0.85rem;
+  line-height: 1;
+  font-family: var(--w3-font-sans);
+  cursor: pointer;
+  transition:
+    border-color 0.18s,
+    background 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+
+.home-footer-link:hover {
+  border-color: var(--w3-border-accent);
+  background: var(--w3-bg-hover);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.08) inset,
+    0 0 20px var(--w3-accent-glow);
+  transform: translateY(-1px);
+}
+
+.home-footer-link-accent {
+  border-color: var(--w3-border-accent);
+  background: color-mix(in srgb, var(--w3-accent) 14%, var(--w3-bg-card));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--w3-accent) 16%, transparent) inset,
+    0 0 22px var(--w3-accent-glow);
+}
+
+.home-footer-icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.home-footer-link-text {
+  letter-spacing: 0.01em;
+}
+
+.home-footer-address {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--w3-border-accent) 60%, transparent);
+  background: color-mix(in srgb, var(--w3-accent) 10%, var(--w3-bg-card));
+  color: var(--w3-accent);
+  font-family: var(--w3-font-mono);
+  font-size: 0.8em;
+  line-height: 1.2;
+}
+
+@media (max-width: 720px) {
+  .home-footer-inner {
+    width: 100%;
+    border-radius: 24px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .home-footer-links {
+    justify-content: flex-start;
+  }
 }

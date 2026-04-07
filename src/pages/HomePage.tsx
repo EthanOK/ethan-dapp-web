@@ -7,7 +7,11 @@ import { bitcoinTestnet } from "@reown/appkit/networks";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { toast } from "sonner";
-import AddressStyledQR from "../components/AddressStyledQR";
+import { build as buildEthUrl, parse as parseEthUrl } from "eth-url-parser";
+import AddressStyledQR, {
+  prewarmAddressStyledQr,
+  PREWARM_PLACEHOLDER
+} from "../components/AddressStyledQR";
 import { getBitCoinBalance } from "../utils/BitcoinBalance";
 import "./HomePage.css";
 
@@ -25,6 +29,20 @@ interface CoinItem {
   marketCap: string;
   high24h: string;
   low24h: string;
+}
+
+function middleEllipsis(
+  input: string,
+  head = 20,
+  tail = 18,
+  ellipsis = "…"
+): string {
+  const s = (input ?? "").trim();
+  if (!s) return "";
+  if (head <= 0 || tail <= 0) return s;
+  const keep = head + tail + ellipsis.length;
+  if (s.length <= keep) return s;
+  return s.slice(0, head) + ellipsis + s.slice(-tail);
 }
 
 function getCachedMarketData(): {
@@ -130,15 +148,6 @@ function formatMarketCap(num: number | null | undefined): string {
   return "$" + num.toFixed(0);
 }
 
-/** 与 ChainsConfig / AppKit 中配置的 EVM 链 id 一致 */
-const EVM_QR_SCHEME_BY_CHAIN_ID: Record<number, string> = {
-  1: "ethereum",
-  11155111: "sepolia",
-  8453: "base",
-  560048: "hoodi",
-  56: "bsc"
-};
-
 function parsePositiveChainId(
   v: number | string | undefined | null
 ): number | undefined {
@@ -152,19 +161,27 @@ function parsePositiveChainId(
   return undefined;
 }
 
-/** 扫码用：Solana / Bitcoin 固定前缀；EVM 仅四条链带 scheme，其余纯地址 */
+/** 扫码用：Solana / Bitcoin 固定前缀；EVM 用 EIP-681/831 的 ethereum URI */
 function walletPaymentUriForQr(
   address: string,
   chainNamespace: string | undefined,
-  evmChainId: number | undefined
+  evmChainId: number | undefined,
+  value?: string | undefined
 ): string {
   if (chainNamespace === "solana") return `solana:${address}`;
   if (chainNamespace === "bip122") return `bitcoin:${address}`;
 
-  const scheme =
-    evmChainId != null ? EVM_QR_SCHEME_BY_CHAIN_ID[evmChainId] : undefined;
-  if (scheme) return `${scheme}:${address}`;
-  return address;
+  try {
+    // 生成形如：ethereum:0xabc...@1（chain_id 可选）
+    return buildEthUrl({
+      scheme: "ethereum",
+      target_address: address,
+      chain_id: evmChainId != null ? String(evmChainId) : undefined,
+      parameters: value != null ? { value } : undefined
+    });
+  } catch {
+    return address;
+  }
 }
 
 async function fetchTickerFromCoinGecko(): Promise<CoinItem[]> {
@@ -257,6 +274,14 @@ const HomePage = () => {
   const [marketUpdatedAt, setMarketUpdatedAt] = useState<number | null>(null);
   const [marketSearch, setMarketSearch] = useState("");
   const [addressQrOpen, setAddressQrOpen] = useState(false);
+  const [donateQrOpen, setDonateQrOpen] = useState(false);
+
+  // 你的收款地址（用于 Donate 弹窗与 footer 显示）
+  const {
+    target_address: donateAddress,
+    parameters: { value: donateValue },
+    scheme
+  } = parseEthUrl(PREWARM_PLACEHOLDER);
 
   const marketFilteredList = useMemo(() => {
     const q = marketSearch.trim().toLowerCase();
@@ -281,6 +306,16 @@ const HomePage = () => {
       parsePositiveChainId(currentChainId as string | number | undefined)
     );
   }, [caipNetwork?.id, currentChainId]);
+
+  const donateQrPayload = useMemo(() => {
+    // Donate 默认二维码：按 EVM 方式生成（ethereum:...@chainId）
+    return walletPaymentUriForQr(
+      donateAddress,
+      undefined,
+      undefined,
+      donateValue
+    );
+  }, [donateAddress]);
 
   const addressQrPayload = useMemo(() => {
     if (!currentAccount) return "";
@@ -318,6 +353,8 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
+    // 预热二维码实例，避免首次打开弹窗时才初始化导致的闪烁/空白
+    prewarmAddressStyledQr();
     loadTicker();
     const interval = setInterval(loadTicker, 60000);
     return () => clearInterval(interval);
@@ -453,6 +490,15 @@ const HomePage = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [addressQrOpen]);
+
+  useEffect(() => {
+    if (!donateQrOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDonateQrOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [donateQrOpen]);
 
   useEffect(() => {
     if (!currentAccount) setAddressQrOpen(false);
@@ -626,6 +672,11 @@ const HomePage = () => {
             <p id="home-qr-heading" className="home-qr-hint">
               Copy your address or scan this QR code
             </p>
+            <div className="home-qr-address" title={currentAccount}>
+              <span className="home-qr-address-text">
+                {middleEllipsis(currentAccount)}
+              </span>
+            </div>
             <button
               type="button"
               className="home-qr-copy"
@@ -656,6 +707,144 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+      {donateQrOpen && (
+        <div
+          className="home-qr-overlay"
+          onClick={() => setDonateQrOpen(false)}
+          role="presentation"
+        >
+          <div
+            className="home-qr-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="home-donate-qr-heading"
+          >
+            <button
+              type="button"
+              className="home-qr-close"
+              onClick={() => setDonateQrOpen(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="home-qr-code-box">
+              <AddressStyledQR
+                value={donateQrPayload}
+                className="home-qr-styled-root"
+              />
+            </div>
+            <p id="home-donate-qr-heading" className="home-qr-hint">
+              Copy your donate address or scan this QR code
+            </p>
+            <div className="home-qr-address" title={donateAddress}>
+              <span className="home-qr-address-text">
+                {middleEllipsis(donateAddress)}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="home-qr-copy"
+              onClick={() => {
+                navigator.clipboard.writeText(donateAddress).then(
+                  () => toast.success("Address copied"),
+                  () => toast.error("Copy failed")
+                );
+              }}
+            >
+              <svg
+                className="home-qr-copy-icon"
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              Copy address
+            </button>
+          </div>
+        </div>
+      )}
+
+      <footer className="home-footer" aria-label="Site links">
+        <div className="home-footer-inner">
+          <div className="home-footer-brand" aria-label="0xEthan DApp">
+            <span className="home-footer-dot" aria-hidden />
+            <span className="home-footer-name">0xEthan DApp</span>
+          </div>
+          <nav className="home-footer-links" aria-label="External links">
+            <a
+              className="home-footer-link"
+              href="https://github.com/EthanOK/ethan-dapp-web"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <svg
+                className="home-footer-icon"
+                viewBox="0 0 24 24"
+                width={16}
+                height={16}
+                aria-hidden
+              >
+                <path
+                  fill="currentColor"
+                  d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.18-3.37-1.18-.45-1.15-1.11-1.46-1.11-1.46-.9-.62.07-.61.07-.61 1 .07 1.52 1.03 1.52 1.03.89 1.52 2.33 1.08 2.9.82.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.85-2.34 4.7-4.57 4.95.36.31.68.93.68 1.88v2.78c0 .26.18.57.69.48A10 10 0 0 0 12 2Z"
+                />
+              </svg>
+              <span className="home-footer-link-text">GitHub</span>
+            </a>
+            <a
+              className="home-footer-link"
+              href="https://x.com/EthanOK"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <svg
+                className="home-footer-icon"
+                viewBox="0 0 24 24"
+                width={16}
+                height={16}
+                aria-hidden
+              >
+                <path
+                  fill="currentColor"
+                  d="M18.9 2H22l-6.8 7.8L23 22h-6.3l-4.9-6.4L6.2 22H3l7.3-8.4L1 2h6.5l4.4 5.8L18.9 2Zm-1.1 18h1.7L6.6 3.9H4.8L17.8 20Z"
+                />
+              </svg>
+              <span className="home-footer-link-text">X</span>
+            </a>
+            <button
+              type="button"
+              className="home-footer-link home-footer-link-accent"
+              onClick={() => setDonateQrOpen(true)}
+            >
+              <svg
+                className="home-footer-icon"
+                viewBox="0 0 24 24"
+                width={16}
+                height={16}
+                aria-hidden
+              >
+                <path
+                  fill="currentColor"
+                  d="M12 21s-7.05-4.37-9.5-8.28C.53 9.61 2.02 6.5 5.5 6.5c1.74 0 3.05.96 3.78 2.03.72-1.07 2.04-2.03 3.72-2.03 3.48 0 4.97 3.11 3 6.22C19.05 16.63 12 21 12 21Z"
+                />
+              </svg>
+              <span className="home-footer-link-text">
+                Donate <span className="home-footer-address">{scheme}</span>
+              </span>
+            </button>
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 };
