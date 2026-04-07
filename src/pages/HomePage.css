@@ -743,8 +743,8 @@
 /* Footer */
 .home-footer {
   max-width: 980px;
-  margin: 48px auto 0;
-  padding: 18px 12px 40px;
+  margin: 28px auto 0;
+  padding: 14px 12px 18px;
 }
 
 .home-footer-inner {
@@ -753,7 +753,7 @@
   margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 14px;
   padding: 10px 12px;
   border-radius: 9999px;
@@ -816,7 +816,7 @@
 .home-footer-links {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
 }
@@ -880,14 +880,64 @@
   line-height: 1.2;
 }
 
+.home-footer-version {
+  position: relative;
+  border-style: dashed;
+  background: color-mix(in srgb, var(--w3-bg-card) 55%, transparent);
+  box-shadow: none;
+}
+
+.home-footer-version::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%) translateY(2px);
+  padding: 6px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--w3-border);
+  background: color-mix(in srgb, var(--w3-bg-elevated) 92%, black);
+  color: var(--w3-text);
+  font-family: var(--w3-font-mono);
+  font-size: 0.78rem;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(0, 0, 0, 0.14) inset;
+}
+
+.home-footer-version:hover::after,
+.home-footer-version:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.home-footer-version:hover {
+  transform: none;
+  box-shadow: 0 0 18px
+    color-mix(in srgb, var(--w3-accent-glow) 55%, transparent);
+}
+
+.home-footer-version-text {
+  font-family: var(--w3-font-mono);
+  letter-spacing: 0;
+  opacity: 0.9;
+}
+
 @media (max-width: 720px) {
   .home-footer-inner {
     width: 100%;
     border-radius: 24px;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
   }
   .home-footer-links {
-    justify-content: flex-start;
+    justify-content: center;
   }
 }

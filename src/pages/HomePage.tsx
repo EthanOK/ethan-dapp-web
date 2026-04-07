@@ -776,11 +776,29 @@ const HomePage = () => {
 
       <footer className="home-footer" aria-label="Site links">
         <div className="home-footer-inner">
-          <div className="home-footer-brand" aria-label="0xEthan DApp">
-            <span className="home-footer-dot" aria-hidden />
-            <span className="home-footer-name">0xEthan DApp</span>
-          </div>
           <nav className="home-footer-links" aria-label="External links">
+            <button
+              type="button"
+              className="home-footer-link home-footer-version"
+              data-tooltip={`v${process.env.REACT_APP_VERSION ?? "dev"}`}
+              aria-label="Version"
+            >
+              <svg
+                className="home-footer-icon"
+                viewBox="0 0 24 24"
+                width={16}
+                height={16}
+                aria-hidden
+              >
+                <path
+                  fill="currentColor"
+                  d="M12 2a7 7 0 0 1 7 7c0 3.87-3.13 7-7 7a7 7 0 0 1-7-7c0-3.87 3.13-7 7-7Zm0 2a5 5 0 1 0 0 10a5 5 0 0 0 0-10Zm0 13c4.08 0 7.53 2.08 9 5.25a1 1 0 0 1-.92 1.35H3.92A1 1 0 0 1 3 22.25C4.47 19.08 7.92 17 12 17Z"
+                />
+              </svg>
+              <span className="home-footer-link-text home-footer-version-text">
+                Version
+              </span>
+            </button>
             <a
               className="home-footer-link"
               href="https://github.com/EthanOK/ethan-dapp-web"
@@ -803,7 +821,27 @@ const HomePage = () => {
             </a>
             <a
               className="home-footer-link"
-              href="https://x.com/EthanOK"
+              href="https://github.com/EthanOK/ethan-dapp-web/releases"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <svg
+                className="home-footer-icon"
+                viewBox="0 0 24 24"
+                width={16}
+                height={16}
+                aria-hidden
+              >
+                <path
+                  fill="currentColor"
+                  d="M10 3H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Zm0 10H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1Zm10-10h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Zm0 10h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1Z"
+                />
+              </svg>
+              <span className="home-footer-link-text">Releases</span>
+            </a>
+            <a
+              className="home-footer-link"
+              href="https://x.com/0xEthanHub"
               target="_blank"
               rel="noreferrer"
             >
