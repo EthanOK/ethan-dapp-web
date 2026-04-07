@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.8](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.7...v2.2.8) (2026-04-07)
+
+
+### Features
+
+* add address styled qr code ([e16810b](https://github.com/EthanOK/ethan-dapp-web/commit/e16810b6d378fa43b00658a8db98ee86ebb545be))
+* add bitcoin support to home page ([baec00f](https://github.com/EthanOK/ethan-dapp-web/commit/baec00fe9bce03b0b0d11be253b5c0abe7fc7e14))
+* add eth-url-parser for ethereum encoded uri ([4a58e8d](https://github.com/EthanOK/ethan-dapp-web/commit/4a58e8d6f5f6b96723ff079da8823da199079652))
+* add umami analytics ([c5ccbe8](https://github.com/EthanOK/ethan-dapp-web/commit/c5ccbe82f184ac03023db653a9de0fe4b9a46ac1))
+* add version footer ([5f30597](https://github.com/EthanOK/ethan-dapp-web/commit/5f30597780a1fa046d9e91ec954214507fc6560d))
+* refactor solana utils page and burn token page ([77adc9d](https://github.com/EthanOK/ethan-dapp-web/commit/77adc9dcf1ebea1ac58bb0ae57823f3a62f1156b))
+* update faucet config and page ([e1782ae](https://github.com/EthanOK/ethan-dapp-web/commit/e1782ae7cbd23bfc10b547ea66b4b46dc6c9779d))
+* update translation status and UI for SolanaUtilsPage ([a1eac3f](https://github.com/EthanOK/ethan-dapp-web/commit/a1eac3fb70a67865d4d1fe48c19875470673f7d5))
+
+
+### Bug Fixes
+
+* fix get bitcoin balance in home page ([639ad0e](https://github.com/EthanOK/ethan-dapp-web/commit/639ad0ee6546a74064fd869a484fa185d91c0add))
+* fixed left menu problem ([6bcfc69](https://github.com/EthanOK/ethan-dapp-web/commit/6bcfc69373cc655a2abe95140f05c20f120ebb08))
+* update chainId in HomePage ([6bc8ae8](https://github.com/EthanOK/ethan-dapp-web/commit/6bc8ae813ab9e401ac8b00978d8aa09a884030ed))
+* update placeholder addresses and data in EstimateTxFeePage and CreateTransactionPage ([25093ce](https://github.com/EthanOK/ethan-dapp-web/commit/25093ced332682620b096c7b1ef106451201cb75))
+
 ### [2.2.7](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.6...v2.2.7) (2026-03-06)
 
 
