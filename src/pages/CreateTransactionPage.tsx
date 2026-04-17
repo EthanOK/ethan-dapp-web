@@ -9,8 +9,37 @@ import { getSigner } from "../utils/GetProvider";
 import { toast } from "sonner";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { truncateHash } from "../utils/format";
+import { ethers } from "ethers";
 
 const PLACEHOLDER_ADDRESS = "0xe698a7917eEE4fDf03296add549eE4A7167DD406";
+const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
+
+const parseToAddresses = (raw: string): string[] => {
+  const trimmed = raw.trim();
+  if (trimmed === "") return [];
+
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed) as unknown;
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((x) => String(x).trim()).filter((x) => x.length > 0);
+    } catch {
+      // fall through to bracket/delimiter parsing (e.g. [0x..,0x..])
+    }
+  }
+
+  const withoutBrackets =
+    trimmed.startsWith("[") && trimmed.endsWith("]")
+      ? trimmed.slice(1, -1)
+      : trimmed;
+
+  return withoutBrackets
+    .split(/[\n,]+/g)
+    .map((s) => s.trim())
+    .map((s) => s.replace(/^['"]+|['"]+$/g, ""))
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+};
 
 const CreateTransactionPage = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -49,7 +78,13 @@ const CreateTransactionPage = () => {
   }, [isMounted]);
 
   const transferNativeHandler = async () => {
-    if (!isAddress(to)) {
+    const toList = parseToAddresses(to);
+    if (toList.length === 0) {
+      toast.error("To address is not valid");
+      return;
+    }
+    const invalid = toList.find((a) => !isAddress(a));
+    if (invalid) {
       toast.error("To address is not valid");
       return;
     }
@@ -60,17 +95,42 @@ const CreateTransactionPage = () => {
         ? undefined
         : utf8ToHexBytes(inputData);
 
+    if (toList.length > 1 && (hexData ?? "").trim() !== "") {
+      toast.error("Batch transfer does not support Data");
+      return;
+    }
+
     setTransferTx(null);
     setIsTransferring(true);
     try {
       const signer = await getSigner();
       if (!signer) return;
       const url = await getScanURL();
-      const tx = await signer.sendTransaction({
-        to,
-        data: hexData,
-        value: amountBN
-      });
+      const tx =
+        toList.length === 1
+          ? await signer.sendTransaction({
+              to: toList[0],
+              data: hexData,
+              value: amountBN
+            })
+          : await (async () => {
+              const iface = new ethers.utils.Interface([
+                "function aggregate3Value(tuple(address target,bool allowFailure,uint256 value,bytes callData)[] calls) payable returns (tuple(bool success,bytes returnData)[] returnData)"
+              ]);
+              const calls = toList.map((addr) => ({
+                target: addr,
+                allowFailure: false,
+                value: amountBN,
+                callData: "0x"
+              }));
+              const data = iface.encodeFunctionData("aggregate3Value", [calls]);
+              const totalValue = amountBN.mul(toList.length);
+              return signer.sendTransaction({
+                to: MULTICALL3_ADDRESS,
+                data,
+                value: totalValue
+              });
+            })();
       const link = `${url}/tx/${tx.hash}`;
       setTransferTx({ link, status: "pending" });
       const receipt = await tx.wait();
@@ -181,17 +241,20 @@ const CreateTransactionPage = () => {
         <h3>Transfer native coin</h3>
         <p className="feature-field-hint">
           Send ETH (or native token) to an address. Data can be text or hex
-          (0x...); leave empty for a simple transfer.
+          (0x...); leave empty for a simple transfer. To can also be an array
+          (JSON like [0x..,0x..] or comma/newline separated). When multiple
+          addresses are provided, it will batch transfer via Multicall3 and
+          treat Value as per-recipient amount.
         </p>
         <div className="feature-field">
           <label htmlFor="create-to">To</label>
-          <input
+          <textarea
             id="create-to"
-            type="text"
             value={to}
             onChange={(e) => setTo(e.target.value)}
             placeholder={PLACEHOLDER_ADDRESS}
             className="estimate-address-input"
+            rows={2}
             spellCheck={false}
             autoComplete="off"
           />
