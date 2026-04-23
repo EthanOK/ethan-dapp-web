@@ -21,7 +21,8 @@ const faucetConfigRaw: FaucetConfigRaw = {
     "TSLA-B": "0xFB9B3eB69Ed3aba67ACE2f5aec1FFbFC0b4bE8A1",
     "NVDA-B": "0xE0fED50FC039aE3A0F83C4c72EB592AE5BaD4062",
     "APPL-B": "0xfBFaDc2405640350a79307C406df832cd09CAAfB",
-    "META-B": "0xa5955BB625Da796fC0Af249aBCddEf2cC8Cd48cD"
+    "META-B": "0xa5955BB625Da796fC0Af249aBCddEf2cC8Cd48cD",
+    "USDC-Circle": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
   },
   560048: {
     faucet: "0x88272A2F9481A18B648A03a076FbfaB5381e31D2",
@@ -39,6 +40,7 @@ export interface FaucetTokenItem {
 
 export const faucetTokenListByChain: Record<number, FaucetTokenItem[]> = {
   11155111: [
+    { label: "USDC-Circle", faucetAmount: 5000 },
     { label: "USDT", faucetAmount: 100000 },
     { label: "USDC", faucetAmount: 100000 },
     { label: "stETH", faucetAmount: 10000 },
