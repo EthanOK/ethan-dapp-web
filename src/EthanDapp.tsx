@@ -31,6 +31,7 @@ import Web3AuthPage from "./pages/Web3AuthPage";
 import WsolPage from "./pages/WsolPage";
 import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
 import EIP7702Page from "./pages/EIP7702Page";
+import ERC20AllowancePage from "./pages/ERC20AllowancePage";
 import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
 import {
   base,
@@ -356,6 +357,7 @@ function App() {
     { title: "0xEthan DApp", linkTo: "/" },
     { title: "Estimate TxFee", linkTo: "/estimateTxFee" },
     { title: "Create Transaction", linkTo: "/createTransaction" },
+    { title: "ERC20 Allowance", linkTo: "/erc20Allowance" },
     { title: "Faucet Token", linkTo: "/faucet" },
     { title: "Burn Token", linkTo: "/burn" },
     { title: "ENS Service", linkTo: "/ens" },
@@ -535,6 +537,7 @@ function App() {
                 path="/createTransaction"
                 element={<CreateTransactionPage />}
               />
+              <Route path="/erc20Allowance" element={<ERC20AllowancePage />} />
               <Route path="/utils" element={<UtilsPage />} />
               <Route path="/erc6551" element={<ERC6551Page />} />
               <Route path="/eip7702" element={<EIP7702Page />} />
