@@ -7,8 +7,7 @@ import {
 } from "../utils/GetContract";
 import { getDecimal, getDecimalBigNumber } from "../utils/Utils";
 import { BigNumber } from "ethers";
-import { switchChain, getSignerAndChainId } from "../utils/GetProvider";
-import { login } from "../utils/ConnectWallet";
+import { getSignerAndChainId } from "../utils/GetProvider";
 import {
   faucetChainIdList,
   faucetConfig,
@@ -33,6 +32,7 @@ const FaucetTokenPage = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [isTransactionProcessing, setIsTransactionProcessing] = useState(false);
   const [isSwitchingChain, setIsSwitchingChain] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const { address, isConnected } = useAppKitAccount();
   const { chainId: chainIdCurrent } = useAppKitNetwork();
@@ -55,6 +55,25 @@ const FaucetTokenPage = () => {
       }
     }
   }, [isConnected, address, chainIdCurrent]);
+
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    try {
+      localStorage.setItem("LoginType", "reown");
+      // Prefer opening the AppKit modal when available
+      const maybeModal = modal as unknown as {
+        open?: () => Promise<void> | void;
+      };
+      await maybeModal?.open?.();
+      // If modal.open doesn't exist, user can still connect via header appkit button
+    } catch (error) {
+      console.error("Connect failed:", error);
+      localStorage.removeItem("LoginType");
+      toast.error("Connect wallet failed, please try again");
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedChainId) {
@@ -315,7 +334,23 @@ const FaucetTokenPage = () => {
         await updateBalance();
       }
     } catch (error) {
-      console.log(error);
+      const e = error as {
+        code?: string | number;
+        reason?: string;
+        message?: string;
+      };
+      const msg = String(e?.message ?? e?.reason ?? "");
+      const rejected =
+        String(e?.code) === "ACTION_REJECTED" ||
+        String(e?.code) === "4001" ||
+        /user rejected|rejected|denied/i.test(msg);
+      if (rejected) {
+        toast("User rejected the transaction");
+      } else if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Faucet failed, please try again");
+      }
     } finally {
       setIsTransactionProcessing(false);
     }
@@ -363,37 +398,6 @@ const FaucetTokenPage = () => {
     } catch (error) {
       console.log(error);
       return false;
-    }
-  };
-
-  const connectandsign = async () => {
-    const connect = await checkWalletIsConnected();
-    if (!connect) return;
-    localStorage.setItem("LoginType", "metamask");
-    const eth = window.ethereum as
-      | {
-          request: (a: {
-            method: string;
-            params?: unknown[];
-          }) => Promise<unknown>;
-        }
-      | undefined;
-    if (eth) {
-      const chainId = await eth.request({ method: "eth_chainId" });
-      const chainId_local = localStorage.getItem("chainId");
-      if (chainId !== chainId_local && chainId_local) {
-        await switchChain(chainId_local);
-      }
-    }
-    const result = await login();
-    if (result && typeof result === "object" && "userAddress" in result) {
-      const account = (result as { userAddress?: string }).userAddress;
-      if (account) {
-        localStorage.setItem("userAddress", account);
-        setCurrentAccount(account);
-        setShowAlert(true);
-        setTimeout(() => setShowAlert(false), 3000);
-      }
     }
   };
 
@@ -514,10 +518,11 @@ const FaucetTokenPage = () => {
       {!currentAccount && (
         <section className="feature-panel">
           <button
-            onClick={connectandsign}
+            onClick={handleConnect}
             className="cta-button connect-wallet-button"
+            disabled={isConnecting}
           >
-            Metamask Login
+            {isConnecting ? "Connecting..." : "Connect Wallet"}
           </button>
         </section>
       )}
