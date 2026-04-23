@@ -14,7 +14,7 @@ export const SupportChains: ChainConfig[] = [
     chainId: "0x1",
     name: "Ethereum",
     chainName: "Ethereum Mainnet",
-    rpcUrls: ["https://rpc.ankr.com/eth"],
+    rpcUrls: ["https://0xrpc.io/eth"],
     nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     blockExplorerUrls: ["https://etherscan.io"]
   },
@@ -23,7 +23,7 @@ export const SupportChains: ChainConfig[] = [
     chainId: "0xaa36a7",
     name: "Sepolia",
     chainName: "Sepolia Testnet",
-    rpcUrls: ["https://rpc.sepolia.org"],
+    rpcUrls: ["https://0xrpc.io/sep"],
     nativeCurrency: { name: "SepoliaETH", symbol: "ETH", decimals: 18 },
     blockExplorerUrls: ["https://sepolia.etherscan.io"]
   },
@@ -32,7 +32,7 @@ export const SupportChains: ChainConfig[] = [
     chainId: "0x88BB0",
     name: "Hoodi",
     chainName: "Hoodi Testnet",
-    rpcUrls: ["https://rpc.hoodi.org"],
+    rpcUrls: ["https://0xrpc.io/hoodi"],
     nativeCurrency: { name: "HoodiETH", symbol: "ETH", decimals: 18 },
     blockExplorerUrls: ["https://hoodi.etherscan.io"]
   },

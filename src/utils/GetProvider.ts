@@ -9,6 +9,39 @@ import { store } from "./Suscribers";
 
 type Ethers5Provider = providers.Web3Provider;
 
+const parseEvmChainIdFromStored = (stored: string | null): number | null => {
+  if (!stored) return null;
+  const s = String(stored).trim();
+  if (s === "") return null;
+
+  // CAIP-2: eip155:1
+  if (s.startsWith("eip155:")) {
+    const id = s.split(":")[1];
+    const n = Number(id);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  // non-EVM namespaces
+  if (s.startsWith("solana:") || s.startsWith("bip122:")) return null;
+
+  // plain numeric chain id
+  const n = Number(s);
+  if (Number.isFinite(n) && /^\d+$/.test(s)) return n;
+
+  return null;
+};
+
+export const getDefaultReadonlyProvider =
+  (): providers.StaticJsonRpcProvider | null => {
+    const stored = localStorage.getItem("chainId");
+    const evmChainId = parseEvmChainIdFromStored(stored);
+    if (!evmChainId) return null;
+    const chain = SupportChains.find((c) => Number(c.id) === evmChainId);
+    const rpc = chain?.rpcUrls?.[0];
+    if (!rpc) return null;
+    return new ethers.providers.StaticJsonRpcProvider(rpc, evmChainId);
+  };
+
 export const switchChain = async (chainId: string): Promise<boolean> => {
   const chain = SupportChains.find((c) => c.id === chainId);
   if (!chain || !window.ethereum) {
