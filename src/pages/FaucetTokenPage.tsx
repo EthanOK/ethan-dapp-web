@@ -23,7 +23,13 @@ const faucetFromAddress = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
 
 const FaucetTokenPage = () => {
   const [isMounted, setIsMounted] = useState(false);
-  const [currentAccount, setCurrentAccount] = useState<string | null>(null);
+  const [currentAccount, setCurrentAccount] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("userAddress");
+    } catch {
+      return null;
+    }
+  });
   const [chainId, setChainId] = useState<number | null>(null);
   const [showAlert, setShowAlert] = useState(false);
   const [selectedChainId, setSelectedChainId] = useState<number | null>(null);
@@ -36,6 +42,17 @@ const FaucetTokenPage = () => {
 
   const { address, isConnected } = useAppKitAccount();
   const { chainId: chainIdCurrent } = useAppKitNetwork();
+
+  const shouldShowConnect = (() => {
+    if (!isMounted) return false;
+    if (isConnected && address) return false;
+    try {
+      const stored = localStorage.getItem("@appkit/connection_status");
+      return stored !== "connected";
+    } catch {
+      return true;
+    }
+  })();
 
   const availableTokens = selectedChainId
     ? getFaucetTokenListByChain(selectedChainId)
@@ -53,6 +70,8 @@ const FaucetTokenPage = () => {
       } else if (!selectedChainId) {
         setSelectedChainId(faucetChainIdList[0]);
       }
+    } else if (!isConnected) {
+      setCurrentAccount(null);
     }
   }, [isConnected, address, chainIdCurrent]);
 
@@ -515,7 +534,7 @@ const FaucetTokenPage = () => {
           )}
         </section>
       )}
-      {!currentAccount && (
+      {shouldShowConnect && (
         <section className="feature-panel">
           <button
             onClick={handleConnect}
