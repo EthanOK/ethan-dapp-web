@@ -5,7 +5,11 @@ import {
   getScanURL,
   getDecimalBigNumber
 } from "../utils/Utils";
-import { getSigner } from "../utils/GetProvider";
+import {
+  getSigner,
+  getProvider,
+  getDefaultReadonlyProvider
+} from "../utils/GetProvider";
 import { toast } from "sonner";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { truncateHash } from "../utils/format";
@@ -41,6 +45,17 @@ const parseToAddresses = (raw: string): string[] => {
     .filter((s) => s.length > 0);
 };
 
+const TX_HASH_RE = /^0x[a-fA-F0-9]{64}$/;
+
+const parseNonceInput = (raw: string): number | "empty" | "invalid" => {
+  const t = raw.trim();
+  if (t === "") return "empty";
+  if (!/^\d+$/.test(t)) return "invalid";
+  const n = Number(t);
+  if (!Number.isSafeInteger(n) || n < 0) return "invalid";
+  return n;
+};
+
 const CreateTransactionPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
@@ -48,8 +63,10 @@ const CreateTransactionPage = () => {
   type TxResult = { link?: string; status: TxStatus };
   const [transferTx, setTransferTx] = useState<TxResult | null>(null);
   const [createTx, setCreateTx] = useState<TxResult | null>(null);
+  const [advTx, setAdvTx] = useState<TxResult | null>(null);
   const [isTransferring, setIsTransferring] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isAdvBusy, setIsAdvBusy] = useState(false);
 
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("0.1");
@@ -59,7 +76,64 @@ const CreateTransactionPage = () => {
   const [valueTx, setValueTx] = useState("0");
   const [dataTx, setDataTx] = useState("");
 
+  const [nonceTx, setNonceTx] = useState("");
+  const [cancelTxHash, setCancelTxHash] = useState("");
+  const [isFetchingNonceFromHash, setIsFetchingNonceFromHash] = useState(false);
+
   const { address, isConnected } = useAppKitAccount();
+
+  const resolveTxProvider = async () => {
+    const injected = await getProvider();
+    return injected ?? getDefaultReadonlyProvider();
+  };
+
+  const refreshPendingNonce = async (account: string | null) => {
+    if (!account || !isAddress(account)) return;
+    try {
+      const provider = await resolveTxProvider();
+      if (!provider) return;
+      const n = await provider.getTransactionCount(account, "latest");
+      setNonceTx(String(n));
+    } catch {
+      // leave field unchanged on failure
+    }
+  };
+
+  const fetchNonceFromTxHash = async () => {
+    const h = cancelTxHash.trim();
+    if (!TX_HASH_RE.test(h)) {
+      toast.error("Invalid transaction hash (0x + 64 hex)");
+      return;
+    }
+    setIsFetchingNonceFromHash(true);
+    try {
+      const provider = await resolveTxProvider();
+      if (!provider) {
+        toast.error("No RPC available");
+        return;
+      }
+      const tx = await provider.getTransaction(h);
+      if (!tx) {
+        toast.error("Transaction not found on this network");
+        return;
+      }
+      setNonceTx(String(tx.nonce));
+      if (
+        currentAccount &&
+        tx.from.toLowerCase() !== currentAccount.toLowerCase()
+      ) {
+        toast(
+          "Tx sender differs from connected wallet; nonce filled for review"
+        );
+      } else {
+        toast.success("Nonce loaded from transaction");
+      }
+    } catch {
+      toast.error("Failed to load transaction");
+    } finally {
+      setIsFetchingNonceFromHash(false);
+    }
+  };
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);
@@ -76,6 +150,11 @@ const CreateTransactionPage = () => {
       if (account !== null) setCurrentAccount(account);
     }
   }, [isMounted]);
+
+  useEffect(() => {
+    if (!isMounted || !currentAccount) return;
+    void refreshPendingNonce(currentAccount);
+  }, [isMounted, currentAccount]);
 
   const transferNativeHandler = async () => {
     const toList = parseToAddresses(to);
@@ -223,6 +302,68 @@ const CreateTransactionPage = () => {
     }
   };
 
+  /** Replace/cancel a stuck tx: self-transfer 0 ETH with the same nonce (use higher gas in the wallet if needed). */
+  const cancelTxHandler = async () => {
+    if (!currentAccount) {
+      toast.error("Connect wallet");
+      return;
+    }
+    const nonceParsed = parseNonceInput(nonceTx);
+    if (nonceParsed === "empty" || nonceParsed === "invalid") {
+      toast.error("Set the nonce of the pending transaction to cancel");
+      return;
+    }
+
+    setAdvTx(null);
+    setIsAdvBusy(true);
+    try {
+      const signer = await getSigner();
+      if (!signer) return;
+      const url = await getScanURL();
+      const tx = await signer.sendTransaction({
+        to: currentAccount,
+        data: "0x",
+        value: ethers.constants.Zero,
+        nonce: nonceParsed
+      });
+      const link = `${url}/tx/${tx.hash}`;
+      setAdvTx({ link, status: "pending" });
+      const receipt = await tx.wait();
+      setAdvTx({
+        link,
+        status: receipt.status === 1 ? "success" : "failed"
+      });
+      if (receipt.status === 1) {
+        toast.success("Cancelled transaction");
+        void refreshPendingNonce(currentAccount);
+      } else toast.error("Transaction failed");
+    } catch (err: unknown) {
+      const e = err as {
+        code?: number | string;
+        reason?: string;
+        message?: string;
+      };
+      const rejected =
+        String(e?.code) === "4001" ||
+        /rejected|denied|user rejected/i.test(
+          String(e?.message ?? e?.reason ?? "")
+        );
+      if (rejected) {
+        toast("Transaction rejected");
+        setAdvTx((prev) =>
+          prev ? { ...prev, status: "rejected" } : { status: "rejected" }
+        );
+      } else {
+        toast.error(e?.reason ?? e?.message ?? "Error");
+        setAdvTx((prev) =>
+          prev ? { ...prev, status: "failed" } : { status: "failed" }
+        );
+      }
+    } finally {
+      setIsAdvBusy(false);
+    }
+  };
+
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
@@ -318,6 +459,7 @@ const CreateTransactionPage = () => {
         <h3>Create transaction / Deploy contract</h3>
         <p className="feature-field-hint">
           Raw transaction with hex data. Leave To empty for contract deploy.
+          Nonce is chosen by the wallet.
         </p>
         <div className="feature-field">
           <label htmlFor="create-tx-to">To (optional for deploy)</label>
@@ -387,6 +529,101 @@ const CreateTransactionPage = () => {
                   title={createTx.link.split("/").pop() ?? ""}
                 >
                   {truncateHash(createTx.link.split("/").pop() ?? "")}
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="feature-panel">
+        <h3>Cancel pending</h3>
+        <p className="feature-field-hint">
+          Paste the pending or stuck transaction hash and load its nonce, or set
+          nonce manually. Refresh fills next nonce from chain head (
+          <code>latest</code>). Cancel sends 0 ETH to yourself with this nonce
+          to replace—raise gas in the wallet if needed.
+        </p>
+        <div className="feature-field">
+          <label htmlFor="adv-cancel-tx-hash">Transaction hash</label>
+          <div className="feature-actions feature-actions--inline">
+            <input
+              id="adv-cancel-tx-hash"
+              type="text"
+              value={cancelTxHash}
+              onChange={(e) => setCancelTxHash(e.target.value)}
+              placeholder="0x…"
+              spellCheck={false}
+              autoComplete="off"
+              className="estimate-address-input"
+              style={{ flex: 1, minWidth: 0 }}
+            />
+            <button
+              type="button"
+              className="cta-button mint-nft-button"
+              disabled={isAdvBusy || isFetchingNonceFromHash}
+              onClick={() => void fetchNonceFromTxHash()}
+            >
+              {isFetchingNonceFromHash ? "Loading…" : "Load nonce"}
+            </button>
+          </div>
+        </div>
+        <div className="feature-field">
+          <label htmlFor="adv-tx-nonce">Nonce</label>
+          <div className="feature-actions feature-actions--inline">
+            <input
+              id="adv-tx-nonce"
+              type="text"
+              inputMode="numeric"
+              value={nonceTx}
+              onChange={(e) => setNonceTx(e.target.value)}
+              placeholder="latest chain head"
+              spellCheck={false}
+              autoComplete="off"
+              className="estimate-address-input"
+              style={{ flex: 1, minWidth: 0 }}
+            />
+            <button
+              type="button"
+              className="cta-button mint-nft-button"
+              disabled={!currentAccount || isAdvBusy || isFetchingNonceFromHash}
+              onClick={() => void refreshPendingNonce(currentAccount)}
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div className="feature-actions feature-actions--inline">
+          <button
+            type="button"
+            onClick={cancelTxHandler}
+            className="cta-button mint-nft-button"
+            disabled={!currentAccount || isAdvBusy || isFetchingNonceFromHash}
+            title="0 ETH self-transfer with this nonce"
+          >
+            {isAdvBusy ? "Sending…" : "Cancel transaction"}
+          </button>
+          {advTx && (
+            <div
+              className={`feature-tx-result feature-tx-result--inline feature-tx-result--${advTx.status}`}
+            >
+              <span
+                className={`feature-tx-result-badge feature-tx-result-badge--${advTx.status}`}
+              >
+                {advTx.status === "pending" && "Pending"}
+                {advTx.status === "success" && "Success"}
+                {advTx.status === "failed" && "Failed"}
+                {advTx.status === "rejected" && "Rejected"}
+              </span>
+              {advTx.link && (
+                <a
+                  href={advTx.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="feature-tx-result-link"
+                  title={advTx.link.split("/").pop() ?? ""}
+                >
+                  {truncateHash(advTx.link.split("/").pop() ?? "")}
                 </a>
               )}
             </div>
