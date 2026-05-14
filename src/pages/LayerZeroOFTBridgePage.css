@@ -1,0 +1,218 @@
+/* LayerZero OFT bridge — relay-style layout, theme vars only */
+
+.lz-bridge {
+  --lz-rail: rgba(34, 211, 238, 0.12);
+  --lz-amber: #fbbf24;
+}
+
+.lz-bridge-hero-note {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--w3-text-muted);
+  max-width: 52rem;
+  line-height: 1.55;
+}
+
+.lz-bridge-hero-note a {
+  color: var(--w3-accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--w3-border-accent);
+}
+
+.lz-bridge-hero-note a:hover {
+  color: var(--w3-accent-dim);
+}
+
+.lz-bridge-topology {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--w3-border);
+}
+
+.lz-bridge-flow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px 16px;
+  align-items: end;
+  margin: 20px 0 8px;
+}
+
+@media (max-width: 720px) {
+  .lz-bridge-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .lz-bridge-flow-arrow {
+    display: none;
+  }
+}
+
+.lz-bridge-flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 22px;
+  font-family: var(--w3-font-mono);
+  font-size: 1.35rem;
+  color: var(--w3-accent);
+  text-shadow: 0 0 18px var(--w3-accent-glow);
+}
+
+/* Primary bridge field under “Bridge parameters”: amount */
+.lz-bridge-param-main {
+  margin-top: 10px;
+}
+
+.lz-bridge-param-main label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Advanced section: collapsed by default */
+.lz-bridge-advanced {
+  margin-top: 20px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  padding: 0 14px 4px;
+  background: linear-gradient(
+    180deg,
+    rgba(34, 211, 238, 0.04) 0%,
+    var(--w3-bg-card) 100%
+  );
+}
+
+.lz-bridge-advanced-summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 0 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--w3-text);
+  user-select: none;
+  font-family: var(--w3-font-sans, system-ui, sans-serif);
+}
+
+.lz-bridge-advanced-summary::-webkit-details-marker {
+  display: none;
+}
+
+.lz-bridge-advanced-summary::marker {
+  content: "";
+}
+
+.lz-bridge-advanced-summary::before {
+  content: "▸ ";
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--w3-accent);
+  font-size: 0.75em;
+  transform: translateY(-1px);
+}
+
+.lz-bridge-advanced[open] .lz-bridge-advanced-summary::before {
+  content: "▾ ";
+}
+
+.lz-bridge-advanced-hint {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.lz-bridge-send-row {
+  align-items: center;
+}
+
+.lz-bridge-scan-after-btn {
+  font-size: 0.9rem;
+  color: var(--w3-accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--w3-border-accent);
+  font-family: var(--w3-font-mono);
+  white-space: nowrap;
+}
+
+.lz-bridge-scan-after-btn:hover {
+  color: var(--w3-accent-dim);
+}
+
+.lz-bridge-tx-hash-inline {
+  margin-left: 10px;
+  font-family: var(--w3-font-mono);
+  font-size: 0.82rem;
+  color: var(--w3-text-muted);
+  user-select: all;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--w3-border);
+  cursor: pointer;
+}
+
+.lz-bridge-tx-hash-inline:hover {
+  color: var(--w3-accent);
+  border-bottom-color: var(--w3-border-accent);
+}
+
+.lz-bridge-rail {
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  background: linear-gradient(
+    135deg,
+    var(--w3-bg-card) 0%,
+    rgba(34, 211, 238, 0.04) 100%
+  );
+  padding: 14px 16px;
+  box-shadow: inset 0 1px 0 var(--lz-rail);
+}
+
+.lz-bridge-rail-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--w3-text-dim);
+  margin-bottom: 6px;
+  font-family: var(--w3-font-mono);
+}
+
+.lz-fee-card {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px dashed var(--w3-border-accent);
+  background: var(--w3-bg-elevated);
+  font-family: var(--w3-font-mono);
+  font-size: 0.85rem;
+}
+
+.lz-fee-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.lz-fee-row:last-child {
+  margin-bottom: 0;
+}
+
+.lz-fee-label {
+  color: var(--w3-text-muted);
+}
+
+.lz-fee-value {
+  color: var(--w3-text);
+  word-break: break-all;
+  text-align: right;
+}
+
+.lz-fee-value--warn {
+  color: var(--lz-amber);
+}
+
+.lz-bridge-disclaimer {
+  margin-top: 14px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--w3-text-dim);
+  border-left: 3px solid var(--w3-border-accent);
+  padding-left: 12px;
+}

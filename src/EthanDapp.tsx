@@ -32,6 +32,7 @@ import WsolPage from "./pages/WsolPage";
 import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
 import EIP7702Page from "./pages/EIP7702Page";
 import ERC20AllowancePage from "./pages/ERC20AllowancePage";
+import LayerZeroOFTBridgePage from "./pages/LayerZeroOFTBridgePage";
 import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
 import {
   base,
@@ -358,6 +359,7 @@ function App() {
     { title: "Estimate TxFee", linkTo: "/estimateTxFee" },
     { title: "Create Transaction", linkTo: "/createTransaction" },
     { title: "ERC20 Allowance", linkTo: "/erc20Allowance" },
+    { title: "OFT Bridge (LayerZero)", linkTo: "/layerzeroOftBridge" },
     { title: "Faucet Token", linkTo: "/faucet" },
     { title: "Burn Token", linkTo: "/burn" },
     { title: "ENS Service", linkTo: "/ens" },
@@ -538,6 +540,10 @@ function App() {
                 element={<CreateTransactionPage />}
               />
               <Route path="/erc20Allowance" element={<ERC20AllowancePage />} />
+              <Route
+                path="/layerzeroOftBridge"
+                element={<LayerZeroOFTBridgePage />}
+              />
               <Route path="/utils" element={<UtilsPage />} />
               <Route path="/erc6551" element={<ERC6551Page />} />
               <Route path="/eip7702" element={<EIP7702Page />} />
