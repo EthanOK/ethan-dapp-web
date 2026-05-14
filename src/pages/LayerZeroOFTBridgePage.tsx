@@ -1,0 +1,1148 @@
+import { useEffect, useMemo, useState } from "react";
+import { ethers } from "ethers";
+import { toast } from "sonner";
+import { useAppKitAccount } from "@reown/appkit/react";
+import {
+  getDefaultReadonlyProvider,
+  getProvider,
+  getSigner
+} from "../utils/GetProvider";
+import { isAddress, getDecimalBigNumber } from "../utils/Utils";
+import { truncateHash } from "../utils/format";
+import { SupportChains } from "../common/ChainsConfig";
+import {
+  decodeMulticallResult,
+  multicall3Aggregate3StaticCall,
+  type Multicall3Call
+} from "../utils/multicall3";
+import {
+  evmChainIdToLzV2SrcEndpointId,
+  getLayerZeroScanLink
+} from "../utils/LayerZero";
+import "./LayerZeroOFTBridgePage.css";
+
+/** LayerZero V2 testnet dstEid presets (official EIDs) */
+const LZ_DST_EID_PRESETS: { label: string; eid: number }[] = [
+  { label: "Ethereum Sepolia", eid: 40161 },
+  { label: "Base Sepolia", eid: 40245 },
+  { label: "Arbitrum Sepolia", eid: 40231 },
+  { label: "BSC Testnet", eid: 40102 }
+];
+
+/** Short line for toasts: source → destination, plus amount + token when known */
+function formatLzBridgeRouteSummary(
+  srcChainId: number | undefined,
+  dstEid: number,
+  opts?: { tokenSymbol?: string | null; amount?: string }
+): string {
+  const chainCfg =
+    srcChainId != null
+      ? SupportChains.find((x) => Number(x.id) === srcChainId)
+      : undefined;
+  const srcName =
+    chainCfg?.name ??
+    (srcChainId != null ? `chain ${srcChainId}` : "unknown chain");
+
+  const dstPreset = LZ_DST_EID_PRESETS.find((p) => p.eid === dstEid);
+  const dstStr = dstPreset?.label ?? `dstEid ${dstEid}`;
+
+  let line = `${srcName} → ${dstStr}`;
+  const sym = opts?.tokenSymbol?.trim();
+  const amt = opts?.amount?.trim();
+  if (sym) {
+    line += amt ? ` · ${amt} ${sym}` : ` · ${sym}`;
+  } else if (amt) {
+    line += ` · ${amt} (token)`;
+  }
+  return line;
+}
+
+const DEFAULT_OFT_CONTRACT = "0x43D67403d1581056187fE80633175186F7eF8677";
+
+/** OFT: token() == address(this); OFTAdapter: token() is the underlying ERC20 */
+const OFT_DETECT_ABI = [
+  "function token() view returns (address)",
+  "function approvalRequired() view returns (bool)"
+];
+
+const OFT_ABI = [
+  "function quoteSend((uint32 dstEid, bytes32 to, uint256 amountLD, uint256 minAmountLD, bytes extraOptions, bytes composeMsg, bytes oftCmd) _sendParam, bool _payInLzToken) view returns (uint256 nativeFee, uint256 lzTokenFee)",
+  "function send((uint32 dstEid, bytes32 to, uint256 amountLD, uint256 minAmountLD, bytes extraOptions, bytes composeMsg, bytes oftCmd) _sendParam, (uint256 nativeFee, uint256 lzTokenFee) _fee, address _refundAddress) payable",
+  "function balanceOf(address account) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)"
+];
+
+const ERC20_ABI = [
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
+  "function balanceOf(address account) view returns (uint256)"
+];
+
+const addressToBytes32 = (addr: string): string => {
+  return ethers.utils.hexZeroPad(addr, 32);
+};
+
+const explorerTxUrl = (chainId: number | undefined, txHash: string): string => {
+  if (!chainId) return "";
+  const c = SupportChains.find((x) => Number(x.id) === chainId);
+  const base = c?.blockExplorerUrls?.[0];
+  if (!base) return "";
+  return `${base.replace(/\/$/, "")}/tx/${txHash}`;
+};
+
+/** Format ERC20 allowance for display; MaxUint256 shown as unlimited */
+const formatAllowanceForDisplay = (
+  raw: ethers.BigNumber,
+  tokenDecimals: number
+): string => {
+  if (raw.eq(ethers.constants.MaxUint256)) {
+    return "Unlimited (MaxUint256)";
+  }
+  try {
+    return ethers.utils.formatUnits(raw, tokenDecimals);
+  } catch {
+    return raw.toString();
+  }
+};
+
+const LZ_ERR_NO_PEER = ethers.utils
+  .id("NoPeer(uint32)")
+  .slice(0, 10)
+  .toLowerCase();
+const LZ_ERR_SLIPPAGE = ethers.utils
+  .id("SlippageExceeded(uint256,uint256)")
+  .slice(0, 10)
+  .toLowerCase();
+const LZ_ERR_INSUFFICIENT_FEE = ethers.utils
+  .id("InsufficientFee(uint256,uint256)")
+  .slice(0, 10)
+  .toLowerCase();
+const LZ_ERR_INVALID_LOCAL_DECIMALS = ethers.utils
+  .id("InvalidLocalDecimals()")
+  .slice(0, 10)
+  .toLowerCase();
+
+/** Extract revert data (0x…) from wallet / ethers CALL_EXCEPTION */
+const extractRevertHexData = (err: unknown): string | undefined => {
+  const pick = (v: unknown): string | undefined => {
+    if (typeof v !== "string") return undefined;
+    const t = v.trim();
+    if (t.startsWith("0x") && t.length >= 10) return t;
+    return undefined;
+  };
+  const e = err as {
+    data?: unknown;
+    reason?: unknown;
+    error?: {
+      data?: unknown;
+      body?: unknown;
+      error?: { data?: unknown; body?: unknown };
+    };
+  };
+  const fromBody = (body: unknown): string | undefined => {
+    if (typeof body !== "string") return undefined;
+    try {
+      const j = JSON.parse(body) as {
+        error?: { data?: string; message?: string };
+        data?: string;
+      };
+      return pick(j.error?.data) ?? pick(j.data);
+    } catch {
+      return undefined;
+    }
+  };
+  return (
+    pick(e.data) ??
+    pick(e.reason) ??
+    pick(e.error?.data) ??
+    pick(e.error?.error?.data) ??
+    fromBody(e.error?.body) ??
+    fromBody(e.error?.error?.body) ??
+    undefined
+  );
+};
+
+/** Decode common LayerZero OFT / OApp custom errors for easier debugging */
+const decodeLayerZeroOftRevert = (
+  data: string,
+  tokenDecimals?: number
+): string | null => {
+  const hex = data.trim().toLowerCase();
+  if (hex.length < 10) return null;
+  const sel = hex.slice(0, 10);
+  try {
+    if (sel === LZ_ERR_NO_PEER) {
+      if (hex.length < 10 + 64) return null;
+      const [eid] = ethers.utils.defaultAbiCoder.decode(
+        ["uint32"],
+        ethers.utils.hexDataSlice(data, 4)
+      );
+      return `NoPeer: dstEid ${eid} has no peer. Call setPeer on the OFT for this endpoint, or use a dstEid that already has a peer.`;
+    }
+    if (sel === LZ_ERR_SLIPPAGE) {
+      const [amt, minAmt] = ethers.utils.defaultAbiCoder.decode(
+        ["uint256", "uint256"],
+        ethers.utils.hexDataSlice(data, 4)
+      );
+      if (
+        typeof tokenDecimals === "number" &&
+        tokenDecimals >= 0 &&
+        tokenDecimals <= 36
+      ) {
+        return `SlippageExceeded: expected credited amount ~${ethers.utils.formatUnits(amt, tokenDecimals)}, but minAmountLD requires at least ${ethers.utils.formatUnits(minAmt, tokenDecimals)}. Increase slippage or lower the amount.`;
+      }
+      return `SlippageExceeded: credited ${amt.toString()}, minimum required ${minAmt.toString()} (raw units).`;
+    }
+    if (sel === LZ_ERR_INSUFFICIENT_FEE) {
+      const [required, provided] = ethers.utils.defaultAbiCoder.decode(
+        ["uint256", "uint256"],
+        ethers.utils.hexDataSlice(data, 4)
+      );
+      return `InsufficientFee: need ~${ethers.utils.formatEther(required)} ETH (native), provided ~${ethers.utils.formatEther(provided)} ETH. Retry the bridge or increase msg.value.`;
+    }
+    if (sel === LZ_ERR_INVALID_LOCAL_DECIMALS) {
+      return "InvalidLocalDecimals: local decimals incompatible with OFT config (often underlying token vs Adapter mismatch).";
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const formatBridgeContractError = (
+  err: unknown,
+  tokenDecimals?: number
+): string => {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/user rejected|denied transaction|User denied/i.test(msg)) {
+    return "User rejected the signature";
+  }
+  const data = extractRevertHexData(err);
+  const decoded = data ? decodeLayerZeroOftRevert(data, tokenDecimals) : null;
+  if (decoded) return decoded;
+  if (/cannot estimate gas|UNPREDICTABLE_GAS_LIMIT/i.test(msg)) {
+    return `Cannot estimate gas (simulation may fail): ${msg}. Common causes: NoPeer, insufficient allowance, msg.value too low for nativeFee, or amount/decimals mismatch. Check peer and network, then retry; set Gas limit under Advanced if needed.`;
+  }
+  return msg || "Operation failed";
+};
+
+type SendParamTuple = [
+  number,
+  string,
+  ethers.BigNumber,
+  ethers.BigNumber,
+  string,
+  string,
+  string
+];
+
+const buildSendParam = (
+  dstEid: number,
+  recipient: string,
+  amountLD: ethers.BigNumber,
+  minAmountLD: ethers.BigNumber,
+  extraOptionsHex: string,
+  composeHex: string,
+  oftCmdHex: string
+): SendParamTuple => [
+  dstEid,
+  addressToBytes32(recipient),
+  amountLD,
+  minAmountLD,
+  extraOptionsHex || "0x",
+  composeHex || "0x",
+  oftCmdHex || "0x"
+];
+
+const LayerZeroOFTBridgePage = () => {
+  const { address, isConnected } = useAppKitAccount();
+
+  const [oftAddress, setOftAddress] = useState(DEFAULT_OFT_CONTRACT);
+  const [dstEidInput, setDstEidInput] = useState("40245");
+  const [recipient, setRecipient] = useState("");
+  const [amountStr, setAmountStr] = useState("1.0");
+  const [slippageBps, setSlippageBps] = useState("0");
+  const [extraOptions, setExtraOptions] = useState("0x");
+  const [composeMsg, setComposeMsg] = useState("0x");
+  const [oftCmd, setOftCmd] = useState("0x");
+  /** If empty, estimateGas.send + 30% headroom before send; if set, skip estimation */
+  const [sendGasLimitInput, setSendGasLimitInput] = useState("");
+
+  const [decimals, setDecimals] = useState<number | null>(null);
+  const [symbol, setSymbol] = useState<string | null>(null);
+  const [balanceFormatted, setBalanceFormatted] = useState<string | null>(null);
+  /** Underlying token allowance to Adapter when in OFTAdapter mode */
+  const [allowance, setAllowance] = useState<ethers.BigNumber | null>(null);
+  const [isAdapterMode, setIsAdapterMode] = useState(false);
+  const [underlyingAddress, setUnderlyingAddress] = useState<string | null>(
+    null
+  );
+  const [nativeFee, setNativeFee] = useState<ethers.BigNumber | null>(null);
+  const [lzTokenFee, setLzTokenFee] = useState<ethers.BigNumber | null>(null);
+  const [chainId, setChainId] = useState<number | undefined>(undefined);
+
+  const [isLoadingMeta, setIsLoadingMeta] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  /** One-click: approve exact amount if needed → quoteSend → send */
+  const [isBridgeOneClick, setIsBridgeOneClick] = useState(false);
+  /** Last successful bridge LayerZero Scan URL, shown next to the button */
+  const [lastBridgeScanLink, setLastBridgeScanLink] = useState<string | null>(
+    null
+  );
+  /** Source tx hash for the last successful bridge (shown next to Scan link) */
+  const [lastBridgeTxHash, setLastBridgeTxHash] = useState<string | null>(null);
+
+  const dstEidNum = useMemo(() => {
+    const n = Number(String(dstEidInput).trim());
+    return Number.isFinite(n) && n > 0 && n < 0xffffffff ? Math.floor(n) : null;
+  }, [dstEidInput]);
+
+  /** Connected chain’s LZ V2 source endpoint id (when known) */
+  const chainLzSrcEid = useMemo(
+    () =>
+      chainId != null ? evmChainIdToLzV2SrcEndpointId(chainId) : undefined,
+    [chainId]
+  );
+
+  /** Presets excluding the same endpoint as the connected wallet chain */
+  const dstPresetChoices = useMemo(
+    () =>
+      chainLzSrcEid == null
+        ? LZ_DST_EID_PRESETS
+        : LZ_DST_EID_PRESETS.filter((p) => p.eid !== chainLzSrcEid),
+    [chainLzSrcEid]
+  );
+
+  const dstEidEqualsCurrentChain =
+    chainLzSrcEid != null && dstEidNum != null && dstEidNum === chainLzSrcEid;
+
+  useEffect(() => {
+    if (!dstEidEqualsCurrentChain) return;
+    const alt = LZ_DST_EID_PRESETS.find((p) => p.eid !== chainLzSrcEid);
+    if (alt) {
+      setDstEidInput(String(alt.eid));
+      toast.message(
+        `dstEid cannot match the connected chain; switched preset to ${alt.label}`
+      );
+    }
+  }, [dstEidEqualsCurrentChain, chainLzSrcEid]);
+
+  const slippageBpsNum = useMemo(() => {
+    const n = Number(String(slippageBps).trim());
+    if (!Number.isFinite(n) || n < 0 || n > 5000) return null;
+    return Math.floor(n);
+  }, [slippageBps]);
+
+  const parsedAmountLD = useMemo((): ethers.BigNumber | null => {
+    if (decimals == null) return null;
+    const amt = amountStr.trim();
+    if (amt === "") return null;
+    try {
+      const v = getDecimalBigNumber(amt, decimals);
+      return v.lte(0) ? null : v;
+    } catch {
+      return null;
+    }
+  }, [amountStr, decimals]);
+
+  /** Adapter mode: underlying must be approved to the Adapter before send */
+  const allowanceInsufficient = useMemo(() => {
+    if (!isAdapterMode || parsedAmountLD == null) return false;
+    if (allowance == null) return true;
+    return allowance.lt(parsedAmountLD);
+  }, [isAdapterMode, parsedAmountLD, allowance]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      setRecipient((r) => (r.trim() === "" ? address : r));
+    }
+  }, [isConnected, address]);
+
+  /** After wallet connects, sync chain id so presets can exclude this chain (no need to load meta first) */
+  useEffect(() => {
+    let cancelled = false;
+    if (!isConnected) return undefined;
+    void (async () => {
+      try {
+        const provider = (await getProvider()) ?? getDefaultReadonlyProvider();
+        if (!provider || cancelled) return;
+        const net = await provider.getNetwork();
+        if (!cancelled) setChainId(net.chainId);
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isConnected]);
+
+  const oftTrimmed = oftAddress.trim();
+  const recipientTrimmed = recipient.trim();
+
+  const canReadMeta = isAddress(oftTrimmed);
+  const canQuoteOrSend =
+    canReadMeta &&
+    dstEidNum != null &&
+    isAddress(recipientTrimmed) &&
+    slippageBpsNum != null &&
+    !dstEidEqualsCurrentChain;
+
+  const loadTokenMeta = async (options?: { silent?: boolean }) => {
+    const silent = Boolean(options?.silent);
+    if (!canReadMeta) {
+      toast.error("Enter a valid OFT / OFTAdapter contract address");
+      return;
+    }
+    setIsLoadingMeta(true);
+    setDecimals(null);
+    setSymbol(null);
+    setBalanceFormatted(null);
+    setAllowance(null);
+    setIsAdapterMode(false);
+    setUnderlyingAddress(null);
+    try {
+      const provider = (await getProvider()) ?? getDefaultReadonlyProvider();
+      if (!provider) {
+        toast.error(
+          "Cannot connect to RPC. Check the network or connect a wallet."
+        );
+        return;
+      }
+      const net = await provider.getNetwork();
+      setChainId(net.chainId);
+
+      const oftDetectIface = new ethers.utils.Interface(OFT_DETECT_ABI);
+      const erc20Iface = new ethers.utils.Interface(ERC20_ABI);
+
+      const runSequential = async () => {
+        const detect = new ethers.Contract(
+          oftTrimmed,
+          [...OFT_DETECT_ABI, ...OFT_ABI],
+          provider
+        );
+        let assetAddr = oftTrimmed;
+        let adapter = false;
+        try {
+          const tok: string = await detect.token();
+          if (tok.toLowerCase() !== oftTrimmed.toLowerCase()) {
+            adapter = true;
+            assetAddr = tok;
+          }
+        } catch {
+          /* no token(): treat contract as ERC20 OFT */
+        }
+        setIsAdapterMode(adapter);
+        setUnderlyingAddress(adapter ? assetAddr : null);
+        const erc20 = new ethers.Contract(assetAddr, ERC20_ABI, provider);
+        const [dec, sym] = await Promise.all([
+          erc20.decimals() as Promise<number>,
+          erc20.symbol() as Promise<string>
+        ]);
+        const decN = Number(dec);
+        setDecimals(decN);
+        setSymbol(String(sym));
+        if (address && isAddress(address)) {
+          const bal: ethers.BigNumber = await erc20.balanceOf(address);
+          setBalanceFormatted(ethers.utils.formatUnits(bal, decN));
+          if (adapter) {
+            const alw: ethers.BigNumber = await erc20.allowance(
+              address,
+              oftTrimmed
+            );
+            setAllowance(alw);
+          } else {
+            setAllowance(null);
+          }
+        } else {
+          setBalanceFormatted(null);
+          setAllowance(null);
+        }
+        let approvalHint = "";
+        if (adapter) {
+          try {
+            const req: boolean = await detect.approvalRequired();
+            approvalHint = req
+              ? "(approve underlying token for the Adapter)"
+              : "(approvalRequired=false; still verify project documentation)";
+          } catch {
+            approvalHint =
+              "(Adapter typically requires underlying token approval)";
+          }
+        }
+        if (!silent) {
+          toast.success(
+            adapter
+              ? `Detected OFTAdapter; underlying token ${String(sym)}${approvalHint}`
+              : "Detected OFT (this contract is the bridged token)"
+          );
+        }
+      };
+
+      try {
+        const batchA: Multicall3Call[] = [
+          {
+            target: oftTrimmed,
+            allowFailure: true,
+            callData: oftDetectIface.encodeFunctionData("token", [])
+          },
+          {
+            target: oftTrimmed,
+            allowFailure: true,
+            callData: oftDetectIface.encodeFunctionData("approvalRequired", [])
+          }
+        ];
+        const resA = await multicall3Aggregate3StaticCall(provider, batchA);
+
+        let adapter = false;
+        let assetAddr = oftTrimmed;
+        if (resA[0]?.success) {
+          const tok = decodeMulticallResult<string>(
+            oftDetectIface,
+            "token",
+            resA[0]
+          );
+          if (
+            tok &&
+            isAddress(tok) &&
+            tok.toLowerCase() !== oftTrimmed.toLowerCase()
+          ) {
+            adapter = true;
+            assetAddr = tok;
+          }
+        }
+
+        setIsAdapterMode(adapter);
+        setUnderlyingAddress(adapter ? assetAddr : null);
+
+        const callsB: Multicall3Call[] = [
+          {
+            target: assetAddr,
+            allowFailure: true,
+            callData: erc20Iface.encodeFunctionData("decimals", [])
+          },
+          {
+            target: assetAddr,
+            allowFailure: true,
+            callData: erc20Iface.encodeFunctionData("symbol", [])
+          }
+        ];
+        if (address && isAddress(address)) {
+          callsB.push({
+            target: assetAddr,
+            allowFailure: true,
+            callData: erc20Iface.encodeFunctionData("balanceOf", [address])
+          });
+          if (adapter) {
+            callsB.push({
+              target: assetAddr,
+              allowFailure: true,
+              callData: erc20Iface.encodeFunctionData("allowance", [
+                address,
+                oftTrimmed
+              ])
+            });
+          }
+        }
+
+        const resB = await multicall3Aggregate3StaticCall(provider, callsB);
+        let bi = 0;
+        const decRaw = decodeMulticallResult<number>(
+          erc20Iface,
+          "decimals",
+          resB[bi++]
+        );
+        const decN = Number(decRaw);
+        if (!Number.isFinite(decN) || decN < 0 || decN > 255) {
+          await runSequential();
+          return;
+        }
+        setDecimals(decN);
+
+        const symDecoded = decodeMulticallResult<string>(
+          erc20Iface,
+          "symbol",
+          resB[bi++]
+        );
+        const symLabel =
+          symDecoded != null && String(symDecoded).trim() !== ""
+            ? String(symDecoded)
+            : "?";
+        setSymbol(symLabel);
+
+        if (address && isAddress(address)) {
+          const bal = decodeMulticallResult<ethers.BigNumber>(
+            erc20Iface,
+            "balanceOf",
+            resB[bi++]
+          );
+          if (bal != null) {
+            setBalanceFormatted(ethers.utils.formatUnits(bal, decN));
+          } else {
+            setBalanceFormatted(null);
+          }
+          if (adapter) {
+            const alw = decodeMulticallResult<ethers.BigNumber>(
+              erc20Iface,
+              "allowance",
+              resB[bi++]
+            );
+            setAllowance(alw ?? null);
+          } else {
+            setAllowance(null);
+          }
+        } else {
+          setBalanceFormatted(null);
+          setAllowance(null);
+        }
+
+        let approvalHint = "";
+        if (adapter) {
+          const req = decodeMulticallResult<boolean>(
+            oftDetectIface,
+            "approvalRequired",
+            resA[1]
+          );
+          if (req === true) {
+            approvalHint = "(approve underlying token for the Adapter)";
+          } else if (req === false) {
+            approvalHint =
+              "(approvalRequired=false; still verify project documentation)";
+          } else {
+            approvalHint =
+              "(Adapter typically requires underlying token approval)";
+          }
+        }
+
+        if (!silent) {
+          toast.success(
+            adapter
+              ? `Detected OFTAdapter; underlying token ${symLabel}${approvalHint}`
+              : "Detected OFT (this contract is the bridged token)"
+          );
+        }
+      } catch {
+        await runSequential();
+      }
+    } catch (e: unknown) {
+      toast.error(
+        formatBridgeContractError(e) ||
+          "Contract read failed (confirm this OFT exists on the current chain)"
+      );
+    } finally {
+      setIsLoadingMeta(false);
+    }
+  };
+
+  const approveAdapter = async () => {
+    if (!isAdapterMode || !underlyingAddress || !isAddress(underlyingAddress)) {
+      toast.error("Load OFTAdapter metadata first");
+      return;
+    }
+    const signer = await getSigner();
+    if (!signer) {
+      toast.error("Connect a wallet first");
+      return;
+    }
+    setIsApproving(true);
+    try {
+      const erc20 = new ethers.Contract(underlyingAddress, ERC20_ABI, signer);
+      const tx = await erc20.approve(oftTrimmed, ethers.constants.MaxUint256);
+      toast.message("Submitting approval…");
+      await tx.wait();
+      toast.success("Approval confirmed");
+      await loadTokenMeta();
+    } catch (e: unknown) {
+      toast.error(formatBridgeContractError(e) || "Approval failed");
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  /**
+   * OFTAdapter: on-chain allowance below amount approves exact amount, then quoteSend then send (msg.value = nativeFee).
+   */
+  const bridgeQuoteApproveSend = async () => {
+    if (!canQuoteOrSend || decimals == null) {
+      toast.error("Complete the form and load token metadata first");
+      return;
+    }
+    const signer = await getSigner();
+    if (!signer) {
+      toast.error("Connect a wallet first");
+      return;
+    }
+
+    const amt = amountStr.trim() === "" ? "0" : amountStr.trim();
+    let amountLD: ethers.BigNumber;
+    try {
+      amountLD = getDecimalBigNumber(amt, decimals);
+    } catch {
+      toast.error("Invalid amount format");
+      return;
+    }
+    if (amountLD.lte(0)) {
+      toast.error("Amount must be greater than 0");
+      return;
+    }
+
+    const minAmountLD = amountLD.mul(10000 - slippageBpsNum!).div(10000);
+    const sendParam = buildSendParam(
+      dstEidNum!,
+      recipientTrimmed,
+      amountLD,
+      minAmountLD,
+      extraOptions.trim() || "0x",
+      composeMsg.trim() || "0x",
+      oftCmd.trim() || "0x"
+    );
+
+    const provider = (await getProvider()) ?? getDefaultReadonlyProvider();
+    if (!provider) {
+      toast.error("Cannot connect to RPC");
+      return;
+    }
+
+    const parseManualGasLimit = (): ethers.BigNumber | null => {
+      const t = sendGasLimitInput.trim();
+      if (t === "") return null;
+      if (!/^\d+$/.test(t)) return null;
+      const n = Number(t);
+      if (!Number.isSafeInteger(n) || n < 21000 || n > 30_000_000) return null;
+      return ethers.BigNumber.from(n);
+    };
+
+    setNativeFee(null);
+    setLzTokenFee(null);
+    setLastBridgeScanLink(null);
+    setLastBridgeTxHash(null);
+    setIsBridgeOneClick(true);
+    try {
+      const refundAddress = await signer.getAddress();
+
+      if (isAdapterMode && underlyingAddress && address) {
+        const erc20Read = new ethers.Contract(
+          underlyingAddress,
+          ERC20_ABI,
+          provider
+        );
+        const alw = await erc20Read.allowance(address, oftTrimmed);
+        if (alw.lt(amountLD)) {
+          const erc20Signer = new ethers.Contract(
+            underlyingAddress,
+            ERC20_ABI,
+            signer
+          );
+          const approveTx = await erc20Signer.approve(oftTrimmed, amountLD);
+          await approveTx.wait();
+          toast.success("Allowance confirmed");
+        }
+      }
+
+      const net = await provider.getNetwork();
+      setChainId(net.chainId);
+
+      const cRead = new ethers.Contract(oftTrimmed, OFT_ABI, provider);
+      const [nativeFeeLocal, lzTokenFeeLocal]: ethers.BigNumber[] =
+        await cRead.quoteSend(sendParam, false);
+      setNativeFee(nativeFeeLocal);
+      setLzTokenFee(lzTokenFeeLocal);
+
+      const sendValue = nativeFeeLocal;
+      const feeTuple = {
+        nativeFee: nativeFeeLocal,
+        lzTokenFee: lzTokenFeeLocal ?? ethers.BigNumber.from(0)
+      };
+
+      const c = new ethers.Contract(oftTrimmed, OFT_ABI, signer);
+      const manualGas = parseManualGasLimit();
+      let gasLimit: ethers.BigNumber | undefined;
+      if (manualGas != null) {
+        gasLimit = manualGas;
+      } else {
+        try {
+          const est = await c.estimateGas.send(
+            sendParam,
+            feeTuple,
+            refundAddress,
+            { value: sendValue }
+          );
+          gasLimit = est.mul(130).div(100);
+        } catch (estErr: unknown) {
+          toast.error(formatBridgeContractError(estErr, decimals));
+          return;
+        }
+      }
+
+      const routeSummary = formatLzBridgeRouteSummary(
+        net.chainId,
+        sendParam[0],
+        { tokenSymbol: symbol, amount: amountStr.trim() }
+      );
+      toast.message(`Submitting cross-chain transaction (${routeSummary})`);
+      const tx = await c.send(sendParam, feeTuple, refundAddress, {
+        value: sendValue,
+        gasLimit
+      });
+      toast.message(
+        `Transaction submitted (${routeSummary}), waiting for confirmation…`
+      );
+      const receipt = await tx.wait();
+
+      const txHash = receipt.transactionHash;
+      const scanLink = getLayerZeroScanLink(
+        txHash,
+        sendParam[0] >= 40_000 && sendParam[0] < 50_000
+      );
+      toast.success(
+        <span>
+          Bridge submitted:{" "}
+          <a href={scanLink} target="_blank" rel="noreferrer">
+            View on LayerZero Scan
+          </a>
+        </span>
+      );
+      setLastBridgeScanLink(scanLink);
+      setLastBridgeTxHash(txHash);
+
+      await loadTokenMeta({ silent: true });
+    } catch (e: unknown) {
+      setLastBridgeScanLink(null);
+      setLastBridgeTxHash(null);
+      toast.error(formatBridgeContractError(e, decimals) || "Bridge failed");
+    } finally {
+      setIsBridgeOneClick(false);
+    }
+  };
+
+  return (
+    <div className="feature-page main-app lz-bridge">
+      <section className="feature-hero">
+        <h1>LayerZero OFT Bridge</h1>
+
+        <p className="lz-bridge-hero-note">
+          Documentation:{" "}
+          <a
+            href="https://docs.layerzero.network/v2/developers/evm/oft/quickstart"
+            target="_blank"
+            rel="noreferrer"
+          >
+            LayerZero V2 OFT Quickstart
+          </a>
+        </p>
+      </section>
+
+      <section className="feature-panel">
+        <h3>OFT / OFTAdapter &amp; network</h3>
+        <p className="feature-field-hint">
+          Switch your wallet to the source chain and enter the OFT or OFTAdapter
+          contract. For an adapter, <code>token()</code> reads the underlying
+          ERC20; sends still target the adapter address.
+        </p>
+
+        <div className="feature-field">
+          <label htmlFor="lz-oft-addr">OFT or OFTAdapter address</label>
+          <input
+            id="lz-oft-addr"
+            type="text"
+            value={oftAddress}
+            onChange={(e) => setOftAddress(e.target.value)}
+            placeholder={DEFAULT_OFT_CONTRACT}
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="feature-actions feature-actions--inline">
+          <button
+            type="button"
+            className="cta-button mint-nft-button"
+            onClick={() => void loadTokenMeta()}
+            disabled={!canReadMeta || isLoadingMeta}
+          >
+            {isLoadingMeta ? "Loading…" : "Load token metadata"}
+          </button>
+        </div>
+
+        {symbol != null && decimals != null && (
+          <div className="feature-result" style={{ marginTop: 14 }}>
+            <div>
+              Mode: <b>{isAdapterMode ? "OFTAdapter" : "OFT"}</b>
+              {isAdapterMode && underlyingAddress && (
+                <>
+                  , underlying:{" "}
+                  <span
+                    style={{
+                      fontFamily: "var(--w3-font-mono)",
+                      fontSize: "0.9em"
+                    }}
+                  >
+                    {underlyingAddress}
+                  </span>
+                </>
+              )}
+            </div>
+            <div style={{ marginTop: 6 }}>
+              Token: <b>{symbol}</b>, decimals <b>{decimals}</b>
+              {balanceFormatted != null && (
+                <>
+                  , balance <b>{balanceFormatted}</b>
+                </>
+              )}
+            </div>
+            {isAdapterMode && allowance != null && address && (
+              <div style={{ marginTop: 6, opacity: 0.9 }}>
+                Allowance to adapter:{" "}
+                <b>{formatAllowanceForDisplay(allowance, decimals)}</b>
+                <span> {symbol}</span>
+                {parsedAmountLD != null &&
+                  !allowance.lt(parsedAmountLD) &&
+                  "(covers this amount)"}
+                {allowanceInsufficient && parsedAmountLD != null && (
+                  <span style={{ color: "var(--lz-amber)", marginLeft: 8 }}>
+                    Insufficient for this bridge amount
+                  </span>
+                )}
+              </div>
+            )}
+            {chainId != null && (
+              <div style={{ marginTop: 6, opacity: 0.85 }}>
+                Chain ID: <b>{chainId}</b>
+              </div>
+            )}
+          </div>
+        )}
+
+        <h3 style={{ marginTop: 28 }}>Bridge parameters</h3>
+
+        <div className="feature-field lz-bridge-param-main">
+          <label htmlFor="lz-amount">Amount</label>
+          <input
+            id="lz-amount"
+            type="text"
+            value={amountStr}
+            onChange={(e) => setAmountStr(e.target.value)}
+            placeholder={decimals != null ? "e.g. 1" : "Load decimals first"}
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="lz-bridge-rail" style={{ marginTop: 12 }}>
+          <div className="lz-bridge-rail-label">
+            Destination (LayerZero dstEid) · source is the connected wallet
+            network
+          </div>
+          <div className="feature-field" style={{ marginBottom: 8 }}>
+            <label htmlFor="lz-dst-preset">Common EIDs</label>
+            <select
+              id="lz-dst-preset"
+              className="app-header-network-select"
+              style={{ width: "100%", maxWidth: "100%" }}
+              value={
+                dstEidNum != null &&
+                dstPresetChoices.some((p) => p.eid === dstEidNum)
+                  ? String(dstEidNum)
+                  : ""
+              }
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v) setDstEidInput(v);
+              }}
+            >
+              <option value="">Pick a preset (optional)</option>
+              {dstPresetChoices.map((p) => (
+                <option key={p.eid} value={String(p.eid)}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="feature-field" style={{ marginBottom: 0 }}>
+            <label htmlFor="lz-dst-eid">dstEid (uint32)</label>
+            <input
+              id="lz-dst-eid"
+              type="text"
+              inputMode="numeric"
+              value={dstEidInput}
+              onChange={(e) => setDstEidInput(e.target.value)}
+              spellCheck={false}
+              aria-invalid={dstEidEqualsCurrentChain}
+            />
+          </div>
+          {dstEidEqualsCurrentChain && (
+            <p
+              className="feature-field-hint"
+              style={{ marginTop: 8, marginBottom: 0 }}
+            >
+              {
+                "dstEid cannot match the connected wallet chain's LayerZero endpoint; pick another destination."
+              }
+            </p>
+          )}
+        </div>
+
+        <div className="feature-field">
+          <label htmlFor="lz-recipient">Recipient on destination (EVM)</label>
+          <input
+            id="lz-recipient"
+            type="text"
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            placeholder="0x…"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="feature-field">
+          <label htmlFor="lz-slippage">Slippage (basis points, 100 = 1%)</label>
+          <input
+            id="lz-slippage"
+            type="text"
+            inputMode="numeric"
+            value={slippageBps}
+            onChange={(e) => setSlippageBps(e.target.value)}
+          />
+        </div>
+
+        <details className="lz-bridge-advanced">
+          <summary className="lz-bridge-advanced-summary">
+            Advanced (optional)
+          </summary>
+          <p className="feature-field-hint lz-bridge-advanced-hint">
+            <code>extraOptions</code> should match the hex from your deploy
+            script: <code>Options.newOptions()</code> +{" "}
+            <code>addExecutorLzReceiveOption</code> /{" "}
+            <code>addExecutorComposeOption</code> /{" "}
+            <code>addExecutorNativeDropOption</code>. Default <code>0x</code>{" "}
+            means no extra executor options.
+          </p>
+
+          <div className="feature-field">
+            <label htmlFor="lz-extra">extraOptions (hex)</label>
+            <input
+              id="lz-extra"
+              type="text"
+              value={extraOptions}
+              onChange={(e) => setExtraOptions(e.target.value)}
+              spellCheck={false}
+            />
+          </div>
+          <div className="feature-field">
+            <label htmlFor="lz-compose">composeMsg (hex)</label>
+            <input
+              id="lz-compose"
+              type="text"
+              value={composeMsg}
+              onChange={(e) => setComposeMsg(e.target.value)}
+              spellCheck={false}
+            />
+          </div>
+          <div className="feature-field">
+            <label htmlFor="lz-oftcmd">oftCmd (hex)</label>
+            <input
+              id="lz-oftcmd"
+              type="text"
+              value={oftCmd}
+              onChange={(e) => setOftCmd(e.target.value)}
+              spellCheck={false}
+            />
+          </div>
+          <div className="feature-field">
+            <label htmlFor="lz-send-gas">Gas limit (optional)</label>
+            <input
+              id="lz-send-gas"
+              type="text"
+              inputMode="numeric"
+              value={sendGasLimitInput}
+              onChange={(e) => setSendGasLimitInput(e.target.value)}
+              placeholder="Empty: auto-estimate +30%"
+              spellCheck={false}
+            />
+          </div>
+        </details>
+
+        {(nativeFee != null || lzTokenFee != null) && (
+          <div className="lz-fee-card">
+            <div className="lz-fee-row">
+              <span className="lz-fee-label">nativeFee (wei)</span>
+              <span className="lz-fee-value">
+                {nativeFee != null ? nativeFee.toString() : "—"}
+              </span>
+            </div>
+            <div className="lz-fee-row">
+              <span className="lz-fee-label">lzTokenFee</span>
+              <span className="lz-fee-value">
+                {lzTokenFee != null ? lzTokenFee.toString() : "—"}
+              </span>
+            </div>
+            {nativeFee != null && (
+              <div className="lz-fee-row">
+                <span className="lz-fee-label">
+                  send msg.value (= nativeFee)
+                </span>
+                <span className="lz-fee-value lz-fee-value--warn">
+                  {nativeFee.toString()}
+                </span>
+              </div>
+            )}
+            {lzTokenFee != null && lzTokenFee.gt(0) && (
+              <p
+                style={{
+                  marginTop: 10,
+                  marginBottom: 0,
+                  fontSize: "0.78rem",
+                  color: "var(--lz-amber)",
+                  lineHeight: 1.45
+                }}
+              >
+                Non-zero lzTokenFee: paying LayerZero fees in the native token
+                may require extra steps per your deployment (e.g. ZRO allowance
+                or payInLzToken). Confirm against your project docs.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="feature-actions feature-actions--inline lz-bridge-send-row">
+          <button
+            type="button"
+            className="cta-button mint-nft-button"
+            onClick={bridgeQuoteApproveSend}
+            disabled={!canQuoteOrSend || decimals == null || isBridgeOneClick}
+            title="OFTAdapter: approves exact allowance if needed, then quoteSend and send"
+          >
+            {isBridgeOneClick ? "Working…" : "Bridge One Click"}
+          </button>
+          {lastBridgeScanLink != null && (
+            <>
+              {lastBridgeTxHash != null && (
+                <a
+                  className="lz-bridge-tx-hash-inline"
+                  href={lastBridgeScanLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={lastBridgeTxHash}
+                >
+                  LayerZero Scan: {truncateHash(lastBridgeTxHash)}
+                </a>
+              )}
+            </>
+          )}
+        </div>
+
+        <p className="lz-bridge-disclaimer">
+          Generic OFT / OFTAdapter (LayerZero V2 OFTCore) UI. Adapters interact
+          with the underlying ERC20 via <code>token()</code>. Delivery time
+          depends on DVNs and destination configuration.
+        </p>
+      </section>
+    </div>
+  );
+};
+
+export default LayerZeroOFTBridgePage;
