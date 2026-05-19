@@ -26,6 +26,7 @@ const faucetConfigRaw: FaucetConfigRaw = {
   },
   560048: {
     faucet: "0x88272A2F9481A18B648A03a076FbfaB5381e31D2",
+    BRIC: "0xadf015fe835927a2e7a336cb4f61975912feb5eb",
     stETH: "0xC291F277f3Bc02fbe69D6d940AeD674E077e5749",
     USDe: "0x9558f8e7bd117741d2fae0c0d7bd6d542a4d7cdb"
   }
@@ -52,6 +53,7 @@ export const faucetTokenListByChain: Record<number, FaucetTokenItem[]> = {
     { label: "META-B", faucetAmount: 10000 }
   ],
   560048: [
+    { label: "BRIC", faucetAmount: 10000 },
     { label: "stETH", faucetAmount: 10000 },
     { label: "USDe", faucetAmount: 100000 }
   ]

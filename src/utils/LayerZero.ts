@@ -16,6 +16,7 @@ const EVM_CHAIN_ID_TO_LZ_V2_SRC_EID: Record<number, number> = {
   97: 40102,
   8453: 30184,
   11155111: 40161,
+  560048: 40449,
   84532: 40245,
   421614: 40231
 };
@@ -33,6 +34,7 @@ const LZ_ENDPOINT_ID_TO_METADATA_NETWORK: Record<number, string> = {
   30184: "base-mainnet",
   40102: "bsc-testnet",
   40161: "sepolia-testnet",
+  40449: "hoodi-testnet",
   40245: "basesep-testnet",
   40231: "arbsep-testnet"
 };

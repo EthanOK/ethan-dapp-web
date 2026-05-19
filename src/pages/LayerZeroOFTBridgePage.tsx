@@ -12,6 +12,7 @@ import { getDefaultNetwork, modal } from "../EthanDapp";
 import { isAddress, getDecimalBigNumber } from "../utils/Utils";
 import { truncateHash } from "../utils/format";
 import { SupportChains } from "../common/ChainsConfig";
+import { faucetChainIdList, getChainName } from "../common/FaucetConfig";
 import {
   decodeMulticallResult,
   multicall3Aggregate3StaticCall,
@@ -25,7 +26,8 @@ import "./LayerZeroOFTBridgePage.css";
 
 /** LayerZero V2 testnet dstEid presets (official EIDs) */
 const LZ_DST_EID_PRESETS: { label: string; eid: number }[] = [
-  { label: "Ethereum Sepolia", eid: 40161 },
+  { label: "Sepolia Testnet", eid: 40161 },
+  { label: "Hoodi Testnet", eid: 40449 },
   { label: "Base Sepolia", eid: 40245 },
   { label: "Arbitrum Sepolia", eid: 40231 },
   { label: "BSC Testnet", eid: 40102 }
@@ -59,10 +61,69 @@ function formatLzBridgeRouteSummary(
   return line;
 }
 
-const DEFAULT_OFT_CONTRACT = "0x43D67403d1581056187fE80633175186F7eF8677";
+/** Default OFT / OFTAdapter per metadata source chain */
+const DEFAULT_OFT_BY_META_CHAIN_ID: Record<number, string> = {
+  11155111: "0x43D67403d1581056187fE80633175186F7eF8677",
+  560048: "0xadf015fe835927a2e7a336cb4f61975912feb5eb"
+};
 
-/** Ethereum Sepolia — default chain for explicit "Load token metadata" */
+/** Chains allowed for Load OFT Metadata (Sepolia + Hoodi) */
+const LZ_META_ALLOWED_CHAIN_IDS = [11155111, 560048] as const;
+/** Default when switching from an unsupported chain */
 const LZ_META_DEFAULT_CHAIN_ID = 11155111;
+
+const getDefaultOftForChain = (chainId: number): string =>
+  DEFAULT_OFT_BY_META_CHAIN_ID[chainId] ??
+  DEFAULT_OFT_BY_META_CHAIN_ID[LZ_META_DEFAULT_CHAIN_ID];
+
+const LZ_BRIDGE_DST_EID_STORAGE_KEY = "lzOftBridgeDstEid";
+const LZ_META_CHAIN_STORAGE_KEY = "lzOftBridgeMetaChainId";
+
+const isLzMetaSourceChain = (chainId: number): boolean =>
+  (LZ_META_ALLOWED_CHAIN_IDS as readonly number[]).includes(chainId);
+
+const metaChainLabel = (chainId: number): string =>
+  SupportChains.find((c) => Number(c.id) === chainId)?.name ??
+  `chain ${chainId}`;
+
+const readStoredMetaChainId = (): number => {
+  try {
+    const n = Number(localStorage.getItem(LZ_META_CHAIN_STORAGE_KEY));
+    if (isLzMetaSourceChain(n)) return n;
+  } catch {
+    /* ignore */
+  }
+  return LZ_META_DEFAULT_CHAIN_ID;
+};
+
+const persistMetaChainId = (chainId: number) => {
+  if (!isLzMetaSourceChain(chainId)) return;
+  try {
+    localStorage.setItem(LZ_META_CHAIN_STORAGE_KEY, String(chainId));
+  } catch {
+    /* ignore */
+  }
+};
+
+const readStoredDstEid = (): string | null => {
+  try {
+    const raw = localStorage.getItem(LZ_BRIDGE_DST_EID_STORAGE_KEY);
+    if (!raw?.trim()) return null;
+    const n = Number(raw.trim());
+    if (!Number.isFinite(n) || n <= 0 || n >= 0xffffffff) return null;
+    return String(Math.floor(n));
+  } catch {
+    return null;
+  }
+};
+
+const persistDstEid = (eid: number) => {
+  try {
+    localStorage.setItem(LZ_BRIDGE_DST_EID_STORAGE_KEY, String(eid));
+  } catch {
+    /* ignore */
+  }
+};
 
 /** OFT: token() == address(this); OFTAdapter: token() is the underlying ERC20 */
 const OFT_DETECT_ABI = [
@@ -266,8 +327,15 @@ const LayerZeroOFTBridgePage = () => {
   const { address, isConnected } = useAppKitAccount();
   const { chainId: chainIdCurrent } = useAppKitNetwork();
 
-  const [oftAddress, setOftAddress] = useState(DEFAULT_OFT_CONTRACT);
-  const [dstEidInput, setDstEidInput] = useState("40245");
+  const [selectedSourceChainId, setSelectedSourceChainId] = useState<number>(
+    () => readStoredMetaChainId()
+  );
+  const [oftAddress, setOftAddress] = useState(() =>
+    getDefaultOftForChain(readStoredMetaChainId())
+  );
+  const [dstEidInput, setDstEidInput] = useState(
+    () => readStoredDstEid() ?? "40245"
+  );
   const [recipient, setRecipient] = useState("");
   const [amountStr, setAmountStr] = useState("1.0");
   const [slippageBps, setSlippageBps] = useState("0");
@@ -280,6 +348,10 @@ const LayerZeroOFTBridgePage = () => {
   const [decimals, setDecimals] = useState<number | null>(null);
   const [symbol, setSymbol] = useState<string | null>(null);
   const [balanceFormatted, setBalanceFormatted] = useState<string | null>(null);
+  /** On-chain balance (same units as amountLD) for amount ≤ balance checks */
+  const [tokenBalanceLD, setTokenBalanceLD] = useState<ethers.BigNumber | null>(
+    null
+  );
   /** Underlying token allowance to Adapter when in OFTAdapter mode */
   const [allowance, setAllowance] = useState<ethers.BigNumber | null>(null);
   const [isAdapterMode, setIsAdapterMode] = useState(false);
@@ -295,7 +367,7 @@ const LayerZeroOFTBridgePage = () => {
   const [chainId, setChainId] = useState<number | undefined>(undefined);
 
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
-  const [isSwitchingToSepolia, setIsSwitchingToSepolia] = useState(false);
+  const [isSwitchingMetaChain, setIsSwitchingMetaChain] = useState(false);
   const [isConnectingWallet, setIsConnectingWallet] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   /** One-click: approve exact amount if needed → quoteSend → send */
@@ -312,35 +384,34 @@ const LayerZeroOFTBridgePage = () => {
     return Number.isFinite(n) && n > 0 && n < 0xffffffff ? Math.floor(n) : null;
   }, [dstEidInput]);
 
-  /** Connected chain’s LZ V2 source endpoint id (when known) */
-  const chainLzSrcEid = useMemo(
-    () =>
-      chainId != null ? evmChainIdToLzV2SrcEndpointId(chainId) : undefined,
-    [chainId]
+  /** Select Chain → LayerZero V2 source endpoint id (drives Common EIDs filtering) */
+  const selectedSourceLzEid = useMemo(
+    () => evmChainIdToLzV2SrcEndpointId(selectedSourceChainId),
+    [selectedSourceChainId]
   );
 
-  /** Presets excluding the same endpoint as the connected wallet chain */
+  /** Presets excluding the selected source chain (e.g. Hoodi source → no Hoodi in list) */
   const dstPresetChoices = useMemo(
     () =>
-      chainLzSrcEid == null
+      selectedSourceLzEid == null
         ? LZ_DST_EID_PRESETS
-        : LZ_DST_EID_PRESETS.filter((p) => p.eid !== chainLzSrcEid),
-    [chainLzSrcEid]
+        : LZ_DST_EID_PRESETS.filter((p) => p.eid !== selectedSourceLzEid),
+    [selectedSourceLzEid]
   );
 
-  const dstEidEqualsCurrentChain =
-    chainLzSrcEid != null && dstEidNum != null && dstEidNum === chainLzSrcEid;
+  const dstEidEqualsSourceChain =
+    selectedSourceLzEid != null &&
+    dstEidNum != null &&
+    dstEidNum === selectedSourceLzEid;
 
   useEffect(() => {
-    if (!dstEidEqualsCurrentChain) return;
-    const alt = LZ_DST_EID_PRESETS.find((p) => p.eid !== chainLzSrcEid);
+    if (!dstEidEqualsSourceChain) return;
+    const alt = LZ_DST_EID_PRESETS.find((p) => p.eid !== selectedSourceLzEid);
     if (alt) {
       setDstEidInput(String(alt.eid));
-      toast.message(
-        `dstEid cannot match the connected chain; switched preset to ${alt.label}`
-      );
+      persistDstEid(alt.eid);
     }
-  }, [dstEidEqualsCurrentChain, chainLzSrcEid]);
+  }, [dstEidEqualsSourceChain, selectedSourceLzEid]);
 
   const slippageBpsNum = useMemo(() => {
     const n = Number(String(slippageBps).trim());
@@ -366,6 +437,11 @@ const LayerZeroOFTBridgePage = () => {
     if (allowance == null) return true;
     return allowance.lt(parsedAmountLD);
   }, [isAdapterMode, parsedAmountLD, allowance]);
+
+  const amountExceedsBalance = useMemo(() => {
+    if (parsedAmountLD == null || tokenBalanceLD == null) return false;
+    return parsedAmountLD.gt(tokenBalanceLD);
+  }, [parsedAmountLD, tokenBalanceLD]);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -403,39 +479,76 @@ const LayerZeroOFTBridgePage = () => {
     return Number.isFinite(n) ? n : null;
   }, [chainIdCurrent]);
 
-  /** Explicit metadata load uses Sepolia; show switch first when wallet is on another chain */
-  const needsSepoliaBeforeMeta = useMemo(
+  /** Wallet must match Select Chain before load / bridge (Faucet-style) */
+  const needsMetaChainSwitch = useMemo(
     () =>
       isConnected &&
       walletChainNum != null &&
-      walletChainNum !== LZ_META_DEFAULT_CHAIN_ID,
-    [isConnected, walletChainNum]
+      walletChainNum !== selectedSourceChainId,
+    [isConnected, walletChainNum, selectedSourceChainId]
   );
 
-  const switchToEthereumSepolia = async (): Promise<boolean> => {
-    setIsSwitchingToSepolia(true);
+  const oftAddressPlaceholder = useMemo(
+    () => getDefaultOftForChain(selectedSourceChainId),
+    [selectedSourceChainId]
+  );
+
+  useEffect(() => {
+    if (!isLzMetaSourceChain(selectedSourceChainId)) return;
+    persistMetaChainId(selectedSourceChainId);
+    setOftAddress(getDefaultOftForChain(selectedSourceChainId));
+    setDecimals(null);
+    setSymbol(null);
+    setBalanceFormatted(null);
+    setTokenBalanceLD(null);
+    setAllowance(null);
+    setIsAdapterMode(false);
+    setUnderlyingAddress(null);
+  }, [selectedSourceChainId]);
+
+  const handleSourceChainSelectChange = async (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const cid = parseInt(event.target.value, 10);
+    if (!isLzMetaSourceChain(cid)) return;
+    setSelectedSourceChainId(cid);
+    persistMetaChainId(cid);
+    if (chainIdCurrent != null && cid !== Number(chainIdCurrent)) {
+      try {
+        await modal.switchNetwork(getDefaultNetwork(cid));
+      } catch (error) {
+        console.error("Failed to switch chain:", error);
+        toast.error("切换链失败，请手动切换");
+      }
+    }
+  };
+
+  const switchToMetaChain = async (targetChainId: number): Promise<boolean> => {
+    const targetName = metaChainLabel(targetChainId);
+    setIsSwitchingMetaChain(true);
     try {
-      await modal.switchNetwork(getDefaultNetwork(LZ_META_DEFAULT_CHAIN_ID));
+      await modal.switchNetwork(getDefaultNetwork(targetChainId));
       const deadline = Date.now() + 15000;
-      let onSepolia = false;
+      let onTarget = false;
       while (Date.now() < deadline) {
         const [, cid] = await getSignerAndChainId();
-        if (cid === LZ_META_DEFAULT_CHAIN_ID) {
-          onSepolia = true;
+        if (cid === targetChainId) {
+          onTarget = true;
           break;
         }
         await new Promise((r) => setTimeout(r, 400));
       }
       const [, cidAfter] = await getSignerAndChainId();
-      if (!onSepolia && cidAfter !== LZ_META_DEFAULT_CHAIN_ID) {
-        toast.error("切换超时或未在 Ethereum Sepolia，请手动切换后重试");
+      if (!onTarget && cidAfter !== targetChainId) {
+        toast.error(`切换超时或未在 ${targetName}，请手动切换后重试`);
         return false;
       }
       try {
-        localStorage.setItem("chainId", String(LZ_META_DEFAULT_CHAIN_ID));
+        localStorage.setItem("chainId", String(targetChainId));
+        persistMetaChainId(targetChainId);
         window.dispatchEvent(
           new CustomEvent("app-network-changed", {
-            detail: { chainId: String(LZ_META_DEFAULT_CHAIN_ID) }
+            detail: { chainId: String(targetChainId) }
           })
         );
       } catch {
@@ -443,10 +556,10 @@ const LayerZeroOFTBridgePage = () => {
       }
       return true;
     } catch {
-      toast.error("切换网络失败，请手动切换到 Ethereum Sepolia");
+      toast.error(`切换网络失败，请手动切换到 ${targetName}`);
       return false;
     } finally {
-      setIsSwitchingToSepolia(false);
+      setIsSwitchingMetaChain(false);
     }
   };
 
@@ -472,7 +585,7 @@ const LayerZeroOFTBridgePage = () => {
     dstEidNum != null &&
     isAddress(recipientTrimmed) &&
     slippageBpsNum != null &&
-    !dstEidEqualsCurrentChain;
+    !dstEidEqualsSourceChain;
 
   const loadTokenMeta = async (options?: { silent?: boolean }) => {
     const silent = Boolean(options?.silent);
@@ -484,10 +597,22 @@ const LayerZeroOFTBridgePage = () => {
       toast.error("Connect a wallet first");
       return;
     }
+    if (
+      !silent &&
+      isConnected &&
+      walletChainNum != null &&
+      walletChainNum !== selectedSourceChainId
+    ) {
+      toast.error(
+        `Switch to ${getChainName(selectedSourceChainId)} before loading metadata`
+      );
+      return;
+    }
     setIsLoadingMeta(true);
     setDecimals(null);
     setSymbol(null);
     setBalanceFormatted(null);
+    setTokenBalanceLD(null);
     setAllowance(null);
     setIsAdapterMode(false);
     setUnderlyingAddress(null);
@@ -501,6 +626,9 @@ const LayerZeroOFTBridgePage = () => {
       }
       const net = await provider.getNetwork();
       setChainId(net.chainId);
+      if (!silent && isLzMetaSourceChain(net.chainId)) {
+        persistMetaChainId(net.chainId);
+      }
 
       const oftDetectIface = new ethers.utils.Interface(OFT_DETECT_ABI);
       const erc20Iface = new ethers.utils.Interface(ERC20_ABI);
@@ -535,6 +663,7 @@ const LayerZeroOFTBridgePage = () => {
         if (address && isAddress(address)) {
           const bal: ethers.BigNumber = await erc20.balanceOf(address);
           setBalanceFormatted(ethers.utils.formatUnits(bal, decN));
+          setTokenBalanceLD(bal);
           if (adapter) {
             const alw: ethers.BigNumber = await erc20.allowance(
               address,
@@ -546,6 +675,7 @@ const LayerZeroOFTBridgePage = () => {
           }
         } else {
           setBalanceFormatted(null);
+          setTokenBalanceLD(null);
           setAllowance(null);
         }
         let approvalHint = "";
@@ -668,8 +798,10 @@ const LayerZeroOFTBridgePage = () => {
           );
           if (bal != null) {
             setBalanceFormatted(ethers.utils.formatUnits(bal, decN));
+            setTokenBalanceLD(bal);
           } else {
             setBalanceFormatted(null);
+            setTokenBalanceLD(null);
           }
           if (adapter) {
             const alw = decodeMulticallResult<ethers.BigNumber>(
@@ -683,6 +815,7 @@ const LayerZeroOFTBridgePage = () => {
           }
         } else {
           setBalanceFormatted(null);
+          setTokenBalanceLD(null);
           setAllowance(null);
         }
 
@@ -773,6 +906,14 @@ const LayerZeroOFTBridgePage = () => {
     }
     if (amountLD.lte(0)) {
       toast.error("Amount must be greater than 0");
+      return;
+    }
+    if (tokenBalanceLD != null && amountLD.gt(tokenBalanceLD)) {
+      const balHint =
+        balanceFormatted != null && symbol
+          ? ` (${balanceFormatted} ${symbol})`
+          : "";
+      toast.error(`Amount exceeds balance${balHint}`);
       return;
     }
 
@@ -923,6 +1064,33 @@ const LayerZeroOFTBridgePage = () => {
       </section>
 
       <section className="feature-panel">
+        <h3>Select Chain</h3>
+        <div className="feature-field">
+          <label htmlFor="lz-source-chain">Chain</label>
+          <select
+            id="lz-source-chain"
+            className="app-header-network-select"
+            style={{ width: "100%", maxWidth: "100%" }}
+            value={selectedSourceChainId}
+            onChange={(e) => void handleSourceChainSelectChange(e)}
+            aria-label="Select chain"
+          >
+            {faucetChainIdList.map((cid) => (
+              <option key={cid} value={cid}>
+                {getChainName(cid)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="feature-field" style={{ marginBottom: 0 }}>
+          Current:{" "}
+          <strong>
+            {walletChainNum != null ? getChainName(walletChainNum) : "—"}
+          </strong>
+        </p>
+      </section>
+
+      <section className="feature-panel">
         <h3>OFT / OFTAdapter </h3>
 
         <div className="feature-field">
@@ -932,7 +1100,7 @@ const LayerZeroOFTBridgePage = () => {
             type="text"
             value={oftAddress}
             onChange={(e) => setOftAddress(e.target.value)}
-            placeholder={DEFAULT_OFT_CONTRACT}
+            placeholder={oftAddressPlaceholder}
             spellCheck={false}
             autoComplete="off"
           />
@@ -948,14 +1116,14 @@ const LayerZeroOFTBridgePage = () => {
             >
               {isConnectingWallet ? "Connecting..." : "Connect Wallet"}
             </button>
-          ) : needsSepoliaBeforeMeta ? (
+          ) : needsMetaChainSwitch ? (
             <button
               type="button"
               className="cta-button mint-nft-button"
-              onClick={() => void switchToEthereumSepolia()}
-              disabled={!canReadMeta || isSwitchingToSepolia}
+              onClick={() => void switchToMetaChain(selectedSourceChainId)}
+              disabled={!canReadMeta || isSwitchingMetaChain}
             >
-              {isSwitchingToSepolia ? (
+              {isSwitchingMetaChain ? (
                 <>
                   <span
                     style={{
@@ -973,7 +1141,7 @@ const LayerZeroOFTBridgePage = () => {
                   Switching...
                 </>
               ) : (
-                "Switch to Sepolia"
+                `Switch to ${getChainName(selectedSourceChainId)}`
               )}
             </button>
           ) : (
@@ -1045,7 +1213,27 @@ const LayerZeroOFTBridgePage = () => {
             placeholder={decimals != null ? "e.g. 1" : "Load decimals first"}
             spellCheck={false}
             autoComplete="off"
+            aria-invalid={amountExceedsBalance}
           />
+          {amountExceedsBalance && (
+            <p
+              className="feature-field-hint"
+              style={{
+                marginTop: 8,
+                marginBottom: 0,
+                color: "var(--lz-amber)"
+              }}
+            >
+              Amount cannot exceed your balance
+              {balanceFormatted != null && symbol != null && (
+                <>
+                  {" "}
+                  (<b>{balanceFormatted}</b> {symbol})
+                </>
+              )}
+              .
+            </p>
+          )}
         </div>
 
         <div className="lz-bridge-rail" style={{ marginTop: 12 }}>
@@ -1067,7 +1255,12 @@ const LayerZeroOFTBridgePage = () => {
               }
               onChange={(e) => {
                 const v = e.target.value;
-                if (v) setDstEidInput(v);
+                if (!v) return;
+                setDstEidInput(v);
+                const n = Number(v);
+                if (Number.isFinite(n) && n > 0 && n < 0xffffffff) {
+                  persistDstEid(Math.floor(n));
+                }
               }}
             >
               <option value="">Pick a preset (optional)</option>
@@ -1086,17 +1279,20 @@ const LayerZeroOFTBridgePage = () => {
               inputMode="numeric"
               value={dstEidInput}
               onChange={(e) => setDstEidInput(e.target.value)}
+              onBlur={() => {
+                if (dstEidNum != null) persistDstEid(dstEidNum);
+              }}
               spellCheck={false}
-              aria-invalid={dstEidEqualsCurrentChain}
+              aria-invalid={dstEidEqualsSourceChain}
             />
           </div>
-          {dstEidEqualsCurrentChain && (
+          {dstEidEqualsSourceChain && (
             <p
               className="feature-field-hint"
               style={{ marginTop: 8, marginBottom: 0 }}
             >
               {
-                "dstEid cannot match the connected wallet chain's LayerZero endpoint; pick another destination."
+                "dstEid cannot match Select Chain’s LayerZero endpoint; pick another destination."
               }
             </p>
           )}
@@ -1212,7 +1408,12 @@ const LayerZeroOFTBridgePage = () => {
             type="button"
             className="cta-button mint-nft-button"
             onClick={bridgeQuoteApproveSend}
-            disabled={!canQuoteOrSend || decimals == null || isBridgeOneClick}
+            disabled={
+              !canQuoteOrSend ||
+              decimals == null ||
+              isBridgeOneClick ||
+              amountExceedsBalance
+            }
             title="OFTAdapter: approves exact allowance if needed, then quoteSend and send"
           >
             {isBridgeOneClick ? "Processing…" : "Bridge OFT Now"}
