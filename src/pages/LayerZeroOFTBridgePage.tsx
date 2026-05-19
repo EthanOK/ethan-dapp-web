@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import { toast } from "sonner";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import {
   getDefaultReadonlyProvider,
   getProvider,
-  getSigner
+  getSigner,
+  getSignerAndChainId
 } from "../utils/GetProvider";
+import { getDefaultNetwork, modal } from "../EthanDapp";
 import { isAddress, getDecimalBigNumber } from "../utils/Utils";
 import { truncateHash } from "../utils/format";
 import { SupportChains } from "../common/ChainsConfig";
+import { faucetChainIdList, getChainName } from "../common/FaucetConfig";
 import {
   decodeMulticallResult,
   multicall3Aggregate3StaticCall,
@@ -23,7 +26,8 @@ import "./LayerZeroOFTBridgePage.css";
 
 /** LayerZero V2 testnet dstEid presets (official EIDs) */
 const LZ_DST_EID_PRESETS: { label: string; eid: number }[] = [
-  { label: "Ethereum Sepolia", eid: 40161 },
+  { label: "Sepolia Testnet", eid: 40161 },
+  { label: "Hoodi Testnet", eid: 40449 },
   { label: "Base Sepolia", eid: 40245 },
   { label: "Arbitrum Sepolia", eid: 40231 },
   { label: "BSC Testnet", eid: 40102 }
@@ -57,7 +61,69 @@ function formatLzBridgeRouteSummary(
   return line;
 }
 
-const DEFAULT_OFT_CONTRACT = "0x43D67403d1581056187fE80633175186F7eF8677";
+/** Default OFT / OFTAdapter per metadata source chain */
+const DEFAULT_OFT_BY_META_CHAIN_ID: Record<number, string> = {
+  11155111: "0x43D67403d1581056187fE80633175186F7eF8677",
+  560048: "0xadf015fe835927a2e7a336cb4f61975912feb5eb"
+};
+
+/** Chains allowed for Load OFT Metadata (Sepolia + Hoodi) */
+const LZ_META_ALLOWED_CHAIN_IDS = [11155111, 560048] as const;
+/** Default when switching from an unsupported chain */
+const LZ_META_DEFAULT_CHAIN_ID = 11155111;
+
+const getDefaultOftForChain = (chainId: number): string =>
+  DEFAULT_OFT_BY_META_CHAIN_ID[chainId] ??
+  DEFAULT_OFT_BY_META_CHAIN_ID[LZ_META_DEFAULT_CHAIN_ID];
+
+const LZ_BRIDGE_DST_EID_STORAGE_KEY = "lzOftBridgeDstEid";
+const LZ_META_CHAIN_STORAGE_KEY = "lzOftBridgeMetaChainId";
+
+const isLzMetaSourceChain = (chainId: number): boolean =>
+  (LZ_META_ALLOWED_CHAIN_IDS as readonly number[]).includes(chainId);
+
+const metaChainLabel = (chainId: number): string =>
+  SupportChains.find((c) => Number(c.id) === chainId)?.name ??
+  `chain ${chainId}`;
+
+const readStoredMetaChainId = (): number => {
+  try {
+    const n = Number(localStorage.getItem(LZ_META_CHAIN_STORAGE_KEY));
+    if (isLzMetaSourceChain(n)) return n;
+  } catch {
+    /* ignore */
+  }
+  return LZ_META_DEFAULT_CHAIN_ID;
+};
+
+const persistMetaChainId = (chainId: number) => {
+  if (!isLzMetaSourceChain(chainId)) return;
+  try {
+    localStorage.setItem(LZ_META_CHAIN_STORAGE_KEY, String(chainId));
+  } catch {
+    /* ignore */
+  }
+};
+
+const readStoredDstEid = (): string | null => {
+  try {
+    const raw = localStorage.getItem(LZ_BRIDGE_DST_EID_STORAGE_KEY);
+    if (!raw?.trim()) return null;
+    const n = Number(raw.trim());
+    if (!Number.isFinite(n) || n <= 0 || n >= 0xffffffff) return null;
+    return String(Math.floor(n));
+  } catch {
+    return null;
+  }
+};
+
+const persistDstEid = (eid: number) => {
+  try {
+    localStorage.setItem(LZ_BRIDGE_DST_EID_STORAGE_KEY, String(eid));
+  } catch {
+    /* ignore */
+  }
+};
 
 /** OFT: token() == address(this); OFTAdapter: token() is the underlying ERC20 */
 const OFT_DETECT_ABI = [
@@ -259,9 +325,17 @@ const buildSendParam = (
 
 const LayerZeroOFTBridgePage = () => {
   const { address, isConnected } = useAppKitAccount();
+  const { chainId: chainIdCurrent } = useAppKitNetwork();
 
-  const [oftAddress, setOftAddress] = useState(DEFAULT_OFT_CONTRACT);
-  const [dstEidInput, setDstEidInput] = useState("40245");
+  const [selectedSourceChainId, setSelectedSourceChainId] = useState<number>(
+    () => readStoredMetaChainId()
+  );
+  const [oftAddress, setOftAddress] = useState(() =>
+    getDefaultOftForChain(readStoredMetaChainId())
+  );
+  const [dstEidInput, setDstEidInput] = useState(
+    () => readStoredDstEid() ?? "40245"
+  );
   const [recipient, setRecipient] = useState("");
   const [amountStr, setAmountStr] = useState("1.0");
   const [slippageBps, setSlippageBps] = useState("0");
@@ -274,17 +348,27 @@ const LayerZeroOFTBridgePage = () => {
   const [decimals, setDecimals] = useState<number | null>(null);
   const [symbol, setSymbol] = useState<string | null>(null);
   const [balanceFormatted, setBalanceFormatted] = useState<string | null>(null);
+  /** On-chain balance (same units as amountLD) for amount ≤ balance checks */
+  const [tokenBalanceLD, setTokenBalanceLD] = useState<ethers.BigNumber | null>(
+    null
+  );
   /** Underlying token allowance to Adapter when in OFTAdapter mode */
   const [allowance, setAllowance] = useState<ethers.BigNumber | null>(null);
   const [isAdapterMode, setIsAdapterMode] = useState(false);
   const [underlyingAddress, setUnderlyingAddress] = useState<string | null>(
     null
   );
-  const [nativeFee, setNativeFee] = useState<ethers.BigNumber | null>(null);
-  const [lzTokenFee, setLzTokenFee] = useState<ethers.BigNumber | null>(null);
+  const [nativeFee, setNativeFee] = useState<ethers.BigNumber>(() =>
+    ethers.BigNumber.from(0)
+  );
+  const [lzTokenFee, setLzTokenFee] = useState<ethers.BigNumber>(() =>
+    ethers.BigNumber.from(0)
+  );
   const [chainId, setChainId] = useState<number | undefined>(undefined);
 
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
+  const [isSwitchingMetaChain, setIsSwitchingMetaChain] = useState(false);
+  const [isConnectingWallet, setIsConnectingWallet] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   /** One-click: approve exact amount if needed → quoteSend → send */
   const [isBridgeOneClick, setIsBridgeOneClick] = useState(false);
@@ -300,35 +384,34 @@ const LayerZeroOFTBridgePage = () => {
     return Number.isFinite(n) && n > 0 && n < 0xffffffff ? Math.floor(n) : null;
   }, [dstEidInput]);
 
-  /** Connected chain’s LZ V2 source endpoint id (when known) */
-  const chainLzSrcEid = useMemo(
-    () =>
-      chainId != null ? evmChainIdToLzV2SrcEndpointId(chainId) : undefined,
-    [chainId]
+  /** Select Chain → LayerZero V2 source endpoint id (drives Common EIDs filtering) */
+  const selectedSourceLzEid = useMemo(
+    () => evmChainIdToLzV2SrcEndpointId(selectedSourceChainId),
+    [selectedSourceChainId]
   );
 
-  /** Presets excluding the same endpoint as the connected wallet chain */
+  /** Presets excluding the selected source chain (e.g. Hoodi source → no Hoodi in list) */
   const dstPresetChoices = useMemo(
     () =>
-      chainLzSrcEid == null
+      selectedSourceLzEid == null
         ? LZ_DST_EID_PRESETS
-        : LZ_DST_EID_PRESETS.filter((p) => p.eid !== chainLzSrcEid),
-    [chainLzSrcEid]
+        : LZ_DST_EID_PRESETS.filter((p) => p.eid !== selectedSourceLzEid),
+    [selectedSourceLzEid]
   );
 
-  const dstEidEqualsCurrentChain =
-    chainLzSrcEid != null && dstEidNum != null && dstEidNum === chainLzSrcEid;
+  const dstEidEqualsSourceChain =
+    selectedSourceLzEid != null &&
+    dstEidNum != null &&
+    dstEidNum === selectedSourceLzEid;
 
   useEffect(() => {
-    if (!dstEidEqualsCurrentChain) return;
-    const alt = LZ_DST_EID_PRESETS.find((p) => p.eid !== chainLzSrcEid);
+    if (!dstEidEqualsSourceChain) return;
+    const alt = LZ_DST_EID_PRESETS.find((p) => p.eid !== selectedSourceLzEid);
     if (alt) {
       setDstEidInput(String(alt.eid));
-      toast.message(
-        `dstEid cannot match the connected chain; switched preset to ${alt.label}`
-      );
+      persistDstEid(alt.eid);
     }
-  }, [dstEidEqualsCurrentChain, chainLzSrcEid]);
+  }, [dstEidEqualsSourceChain, selectedSourceLzEid]);
 
   const slippageBpsNum = useMemo(() => {
     const n = Number(String(slippageBps).trim());
@@ -354,6 +437,11 @@ const LayerZeroOFTBridgePage = () => {
     if (allowance == null) return true;
     return allowance.lt(parsedAmountLD);
   }, [isAdapterMode, parsedAmountLD, allowance]);
+
+  const amountExceedsBalance = useMemo(() => {
+    if (parsedAmountLD == null || tokenBalanceLD == null) return false;
+    return parsedAmountLD.gt(tokenBalanceLD);
+  }, [parsedAmountLD, tokenBalanceLD]);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -384,12 +472,120 @@ const LayerZeroOFTBridgePage = () => {
   const recipientTrimmed = recipient.trim();
 
   const canReadMeta = isAddress(oftTrimmed);
+
+  const walletChainNum = useMemo(() => {
+    if (chainIdCurrent == null) return null;
+    const n = Number(chainIdCurrent);
+    return Number.isFinite(n) ? n : null;
+  }, [chainIdCurrent]);
+
+  /** Wallet must match Select Chain before load / bridge (Faucet-style) */
+  const needsMetaChainSwitch = useMemo(
+    () =>
+      isConnected &&
+      walletChainNum != null &&
+      walletChainNum !== selectedSourceChainId,
+    [isConnected, walletChainNum, selectedSourceChainId]
+  );
+
+  const oftAddressPlaceholder = useMemo(
+    () => getDefaultOftForChain(selectedSourceChainId),
+    [selectedSourceChainId]
+  );
+
+  useEffect(() => {
+    if (!isLzMetaSourceChain(selectedSourceChainId)) return;
+    persistMetaChainId(selectedSourceChainId);
+    setOftAddress(getDefaultOftForChain(selectedSourceChainId));
+    setDecimals(null);
+    setSymbol(null);
+    setBalanceFormatted(null);
+    setTokenBalanceLD(null);
+    setAllowance(null);
+    setIsAdapterMode(false);
+    setUnderlyingAddress(null);
+  }, [selectedSourceChainId]);
+
+  const handleSourceChainSelectChange = async (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const cid = parseInt(event.target.value, 10);
+    if (!isLzMetaSourceChain(cid)) return;
+    setSelectedSourceChainId(cid);
+    persistMetaChainId(cid);
+    if (chainIdCurrent != null && cid !== Number(chainIdCurrent)) {
+      try {
+        await modal.switchNetwork(getDefaultNetwork(cid));
+      } catch (error) {
+        console.error("Failed to switch chain:", error);
+        toast.error("切换链失败，请手动切换");
+      }
+    }
+  };
+
+  const switchToMetaChain = async (targetChainId: number): Promise<boolean> => {
+    const targetName = metaChainLabel(targetChainId);
+    setIsSwitchingMetaChain(true);
+    try {
+      await modal.switchNetwork(getDefaultNetwork(targetChainId));
+      const deadline = Date.now() + 15000;
+      let onTarget = false;
+      while (Date.now() < deadline) {
+        const [, cid] = await getSignerAndChainId();
+        if (cid === targetChainId) {
+          onTarget = true;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 400));
+      }
+      const [, cidAfter] = await getSignerAndChainId();
+      if (!onTarget && cidAfter !== targetChainId) {
+        toast.error(`切换超时或未在 ${targetName}，请手动切换后重试`);
+        return false;
+      }
+      try {
+        localStorage.setItem("chainId", String(targetChainId));
+        persistMetaChainId(targetChainId);
+        window.dispatchEvent(
+          new CustomEvent("app-network-changed", {
+            detail: { chainId: String(targetChainId) }
+          })
+        );
+      } catch {
+        /* ignore */
+      }
+      return true;
+    } catch {
+      toast.error(`切换网络失败，请手动切换到 ${targetName}`);
+      return false;
+    } finally {
+      setIsSwitchingMetaChain(false);
+    }
+  };
+
+  const handleConnectWallet = async () => {
+    setIsConnectingWallet(true);
+    try {
+      localStorage.setItem("LoginType", "reown");
+      const maybeModal = modal as unknown as {
+        open?: () => Promise<void> | void;
+      };
+      await maybeModal?.open?.();
+    } catch (error) {
+      console.error("Connect failed:", error);
+      localStorage.removeItem("LoginType");
+      toast.error("Connect wallet failed, please try again");
+    } finally {
+      setIsConnectingWallet(false);
+    }
+  };
+
   const canQuoteOrSend =
     canReadMeta &&
     dstEidNum != null &&
     isAddress(recipientTrimmed) &&
     slippageBpsNum != null &&
-    !dstEidEqualsCurrentChain;
+    !dstEidEqualsSourceChain;
 
   const loadTokenMeta = async (options?: { silent?: boolean }) => {
     const silent = Boolean(options?.silent);
@@ -397,10 +593,26 @@ const LayerZeroOFTBridgePage = () => {
       toast.error("Enter a valid OFT / OFTAdapter contract address");
       return;
     }
+    if (!silent && !isConnected) {
+      toast.error("Connect a wallet first");
+      return;
+    }
+    if (
+      !silent &&
+      isConnected &&
+      walletChainNum != null &&
+      walletChainNum !== selectedSourceChainId
+    ) {
+      toast.error(
+        `Switch to ${getChainName(selectedSourceChainId)} before loading metadata`
+      );
+      return;
+    }
     setIsLoadingMeta(true);
     setDecimals(null);
     setSymbol(null);
     setBalanceFormatted(null);
+    setTokenBalanceLD(null);
     setAllowance(null);
     setIsAdapterMode(false);
     setUnderlyingAddress(null);
@@ -414,6 +626,9 @@ const LayerZeroOFTBridgePage = () => {
       }
       const net = await provider.getNetwork();
       setChainId(net.chainId);
+      if (!silent && isLzMetaSourceChain(net.chainId)) {
+        persistMetaChainId(net.chainId);
+      }
 
       const oftDetectIface = new ethers.utils.Interface(OFT_DETECT_ABI);
       const erc20Iface = new ethers.utils.Interface(ERC20_ABI);
@@ -448,6 +663,7 @@ const LayerZeroOFTBridgePage = () => {
         if (address && isAddress(address)) {
           const bal: ethers.BigNumber = await erc20.balanceOf(address);
           setBalanceFormatted(ethers.utils.formatUnits(bal, decN));
+          setTokenBalanceLD(bal);
           if (adapter) {
             const alw: ethers.BigNumber = await erc20.allowance(
               address,
@@ -459,6 +675,7 @@ const LayerZeroOFTBridgePage = () => {
           }
         } else {
           setBalanceFormatted(null);
+          setTokenBalanceLD(null);
           setAllowance(null);
         }
         let approvalHint = "";
@@ -581,8 +798,10 @@ const LayerZeroOFTBridgePage = () => {
           );
           if (bal != null) {
             setBalanceFormatted(ethers.utils.formatUnits(bal, decN));
+            setTokenBalanceLD(bal);
           } else {
             setBalanceFormatted(null);
+            setTokenBalanceLD(null);
           }
           if (adapter) {
             const alw = decodeMulticallResult<ethers.BigNumber>(
@@ -596,6 +815,7 @@ const LayerZeroOFTBridgePage = () => {
           }
         } else {
           setBalanceFormatted(null);
+          setTokenBalanceLD(null);
           setAllowance(null);
         }
 
@@ -620,7 +840,7 @@ const LayerZeroOFTBridgePage = () => {
         if (!silent) {
           toast.success(
             adapter
-              ? `Detected OFTAdapter; underlying token ${symLabel}${approvalHint}`
+              ? `Detected OFTAdapter; underlying token ${symLabel}`
               : "Detected OFT (this contract is the bridged token)"
           );
         }
@@ -688,6 +908,14 @@ const LayerZeroOFTBridgePage = () => {
       toast.error("Amount must be greater than 0");
       return;
     }
+    if (tokenBalanceLD != null && amountLD.gt(tokenBalanceLD)) {
+      const balHint =
+        balanceFormatted != null && symbol
+          ? ` (${balanceFormatted} ${symbol})`
+          : "";
+      toast.error(`Amount exceeds balance${balHint}`);
+      return;
+    }
 
     const minAmountLD = amountLD.mul(10000 - slippageBpsNum!).div(10000);
     const sendParam = buildSendParam(
@@ -715,8 +943,8 @@ const LayerZeroOFTBridgePage = () => {
       return ethers.BigNumber.from(n);
     };
 
-    setNativeFee(null);
-    setLzTokenFee(null);
+    setNativeFee(ethers.BigNumber.from(0));
+    setLzTokenFee(ethers.BigNumber.from(0));
     setLastBridgeScanLink(null);
     setLastBridgeTxHash(null);
     setIsBridgeOneClick(true);
@@ -836,12 +1064,34 @@ const LayerZeroOFTBridgePage = () => {
       </section>
 
       <section className="feature-panel">
-        <h3>OFT / OFTAdapter &amp; network</h3>
-        <p className="feature-field-hint">
-          Switch your wallet to the source chain and enter the OFT or OFTAdapter
-          contract. For an adapter, <code>token()</code> reads the underlying
-          ERC20; sends still target the adapter address.
+        <h3>Select Chain</h3>
+        <div className="feature-field">
+          <label htmlFor="lz-source-chain">Chain</label>
+          <select
+            id="lz-source-chain"
+            className="app-header-network-select"
+            style={{ width: "100%", maxWidth: "100%" }}
+            value={selectedSourceChainId}
+            onChange={(e) => void handleSourceChainSelectChange(e)}
+            aria-label="Select chain"
+          >
+            {faucetChainIdList.map((cid) => (
+              <option key={cid} value={cid}>
+                {getChainName(cid)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="feature-field" style={{ marginBottom: 0 }}>
+          Current:{" "}
+          <strong>
+            {walletChainNum != null ? getChainName(walletChainNum) : "—"}
+          </strong>
         </p>
+      </section>
+
+      <section className="feature-panel">
+        <h3>OFT / OFTAdapter </h3>
 
         <div className="feature-field">
           <label htmlFor="lz-oft-addr">OFT or OFTAdapter address</label>
@@ -850,21 +1100,60 @@ const LayerZeroOFTBridgePage = () => {
             type="text"
             value={oftAddress}
             onChange={(e) => setOftAddress(e.target.value)}
-            placeholder={DEFAULT_OFT_CONTRACT}
+            placeholder={oftAddressPlaceholder}
             spellCheck={false}
             autoComplete="off"
           />
         </div>
 
         <div className="feature-actions feature-actions--inline">
-          <button
-            type="button"
-            className="cta-button mint-nft-button"
-            onClick={() => void loadTokenMeta()}
-            disabled={!canReadMeta || isLoadingMeta}
-          >
-            {isLoadingMeta ? "Loading…" : "Load token metadata"}
-          </button>
+          {!isConnected ? (
+            <button
+              type="button"
+              className="cta-button connect-wallet-button"
+              onClick={() => void handleConnectWallet()}
+              disabled={isConnectingWallet}
+            >
+              {isConnectingWallet ? "Connecting..." : "Connect Wallet"}
+            </button>
+          ) : needsMetaChainSwitch ? (
+            <button
+              type="button"
+              className="cta-button mint-nft-button"
+              onClick={() => void switchToMetaChain(selectedSourceChainId)}
+              disabled={!canReadMeta || isSwitchingMetaChain}
+            >
+              {isSwitchingMetaChain ? (
+                <>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: "12px",
+                      height: "12px",
+                      border: "2px solid currentColor",
+                      borderRightColor: "transparent",
+                      borderRadius: "50%",
+                      animation: "rotate 1s linear infinite",
+                      marginRight: "8px",
+                      verticalAlign: "middle"
+                    }}
+                  />
+                  Switching...
+                </>
+              ) : (
+                `Switch to ${getChainName(selectedSourceChainId)}`
+              )}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="cta-button mint-nft-button"
+              onClick={() => void loadTokenMeta()}
+              disabled={!canReadMeta || isLoadingMeta}
+            >
+              {isLoadingMeta ? "Loading…" : "Load OFT Metadata"}
+            </button>
+          )}
         </div>
 
         {symbol != null && decimals != null && (
@@ -873,7 +1162,8 @@ const LayerZeroOFTBridgePage = () => {
               Mode: <b>{isAdapterMode ? "OFTAdapter" : "OFT"}</b>
               {isAdapterMode && underlyingAddress && (
                 <>
-                  , underlying:{" "}
+                  <br />
+                  Underlying :{" "}
                   <span
                     style={{
                       fontFamily: "var(--w3-font-mono)",
@@ -886,7 +1176,7 @@ const LayerZeroOFTBridgePage = () => {
               )}
             </div>
             <div style={{ marginTop: 6 }}>
-              Token: <b>{symbol}</b>, decimals <b>{decimals}</b>
+              Name: <b>{symbol}</b>, decimals <b>{decimals}</b>
               {balanceFormatted != null && (
                 <>
                   , balance <b>{balanceFormatted}</b>
@@ -908,11 +1198,6 @@ const LayerZeroOFTBridgePage = () => {
                 )}
               </div>
             )}
-            {chainId != null && (
-              <div style={{ marginTop: 6, opacity: 0.85 }}>
-                Chain ID: <b>{chainId}</b>
-              </div>
-            )}
           </div>
         )}
 
@@ -928,7 +1213,27 @@ const LayerZeroOFTBridgePage = () => {
             placeholder={decimals != null ? "e.g. 1" : "Load decimals first"}
             spellCheck={false}
             autoComplete="off"
+            aria-invalid={amountExceedsBalance}
           />
+          {amountExceedsBalance && (
+            <p
+              className="feature-field-hint"
+              style={{
+                marginTop: 8,
+                marginBottom: 0,
+                color: "var(--lz-amber)"
+              }}
+            >
+              Amount cannot exceed your balance
+              {balanceFormatted != null && symbol != null && (
+                <>
+                  {" "}
+                  (<b>{balanceFormatted}</b> {symbol})
+                </>
+              )}
+              .
+            </p>
+          )}
         </div>
 
         <div className="lz-bridge-rail" style={{ marginTop: 12 }}>
@@ -950,7 +1255,12 @@ const LayerZeroOFTBridgePage = () => {
               }
               onChange={(e) => {
                 const v = e.target.value;
-                if (v) setDstEidInput(v);
+                if (!v) return;
+                setDstEidInput(v);
+                const n = Number(v);
+                if (Number.isFinite(n) && n > 0 && n < 0xffffffff) {
+                  persistDstEid(Math.floor(n));
+                }
               }}
             >
               <option value="">Pick a preset (optional)</option>
@@ -969,17 +1279,20 @@ const LayerZeroOFTBridgePage = () => {
               inputMode="numeric"
               value={dstEidInput}
               onChange={(e) => setDstEidInput(e.target.value)}
+              onBlur={() => {
+                if (dstEidNum != null) persistDstEid(dstEidNum);
+              }}
               spellCheck={false}
-              aria-invalid={dstEidEqualsCurrentChain}
+              aria-invalid={dstEidEqualsSourceChain}
             />
           </div>
-          {dstEidEqualsCurrentChain && (
+          {dstEidEqualsSourceChain && (
             <p
               className="feature-field-hint"
               style={{ marginTop: 8, marginBottom: 0 }}
             >
               {
-                "dstEid cannot match the connected wallet chain's LayerZero endpoint; pick another destination."
+                "dstEid cannot match Select Chain’s LayerZero endpoint; pick another destination."
               }
             </p>
           )}
@@ -1013,14 +1326,6 @@ const LayerZeroOFTBridgePage = () => {
           <summary className="lz-bridge-advanced-summary">
             Advanced (optional)
           </summary>
-          <p className="feature-field-hint lz-bridge-advanced-hint">
-            <code>extraOptions</code> should match the hex from your deploy
-            script: <code>Options.newOptions()</code> +{" "}
-            <code>addExecutorLzReceiveOption</code> /{" "}
-            <code>addExecutorComposeOption</code> /{" "}
-            <code>addExecutorNativeDropOption</code>. Default <code>0x</code>{" "}
-            means no extra executor options.
-          </p>
 
           <div className="feature-field">
             <label htmlFor="lz-extra">extraOptions (hex)</label>
@@ -1066,57 +1371,52 @@ const LayerZeroOFTBridgePage = () => {
           </div>
         </details>
 
-        {(nativeFee != null || lzTokenFee != null) && (
-          <div className="lz-fee-card">
-            <div className="lz-fee-row">
-              <span className="lz-fee-label">nativeFee (wei)</span>
-              <span className="lz-fee-value">
-                {nativeFee != null ? nativeFee.toString() : "—"}
-              </span>
-            </div>
-            <div className="lz-fee-row">
-              <span className="lz-fee-label">lzTokenFee</span>
-              <span className="lz-fee-value">
-                {lzTokenFee != null ? lzTokenFee.toString() : "—"}
-              </span>
-            </div>
-            {nativeFee != null && (
-              <div className="lz-fee-row">
-                <span className="lz-fee-label">
-                  send msg.value (= nativeFee)
-                </span>
-                <span className="lz-fee-value lz-fee-value--warn">
-                  {nativeFee.toString()}
-                </span>
-              </div>
-            )}
-            {lzTokenFee != null && lzTokenFee.gt(0) && (
-              <p
-                style={{
-                  marginTop: 10,
-                  marginBottom: 0,
-                  fontSize: "0.78rem",
-                  color: "var(--lz-amber)",
-                  lineHeight: 1.45
-                }}
-              >
-                Non-zero lzTokenFee: paying LayerZero fees in the native token
-                may require extra steps per your deployment (e.g. ZRO allowance
-                or payInLzToken). Confirm against your project docs.
-              </p>
-            )}
+        <div className="lz-fee-card">
+          <div className="lz-fee-row">
+            <span className="lz-fee-label">nativeFee (wei)</span>
+            <span className="lz-fee-value">{nativeFee.toString()}</span>
           </div>
-        )}
+          <div className="lz-fee-row">
+            <span className="lz-fee-label">lzTokenFee</span>
+            <span className="lz-fee-value">{lzTokenFee.toString()}</span>
+          </div>
+          <div className="lz-fee-row">
+            <span className="lz-fee-label">send msg.value (= nativeFee)</span>
+            <span className="lz-fee-value lz-fee-value--warn">
+              {nativeFee.toString()}
+            </span>
+          </div>
+          {lzTokenFee.gt(0) && (
+            <p
+              style={{
+                marginTop: 10,
+                marginBottom: 0,
+                fontSize: "0.78rem",
+                color: "var(--lz-amber)",
+                lineHeight: 1.45
+              }}
+            >
+              Non-zero lzTokenFee: paying LayerZero fees in the native token may
+              require extra steps per your deployment (e.g. ZRO allowance or
+              payInLzToken). Confirm against your project docs.
+            </p>
+          )}
+        </div>
 
         <div className="feature-actions feature-actions--inline lz-bridge-send-row">
           <button
             type="button"
             className="cta-button mint-nft-button"
             onClick={bridgeQuoteApproveSend}
-            disabled={!canQuoteOrSend || decimals == null || isBridgeOneClick}
+            disabled={
+              !canQuoteOrSend ||
+              decimals == null ||
+              isBridgeOneClick ||
+              amountExceedsBalance
+            }
             title="OFTAdapter: approves exact allowance if needed, then quoteSend and send"
           >
-            {isBridgeOneClick ? "Working…" : "Bridge One Click"}
+            {isBridgeOneClick ? "Processing…" : "Bridge OFT Now"}
           </button>
           {lastBridgeScanLink != null && (
             <>
