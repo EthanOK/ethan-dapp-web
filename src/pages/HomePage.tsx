@@ -638,7 +638,7 @@ const HomePage = () => {
                     onClick={
                       item.id
                         ? () =>
-                            navigate(`/kline?coinId=${item.id}`, {
+                            navigate(`/marketchart?coinId=${item.id}`, {
                               state: {
                                 name: item.name,
                                 symbol: item.symbol,
@@ -674,7 +674,7 @@ const HomePage = () => {
                       onClick={
                         item.id
                           ? () =>
-                              navigate(`/kline?coinId=${item.id}`, {
+                              navigate(`/marketchart?coinId=${item.id}`, {
                                 state: {
                                   name: item.name,
                                   symbol: item.symbol,
@@ -705,7 +705,7 @@ const HomePage = () => {
                       onClick={
                         item.id
                           ? () =>
-                              navigate(`/kline?coinId=${item.id}`, {
+                              navigate(`/marketchart?coinId=${item.id}`, {
                                 state: {
                                   name: item.name,
                                   symbol: item.symbol,

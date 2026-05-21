@@ -33,7 +33,7 @@ import Web3AuthSolanaPage from "./pages/Web3AuthSolanaPage";
 import EIP7702Page from "./pages/EIP7702Page";
 import ERC20AllowancePage from "./pages/ERC20AllowancePage";
 import LayerZeroOFTBridgePage from "./pages/LayerZeroOFTBridgePage";
-import KlinePage from "./pages/KlinePage";
+import MarketChartPage from "./pages/MarketChartPage";
 import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
 import {
   base,
@@ -521,7 +521,7 @@ function App() {
           <main className="app-main">
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/kline" element={<KlinePage />} />
+              <Route path="/marketchart" element={<MarketChartPage />} />
               <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
               <Route path="/ens" element={<ENSPage />} />
               <Route path="/mintnft" element={<MintNFTPage />} />
