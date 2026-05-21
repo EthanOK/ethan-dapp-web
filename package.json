@@ -33,6 +33,7 @@
     "eth-url-parser": "^1.0.4",
     "ethers": "^5.7.2",
     "ethers-v6": "npm:ethers@^6.15.0",
+    "lightweight-charts": "^5.2.0",
     "opensea-js": "6.1.4",
     "qr-code-styling": "^1.9.2",
     "react": "^18.3.1",
