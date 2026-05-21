@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkethan_dapp_web=self.webpackChunkethan_dapp_web||[]).push([[2708],{62708(e,a,p){p.d(a,{createPublicClient:()=>t.l,defineChain:()=>n.x,http:()=>h.L});var t=p(83640),h=p(65154),n=p(36e3)}}]);
