@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider";
 import { DefaultChainId } from "../common/SystemConfiguration";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
@@ -17,10 +18,13 @@ import "./HomePage.css";
 
 const COINGECKO_MARKETS_URL =
   "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h";
+const CG_HEADERS = { "x-cg-demo-api-key": "CG-3DZELwY5HdLhsJjNpyN6hFy6" };
 
 const MARKET_CACHE_KEY = "home_market_cache";
 
 interface CoinItem {
+  id: string;
+  name: string;
   symbol: string;
   price: string;
   change: string;
@@ -84,6 +88,8 @@ function setCachedMarketData(
 }
 
 const emptyCoin = (symbol: string): CoinItem => ({
+  id: "",
+  name: "",
   symbol,
   price: "—",
   change: "—",
@@ -95,23 +101,23 @@ const emptyCoin = (symbol: string): CoinItem => ({
 });
 
 const fallbackTickerList: CoinItem[] = [
-  "BTC",
-  "ETH",
-  "SOL",
-  "DOGE",
-  "BNB",
-  "XRP",
-  "ADA",
-  "HYPE",
-  "LINK",
-  "AVAX",
-  "DOT",
-  "MATIC",
-  "TRX",
-  "LEO",
-  "BCH",
-  "ATOM"
-].map(emptyCoin);
+  { id: "bitcoin", symbol: "BTC" },
+  { id: "ethereum", symbol: "ETH" },
+  { id: "solana", symbol: "SOL" },
+  { id: "dogecoin", symbol: "DOGE" },
+  { id: "binancecoin", symbol: "BNB" },
+  { id: "ripple", symbol: "XRP" },
+  { id: "cardano", symbol: "ADA" },
+  { id: "hyperliquid", symbol: "HYPE" },
+  { id: "chainlink", symbol: "LINK" },
+  { id: "avalanche-2", symbol: "AVAX" },
+  { id: "polkadot", symbol: "DOT" },
+  { id: "matic-network", symbol: "MATIC" },
+  { id: "tron", symbol: "TRX" },
+  { id: "leo-token", symbol: "LEO" },
+  { id: "bitcoin-cash", symbol: "BCH" },
+  { id: "cosmos", symbol: "ATOM" }
+].map(({ id, symbol }) => ({ ...emptyCoin(symbol), id }));
 
 function formatPrice(num: number | null | undefined): string {
   if (num == null || Number.isNaN(num)) return "—";
@@ -185,9 +191,11 @@ function walletPaymentUriForQr(
 }
 
 async function fetchTickerFromCoinGecko(): Promise<CoinItem[]> {
-  const res = await fetch(COINGECKO_MARKETS_URL);
+  const res = await fetch(COINGECKO_MARKETS_URL, { headers: CG_HEADERS });
   if (!res.ok) throw new Error("CoinGecko request failed");
   const data = (await res.json()) as Array<{
+    id?: string;
+    name?: string;
     symbol?: string;
     current_price?: number;
     price_change_percentage_24h_in_currency?: number;
@@ -203,6 +211,8 @@ async function fetchTickerFromCoinGecko(): Promise<CoinItem[]> {
         item.price_change_percentage_24h
     );
     return {
+      id: item.id ?? "",
+      name: item.name ?? "",
       symbol: (item.symbol ?? "").toUpperCase(),
       price: formatPrice(item.current_price),
       change: text,
@@ -215,8 +225,25 @@ async function fetchTickerFromCoinGecko(): Promise<CoinItem[]> {
   });
 }
 
-const CoinCard = ({ item }: { item: CoinItem }) => (
-  <div className="home-coin-card">
+const CoinCard = ({
+  item,
+  onClick
+}: {
+  item: CoinItem;
+  onClick?: () => void;
+}) => (
+  <div
+    className="home-coin-card"
+    onClick={onClick}
+    role="button"
+    tabIndex={0}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onClick?.();
+      }
+    }}
+  >
     <div className="home-coin-card-head">
       {item.image && (
         <img
@@ -253,6 +280,7 @@ const CoinCard = ({ item }: { item: CoinItem }) => (
 );
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [currentAccountBalance, setCurrentAccountBalance] = useState<
     string | null
@@ -604,7 +632,26 @@ const HomePage = () => {
             {marketFilteredList.length > 0 ? (
               <div className="home-market-grid">
                 {marketFilteredList.map((item) => (
-                  <CoinCard key={item.symbol} item={item} />
+                  <CoinCard
+                    key={item.symbol}
+                    item={item}
+                    onClick={
+                      item.id
+                        ? () =>
+                            navigate(`/kline?coinId=${item.id}`, {
+                              state: {
+                                name: item.name,
+                                symbol: item.symbol,
+                                image: item.image,
+                                price: item.price,
+                                marketCap: item.marketCap,
+                                change: item.change,
+                                isUp: item.isUp
+                              }
+                            })
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             ) : (
@@ -621,7 +668,26 @@ const HomePage = () => {
                     Math.ceil(tickerList.length / 2)
                   );
                   return [...row1, ...row1].map((item, i) => (
-                    <CoinCard key={`r1-${item.symbol}-${i}`} item={item} />
+                    <CoinCard
+                      key={`r1-${item.symbol}-${i}`}
+                      item={item}
+                      onClick={
+                        item.id
+                          ? () =>
+                              navigate(`/kline?coinId=${item.id}`, {
+                                state: {
+                                  name: item.name,
+                                  symbol: item.symbol,
+                                  image: item.image,
+                                  price: item.price,
+                                  marketCap: item.marketCap,
+                                  change: item.change,
+                                  isUp: item.isUp
+                                }
+                              })
+                          : undefined
+                      }
+                    />
                   ));
                 })()}
               </div>
@@ -633,7 +699,26 @@ const HomePage = () => {
                     Math.ceil(tickerList.length / 2)
                   );
                   return [...row2, ...row2].map((item, i) => (
-                    <CoinCard key={`r2-${item.symbol}-${i}`} item={item} />
+                    <CoinCard
+                      key={`r2-${item.symbol}-${i}`}
+                      item={item}
+                      onClick={
+                        item.id
+                          ? () =>
+                              navigate(`/kline?coinId=${item.id}`, {
+                                state: {
+                                  name: item.name,
+                                  symbol: item.symbol,
+                                  image: item.image,
+                                  price: item.price,
+                                  marketCap: item.marketCap,
+                                  change: item.change,
+                                  isUp: item.isUp
+                                }
+                              })
+                          : undefined
+                      }
+                    />
                   ));
                 })()}
               </div>
