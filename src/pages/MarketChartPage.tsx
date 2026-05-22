@@ -291,13 +291,19 @@ const MarketChartPage = () => {
   }, []);
 
   const applySeriesData = useCallback(
-    (data: CachedData) => {
+    (data: CachedData, options?: { fitContent?: boolean }) => {
       if (
         !priceSeriesRef.current ||
         !volumeSeriesRef.current ||
         !chartRef.current
       )
         return;
+
+      const shouldFitContent = options?.fitContent !== false;
+      const timeScale = chartRef.current.timeScale();
+      const visibleRange = shouldFitContent
+        ? null
+        : timeScale.getVisibleLogicalRange();
 
       // Append or update current price at the end of data
       const currentPrice = quoteRef.current?.price
@@ -344,10 +350,13 @@ const MarketChartPage = () => {
         });
       }
 
-      const timeScale = chartRef.current.timeScale();
       const ui = getChartUi(chartWidthRef.current);
       timeScale.applyOptions({ rightOffset: ui.rightOffset });
-      timeScale.fitContent();
+      if (shouldFitContent) {
+        timeScale.fitContent();
+      } else if (visibleRange) {
+        timeScale.setVisibleLogicalRange(visibleRange);
+      }
 
       const lastPoint = pricesData[pricesData.length - 1];
       lastPricePointRef.current = lastPoint
@@ -783,7 +792,7 @@ const MarketChartPage = () => {
       const cacheKey = `${coinId}-${activeRange}`;
       const cached = cacheRef.current[cacheKey];
       if (cached) {
-        applySeriesData(cached);
+        applySeriesData(cached, { fitContent: false });
       }
     } catch (e: unknown) {
       if (e instanceof DOMException && e.name === "AbortError") return;
