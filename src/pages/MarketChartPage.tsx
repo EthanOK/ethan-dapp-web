@@ -21,6 +21,26 @@ import "./MarketChartPage.css";
 const SPOT_POLL_MS = 30000;
 const MOBILE_CHART_MAX_WIDTH = 600;
 
+async function lockScreenLandscape(): Promise<void> {
+  const orientation = window.screen.orientation as ScreenOrientation & {
+    lock?: (orientation: "landscape" | "portrait") => Promise<void>;
+  };
+  if (typeof orientation.lock !== "function") return;
+  try {
+    await orientation.lock("landscape");
+  } catch {
+    /* requires fullscreen + supported browser */
+  }
+}
+
+function unlockScreenOrientation(): void {
+  try {
+    window.screen.orientation.unlock();
+  } catch {
+    /* optional */
+  }
+}
+
 function getChartUi(width: number) {
   const mobile = width > 0 && width <= MOBILE_CHART_MAX_WIDTH;
   return {
@@ -43,6 +63,40 @@ const TIME_RANGES = [
   { label: "3M", days: 90 },
   { label: "1Y", days: 365 }
 ] as const;
+
+const ChartExpandIcon = () => (
+  <svg
+    className="marketchart-landscape-icon"
+    width={18}
+    height={18}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+  </svg>
+);
+
+const ChartShrinkIcon = () => (
+  <svg
+    className="marketchart-landscape-icon"
+    width={18}
+    height={18}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+  </svg>
+);
 
 function formatPrice(num: number | null | undefined): string {
   if (num == null || Number.isNaN(num)) return "—";
@@ -166,7 +220,17 @@ const MarketChartPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [crosshairTip, setCrosshairTip] = useState<CrosshairTip | null>(null);
+  const [landscapeOpen, setLandscapeOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.innerWidth <= MOBILE_CHART_MAX_WIDTH
+  );
 
+  const chartWrapRef = useRef<HTMLDivElement>(null);
+  const landscapeOpenRef = useRef(landscapeOpen);
+  const exitingLandscapeRef = useRef(false);
+  landscapeOpenRef.current = landscapeOpen;
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const priceSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
@@ -306,6 +370,66 @@ const MarketChartPage = () => {
     [updateChartOverlays]
   );
 
+  const syncChartLayout = useCallback(() => {
+    const container = chartContainerRef.current;
+    const chart = chartRef.current;
+    const wrap = chartWrapRef.current;
+    if (!container || !chart) return;
+
+    const portraitRotated =
+      landscapeOpenRef.current &&
+      wrap?.classList.contains("marketchart-chart-wrap--landscape") &&
+      window.matchMedia("(orientation: portrait)").matches;
+
+    let w: number;
+    let h: number;
+    if (portraitRotated) {
+      // Container is CSS-rotated 90°. Use its layout dimensions (portrait)
+      // for the chart; the CSS rotation displays them as landscape.
+      w = Math.max(1, Math.round(container.clientWidth));
+      h = Math.max(1, Math.round(container.clientHeight));
+    } else {
+      const rect = container.getBoundingClientRect();
+      w = Math.max(1, Math.round(rect.width));
+      h = Math.max(1, Math.round(rect.height));
+    }
+
+    chartWidthRef.current = w;
+    chart.resize(w, h);
+
+    const nextUi = getChartUi(w);
+    const c = getChartColors();
+    chart.applyOptions({
+      layout: { fontSize: nextUi.fontSize },
+      rightPriceScale: {
+        borderColor: c.gridColor,
+        minimumWidth: nextUi.rightPriceScale.minimumWidth,
+        entireTextOnly: nextUi.rightPriceScale.entireTextOnly,
+        borderVisible: nextUi.rightPriceScale.borderVisible
+      },
+      timeScale: {
+        borderColor: c.gridColor,
+        rightOffset: nextUi.rightOffset
+      }
+    });
+    volumeSeriesRef.current?.priceScale().applyOptions({
+      visible: nextUi.volumeScaleVisible
+    });
+    chart.timeScale().fitContent();
+    updateChartOverlays();
+  }, [updateChartOverlays]);
+
+  const scheduleChartLayoutSync = useCallback(() => {
+    syncChartLayout();
+    requestAnimationFrame(() => {
+      syncChartLayout();
+      requestAnimationFrame(syncChartLayout);
+    });
+    [50, 150, 350, 600].forEach((ms) => {
+      window.setTimeout(syncChartLayout, ms);
+    });
+  }, [syncChartLayout]);
+
   const buildChart = useCallback(() => {
     if (!chartContainerRef.current) return;
 
@@ -444,7 +568,8 @@ const MarketChartPage = () => {
       const volume =
         volumeData && "value" in volumeData ? volumeData.value : null;
       const wrapWidth =
-        chartContainerRef.current?.parentElement?.clientWidth ?? 0;
+        chartContainerRef.current?.parentElement?.getBoundingClientRect()
+          .width ?? 0;
       setCrosshairTip({
         x: param.point.x,
         y: param.point.y,
@@ -455,46 +580,143 @@ const MarketChartPage = () => {
       });
     });
 
-    const applyChartUi = (w: number) => {
-      chartWidthRef.current = w;
-      const nextUi = getChartUi(w);
-      const c = getChartColors();
-      chart.applyOptions({
-        layout: { fontSize: nextUi.fontSize },
-        rightPriceScale: {
-          borderColor: c.gridColor,
-          minimumWidth: nextUi.rightPriceScale.minimumWidth,
-          entireTextOnly: nextUi.rightPriceScale.entireTextOnly,
-          borderVisible: nextUi.rightPriceScale.borderVisible
-        },
-        timeScale: {
-          borderColor: c.gridColor,
-          rightOffset: nextUi.rightOffset
-        }
-      });
-      volumeSeriesRef.current?.priceScale().applyOptions({
-        visible: nextUi.volumeScaleVisible
-      });
-    };
-
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        chart.applyOptions({ width, height });
-        applyChartUi(width);
-        updateChartOverlays();
-      }
+    const ro = new ResizeObserver(() => {
+      syncChartLayout();
     });
     ro.observe(chartContainerRef.current);
 
+    // Fix crosshair coordinates when the container is CSS-rotated (portrait →
+    // landscape). lightweight-charts v5 computes pointer position as:
+    //   localX = clientX − canvas.getBoundingClientRect().left
+    // getBoundingClientRect() returns the VISUAL (rotated) rect, but the
+    // canvas bitmap is in the UN-ROTATED layout space. We intercept both
+    // addEventListener and removeEventListener on the canvas: for pointer
+    // handlers, we wrap them so a synthetic PointerEvent with corrected
+    // clientX/clientY is passed to the original handler. The original→wrapped
+    // mapping ensures removeEventListener works correctly.
+    //
+    // Coordinate transform (90° CW rotation, W = un-rotated canvas width):
+    //   clientX' = vRect.left + vRect.top + W − origY
+    //   clientY' = origX − vRect.left + vRect.top
+    const container = chartContainerRef.current;
+    const canvas = container.querySelector("canvas");
+    const origAdd = canvas?.addEventListener.bind(canvas);
+    const origRemove = canvas?.removeEventListener.bind(canvas);
+    // Map: original handler → wrapped handler (for addEventListener/removeEventListener matching)
+    const forwardMap = new Map<EventListener, EventListener>();
+    // Map: wrapped handler → original handler (for removeEventListener with wrapped ref)
+    const reverseMap = new Map<EventListener, EventListener>();
+    const POINTER_TYPES = new Set(["pointerdown", "pointermove", "pointerup"]);
+    if (canvas && origAdd && origRemove) {
+      const needsTransform = () =>
+        landscapeOpenRef.current &&
+        !window.matchMedia("(orientation: landscape)").matches;
+      const makeWrapper = (raw: EventListener): EventListener => {
+        const wrapped: EventListener = (e: Event) => {
+          if (!needsTransform()) {
+            raw.call(canvas, e);
+            return;
+          }
+          const pe = e as PointerEvent;
+          const el = chartContainerRef.current;
+          if (!el) {
+            raw.call(canvas, e);
+            return;
+          }
+          const vRect = el.getBoundingClientRect();
+          const W = chartWidthRef.current;
+          const synthetic = new PointerEvent(pe.type, {
+            clientX: vRect.left + vRect.top + W - pe.clientY,
+            clientY: pe.clientX - vRect.left + vRect.top,
+            screenX: pe.screenX,
+            screenY: pe.screenY,
+            pointerId: pe.pointerId,
+            pointerType: pe.pointerType,
+            isPrimary: pe.isPrimary,
+            button: pe.button,
+            buttons: pe.buttons,
+            pressure: pe.pressure,
+            width: pe.width,
+            height: pe.height,
+            tiltX: pe.tiltX,
+            tiltY: pe.tiltY,
+            twist: pe.twist,
+            bubbles: true,
+            cancelable: true,
+            composed: true
+          });
+          // The library also reads pageX/pageY via getPosition()
+          Object.defineProperty(synthetic, "pageX", {
+            value: pe.pageX,
+            configurable: true
+          });
+          Object.defineProperty(synthetic, "pageY", {
+            value: pe.pageY,
+            configurable: true
+          });
+          raw.call(canvas, synthetic);
+        };
+        forwardMap.set(raw, wrapped);
+        reverseMap.set(wrapped, raw);
+        return wrapped;
+      };
+      canvas.addEventListener = function (
+        type: string,
+        listener: EventListenerOrEventListenerObject,
+        options?: boolean | AddEventListenerOptions
+      ) {
+        if (POINTER_TYPES.has(type)) {
+          const raw =
+            typeof listener === "function" ? listener : listener.handleEvent;
+          if (typeof raw === "function") {
+            // Return existing wrapped version if already wrapped
+            const existing = forwardMap.get(raw);
+            if (existing) {
+              return origAdd(type, existing, options);
+            }
+            return origAdd(type, makeWrapper(raw), options);
+          }
+        }
+        return origAdd(type, listener, options);
+      };
+      canvas.removeEventListener = function (
+        type: string,
+        listener: EventListenerOrEventListenerObject,
+        options?: boolean | EventListenerOptions
+      ) {
+        if (POINTER_TYPES.has(type)) {
+          const raw =
+            typeof listener === "function" ? listener : listener.handleEvent;
+          if (typeof raw === "function") {
+            // If raw is an original handler, find its wrapper
+            const wrapped = forwardMap.get(raw);
+            if (wrapped) return origRemove(type, wrapped, options);
+            // If raw IS a wrapped handler, find the original then its wrapper
+            const original = reverseMap.get(raw);
+            if (original) {
+              const w = forwardMap.get(original);
+              if (w) return origRemove(type, w, options);
+            }
+          }
+        }
+        return origRemove(type, listener, options);
+      };
+    }
+
     return () => {
+      if (canvas && origAdd && origRemove) {
+        canvas.addEventListener = origAdd;
+        canvas.removeEventListener = origRemove;
+      }
+      forwardMap.clear();
+      reverseMap.clear();
       ro.disconnect();
       chart.remove();
       chartRef.current = null;
       priceSeriesRef.current = null;
       volumeSeriesRef.current = null;
     };
-  }, [updateChartOverlays]);
+  }, [updateChartOverlays, syncChartLayout]);
 
   const loadData = useCallback(
     async (days: number) => {
@@ -648,6 +870,104 @@ const MarketChartPage = () => {
     setActiveRange(days);
   };
 
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${MOBILE_CHART_MAX_WIDTH}px)`);
+    const sync = () => setIsMobileViewport(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const exitLandscapeMode = useCallback(
+    async (exitFullscreen = true) => {
+      if (
+        !landscapeOpenRef.current &&
+        !document.body.classList.contains("marketchart-landscape-active")
+      ) {
+        return;
+      }
+      exitingLandscapeRef.current = true;
+      setLandscapeOpen(false);
+      document.body.classList.remove("marketchart-landscape-active");
+      unlockScreenOrientation();
+      if (exitFullscreen && document.fullscreenElement) {
+        try {
+          await document.exitFullscreen();
+        } catch {
+          /* optional */
+        }
+      }
+      exitingLandscapeRef.current = false;
+      scheduleChartLayoutSync();
+    },
+    [scheduleChartLayoutSync]
+  );
+
+  const closeLandscape = useCallback(() => {
+    void exitLandscapeMode(true);
+  }, [exitLandscapeMode]);
+
+  const openLandscape = useCallback(async () => {
+    if (landscapeOpenRef.current) return;
+    setLandscapeOpen(true);
+    document.body.classList.add("marketchart-landscape-active");
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch {
+      /* optional on iOS / in-app browsers */
+    }
+    await lockScreenLandscape();
+    scheduleChartLayoutSync();
+  }, [scheduleChartLayoutSync]);
+
+  useEffect(() => {
+    if (!landscapeOpen) return;
+    const onFullscreenChange = () => {
+      if (exitingLandscapeRef.current) return;
+      if (!document.fullscreenElement) {
+        void exitLandscapeMode(false);
+      }
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, [landscapeOpen, exitLandscapeMode]);
+
+  useEffect(() => {
+    if (!landscapeOpen) return;
+    scheduleChartLayoutSync();
+    const onLayoutChange = () => scheduleChartLayoutSync();
+    window.addEventListener("orientationchange", onLayoutChange);
+    window.addEventListener("resize", onLayoutChange);
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", onLayoutChange);
+    vv?.addEventListener("scroll", onLayoutChange);
+    return () => {
+      window.removeEventListener("orientationchange", onLayoutChange);
+      window.removeEventListener("resize", onLayoutChange);
+      vv?.removeEventListener("resize", onLayoutChange);
+      vv?.removeEventListener("scroll", onLayoutChange);
+    };
+  }, [landscapeOpen, scheduleChartLayoutSync]);
+
+  useEffect(() => {
+    if (!landscapeOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        void closeLandscape();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [landscapeOpen, closeLandscape]);
+
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove("marketchart-landscape-active");
+      unlockScreenOrientation();
+    };
+  }, []);
+
   if (!coinId) {
     return (
       <div className="marketchart-page main-app">
@@ -682,21 +1002,37 @@ const MarketChartPage = () => {
           </span>
           <span className="marketchart-header-symbol">{symbol || coinId}</span>
         </div>
-        {quote?.price && (
+        {(quote?.marketCap || quote?.price) && (
           <div className="marketchart-header-right">
-            <span className="marketchart-header-price">{quote.price}</span>
-            {quote.change && (
-              <span
-                className={`marketchart-header-change ${quote.isUp ? "up" : "down"}`}
-              >
-                {quote.change}
-              </span>
+            {quote?.marketCap && (
+              <div className="marketchart-header-mcap">
+                <span className="marketchart-header-mcap-label">
+                  Market Cap
+                </span>
+                <span className="marketchart-header-mcap-value">
+                  {quote.marketCap}
+                </span>
+              </div>
+            )}
+            {quote?.price && (
+              <div className="marketchart-header-price-block">
+                <span className="marketchart-header-price">{quote.price}</span>
+                {quote.change && (
+                  <span
+                    className={`marketchart-header-change ${quote.isUp ? "up" : "down"}`}
+                  >
+                    {quote.change}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         )}
       </div>
 
-      <div className="marketchart-tabs">
+      <div
+        className={`marketchart-tabs ${landscapeOpen ? "marketchart-tabs--hidden" : ""}`}
+      >
         {TIME_RANGES.map(({ label, days }) => (
           <button
             key={label}
@@ -709,7 +1045,54 @@ const MarketChartPage = () => {
         ))}
       </div>
 
-      <div className="marketchart-chart-wrap">
+      <div
+        ref={chartWrapRef}
+        className={`marketchart-chart-wrap ${landscapeOpen ? "marketchart-chart-wrap--landscape" : ""}`}
+      >
+        {landscapeOpen && (
+          <div className="marketchart-landscape-bar">
+            <div className="marketchart-landscape-meta">
+              <span className="marketchart-landscape-name">
+                {quote?.name ?? coinId}
+              </span>
+              {quote?.price && (
+                <span className="marketchart-landscape-price">
+                  {quote.price}
+                </span>
+              )}
+            </div>
+            <div className="marketchart-landscape-tabs">
+              {TIME_RANGES.map(({ label, days }) => (
+                <button
+                  key={label}
+                  type="button"
+                  className={`marketchart-tab marketchart-tab--compact ${activeRange === days ? "active" : ""}`}
+                  onClick={() => handleRangeChange(days)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="marketchart-landscape-exit"
+              onClick={closeLandscape}
+              aria-label="缩小退出横屏"
+            >
+              <ChartShrinkIcon />
+            </button>
+          </div>
+        )}
+        {isMobileViewport && !landscapeOpen && (
+          <button
+            type="button"
+            className="marketchart-landscape-enter"
+            onClick={() => void openLandscape()}
+            aria-label="放大横屏查看"
+          >
+            <ChartExpandIcon />
+          </button>
+        )}
         {crosshairTip && (
           <div
             className={`marketchart-tooltip ${crosshairTip.flipLeft ? "marketchart-tooltip-left" : "marketchart-tooltip-right"}`}
@@ -754,23 +1137,6 @@ const MarketChartPage = () => {
           <div ref={linePriceRef} className="marketchart-line-price" />
         </div>
       </div>
-
-      {quote && (
-        <div className="marketchart-stats">
-          <div className="marketchart-stat-card">
-            <div className="marketchart-stat-label">Current Price</div>
-            <div className="marketchart-stat-value">{quote.price}</div>
-          </div>
-          <div className="marketchart-stat-card">
-            <div className="marketchart-stat-label">Market Cap</div>
-            <div className="marketchart-stat-value">{quote.marketCap}</div>
-          </div>
-          <div className="marketchart-stat-card">
-            <div className="marketchart-stat-label">Symbol</div>
-            <div className="marketchart-stat-value">{symbol || coinId}</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
