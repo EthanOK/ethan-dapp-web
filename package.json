@@ -1,6 +1,6 @@
 {
   "name": "ethan-dapp-web",
-  "version": "2.2.8",
+  "version": "2.2.9",
   "author": "0xEthan",
   "private": true,
   "dependencies": {
