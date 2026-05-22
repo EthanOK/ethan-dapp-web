@@ -175,9 +175,16 @@ const getStoredTheme = (): "light" | "dark" => {
   }
 };
 
+const MOBILE_SIDEBAR_MQ = "(max-width: 768px)";
+
+function getDefaultSidebarOpen(): boolean {
+  if (typeof window === "undefined") return true;
+  return !window.matchMedia(MOBILE_SIDEBAR_MQ).matches;
+}
+
 function App() {
   const [, setCurrentAccount] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(getDefaultSidebarOpen);
   const [chainId, setChainId] = useState<string>(
     localStorage.getItem("chainId") || DefaultChainId
   );
@@ -202,6 +209,29 @@ function App() {
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_SIDEBAR_MQ);
+    const syncSidebarForViewport = () => {
+      if (mq.matches) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    mq.addEventListener("change", syncSidebarForViewport);
+    return () => mq.removeEventListener("change", syncSidebarForViewport);
+  }, []);
+
+  useEffect(() => {
+    const mobile = window.matchMedia(MOBILE_SIDEBAR_MQ).matches;
+    if (mobile && isSidebarOpen) {
+      document.body.classList.add("app-menu-open");
+    } else {
+      document.body.classList.remove("app-menu-open");
+    }
+    return () => document.body.classList.remove("app-menu-open");
+  }, [isSidebarOpen]);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -401,13 +431,19 @@ function App() {
           <div className="app-header-left">
             <button
               type="button"
-              className="app-header-menu-btn"
+              className={
+                "app-header-menu-btn" + (isSidebarOpen ? " is-open" : "")
+              }
               onClick={toggleSidebar}
               aria-label={isSidebarOpen ? "关闭菜单" : "打开菜单"}
+              aria-expanded={isSidebarOpen}
+              aria-controls="app-sidebar"
               title={isSidebarOpen ? "关闭菜单" : "打开菜单"}
             >
               <span className="app-header-menu-icon" aria-hidden>
-                {isSidebarOpen ? "✕" : "☰"}
+                <span className="app-header-menu-bar" />
+                <span className="app-header-menu-bar" />
+                <span className="app-header-menu-bar" />
               </span>
             </button>
             <NavLink to="/" className="app-logo">
@@ -454,16 +490,31 @@ function App() {
         </header>
 
         <div
-          className={`app-body ${isSidebarOpen ? "sidebar-open" : "sidebar-collapsed"}`}
+          className={
+            "app-body" +
+            (isSidebarOpen ? " sidebar-open" : " sidebar-collapsed")
+          }
         >
           <div
-            className={`app-sidebar-overlay ${isSidebarOpen ? "visible" : ""}`}
+            className={`app-sidebar-overlay ${isSidebarOpen ? "is-visible" : ""}`}
             onClick={() => setIsSidebarOpen(false)}
-            aria-hidden
+            aria-hidden={!isSidebarOpen}
           />
           <aside
+            id="app-sidebar"
             className={`app-sidebar ${isSidebarOpen ? "open" : "collapsed"}`}
           >
+            <div className="sidebar-mobile-head">
+              <span className="sidebar-mobile-title">Menu</span>
+              <button
+                type="button"
+                className="sidebar-mobile-close"
+                onClick={() => setIsSidebarOpen(false)}
+                aria-label="关闭菜单"
+              >
+                ✕
+              </button>
+            </div>
             <nav className="sidebar-nav">
               <div className="sidebar-section">
                 <div className="sidebar-section-title">Ethereum</div>
@@ -476,7 +527,7 @@ function App() {
                     }
                     end={item.linkTo === "/"}
                     onClick={() => {
-                      if (window.matchMedia("(max-width: 768px)").matches) {
+                      if (window.matchMedia(MOBILE_SIDEBAR_MQ).matches) {
                         setIsSidebarOpen(false);
                       }
                     }}
@@ -495,7 +546,7 @@ function App() {
                       "sidebar-link" + (isActive ? " active" : "")
                     }
                     onClick={() => {
-                      if (window.matchMedia("(max-width: 768px)").matches) {
+                      if (window.matchMedia(MOBILE_SIDEBAR_MQ).matches) {
                         setIsSidebarOpen(false);
                       }
                     }}
