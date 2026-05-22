@@ -218,6 +218,29 @@
   background: #2d8f4e;
 }
 
+.marketchart-line-price {
+  position: absolute;
+  left: 50%;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #3da35d;
+  color: #0b0e11;
+  font-family: var(--w3-font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+[data-theme="light"] .marketchart-line-price {
+  background: #2d8f4e;
+  color: #ffffff;
+}
+
 @keyframes marketchart-blink {
   0%,
   78%,
@@ -309,6 +332,16 @@
 }
 
 @media (max-width: 600px) {
+  .marketchart-page {
+    padding-left: 10px;
+    padding-right: 6px;
+    box-sizing: border-box;
+  }
+
+  .marketchart-chart-wrap {
+    overflow: visible;
+  }
+
   .marketchart-chart-container {
     height: 320px;
   }

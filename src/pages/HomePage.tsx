@@ -140,9 +140,12 @@ function formatChange(val: number | null | undefined): {
   text: string;
   isUp: boolean;
 } {
-  if (val == null || Number.isNaN(val)) return { text: "—", isUp: true };
+  if (val == null || Number.isNaN(val)) return { text: "— (24h)", isUp: true };
   const isUp = val >= 0;
-  return { text: (isUp ? "+" : "") + val.toFixed(2) + "%", isUp };
+  return {
+    text: (isUp ? "+" : "") + val.toFixed(2) + "% (24h)",
+    isUp
+  };
 }
 
 function formatMarketCap(num: number | null | undefined): string {
@@ -384,7 +387,7 @@ const HomePage = () => {
     // 预热二维码实例，避免首次打开弹窗时才初始化导致的闪烁/空白
     prewarmAddressStyledQr();
     loadTicker();
-    const interval = setInterval(loadTicker, 60000);
+    const interval = setInterval(loadTicker, 30000);
     return () => clearInterval(interval);
   }, [loadTicker]);
 
@@ -597,7 +600,6 @@ const HomePage = () => {
                   <span className="home-spot-card-symbol">{label}</span>
                   <span
                     className={`home-spot-card-badge ${isUp ? "up" : "down"}`}
-                    title="24h"
                   >
                     {change}
                   </span>
