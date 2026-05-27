@@ -572,7 +572,7 @@ function App() {
           <main className="app-main">
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/marketchart" element={<MarketChartPage />} />
+              <Route path="/market" element={<MarketChartPage />} />
               <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
               <Route path="/ens" element={<ENSPage />} />
               <Route path="/mintnft" element={<MintNFTPage />} />

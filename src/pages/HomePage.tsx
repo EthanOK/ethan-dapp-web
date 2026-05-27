@@ -640,7 +640,7 @@ const HomePage = () => {
                     onClick={
                       item.id
                         ? () =>
-                            navigate(`/marketchart?coinId=${item.id}`, {
+                            navigate(`/market?coinId=${item.id}`, {
                               state: {
                                 name: item.name,
                                 symbol: item.symbol,
@@ -676,7 +676,7 @@ const HomePage = () => {
                       onClick={
                         item.id
                           ? () =>
-                              navigate(`/marketchart?coinId=${item.id}`, {
+                              navigate(`/market?coinId=${item.id}`, {
                                 state: {
                                   name: item.name,
                                   symbol: item.symbol,
@@ -707,7 +707,7 @@ const HomePage = () => {
                       onClick={
                         item.id
                           ? () =>
-                              navigate(`/marketchart?coinId=${item.id}`, {
+                              navigate(`/market?coinId=${item.id}`, {
                                 state: {
                                   name: item.name,
                                   symbol: item.symbol,
