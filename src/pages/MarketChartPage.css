@@ -221,6 +221,63 @@
   margin: 0 4px;
 }
 
+.marketchart-type-dropdown {
+  position: relative;
+}
+
+.marketchart-type-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.marketchart-type-arrow {
+  transition: transform 0.15s;
+}
+
+.marketchart-type-arrow.open {
+  transform: rotate(180deg);
+}
+
+.marketchart-type-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  min-width: 100%;
+  background: var(--w3-bg-elevated);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.marketchart-type-option {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: var(--w3-text-muted);
+  font-size: 0.82rem;
+  font-family: var(--w3-font-sans);
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.marketchart-type-option:hover {
+  background: color-mix(in srgb, var(--w3-accent) 8%, transparent);
+  color: var(--w3-text);
+}
+
+.marketchart-type-option.active {
+  color: var(--w3-accent);
+}
+
 .marketchart-chart-wrap {
   position: relative;
   background: var(--w3-bg-card);

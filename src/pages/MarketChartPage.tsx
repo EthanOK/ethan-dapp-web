@@ -6,14 +6,17 @@ import {
   ISeriesApi,
   ColorType,
   AreaSeries,
+  CandlestickSeries,
   HistogramSeries,
   createTextWatermark
 } from "lightweight-charts";
-import type { LineData, Time } from "lightweight-charts";
+import type { CandlestickData, LineData, Time } from "lightweight-charts";
 import {
   fetchMarketChart,
   fetchCoinSpot,
+  fetchOHLC,
   type PricePoint,
+  type OHLCPoint,
   type CoinRouteState
 } from "../utils/coinGeckoApi";
 import "./MarketChartPage.css";
@@ -173,12 +176,15 @@ function isDarkMode(): boolean {
   return document.documentElement.getAttribute("data-theme") !== "light";
 }
 
+type ChartType = "area" | "candlestick";
+
 interface CrosshairTip {
   x: number;
   y: number;
   time: Time;
   price: number;
   volume: number | null;
+  ohlc?: { open: number; high: number; low: number; close: number };
   flipLeft: boolean;
 }
 
@@ -207,6 +213,11 @@ interface CachedData {
   updatedAt: number;
 }
 
+interface CachedOHLC {
+  data: OHLCPoint[];
+  updatedAt: number;
+}
+
 const MarketChartPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -217,6 +228,8 @@ const MarketChartPage = () => {
   const symbol = quote?.symbol?.toUpperCase() ?? coinId;
 
   const [activeRange, setActiveRange] = useState<number>(30);
+  const [chartType, setChartType] = useState<ChartType>("area");
+  const [chartTypeOpen, setChartTypeOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [crosshairTip, setCrosshairTip] = useState<CrosshairTip | null>(null);
@@ -234,11 +247,13 @@ const MarketChartPage = () => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const priceSeriesRef = useRef<ISeriesApi<"Area"> | null>(null);
+  const candlestickSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
   const blinkRef = useRef<HTMLDivElement>(null);
   const linePriceRef = useRef<HTMLDivElement>(null);
   const lastPricePointRef = useRef<{ time: Time; value: number } | null>(null);
   const cacheRef = useRef<Record<string, CachedData>>({});
+  const ohlcCacheRef = useRef<Record<string, CachedOHLC>>({});
   const abortRef = useRef<AbortController | null>(null);
   const quoteRef = useRef<CoinRouteState | null>(quote);
   quoteRef.current = quote;
@@ -310,12 +325,13 @@ const MarketChartPage = () => {
         ? parsePrice(quoteRef.current.price)
         : null;
       const pricesData = [...data.prices];
-      if (currentPrice != null && pricesData.length > 0) {
+      if (currentPrice != null && pricesData.length >= 2) {
         const now = Math.floor(Date.now() / 1000);
         const lastPoint = pricesData[pricesData.length - 1];
+        const prevPoint = pricesData[pricesData.length - 2];
+        const interval = lastPoint.time - prevPoint.time;
         const timeDiff = now - lastPoint.time;
-        // If within 2 hours, update last point; otherwise append new point
-        if (timeDiff < 7200) {
+        if (timeDiff < interval) {
           pricesData[pricesData.length - 1] = {
             time: lastPoint.time,
             value: currentPrice
@@ -446,6 +462,7 @@ const MarketChartPage = () => {
       chartRef.current.remove();
       chartRef.current = null;
       priceSeriesRef.current = null;
+      candlestickSeriesRef.current = null;
       volumeSeriesRef.current = null;
     }
 
@@ -521,42 +538,63 @@ const MarketChartPage = () => {
       });
     }
 
-    // Volume series (right Y axis, behind price)
-    const volumeSeries = chart.addSeries(HistogramSeries, {
-      color: colors.volumeColor,
-      priceFormat: {
-        type: "volume"
-      },
-      priceScaleId: "volume",
-      lastValueVisible: false,
-      priceLineVisible: false
-    });
-    volumeSeries.priceScale().applyOptions({
-      scaleMargins: {
-        top: 0.8,
-        bottom: 0
-      },
-      visible: ui.volumeScaleVisible
-    });
-    volumeSeriesRef.current = volumeSeries;
+    // Price series — either Area or Candlestick depending on chartType
+    const isCandlestick = chartType === "candlestick";
+    let mainSeries: ISeriesApi<"Area"> | ISeriesApi<"Candlestick">;
 
-    // Price series (left Y axis, main)
-    const priceSeries = chart.addSeries(AreaSeries, {
-      lineColor: colors.priceLineColor,
-      topColor: colors.topColor,
-      bottomColor: colors.bottomColor,
-      lineWidth: 2,
-      lastValueVisible: false,
-      priceLineVisible: false,
-      priceLineColor: colors.priceLineColor,
-      priceLineStyle: 2,
-      priceFormat: {
-        type: "custom",
-        formatter: (price: number) => formatPrice(price)
-      },
-      priceScaleId: "right"
-    });
-    priceSeriesRef.current = priceSeries;
+    // Volume series only for area mode
+    if (!isCandlestick) {
+      const volumeSeries = chart.addSeries(HistogramSeries, {
+        color: colors.volumeColor,
+        priceFormat: { type: "volume" },
+        priceScaleId: "volume",
+        lastValueVisible: false,
+        priceLineVisible: false
+      });
+      volumeSeries.priceScale().applyOptions({
+        scaleMargins: { top: 0.8, bottom: 0 },
+        visible: ui.volumeScaleVisible
+      });
+      volumeSeriesRef.current = volumeSeries;
+    }
+
+    if (isCandlestick) {
+      const cs = chart.addSeries(CandlestickSeries, {
+        upColor: "#3da35d",
+        downColor: "#ef4444",
+        borderUpColor: "#3da35d",
+        borderDownColor: "#ef4444",
+        wickUpColor: "#3da35d",
+        wickDownColor: "#ef4444",
+        lastValueVisible: false,
+        priceLineVisible: false,
+        priceFormat: {
+          type: "custom",
+          formatter: (price: number) => formatPrice(price)
+        },
+        priceScaleId: "right"
+      });
+      candlestickSeriesRef.current = cs;
+      mainSeries = cs;
+    } else {
+      const as = chart.addSeries(AreaSeries, {
+        lineColor: colors.priceLineColor,
+        topColor: colors.topColor,
+        bottomColor: colors.bottomColor,
+        lineWidth: 2,
+        lastValueVisible: false,
+        priceLineVisible: false,
+        priceLineColor: colors.priceLineColor,
+        priceLineStyle: 2,
+        priceFormat: {
+          type: "custom",
+          formatter: (price: number) => formatPrice(price)
+        },
+        priceScaleId: "right"
+      });
+      priceSeriesRef.current = as;
+      mainSeries = as;
+    }
 
     chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
       updateChartOverlays();
@@ -567,26 +605,51 @@ const MarketChartPage = () => {
         setCrosshairTip(null);
         return;
       }
-      const priceData = param.seriesData.get(priceSeries);
-      const volumeData = param.seriesData.get(volumeSeries);
-      const price = priceData && "value" in priceData ? priceData.value : null;
-      if (price == null) {
+      const mainData = param.seriesData.get(mainSeries);
+      if (!mainData) {
         setCrosshairTip(null);
         return;
       }
-      const volume =
-        volumeData && "value" in volumeData ? volumeData.value : null;
       const wrapWidth =
         chartContainerRef.current?.parentElement?.getBoundingClientRect()
           .width ?? 0;
-      setCrosshairTip({
-        x: param.point.x,
-        y: param.point.y,
-        time: param.time,
-        price,
-        volume,
-        flipLeft: param.point.x > wrapWidth * 0.5
-      });
+
+      if (isCandlestick) {
+        const cd = mainData as CandlestickData;
+        if (cd.open == null || cd.close == null) {
+          setCrosshairTip(null);
+          return;
+        }
+        setCrosshairTip({
+          x: param.point.x,
+          y: param.point.y,
+          time: param.time,
+          price: cd.close,
+          volume: null,
+          ohlc: { open: cd.open, high: cd.high, low: cd.low, close: cd.close },
+          flipLeft: param.point.x > wrapWidth * 0.5
+        });
+      } else {
+        if (!("value" in mainData) || mainData.value == null) {
+          setCrosshairTip(null);
+          return;
+        }
+        const volumeData = volumeSeriesRef.current
+          ? param.seriesData.get(volumeSeriesRef.current)
+          : null;
+        const volume: number | null =
+          volumeData && "value" in volumeData
+            ? (volumeData.value as number)
+            : null;
+        setCrosshairTip({
+          x: param.point.x,
+          y: param.point.y,
+          time: param.time,
+          price: mainData.value as number,
+          volume,
+          flipLeft: param.point.x > wrapWidth * 0.5
+        });
+      }
     });
 
     const ro = new ResizeObserver(() => {
@@ -723,20 +786,105 @@ const MarketChartPage = () => {
       chart.remove();
       chartRef.current = null;
       priceSeriesRef.current = null;
+      candlestickSeriesRef.current = null;
       volumeSeriesRef.current = null;
     };
-  }, [updateChartOverlays, syncChartLayout]);
+  }, [updateChartOverlays, syncChartLayout, chartType]);
+
+  const applyOHLCData = useCallback(
+    (data: OHLCPoint[], options?: { fitContent?: boolean }) => {
+      if (!candlestickSeriesRef.current || !chartRef.current) return;
+
+      const shouldFitContent = options?.fitContent !== false;
+      const timeScale = chartRef.current.timeScale();
+      const visibleRange = shouldFitContent
+        ? null
+        : timeScale.getVisibleLogicalRange();
+
+      // Replace last candle's close with current spot price if within same candle
+      const ohlcData = [...data];
+      const currentPrice = quoteRef.current?.price
+        ? parsePrice(quoteRef.current.price)
+        : null;
+      if (currentPrice != null && ohlcData.length >= 2) {
+        const last = ohlcData[ohlcData.length - 1];
+        const prev = ohlcData[ohlcData.length - 2];
+        const interval = last.time - prev.time;
+        const now = Math.floor(Date.now() / 1000);
+        if (now - last.time < interval) {
+          ohlcData[ohlcData.length - 1] = {
+            ...last,
+            close: currentPrice,
+            high: Math.max(last.high, currentPrice),
+            low: Math.min(last.low, currentPrice)
+          };
+        }
+      }
+
+      candlestickSeriesRef.current.setData(
+        ohlcData.map((p) => ({
+          time: p.time as Time,
+          open: p.open,
+          high: p.high,
+          low: p.low,
+          close: p.close
+        }))
+      );
+
+      // Current price line
+      candlestickSeriesRef.current.priceLines().forEach((line) => {
+        candlestickSeriesRef.current!.removePriceLine(line);
+      });
+      if (currentPrice != null) {
+        const lineColors = getChartColors();
+        const ui = getChartUi(chartWidthRef.current);
+        candlestickSeriesRef.current.createPriceLine({
+          price: currentPrice,
+          color: lineColors.priceLineColor,
+          lineWidth: 1,
+          lineStyle: 2,
+          axisLabelVisible: !ui.useCenteredPriceLabel,
+          axisLabelColor: lineColors.priceLineColor,
+          axisLabelTextColor: isDarkMode() ? "#0b0e11" : "#ffffff",
+          title: ""
+        });
+      }
+
+      timeScale.applyOptions({ rightOffset: MARKETCHART_RIGHT_OFFSET });
+      if (shouldFitContent) {
+        timeScale.fitContent();
+      } else if (visibleRange) {
+        timeScale.setVisibleLogicalRange(visibleRange);
+      }
+
+      candlestickSeriesRef.current.applyOptions({
+        upColor: "#3da35d",
+        downColor: "#ef4444",
+        borderUpColor: "#3da35d",
+        borderDownColor: "#ef4444",
+        wickUpColor: "#3da35d",
+        wickDownColor: "#ef4444"
+      });
+
+      if (data.length > 0) {
+        const last = data[data.length - 1];
+        lastPricePointRef.current = {
+          time: last.time as Time,
+          value: last.close
+        };
+      } else {
+        lastPricePointRef.current = null;
+      }
+      requestAnimationFrame(() => {
+        requestAnimationFrame(updateChartOverlays);
+      });
+    },
+    [updateChartOverlays]
+  );
 
   const loadData = useCallback(
     async (days: number) => {
       if (!coinId) return;
-
-      const cacheKey = `${coinId}-${days}`;
-      const cached = cacheRef.current[cacheKey];
-      if (cached && Date.now() - cached.updatedAt < 120_000) {
-        applySeriesData(cached);
-        return;
-      }
 
       if (abortRef.current) {
         abortRef.current.abort();
@@ -748,15 +896,37 @@ const MarketChartPage = () => {
       setError(null);
 
       try {
-        const data = await fetchMarketChart(coinId, days, controller.signal);
-        const cachedEntry: CachedData = {
-          prices: data.prices,
-          marketCaps: data.marketCaps,
-          totalVolumes: data.totalVolumes,
-          updatedAt: Date.now()
-        };
-        cacheRef.current[cacheKey] = cachedEntry;
-        applySeriesData(cachedEntry);
+        if (chartType === "candlestick") {
+          const cacheKey = `${coinId}-${days}-ohlc`;
+          const cached = ohlcCacheRef.current[cacheKey];
+          if (cached && Date.now() - cached.updatedAt < 120_000) {
+            applyOHLCData(cached.data);
+          } else {
+            const data = await fetchOHLC(coinId, days, controller.signal);
+            ohlcCacheRef.current[cacheKey] = { data, updatedAt: Date.now() };
+            applyOHLCData(data);
+          }
+        } else {
+          const cacheKey = `${coinId}-${days}`;
+          const cached = cacheRef.current[cacheKey];
+          if (cached && Date.now() - cached.updatedAt < 120_000) {
+            applySeriesData(cached);
+          } else {
+            const data = await fetchMarketChart(
+              coinId,
+              days,
+              controller.signal
+            );
+            const cachedEntry: CachedData = {
+              prices: data.prices,
+              marketCaps: data.marketCaps,
+              totalVolumes: data.totalVolumes,
+              updatedAt: Date.now()
+            };
+            cacheRef.current[cacheKey] = cachedEntry;
+            applySeriesData(cachedEntry);
+          }
+        }
       } catch (e: unknown) {
         if (e instanceof DOMException && e.name === "AbortError") return;
         setError(e instanceof Error ? e.message : "Failed to load data");
@@ -764,7 +934,7 @@ const MarketChartPage = () => {
         setIsLoading(false);
       }
     },
-    [coinId, applySeriesData]
+    [coinId, chartType, applySeriesData, applyOHLCData]
   );
 
   const refreshSpotPrice = useCallback(async () => {
@@ -789,16 +959,24 @@ const MarketChartPage = () => {
       };
       quoteRef.current = next;
       setQuote(next);
-      const cacheKey = `${coinId}-${activeRange}`;
-      const cached = cacheRef.current[cacheKey];
-      if (cached) {
-        applySeriesData(cached, { fitContent: false });
+      if (chartType === "candlestick") {
+        const cacheKey = `${coinId}-${activeRange}-ohlc`;
+        const cached = ohlcCacheRef.current[cacheKey];
+        if (cached) {
+          applyOHLCData(cached.data, { fitContent: false });
+        }
+      } else {
+        const cacheKey = `${coinId}-${activeRange}`;
+        const cached = cacheRef.current[cacheKey];
+        if (cached) {
+          applySeriesData(cached, { fitContent: false });
+        }
       }
     } catch (e: unknown) {
       if (e instanceof DOMException && e.name === "AbortError") return;
       console.warn("CoinGecko spot price refresh failed:", e);
     }
-  }, [coinId, activeRange, applySeriesData]);
+  }, [coinId, activeRange, chartType, applySeriesData, applyOHLCData]);
 
   useEffect(() => {
     const cleanup = buildChart();
@@ -878,6 +1056,18 @@ const MarketChartPage = () => {
   const handleRangeChange = (days: number) => {
     setActiveRange(days);
   };
+
+  useEffect(() => {
+    if (!chartTypeOpen) return;
+    const close = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".marketchart-type-dropdown")) {
+        setChartTypeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [chartTypeOpen]);
 
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${MOBILE_CHART_MAX_WIDTH}px)`);
@@ -1052,6 +1242,56 @@ const MarketChartPage = () => {
             {label}
           </button>
         ))}
+        <span className="marketchart-tabs-sep" />
+        <div className="marketchart-type-dropdown">
+          <button
+            type="button"
+            className="marketchart-tab marketchart-type-btn"
+            onClick={() => setChartTypeOpen((v) => !v)}
+          >
+            {chartType === "area" ? "Area" : "K-Line"}
+            <svg
+              className={`marketchart-type-arrow ${chartTypeOpen ? "open" : ""}`}
+              width={10}
+              height={10}
+              viewBox="0 0 10 10"
+              fill="currentColor"
+            >
+              <path
+                d="M2 3.5L5 6.5L8 3.5"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {chartTypeOpen && (
+            <div className="marketchart-type-menu">
+              <button
+                type="button"
+                className={`marketchart-type-option ${chartType === "area" ? "active" : ""}`}
+                onClick={() => {
+                  setChartType("area");
+                  setChartTypeOpen(false);
+                }}
+              >
+                Area
+              </button>
+              <button
+                type="button"
+                className={`marketchart-type-option ${chartType === "candlestick" ? "active" : ""}`}
+                onClick={() => {
+                  setChartType("candlestick");
+                  setChartTypeOpen(false);
+                }}
+              >
+                K-Line
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div
@@ -1081,6 +1321,56 @@ const MarketChartPage = () => {
                   {label}
                 </button>
               ))}
+              <span className="marketchart-tabs-sep" />
+              <div className="marketchart-type-dropdown">
+                <button
+                  type="button"
+                  className="marketchart-tab marketchart-tab--compact marketchart-type-btn"
+                  onClick={() => setChartTypeOpen((v) => !v)}
+                >
+                  {chartType === "area" ? "Area" : "K-Line"}
+                  <svg
+                    className={`marketchart-type-arrow ${chartTypeOpen ? "open" : ""}`}
+                    width={10}
+                    height={10}
+                    viewBox="0 0 10 10"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M2 3.5L5 6.5L8 3.5"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                {chartTypeOpen && (
+                  <div className="marketchart-type-menu">
+                    <button
+                      type="button"
+                      className={`marketchart-type-option ${chartType === "area" ? "active" : ""}`}
+                      onClick={() => {
+                        setChartType("area");
+                        setChartTypeOpen(false);
+                      }}
+                    >
+                      Area
+                    </button>
+                    <button
+                      type="button"
+                      className={`marketchart-type-option ${chartType === "candlestick" ? "active" : ""}`}
+                      onClick={() => {
+                        setChartType("candlestick");
+                        setChartTypeOpen(false);
+                      }}
+                    >
+                      K-Line
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             <button
               type="button"
@@ -1110,18 +1400,49 @@ const MarketChartPage = () => {
             <div className="marketchart-tooltip-time">
               {formatCrosshairTime(crosshairTip.time)}
             </div>
-            <div className="marketchart-tooltip-row">
-              <span className="marketchart-tooltip-label">Price:</span>
-              <span className="marketchart-tooltip-value">
-                {formatPrice(crosshairTip.price)}
-              </span>
-            </div>
-            <div className="marketchart-tooltip-row">
-              <span className="marketchart-tooltip-label">Vol:</span>
-              <span className="marketchart-tooltip-value">
-                {formatVolume(crosshairTip.volume)}
-              </span>
-            </div>
+            {crosshairTip.ohlc ? (
+              <>
+                <div className="marketchart-tooltip-row">
+                  <span className="marketchart-tooltip-label">O:</span>
+                  <span className="marketchart-tooltip-value">
+                    {formatPrice(crosshairTip.ohlc.open)}
+                  </span>
+                </div>
+                <div className="marketchart-tooltip-row">
+                  <span className="marketchart-tooltip-label">H:</span>
+                  <span className="marketchart-tooltip-value">
+                    {formatPrice(crosshairTip.ohlc.high)}
+                  </span>
+                </div>
+                <div className="marketchart-tooltip-row">
+                  <span className="marketchart-tooltip-label">L:</span>
+                  <span className="marketchart-tooltip-value">
+                    {formatPrice(crosshairTip.ohlc.low)}
+                  </span>
+                </div>
+                <div className="marketchart-tooltip-row">
+                  <span className="marketchart-tooltip-label">C:</span>
+                  <span className="marketchart-tooltip-value">
+                    {formatPrice(crosshairTip.ohlc.close)}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="marketchart-tooltip-row">
+                  <span className="marketchart-tooltip-label">Price:</span>
+                  <span className="marketchart-tooltip-value">
+                    {formatPrice(crosshairTip.price)}
+                  </span>
+                </div>
+                <div className="marketchart-tooltip-row">
+                  <span className="marketchart-tooltip-label">Vol:</span>
+                  <span className="marketchart-tooltip-value">
+                    {formatVolume(crosshairTip.volume)}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         )}
         {isLoading && (

@@ -102,3 +102,38 @@ export async function fetchMarketChart(
     totalVolumes: toPoints(data.total_volumes)
   };
 }
+
+export interface OHLCPoint {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+export async function fetchOHLC(
+  coinId: string,
+  days: number,
+  signal?: AbortSignal
+): Promise<OHLCPoint[]> {
+  const params = new URLSearchParams({
+    vs_currency: "usd",
+    days: String(days)
+  });
+
+  const res = await fetch(
+    `${BASE_URL}/coins/${encodeURIComponent(coinId)}/ohlc?${params}`,
+    { signal, headers: CG_HEADERS }
+  );
+  if (!res.ok) throw new Error(`CoinGecko ohlc failed: ${res.status}`);
+
+  const data = (await res.json()) as [number, number, number, number, number][];
+
+  return data.map(([timestamp, open, high, low, close]) => ({
+    time: Math.floor(timestamp / 1000),
+    open,
+    high,
+    low,
+    close
+  }));
+}
