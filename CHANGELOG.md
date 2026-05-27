@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.9](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.8...v2.2.9) (2026-05-22)
+
+
+### Features
+
+* add batch transfer native coin in create transaction page ([9defdaa](https://github.com/EthanOK/ethan-dapp-web/commit/9defdaa85b8da85cb1797de9e94218a32f86e1e3))
+* add cancel transaction feature ([658c774](https://github.com/EthanOK/ethan-dapp-web/commit/658c774a0ac88bfbb749ba0842acc56ebcb0c552))
+* add CoinGecko Kline page with dual-axis price/volume chart ([160b231](https://github.com/EthanOK/ethan-dapp-web/commit/160b2318747f8234d3ac254d6b55daaa76fbcea2))
+* add hoodi into layerzero oft bridge ([34b0ec9](https://github.com/EthanOK/ethan-dapp-web/commit/34b0ec95fa415b454f5382f25c2cceec8a6f1ce9))
+* add LayerZero OFT Bridge page ([00595b9](https://github.com/EthanOK/ethan-dapp-web/commit/00595b905c10cbabdc71673cc6b97d790bcc4499))
+* add mobile landscape fullscreen mode for market chart ([1b885bf](https://github.com/EthanOK/ethan-dapp-web/commit/1b885bfbc4f28b711ac713b2999d5b06cdadb434))
+* add multicall3 and ERC20AllowancePage ([c3e9625](https://github.com/EthanOK/ethan-dapp-web/commit/c3e96250f5c44f0a276b6cd686329d6c04bbe787))
+* add USDC-Circle to faucet config in sepolia ([94d56ce](https://github.com/EthanOK/ethan-dapp-web/commit/94d56ceee9efe6efdad90a84f0c1758d74515fa5))
+* improve mobile nav, market UX, and live price updates ([465cb86](https://github.com/EthanOK/ethan-dapp-web/commit/465cb8650cf56f67b45c19223c2cac5f9b48b8ec))
+* **LayerZero:** connect/switch/load flow, wallet-gated metadata, fee UI defaults to 0 ([6178a18](https://github.com/EthanOK/ethan-dapp-web/commit/6178a18bf41ff46d39d09f3bcb140056957d26ea))
+
+
+### Bug Fixes
+
+* FaucetTokenPage connect button ([8fe8ee7](https://github.com/EthanOK/ethan-dapp-web/commit/8fe8ee7332fbff13f973328c429aceb8adff02da))
+* **marketchart:** do not reset zoom on spot price poll ([299639b](https://github.com/EthanOK/ethan-dapp-web/commit/299639bb641a659bac48ba20336b9a79aaa4ab0d))
+
 ### [2.2.8](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.7...v2.2.8) (2026-04-07)
 
 
