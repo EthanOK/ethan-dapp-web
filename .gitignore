@@ -25,3 +25,6 @@ yarn-error.log*
 
 .cursor
 .agents
+
+# local agent specs/plans (not versioned)
+/docs
