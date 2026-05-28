@@ -1,4 +1,4 @@
-import { ZeroAddress, Signer } from "ethers-v6";
+import { ZeroAddress, type AuthorizationLike, type Signer } from "ethers";
 
 export const getDelegationAddress = async (
   signer: Signer
@@ -36,7 +36,7 @@ export async function createEIP7702Account(
     const tx = await signer.sendTransaction({
       type: 4,
       to: account,
-      authorizationList: [auth as import("ethers-v6").AuthorizationLike]
+      authorizationList: [auth as AuthorizationLike]
     });
     console.log("已发送创建授权交易：", tx.hash);
     return tx.hash;

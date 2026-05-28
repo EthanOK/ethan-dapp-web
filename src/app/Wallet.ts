@@ -1,4 +1,4 @@
-import { Ethers5Adapter } from "@reown/appkit-adapter-ethers5";
+import { EthersAdapter } from "@reown/appkit-adapter-ethers";
 import {
   base,
   bsc,
@@ -83,7 +83,7 @@ const FALLBACK_CHAIN_ICON =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 export const modal = createAppKit({
-  adapters: [new Ethers5Adapter(), new SolanaAdapter(), new BitcoinAdapter()],
+  adapters: [new EthersAdapter(), new SolanaAdapter(), new BitcoinAdapter()],
   metadata,
   networks: [
     sepolia,

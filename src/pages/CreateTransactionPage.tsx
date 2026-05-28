@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { useEvmWallet } from "@/hooks";
 import { truncateHash } from "@/lib/shared/Format";
-import { ethers } from "ethers";
+import { formatUnits, parseUnits } from "ethers";
 import { multicall3Aggregate3Value } from "@/lib/evm/Multicall3";
 
 const PLACEHOLDER_ADDRESS = "0xe698a7917eEE4fDf03296add549eE4A7167DD406";
@@ -199,7 +199,7 @@ const CreateTransactionPage = () => {
                 value: amountBN,
                 callData: "0x"
               }));
-              const totalValue = amountBN.mul(toList.length);
+              const totalValue = amountBN * BigInt(toList.length);
               return multicall3Aggregate3Value(signer, calls, { totalValue });
             })();
 
@@ -208,9 +208,9 @@ const CreateTransactionPage = () => {
       const receipt = await tx.wait();
       setTransferTx({
         link,
-        status: receipt.status === 1 ? "success" : "failed"
+        status: receipt?.status === 1 ? "success" : "failed"
       });
-      if (receipt.status === 1) toast.success("Transaction successful");
+      if (receipt?.status === 1) toast.success("Transaction successful");
       else toast.error("Transaction failed");
     } catch (err: unknown) {
       const e = err as {
@@ -271,9 +271,9 @@ const CreateTransactionPage = () => {
       const receipt = await tx.wait();
       setCreateTx({
         link,
-        status: receipt.status === 1 ? "success" : "failed"
+        status: receipt?.status === 1 ? "success" : "failed"
       });
-      if (receipt.status === 1) toast.success("Transaction successful");
+      if (receipt?.status === 1) toast.success("Transaction successful");
       else toast.error("Transaction failed");
     } catch (err: unknown) {
       const e = err as {
@@ -323,7 +323,7 @@ const CreateTransactionPage = () => {
       const tx = await signer.sendTransaction({
         to: currentAccount,
         data: "0x",
-        value: ethers.constants.Zero,
+        value: 0n,
         nonce: nonceParsed
       });
       const link = `${url}/tx/${tx.hash}`;
@@ -331,9 +331,9 @@ const CreateTransactionPage = () => {
       const receipt = await tx.wait();
       setAdvTx({
         link,
-        status: receipt.status === 1 ? "success" : "failed"
+        status: receipt?.status === 1 ? "success" : "failed"
       });
-      if (receipt.status === 1) {
+      if (receipt?.status === 1) {
         toast.success("Cancelled transaction");
         void refreshPendingNonce(currentAccount);
       } else toast.error("Transaction failed");

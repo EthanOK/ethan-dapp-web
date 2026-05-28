@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { getERC20Contract, getERC20Decimals } from "@/lib/evm/GetContract";
 import { isAddress, getScanURL } from "@/lib/shared/Utils";
-import { BigNumber } from "ethers";
-import { formatUnits, parseUnits } from "ethers/lib/utils";
+import { formatUnits, parseUnits } from "ethers";
 import { toast } from "sonner";
 import { useEvmWallet } from "@/hooks";
 import { truncateHash } from "@/lib/shared/Format";
@@ -12,7 +11,7 @@ const PLACEHOLDER_ADDRESS = "0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b";
 const BurnTokenPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [tokenAddress, setTokenAddress] = useState("");
-  const [tokenBalance, setTokenBalance] = useState<BigNumber | null>(null);
+  const [tokenBalance, setTokenBalance] = useState<bigint | null>(null);
   const [tokenDecimals, setTokenDecimals] = useState<number>(18);
   const [tokenSymbol, setTokenSymbol] = useState<string | null>(null);
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
@@ -90,13 +89,13 @@ const BurnTokenPage = () => {
     }
   };
 
-  const computeBurnAmountBN = (): BigNumber | null => {
+  const computeBurnAmountBN = (): bigint | null => {
     if (!tokenBalance) return null;
     const raw = burnAmount.trim();
     if (raw === "") return tokenBalance;
     try {
       const bn = parseUnits(raw, tokenDecimals);
-      if (bn.lte(0)) return null;
+      if (bn <= 0n) return null;
       return bn;
     } catch {
       return null;
@@ -109,7 +108,7 @@ const BurnTokenPage = () => {
       toast.error("Invalid token address");
       return;
     }
-    if (!tokenBalance || tokenBalance.isZero()) {
+    if (!tokenBalance || tokenBalance === 0n) {
       toast.error("No balance to burn");
       return;
     }
@@ -118,7 +117,7 @@ const BurnTokenPage = () => {
       toast.error("Invalid burn amount");
       return;
     }
-    if (amountToBurn.gt(tokenBalance)) {
+    if (amountToBurn > tokenBalance) {
       toast.error("Burn amount exceeds balance");
       return;
     }
@@ -176,9 +175,7 @@ const BurnTokenPage = () => {
 
   const burnAmountBN = computeBurnAmountBN();
   const burnAmountExceeds =
-    tokenBalance != null &&
-    burnAmountBN != null &&
-    burnAmountBN.gt(tokenBalance);
+    tokenBalance != null && burnAmountBN != null && burnAmountBN > tokenBalance;
   const burnAmountInvalid =
     tokenBalance != null && burnAmount.trim() !== "" && burnAmountBN == null;
 
@@ -282,7 +279,7 @@ const BurnTokenPage = () => {
               !currentAccount ||
               isBurning ||
               !tokenBalance ||
-              tokenBalance.isZero() ||
+              tokenBalance === 0n ||
               burnAmountInvalid ||
               burnAmountExceeds
             }

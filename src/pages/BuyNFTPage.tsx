@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { stringifyJson } from "@/lib/shared/Format";
 import { isAddress, stringToArray } from "@/lib/shared/Utils";
 import { getOrderHashSignatureOpenSea } from "@/services/GetData";
 import {
@@ -62,7 +63,7 @@ const BuyNFTPage = () => {
       alert(result.message);
       return;
     }
-    setMessage(JSON.stringify(result.data, null, "\t"));
+    setMessage(stringifyJson(result.data, "\t"));
   };
 
   const runFulfill = async (

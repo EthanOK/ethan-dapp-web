@@ -2,17 +2,12 @@ import { useEffect, useState } from "react";
 import {
   signEIP712YunGouMessage,
   signEIP712OpenSeaMessage,
-  signBlurLoginMessage,
   signBulkOrderOpenSeaMessage,
   signCustomBulkOrderMessage
 } from "@/lib/signing/SignFunc";
 import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
-import {
-  getBlurAccessTokenByNFTGO,
-  getBlurLoginMessageByNFTGO
-} from "@/services/GetData";
-import { login } from "@/lib/wallet/ConnectWallet";
 import { useEvmWallet } from "@/hooks";
+import { stringifyJson } from "@/lib/shared/Format";
 import { toast } from "sonner";
 
 const SignEIP712Page = () => {
@@ -42,14 +37,14 @@ const SignEIP712Page = () => {
     const [signer, chainId] = await getSignerAndChainId();
     if (!signer || chainId == null) return;
     const result = await signEIP712YunGouMessage(signer, chainId);
-    if (result !== false) setMessage(JSON.stringify(result, null, "\t"));
+    if (result !== false) setMessage(stringifyJson(result, "\t"));
   };
 
   const signEIP712OpenSeaHandler = async () => {
     const [signer, chainId] = await getSignerAndChainId();
     if (!signer || chainId == null) return;
     const result = await signEIP712OpenSeaMessage(signer, chainId);
-    if (result !== false) setMessage(JSON.stringify(result, null, "\t"));
+    if (result !== false) setMessage(stringifyJson(result, "\t"));
   };
 
   const signBulkOrderOpenSeaHandler = async () => {
@@ -57,7 +52,7 @@ const SignEIP712Page = () => {
     if (!signer || chainId == null) return;
     const orders = await signBulkOrderOpenSeaMessage(signer, chainId);
     if (Array.isArray(orders) && orders.length > 0)
-      setMessage(JSON.stringify(orders, null, "\t"));
+      setMessage(stringifyJson(orders, "\t"));
   };
 
   const signBulkOrdersHandler = async () => {
@@ -65,36 +60,7 @@ const SignEIP712Page = () => {
     if (!signer || chainId == null) return;
     const orders = await signCustomBulkOrderMessage(signer, chainId);
     if (Array.isArray(orders) && orders.length > 0)
-      setMessage(JSON.stringify(orders, null, "\t"));
-  };
-
-  const signLoginBlurHandler = async () => {
-    const [signer] = await getSignerAndChainId();
-    if (!signer) return;
-    const loginData = await getBlurLoginMessageByNFTGO(
-      await signer.getAddress()
-    );
-    if (loginData === null) {
-      toast.error("获取登陆信息失败");
-      return;
-    }
-    const messageString = (loginData as { message?: string }).message ?? "";
-    const result = await signBlurLoginMessage(signer, messageString);
-    const requestData = {
-      message: (loginData as { message?: string }).message,
-      walletAddress: (loginData as { walletAddress?: string }).walletAddress,
-      expiresOn: (loginData as { expiresOn?: string }).expiresOn,
-      hmac: (loginData as { hmac?: string }).hmac,
-      signature: result
-    };
-    const blurAccessToken = await getBlurAccessTokenByNFTGO(requestData);
-    if (blurAccessToken)
-      localStorage.setItem("blurAccessToken", blurAccessToken);
-    if (result) setMessage(JSON.stringify(result, null, "\t"));
-  };
-
-  const signEthanDappHandler = async () => {
-    await login();
+      setMessage(stringifyJson(orders, "\t"));
   };
 
   const copyResult = async () => {
@@ -126,7 +92,7 @@ const SignEIP712Page = () => {
     <div className="feature-page main-app">
       <section className="feature-hero">
         <h1>EIP-712 Sign</h1>
-        <p>Sign typed data (YunGou, OpenSea, Blur, etc.)</p>
+        <p>Sign typed data (YunGou, OpenSea, etc.)</p>
       </section>
       <section className="feature-panel">
         <h3>Actions</h3>
@@ -159,20 +125,6 @@ const SignEIP712Page = () => {
           >
             Sign custom bulk orders
           </button>
-          {/* <button
-            onClick={signLoginBlurHandler}
-            className="cta-button mint-nft-button"
-            disabled={!currentAccount}
-          >
-            Sign login Blur
-          </button>
-          <button
-            onClick={signEthanDappHandler}
-            className="cta-button mint-nft-button"
-            disabled={!currentAccount}
-          >
-            Sign login Ethan DApp
-          </button> */}
         </div>
       </section>
       {message && (

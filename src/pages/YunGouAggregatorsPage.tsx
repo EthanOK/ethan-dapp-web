@@ -6,8 +6,18 @@ import order_data_t from "@/fixtures/OrderData";
 import orders_data_t from "@/fixtures/OrdersData";
 import yunGouAggregatorsAbi from "@/abis/evm/YunGouAggregators.json";
 import yunGou2_0Abi from "@/abis/evm/yungou2_0.json";
-import { BigNumber, ethers } from "ethers";
-import { OpenSeaSDK, Chain } from "opensea-js";
+import {
+  Contract,
+  Interface,
+  concat,
+  formatUnits,
+  hexlify,
+  parseUnits,
+  toUtf8Bytes,
+  Wallet,
+  type TransactionResponse
+} from "ethers";
+import { OpenSeaSDK, Chain } from "@opensea/sdk";
 
 import { getSigner, getProvider } from "@/lib/wallet/GetProvider";
 import {
@@ -58,7 +68,7 @@ const YunGouAggregatorsPage = () => {
     }
     try {
       const provider = await getProvider();
-      const signer = provider.getSigner();
+      const signer = await provider.getSigner();
       const chainIdStorage = localStorage.getItem("chainId");
       const tradeDetails = [];
 
@@ -76,7 +86,7 @@ const YunGouAggregatorsPage = () => {
         return;
       }
 
-      let valueEth = BigNumber.from("0");
+      let valueEth = BigInt("0");
 
       if (chainIdStorage === "1") {
         const openseaSDK = new OpenSeaSDK(provider, {
@@ -140,7 +150,7 @@ const YunGouAggregatorsPage = () => {
       }
 
       const YunGouAggregatorsAddress_ = await getYunGouAggregatorsAddress();
-      const ygAggregators = new ethers.Contract(
+      const ygAggregators = new Contract(
         YunGouAggregatorsAddress_,
         yunGouAggregatorsAbi,
         signer
@@ -148,7 +158,7 @@ const YunGouAggregatorsPage = () => {
 
       const fulfillerConduitKey_0 =
         "0x0000000000000000000000000000000000000000000000000000000000000000";
-      const seaport = new ethers.Contract(protocolAddress, seaportAbi, signer);
+      const seaport = new Contract(protocolAddress, seaportAbi, signer);
       const result_seaport =
         await seaport.populateTransaction.fulfillAvailableAdvancedOrders(
           advancedOrders,
@@ -161,27 +171,24 @@ const YunGouAggregatorsPage = () => {
         );
       const inputData = result_seaport.data;
       const extraData = YUNGOU_END;
-      const inputDataWithExtra = ethers.utils.hexConcat([inputData, extraData]);
+      const inputDataWithExtra = hexConcat([inputData, extraData]);
 
-      const currentPriceSumOpensea = BigNumber.from(currentPriceSum);
+      const currentPriceSumOpensea = BigInt(currentPriceSum);
       tradeDetails.push({
         marketId: 2,
         value: currentPriceSumOpensea,
         tradeData: inputDataWithExtra
       });
 
-      let _sumValue = BigNumber.from(0);
+      let _sumValue = BigInt(0);
       for (let i = 0; i < tradeDetails.length; i++) {
-        _sumValue = _sumValue.add(BigNumber.from(tradeDetails[i].value));
+        _sumValue = _sumValue + BigInt(tradeDetails[i].value);
       }
 
       const result_ygAggregators =
         await ygAggregators.populateTransaction.batchBuyWithETH(tradeDetails);
       const inputData_yg = result_ygAggregators.data;
-      const inputDataWithExtra_YG = ethers.utils.hexConcat([
-        inputData_yg,
-        extraData
-      ]);
+      const inputDataWithExtra_YG = hexConcat([inputData_yg, extraData]);
 
       const tx = await signer.sendTransaction({
         to: ygAggregators.address,
@@ -203,17 +210,17 @@ const YunGouAggregatorsPage = () => {
       return;
     }
     try {
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
+      const provider = new ethers.BrowserProvider(ethereum);
+      const signer = await provider.getSigner();
       const [YG_Address, order] = await getYunGouAddressAndOrder();
-      const yungou2_0 = new ethers.Contract(YG_Address, yunGou2_0Abi, signer);
+      const yungou2_0 = new Contract(YG_Address, yunGou2_0Abi, signer);
       const result_ = await yungou2_0.populateTransaction.excuteWithETH(
         order,
         currentAccount
       );
       const inputData = result_.data;
       const extraData = YUNGOU_END;
-      const inputDataWithExtra = ethers.utils.hexConcat([inputData, extraData]);
+      const inputDataWithExtra = hexConcat([inputData, extraData]);
       const tx = await signer.sendTransaction({
         to: result_.to,
         data: inputDataWithExtra,
@@ -234,25 +241,25 @@ const YunGouAggregatorsPage = () => {
     }
     try {
       const provider = await getProvider();
-      const signer = provider.getSigner();
+      const signer = await provider.getSigner();
       const chainIdStorage = localStorage.getItem("chainId");
       let orders;
-      let valueEth = BigNumber.from("0");
+      let valueEth = BigInt("0");
       if (chainIdStorage === "5") {
         orders = orders_data_t.orders;
         for (let i = 0; i < orders.length; i++) {
-          valueEth = valueEth.add(orders[i].totalPayment);
+          valueEth = valueEth + orders[i].totalPayment;
         }
       }
       const YunGou2_0 = await getYunGouAddress();
-      const yungou2_0 = new ethers.Contract(YunGou2_0, yunGou2_0Abi, signer);
+      const yungou2_0 = new Contract(YunGou2_0, yunGou2_0Abi, signer);
       const result_ = await yungou2_0.populateTransaction.batchExcuteWithETH(
         orders,
         currentAccount
       );
       const inputData = result_.data;
       const extraData = YUNGOU_END;
-      const inputDataWithExtra = ethers.utils.hexConcat([inputData, extraData]);
+      const inputDataWithExtra = hexConcat([inputData, extraData]);
       const tx = await signer.sendTransaction({
         to: result_.to,
         data: inputDataWithExtra,
@@ -270,7 +277,7 @@ const YunGouAggregatorsPage = () => {
       const signer = await getSigner();
       const parameters = order_data_t.order_data.parameters;
       const YunGou2_0 = await getYunGouAddress();
-      const yungou2_0 = new ethers.Contract(YunGou2_0, yunGou2_0Abi, signer);
+      const yungou2_0 = new Contract(YunGou2_0, yunGou2_0Abi, signer);
       const tx = await yungou2_0.cancel([parameters]);
       setMessage(`${etherscan}/tx/${tx.hash}`);
       await tx.wait();
@@ -289,7 +296,7 @@ const YunGouAggregatorsPage = () => {
       parameters = order_data_t.order_data_tbsc.parameters;
     }
     const YunGou2_0 = await getYunGouAddress();
-    const yungou2_0 = new ethers.Contract(YunGou2_0, yunGou2_0Abi, signer);
+    const yungou2_0 = new Contract(YunGou2_0, yunGou2_0Abi, signer);
     const orderHash = await yungou2_0.getOrderHash(parameters);
     const orderStatus = await yungou2_0.getOrderStatus(orderHash);
     console.log("orderHash:", orderHash, "orderStatus:", orderStatus);

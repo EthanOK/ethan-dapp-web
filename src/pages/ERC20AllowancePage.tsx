@@ -1,6 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ethers } from "ethers";
+import {
+  AbiCoder,
+  Contract,
+  Interface,
+  MaxUint256,
+  dataSlice,
+  formatEther,
+  formatUnits,
+  id,
+  parseUnits,
+  zeroPadValue
+} from "ethers";
 import { useEvmWallet } from "@/hooks";
 import {
   getDefaultReadonlyProvider,
@@ -121,7 +132,7 @@ const ERC20AllowancePage = () => {
       let chainIdFromProvider: number | undefined = undefined;
       try {
         const network = await provider.getNetwork();
-        chainIdFromProvider = network?.chainId;
+        chainIdFromProvider = Number(network.chainId);
       } catch {
         // ignore network detection failures for readonly RPC
       }
@@ -147,7 +158,7 @@ const ERC20AllowancePage = () => {
       };
 
       // Single static call via Multicall3: decimals, symbol, allowance
-      const erc20Iface = new ethers.utils.Interface(ERC20_ABI);
+      const erc20Iface = new Interface(ERC20_ABI);
       const calls = [
         {
           target: tokenAddressTrimmed,
@@ -191,7 +202,7 @@ const ERC20AllowancePage = () => {
         res[1]
       );
 
-      const rawAllowance = decodeMulticallResult<ethers.BigNumber>(
+      const rawAllowance = decodeMulticallResult<bigint>(
         erc20Iface,
         "allowance",
         res[2]
@@ -202,7 +213,7 @@ const ERC20AllowancePage = () => {
       }
 
       const raw = rawAllowance.toString();
-      const formatted = ethers.utils.formatUnits(rawAllowance, decimals);
+      const formatted = formatUnits(rawAllowance, decimals);
       setResult({
         tokenAddress: tokenAddressTrimmed,
         owner: ownerTrimmed,

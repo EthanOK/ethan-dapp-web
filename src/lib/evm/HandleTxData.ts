@@ -1,6 +1,9 @@
-import { ethers } from "ethers";
-import type { Signer } from "ethers";
-import type { providers } from "ethers";
+import {
+  concat,
+  type BigNumberish,
+  type Signer,
+  type TransactionResponse
+} from "ethers";
 import { equalityStringIgnoreCase } from "@/lib/shared/Utils";
 import { toast } from "sonner";
 
@@ -10,7 +13,7 @@ const addSuffixOfTxData = async (
   inputData: string,
   suffixData: string
 ): Promise<string> => {
-  return ethers.utils.hexConcat([inputData, suffixData]);
+  return concat([inputData, suffixData]);
 };
 
 const getNewTx = async (
@@ -18,10 +21,10 @@ const getNewTx = async (
   contractAddress: string,
   inputData: string,
   suffixData: string,
-  value_wei: ethers.BigNumberish
-): Promise<providers.TransactionResponse | null> => {
+  value_wei: BigNumberish
+): Promise<TransactionResponse | null> => {
   try {
-    const newTXData = ethers.utils.hexConcat([inputData, suffixData]);
+    const newTXData = concat([inputData, suffixData]);
     const tx = await signer.sendTransaction({
       to: contractAddress,
       data: newTXData,

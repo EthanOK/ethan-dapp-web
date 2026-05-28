@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { ethers } from "ethers";
+import {
+  AbiCoder,
+  Contract,
+  Interface,
+  MaxUint256,
+  dataSlice,
+  formatEther,
+  formatUnits,
+  id,
+  parseUnits,
+  zeroPadValue
+} from "ethers";
 import { toast } from "sonner";
 import {
   useEvmWallet,
@@ -152,7 +163,7 @@ const ERC20_ABI = [
 ];
 
 const addressToBytes32 = (addr: string): string => {
-  return ethers.utils.hexZeroPad(addr, 32);
+  return zeroPadValue(addr, 32);
 };
 
 const explorerTxUrl = (chainId: number | undefined, txHash: string): string => {
@@ -165,33 +176,27 @@ const explorerTxUrl = (chainId: number | undefined, txHash: string): string => {
 
 /** Format ERC20 allowance for display; MaxUint256 shown as unlimited */
 const formatAllowanceForDisplay = (
-  raw: ethers.BigNumber,
+  raw: bigint,
   tokenDecimals: number
 ): string => {
-  if (raw.eq(ethers.constants.MaxUint256)) {
+  if (raw === MaxUint256) {
     return "Unlimited (MaxUint256)";
   }
   try {
-    return ethers.utils.formatUnits(raw, tokenDecimals);
+    return formatUnits(raw, tokenDecimals);
   } catch {
     return raw.toString();
   }
 };
 
-const LZ_ERR_NO_PEER = ethers.utils
-  .id("NoPeer(uint32)")
+const LZ_ERR_NO_PEER = id("NoPeer(uint32)").slice(0, 10).toLowerCase();
+const LZ_ERR_SLIPPAGE = id("SlippageExceeded(uint256,uint256)")
   .slice(0, 10)
   .toLowerCase();
-const LZ_ERR_SLIPPAGE = ethers.utils
-  .id("SlippageExceeded(uint256,uint256)")
+const LZ_ERR_INSUFFICIENT_FEE = id("InsufficientFee(uint256,uint256)")
   .slice(0, 10)
   .toLowerCase();
-const LZ_ERR_INSUFFICIENT_FEE = ethers.utils
-  .id("InsufficientFee(uint256,uint256)")
-  .slice(0, 10)
-  .toLowerCase();
-const LZ_ERR_INVALID_LOCAL_DECIMALS = ethers.utils
-  .id("InvalidLocalDecimals()")
+const LZ_ERR_INVALID_LOCAL_DECIMALS = id("InvalidLocalDecimals()")
   .slice(0, 10)
   .toLowerCase();
 
@@ -246,32 +251,32 @@ const decodeLayerZeroOftRevert = (
   try {
     if (sel === LZ_ERR_NO_PEER) {
       if (hex.length < 10 + 64) return null;
-      const [eid] = ethers.utils.defaultAbiCoder.decode(
+      const [eid] = AbiCoder.defaultAbiCoder().decode(
         ["uint32"],
-        ethers.utils.hexDataSlice(data, 4)
+        dataSlice(data, 4)
       );
       return `NoPeer: dstEid ${eid} has no peer. Call setPeer on the OFT for this endpoint, or use a dstEid that already has a peer.`;
     }
     if (sel === LZ_ERR_SLIPPAGE) {
-      const [amt, minAmt] = ethers.utils.defaultAbiCoder.decode(
+      const [amt, minAmt] = AbiCoder.defaultAbiCoder().decode(
         ["uint256", "uint256"],
-        ethers.utils.hexDataSlice(data, 4)
+        dataSlice(data, 4)
       );
       if (
         typeof tokenDecimals === "number" &&
         tokenDecimals >= 0 &&
         tokenDecimals <= 36
       ) {
-        return `SlippageExceeded: expected credited amount ~${ethers.utils.formatUnits(amt, tokenDecimals)}, but minAmountLD requires at least ${ethers.utils.formatUnits(minAmt, tokenDecimals)}. Increase slippage or lower the amount.`;
+        return `SlippageExceeded: expected credited amount ~${formatUnits(amt, tokenDecimals)}, but minAmountLD requires at least ${formatUnits(minAmt, tokenDecimals)}. Increase slippage or lower the amount.`;
       }
       return `SlippageExceeded: credited ${amt.toString()}, minimum required ${minAmt.toString()} (raw units).`;
     }
     if (sel === LZ_ERR_INSUFFICIENT_FEE) {
-      const [required, provided] = ethers.utils.defaultAbiCoder.decode(
+      const [required, provided] = AbiCoder.defaultAbiCoder().decode(
         ["uint256", "uint256"],
-        ethers.utils.hexDataSlice(data, 4)
+        dataSlice(data, 4)
       );
-      return `InsufficientFee: need ~${ethers.utils.formatEther(required)} ETH (native), provided ~${ethers.utils.formatEther(provided)} ETH. Retry the bridge or increase msg.value.`;
+      return `InsufficientFee: need ~${formatEther(required)} ETH (native), provided ~${formatEther(provided)} ETH. Retry the bridge or increase msg.value.`;
     }
     if (sel === LZ_ERR_INVALID_LOCAL_DECIMALS) {
       return "InvalidLocalDecimals: local decimals incompatible with OFT config (often underlying token vs Adapter mismatch).";
@@ -299,21 +304,13 @@ const formatBridgeContractError = (
   return msg || "Operation failed";
 };
 
-type SendParamTuple = [
-  number,
-  string,
-  ethers.BigNumber,
-  ethers.BigNumber,
-  string,
-  string,
-  string
-];
+type SendParamTuple = [number, string, bigint, bigint, string, string, string];
 
 const buildSendParam = (
   dstEid: number,
   recipient: string,
-  amountLD: ethers.BigNumber,
-  minAmountLD: ethers.BigNumber,
+  amountLD: bigint,
+  minAmountLD: bigint,
   extraOptionsHex: string,
   composeHex: string,
   oftCmdHex: string
@@ -360,21 +357,15 @@ const LayerZeroOFTBridgePage = () => {
   const [symbol, setSymbol] = useState<string | null>(null);
   const [balanceFormatted, setBalanceFormatted] = useState<string | null>(null);
   /** On-chain balance (same units as amountLD) for amount ≤ balance checks */
-  const [tokenBalanceLD, setTokenBalanceLD] = useState<ethers.BigNumber | null>(
-    null
-  );
+  const [tokenBalanceLD, setTokenBalanceLD] = useState<bigint | null>(null);
   /** Underlying token allowance to Adapter when in OFTAdapter mode */
-  const [allowance, setAllowance] = useState<ethers.BigNumber | null>(null);
+  const [allowance, setAllowance] = useState<bigint | null>(null);
   const [isAdapterMode, setIsAdapterMode] = useState(false);
   const [underlyingAddress, setUnderlyingAddress] = useState<string | null>(
     null
   );
-  const [nativeFee, setNativeFee] = useState<ethers.BigNumber>(() =>
-    ethers.BigNumber.from(0)
-  );
-  const [lzTokenFee, setLzTokenFee] = useState<ethers.BigNumber>(() =>
-    ethers.BigNumber.from(0)
-  );
+  const [nativeFee, setNativeFee] = useState<bigint>(() => BigInt(0));
+  const [lzTokenFee, setLzTokenFee] = useState<bigint>(() => BigInt(0));
   const [chainId, setChainId] = useState<number | undefined>(undefined);
 
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
@@ -428,13 +419,13 @@ const LayerZeroOFTBridgePage = () => {
     return Math.floor(n);
   }, [slippageBps]);
 
-  const parsedAmountLD = useMemo((): ethers.BigNumber | null => {
+  const parsedAmountLD = useMemo((): bigint | null => {
     if (decimals == null) return null;
     const amt = amountStr.trim();
     if (amt === "") return null;
     try {
       const v = getDecimalBigNumber(amt, decimals);
-      return v.lte(0) ? null : v;
+      return v <= 0n ? null : v;
     } catch {
       return null;
     }
@@ -444,12 +435,12 @@ const LayerZeroOFTBridgePage = () => {
   const allowanceInsufficient = useMemo(() => {
     if (!isAdapterMode || parsedAmountLD == null) return false;
     if (allowance == null) return true;
-    return allowance.lt(parsedAmountLD);
+    return allowance < parsedAmountLD;
   }, [isAdapterMode, parsedAmountLD, allowance]);
 
   const amountExceedsBalance = useMemo(() => {
     if (parsedAmountLD == null || tokenBalanceLD == null) return false;
-    return parsedAmountLD.gt(tokenBalanceLD);
+    return parsedAmountLD > tokenBalanceLD;
   }, [parsedAmountLD, tokenBalanceLD]);
 
   useEffect(() => {
@@ -467,7 +458,7 @@ const LayerZeroOFTBridgePage = () => {
         const provider = (await getProvider()) ?? getDefaultReadonlyProvider();
         if (!provider || cancelled) return;
         const net = await provider.getNetwork();
-        if (!cancelled) setChainId(net.chainId);
+        if (!cancelled) setChainId(Number(net.chainId));
       } catch {
         /* ignore */
       }
@@ -580,16 +571,16 @@ const LayerZeroOFTBridgePage = () => {
         return;
       }
       const net = await provider.getNetwork();
-      setChainId(net.chainId);
-      if (!silent && isLzMetaSourceChain(net.chainId)) {
-        persistMetaChainId(net.chainId);
+      setChainId(Number(net.chainId));
+      if (!silent && isLzMetaSourceChain(Number(net.chainId))) {
+        persistMetaChainId(Number(net.chainId));
       }
 
-      const oftDetectIface = new ethers.utils.Interface(OFT_DETECT_ABI);
-      const erc20Iface = new ethers.utils.Interface(ERC20_ABI);
+      const oftDetectIface = new Interface(OFT_DETECT_ABI);
+      const erc20Iface = new Interface(ERC20_ABI);
 
       const runSequential = async () => {
-        const detect = new ethers.Contract(
+        const detect = new Contract(
           oftTrimmed,
           [...OFT_DETECT_ABI, ...OFT_ABI],
           provider
@@ -607,7 +598,7 @@ const LayerZeroOFTBridgePage = () => {
         }
         setIsAdapterMode(adapter);
         setUnderlyingAddress(adapter ? assetAddr : null);
-        const erc20 = new ethers.Contract(assetAddr, ERC20_ABI, provider);
+        const erc20 = new Contract(assetAddr, ERC20_ABI, provider);
         const [dec, sym] = await Promise.all([
           erc20.decimals() as Promise<number>,
           erc20.symbol() as Promise<string>
@@ -616,14 +607,11 @@ const LayerZeroOFTBridgePage = () => {
         setDecimals(decN);
         setSymbol(String(sym));
         if (address && isAddress(address)) {
-          const bal: ethers.BigNumber = await erc20.balanceOf(address);
-          setBalanceFormatted(ethers.utils.formatUnits(bal, decN));
+          const bal: bigint = await erc20.balanceOf(address);
+          setBalanceFormatted(formatUnits(bal, decN));
           setTokenBalanceLD(bal);
           if (adapter) {
-            const alw: ethers.BigNumber = await erc20.allowance(
-              address,
-              oftTrimmed
-            );
+            const alw: bigint = await erc20.allowance(address, oftTrimmed);
             setAllowance(alw);
           } else {
             setAllowance(null);
@@ -746,20 +734,20 @@ const LayerZeroOFTBridgePage = () => {
         setSymbol(symLabel);
 
         if (address && isAddress(address)) {
-          const bal = decodeMulticallResult<ethers.BigNumber>(
+          const bal = decodeMulticallResult<bigint>(
             erc20Iface,
             "balanceOf",
             resB[bi++]
           );
           if (bal != null) {
-            setBalanceFormatted(ethers.utils.formatUnits(bal, decN));
+            setBalanceFormatted(formatUnits(bal, decN));
             setTokenBalanceLD(bal);
           } else {
             setBalanceFormatted(null);
             setTokenBalanceLD(null);
           }
           if (adapter) {
-            const alw = decodeMulticallResult<ethers.BigNumber>(
+            const alw = decodeMulticallResult<bigint>(
               erc20Iface,
               "allowance",
               resB[bi++]
@@ -824,8 +812,8 @@ const LayerZeroOFTBridgePage = () => {
     }
     setIsApproving(true);
     try {
-      const erc20 = new ethers.Contract(underlyingAddress, ERC20_ABI, signer);
-      const tx = await erc20.approve(oftTrimmed, ethers.constants.MaxUint256);
+      const erc20 = new Contract(underlyingAddress, ERC20_ABI, signer);
+      const tx = await erc20.approve(oftTrimmed, MaxUint256);
       toast.message("Submitting approval…");
       await tx.wait();
       toast.success("Approval confirmed");
@@ -852,18 +840,18 @@ const LayerZeroOFTBridgePage = () => {
     }
 
     const amt = amountStr.trim() === "" ? "0" : amountStr.trim();
-    let amountLD: ethers.BigNumber;
+    let amountLD: bigint;
     try {
       amountLD = getDecimalBigNumber(amt, decimals);
     } catch {
       toast.error("Invalid amount format");
       return;
     }
-    if (amountLD.lte(0)) {
+    if (amountLD <= 0n) {
       toast.error("Amount must be greater than 0");
       return;
     }
-    if (tokenBalanceLD != null && amountLD.gt(tokenBalanceLD)) {
+    if (tokenBalanceLD != null && amountLD > tokenBalanceLD) {
       const balHint =
         balanceFormatted != null && symbol
           ? ` (${balanceFormatted} ${symbol})`
@@ -872,7 +860,7 @@ const LayerZeroOFTBridgePage = () => {
       return;
     }
 
-    const minAmountLD = amountLD.mul(10000 - slippageBpsNum!).div(10000);
+    const minAmountLD = (amountLD * BigInt(10000 - slippageBpsNum!)) / 10000n;
     const sendParam = buildSendParam(
       dstEidNum!,
       recipientTrimmed,
@@ -889,17 +877,17 @@ const LayerZeroOFTBridgePage = () => {
       return;
     }
 
-    const parseManualGasLimit = (): ethers.BigNumber | null => {
+    const parseManualGasLimit = (): bigint | null => {
       const t = sendGasLimitInput.trim();
       if (t === "") return null;
       if (!/^\d+$/.test(t)) return null;
       const n = Number(t);
       if (!Number.isSafeInteger(n) || n < 21000 || n > 30_000_000) return null;
-      return ethers.BigNumber.from(n);
+      return BigInt(n);
     };
 
-    setNativeFee(ethers.BigNumber.from(0));
-    setLzTokenFee(ethers.BigNumber.from(0));
+    setNativeFee(BigInt(0));
+    setLzTokenFee(BigInt(0));
     setLastBridgeScanLink(null);
     setLastBridgeTxHash(null);
     setIsBridgeOneClick(true);
@@ -907,14 +895,10 @@ const LayerZeroOFTBridgePage = () => {
       const refundAddress = await signer.getAddress();
 
       if (isAdapterMode && underlyingAddress && address) {
-        const erc20Read = new ethers.Contract(
-          underlyingAddress,
-          ERC20_ABI,
-          provider
-        );
+        const erc20Read = new Contract(underlyingAddress, ERC20_ABI, provider);
         const alw = await erc20Read.allowance(address, oftTrimmed);
-        if (alw.lt(amountLD)) {
-          const erc20Signer = new ethers.Contract(
+        if (alw < amountLD) {
+          const erc20Signer = new Contract(
             underlyingAddress,
             ERC20_ABI,
             signer
@@ -926,34 +910,36 @@ const LayerZeroOFTBridgePage = () => {
       }
 
       const net = await provider.getNetwork();
-      setChainId(net.chainId);
+      setChainId(Number(net.chainId));
 
-      const cRead = new ethers.Contract(oftTrimmed, OFT_ABI, provider);
-      const [nativeFeeLocal, lzTokenFeeLocal]: ethers.BigNumber[] =
-        await cRead.quoteSend(sendParam, false);
+      const cRead = new Contract(oftTrimmed, OFT_ABI, provider);
+      const [nativeFeeLocal, lzTokenFeeLocal]: bigint[] = await cRead.quoteSend(
+        sendParam,
+        false
+      );
       setNativeFee(nativeFeeLocal);
       setLzTokenFee(lzTokenFeeLocal);
 
       const sendValue = nativeFeeLocal;
       const feeTuple = {
         nativeFee: nativeFeeLocal,
-        lzTokenFee: lzTokenFeeLocal ?? ethers.BigNumber.from(0)
+        lzTokenFee: lzTokenFeeLocal ?? BigInt(0)
       };
 
-      const c = new ethers.Contract(oftTrimmed, OFT_ABI, signer);
+      const c = new Contract(oftTrimmed, OFT_ABI, signer);
       const manualGas = parseManualGasLimit();
-      let gasLimit: ethers.BigNumber | undefined;
+      let gasLimit: bigint | undefined;
       if (manualGas != null) {
         gasLimit = manualGas;
       } else {
         try {
-          const est = await c.estimateGas.send(
+          const est = await c.send.estimateGas(
             sendParam,
             feeTuple,
             refundAddress,
             { value: sendValue }
           );
-          gasLimit = est.mul(130).div(100);
+          gasLimit = (est * 130n) / 100n;
         } catch (estErr: unknown) {
           toast.error(formatBridgeContractError(estErr, decimals));
           return;
@@ -961,7 +947,7 @@ const LayerZeroOFTBridgePage = () => {
       }
 
       const routeSummary = formatLzBridgeRouteSummary(
-        net.chainId,
+        Number(net.chainId),
         sendParam[0],
         { tokenSymbol: symbol, amount: amountStr.trim() }
       );
@@ -1144,7 +1130,7 @@ const LayerZeroOFTBridgePage = () => {
                 <b>{formatAllowanceForDisplay(allowance, decimals)}</b>
                 <span> {symbol}</span>
                 {parsedAmountLD != null &&
-                  !allowance.lt(parsedAmountLD) &&
+                  allowance >= parsedAmountLD &&
                   "(covers this amount)"}
                 {allowanceInsufficient && parsedAmountLD != null && (
                   <span style={{ color: "var(--lz-amber)", marginLeft: 8 }}>
@@ -1341,7 +1327,7 @@ const LayerZeroOFTBridgePage = () => {
               {nativeFee.toString()}
             </span>
           </div>
-          {lzTokenFee.gt(0) && (
+          {lzTokenFee > 0n && (
             <p
               style={{
                 marginTop: 10,

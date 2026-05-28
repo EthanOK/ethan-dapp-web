@@ -1,5 +1,4 @@
-import { formatEther, formatUnits } from "ethers/lib/utils";
-import type { BigNumber, providers } from "ethers";
+import { formatEther, formatUnits, type BrowserProvider } from "ethers";
 
 export interface EstimateTxFeeResult {
   gasPrice: string;
@@ -8,13 +7,14 @@ export interface EstimateTxFeeResult {
 }
 
 export const estimateTxFee = async (
-  provider: providers.Web3Provider,
+  provider: BrowserProvider,
   from: string,
   to: string,
   data: string,
-  value: BigNumber
+  value: bigint
 ): Promise<EstimateTxFeeResult> => {
-  const gasPrice = await provider.getGasPrice();
+  const feeData = await provider.getFeeData();
+  const gasPrice = feeData.gasPrice ?? 0n;
   console.log(`Gas Price: ${formatUnits(gasPrice, 9)} Gwei`);
 
   const estGas = await provider.estimateGas({
@@ -27,7 +27,7 @@ export const estimateTxFee = async (
 
   console.log(`Gas Used: ${estGas.toString()}`);
 
-  const estFees = estGas.mul(gasPrice);
+  const estFees = estGas * gasPrice;
   console.log(`Transaction Fee: ${formatEther(estFees)} Ether`);
 
   return {

@@ -1,4 +1,15 @@
-import { BigNumber, ethers } from "ethers";
+import {
+  Contract,
+  Interface,
+  concat,
+  formatEther,
+  formatUnits,
+  hexlify,
+  parseUnits,
+  toUtf8Bytes,
+  Wallet,
+  type TransactionResponse
+} from "ethers";
 import { useEffect, useState } from "react";
 import { getPriceBaseUSDTByBinance } from "@/services/GetData";
 import {
@@ -142,12 +153,9 @@ const UtilsPage = () => {
       "gasPrice"
     ) as HTMLInputElement | null;
     if (!gasUsedInput || !gasPriceInput) return;
-    const gasPrice = ethers.utils.parseUnits(
-      gasPriceInput.value || "0",
-      "gwei"
-    );
-    const txFee = BigNumber.from(gasUsedInput.value || "0").mul(gasPrice);
-    setTransactionFee(ethers.utils.formatEther(txFee));
+    const gasPrice = parseUnits(gasPriceInput.value || "0", "gwei");
+    const txFee = BigInt(gasUsedInput.value || "0") * gasPrice;
+    setTransactionFee(formatEther(txFee));
   };
 
   const handleChangeValue = (event: React.ChangeEvent<HTMLSelectElement>) => {

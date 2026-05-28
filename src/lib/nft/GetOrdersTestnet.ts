@@ -1,5 +1,3 @@
-import { BigNumber } from "ethers";
-
 const getFulfillment_transactions = async (
   chainName: string,
   fulfiller: string,
@@ -69,7 +67,7 @@ const getFulfillAvailableAdvancedOrders_datas = async (
   let protocolAddress_ = "0x";
   let fulfillerConduitKey: string | undefined;
   const maximumFulfilled = tokenAddress_s.length;
-  let currentPriceSum = BigNumber.from(0);
+  let currentPriceSum = BigInt(0);
   let count = 0;
 
   for (let i = 0; i < tokenAddress_s.length; i++) {
@@ -134,7 +132,7 @@ const getFulfillAvailableAdvancedOrders_datas = async (
       considerationFulfillments.push([fulfillmentComponent]);
     }
 
-    currentPriceSum = currentPriceSum.add(BigNumber.from(currentPrice));
+    currentPriceSum = currentPriceSum + BigInt(currentPrice);
 
     const advancedOrder = {
       parameters: order0.parameters,
@@ -172,7 +170,7 @@ const getFulfillAvailableOrders_data = async (
   let protocolAddress_ = "0x";
   let fulfillerConduitKey: string | undefined;
   const maximumFulfilled = tokenAddress_s.length;
-  let currentPriceSum = BigNumber.from(0);
+  let currentPriceSum = BigInt(0);
   let count = 0;
 
   for (let i = 0; i < tokenAddress_s.length; i++) {
@@ -237,7 +235,7 @@ const getFulfillAvailableOrders_data = async (
       considerationFulfillments.push([fulfillmentComponent]);
     }
 
-    currentPriceSum = currentPriceSum.add(BigNumber.from(currentPrice));
+    currentPriceSum = currentPriceSum + BigInt(currentPrice);
 
     const order = {
       parameters: order0.parameters,

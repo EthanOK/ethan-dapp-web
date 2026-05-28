@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { stringifyJson } from "@/lib/shared/Format";
 import { isAddress } from "@/lib/shared/Utils";
 import { getOrderHashSignatureOpenSea } from "@/services/GetData";
 import { useEvmWallet } from "@/hooks";
@@ -57,7 +58,7 @@ const GetOpenSeaDataPage = () => {
       toast.error(result.message ?? "Request failed");
       return;
     }
-    setMessage(JSON.stringify(result.data, null, "\t"));
+    setMessage(stringifyJson(result.data, "\t"));
   };
 
   return (

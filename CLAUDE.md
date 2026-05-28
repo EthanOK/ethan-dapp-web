@@ -2,76 +2,59 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with React 18 + TypeScript. Wallet connection via Reown AppKit (formerly WalletConnect) and Web3Auth. Deployed on Vercel and Docker.
-
 ## Commands
 
-| Task | Command |
-|------|---------|
-| Dev server | `npm start` |
-| Production build | `npm run build` |
-| Preview build | `npm run preview` |
-| Type check | `npm run typecheck` |
-| Format code | `npm run prettier` |
-| Run tests | `npm test` (Jest via CRACO — test coverage is minimal) |
-| Version bump | `npm run release` (standard-version, patch bump) |
+| Command | Description |
+|---------|-------------|
+| `npm start` | Dev server (CRACO) at localhost:3000 |
+| `npm run build` | Production build → `build/` |
+| `npm run typecheck` | TypeScript check (no emit) |
+| `npm run prettier` | Format source files |
+| `npm run release` | Patch version bump (standard-version) |
 
-All `start`/`build` commands inject `REACT_APP_VERSION` from package.json automatically.
-
-## Build System
-
-**CRA + CRACO** (not Vite). `craco.config.js` overrides Webpack to:
-- Disable Node.js polyfill fallbacks for `crypto`, `stream`, `assert`, `http`, `https`, `os`, `url`, `zlib`
-- Provide `process` and `Buffer` globals via `ProvidePlugin`
-- Use absolute imports from `src/` (tsconfig `baseUrl: "src"`)
-
-`.npmrc` sets `legacy-peer-deps=true` to work around peer dependency conflicts.
-
-## Pre-commit Hook
-
-Every commit runs: `lint-staged` (Prettier on staged files) -> `npm run build` -> `git add build/`. The `build/` directory is committed to git (production artifacts are version-controlled).
-
-## Code Style
-
-- **Prettier**: semicolons, double quotes, 2-space indent, no trailing commas
-- **ESLint**: extends `react-app`; unused vars and exhaustive-deps rules are disabled
-- **Import style**: absolute imports from `src/` (e.g., `import { getProvider } from "utils/GetProvider"`)
+Pre-commit hook runs Prettier on staged files and `npm run build`.
 
 ## Architecture
 
-**Single shell component**: `src/EthanDapp.tsx` (~560 lines) contains the header, sidebar nav, routing, wallet connection, and theme management. All routes are defined here.
+Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + TypeScript**.
 
-**Pages**: `src/pages/` — one component per route, each managing its own state and blockchain interactions independently. No shared state management library; state lives in `useState`/`useEffect` and `localStorage`.
+**Entry:** `src/index.tsx` → `src/app/App.tsx`
 
-**Key localStorage keys**: `chainId`, `LoginType` (reown/metamask/walletconnect), `userAddress`, `token`, `app-theme`.
+**Import alias:** `@/` → `src/` (e.g. `@/lib/wallet/GetProvider`)
 
-**Critical utility files**:
-- `src/utils/GetProvider.ts` — wallet provider abstraction over MetaMask, Reown AppKit, WalletConnect. Imported by nearly every page. Provides `getProvider()` (ethers v5) and `getProviderV6()` (ethers v6).
-- `src/utils/Suscribers.ts` — global store object holding Reown AppKit subscription state (account, network, provider).
-- `src/utils/GetContract.ts` — creates contract instances from signer + ABI + address.
-- `src/common/ChainsConfig.ts` — chain definitions and RPC URLs.
-- `src/common/FaucetConfig.ts` — faucet token configuration.
+### Key directories
 
-**Contract ABIs**: JSON files in `src/contracts/` (ERC20, ERC721, Seaport, Uniswap, etc.).
+- `src/app/` — App shell: `App.tsx` (routes/layout), `Wallet.ts` (Reown AppKit init), `App.css`
+- `src/pages/` — One route page per file, all lazy-imported in `App.tsx`
+- `src/hooks/` — Wallet state (`useReownWalletSync`, `useEvmWallet`), theme, sidebar, network switching
+- `src/lib/wallet/` — `GetProvider.ts` (provider resolution), `ConnectWallet.ts`, `Suscribers.ts` (AppKit event subscribers)
+- `src/lib/evm/` — Contract interactions, LayerZero, multicall, EIP-7702
+- `src/lib/nft/` — OpenSea, mint, orders
+- `src/lib/solana/` — Connection, WSOL, sign/verify
+- `src/lib/signing/` — EIP-712, bulk orders
+- `src/config/` — `SystemConfiguration.ts` (env vars, API URLs), `ChainsConfig.ts`, `FaucetConfig.ts`
+- `src/abis/` — Contract ABIs (evm/, solana/)
+- `src/services/` — Backend API fetch helpers
 
-**Backend API**: `src/api/` — fetch calls to a separate backend (default `localhost:3001`, configurable via `React_Serve_Back` env var). The backend is not in this repository.
+### Wallet integration
 
-## Multi-chain / Dual ethers
+Uses **Reown AppKit** (formerly WalletConnect) with three adapters:
+- `EthersAdapter` for EVM chains (ethers v6)
+- `SolanaAdapter` for Solana
+- `BitcoinAdapter` for Bitcoin
 
-Both ethers v5 and v6 coexist. v5 is the default import (`ethers`); v6 is aliased as `ethers-v6` in package.json. Use `getProvider()` for v5, `getProviderV6()` for v6. EIP-7702 features use ethers v6's `Signer.authorize()`.
+Network switching and wallet state are managed via custom hooks in `src/hooks/`. The `useReownWalletSync` hook is the primary wallet state hook.
 
-Supported chains: Ethereum, Sepolia, Hoodi, BSC, Base, X Layer (EVM); Solana mainnet + devnet; Bitcoin mainnet + testnet.
+### ethers
 
-## Styling
+EVM code uses **ethers v6** (`ethers` package). Amounts on-chain use native `bigint` where applicable.
 
-Plain CSS with CSS custom properties for dark/light theming. Theme toggled via `data-theme` attribute on `<html>`. Variables defined in `src/index.css`. Each page has its own CSS file.
+## Environment
 
-## Environment Variables
+Copy `.env.example` to `.env`. Required variables:
 
-Copy `.env.example` to `.env`. Key variables: `REACT_APP_ALCHEMY_MAINNET_URL`, `REACT_APP_WALLETCONNECT_PROJECTID`, `REACT_APP_ALCHEMY_KEY_V3`, `REACT_APP_SEPOLIA_RPC`, `REACT_APP_MAINNET_RPC`.
+- `REACT_APP_WALLETCONNECT_PROJECTID` — Reown/WalletConnect project ID
+- `REACT_APP_ALCHEMY_MAINNET_URL`, `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC
+- `REACT_APP_MAINNET_RPC`, `REACT_APP_SEPOLIA_RPC` — Fallback RPCs
 
-## Versioning
-
-Uses `standard-version` with conventional commits. Run `npm run release` to bump the patch version and generate CHANGELOG entries.
+Backend API base URL is in `src/config/SystemConfiguration.ts` (`React_Serve_Back`). The backend is not in this repo.

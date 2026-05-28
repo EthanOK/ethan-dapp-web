@@ -13,7 +13,17 @@ import {
   DISCORD_WEBHOOK_URL
 } from "@/config/SystemConfiguration";
 import { order_data, order_data_tbsc } from "@/fixtures/OrderDataYungou";
-import { BigNumber, ethers, providers } from "ethers";
+import {
+  formatUnits,
+  getCreateAddress,
+  hexlify,
+  isAddress,
+  JsonRpcProvider,
+  parseUnits,
+  toUtf8Bytes,
+  type Provider
+} from "ethers";
+import { stringifyJson } from "@/lib/shared/Format";
 import { Decimal } from "decimal.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
@@ -46,16 +56,14 @@ const getScanURL = async (): Promise<string> => {
   return chainInfo.blockExplorerUrls[0];
 };
 
-const getInfuraProvider = async (): Promise<
-  providers.JsonRpcProvider | undefined
-> => {
+const getInfuraProvider = async (): Promise<JsonRpcProvider | undefined> => {
   const chainIdStr = localStorage.getItem("chainId");
   const chainId = parseInt(chainIdStr ?? "0", 10);
   if (chainId === 1) {
-    return new providers.JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC);
+    return new JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC);
   }
   if (chainId === 11155111) {
-    return new providers.JsonRpcProvider(process.env.REACT_APP_SEPOLIA_RPC);
+    return new JsonRpcProvider(process.env.REACT_APP_SEPOLIA_RPC);
   }
   return undefined;
 };
@@ -132,12 +140,12 @@ const getYunGouAddressAndOrder = async (
   return [YG_Address, order];
 };
 
-const isAddress = (address: string): boolean => {
-  return ethers.utils.isAddress(address);
+const checkIsAddress = (address: string): boolean => {
+  return isAddress(address);
 };
 
 const isContract = async (
-  provider: providers.Provider,
+  provider: Provider,
   address: string
 ): Promise<boolean> => {
   const code = await provider.getCode(address);
@@ -150,15 +158,12 @@ const stringToArray = (string: string): string[] => {
   return hexStringArray.map((hexString) => hexString.trim());
 };
 
-const getDecimal = (bigNumber: ethers.BigNumber, decimals: number): number => {
-  return Number(ethers.utils.formatUnits(bigNumber, decimals));
+const getDecimal = (value: bigint, decimals: number): number => {
+  return Number(formatUnits(value, decimals));
 };
 
-const getDecimalBigNumber = (
-  number: string,
-  decimals: number
-): ethers.BigNumber => {
-  return ethers.utils.parseUnits(number, decimals);
+const getDecimalBigNumber = (number: string, decimals: number): bigint => {
+  return parseUnits(number, decimals);
 };
 
 const getExtractAddress = (address: string | null): string => {
@@ -170,16 +175,15 @@ const getExtractAddress = (address: string | null): string => {
 };
 
 const utf8ToHexBytes = (str: string): string => {
-  const bytes = ethers.utils.toUtf8Bytes(str);
-  return ethers.utils.hexlify(bytes);
+  return hexlify(toUtf8Bytes(str));
 };
 
 const caculatePriceBySqrtPriceX96 = (
-  sqrtPriceX96_: string | ethers.BigNumber
+  sqrtPriceX96_: string | bigint
 ): string => {
-  const sqrtPriceX96 = BigNumber.from(sqrtPriceX96_);
-  const sqrtPriceX96_m2 = sqrtPriceX96.mul(sqrtPriceX96).toString();
-  const _X_m2_192 = BigNumber.from("2").pow(192).toString();
+  const sqrtPriceX96 = BigInt(sqrtPriceX96_);
+  const sqrtPriceX96_m2 = (sqrtPriceX96 * sqrtPriceX96).toString();
+  const _X_m2_192 = (2n ** 192n).toString();
   const price_y_x = new Decimal(sqrtPriceX96_m2)
     .div(new Decimal(_X_m2_192))
     .toNumber();
@@ -188,7 +192,7 @@ const caculatePriceBySqrtPriceX96 = (
 };
 
 function getAddressCreate(sender: string, nonce: number): string {
-  return ethers.utils.getContractAddress({ from: sender, nonce });
+  return getCreateAddress({ from: sender, nonce });
 }
 
 async function getAssociatedAddress(
@@ -250,7 +254,7 @@ export const sendToWebhook = async (data: unknown): Promise<unknown> => {
     const response = await fetch(DISCORD_WEBHOOK_URL ?? "", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: JSON.stringify(data, null, 4) })
+      body: JSON.stringify({ content: stringifyJson(data, 4) })
     });
     if (!response.ok) {
       throw new Error(`Webhook error: ${response.status}`);
@@ -268,7 +272,7 @@ export {
   getYunGouAddress,
   getYunGouAddressAndParameters,
   getYunGouAddressAndOrder,
-  isAddress,
+  checkIsAddress as isAddress,
   stringToArray,
   getYunGouAggregatorsAddress,
   getDecimal,

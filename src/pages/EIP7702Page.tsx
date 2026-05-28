@@ -10,9 +10,8 @@ import {
   ALCHEMY_KEY_V3,
   EIP7702Delegator_Metamask
 } from "@/config/SystemConfiguration";
-import { Wallet } from "ethers-v6";
+import { JsonRpcProvider, Wallet } from "ethers";
 import { getScanURL } from "@/lib/shared/Utils";
-import { AlchemyProvider } from "ethers-v6";
 import { useEvmWallet } from "@/hooks";
 import { toast } from "sonner";
 
@@ -35,7 +34,10 @@ const EIP7702Page = () => {
         toast.error("无法获取链 ID，请先连接钱包");
         return;
       }
-      const provider = new AlchemyProvider(chainId, ALCHEMY_KEY_V3 ?? "");
+      const provider = new JsonRpcProvider(
+        `https://eth-${chainId === 1 ? "mainnet" : "sepolia"}.g.alchemy.com/v2/${ALCHEMY_KEY_V3 ?? ""}`,
+        chainId
+      );
       const signer = new Wallet(pk, provider);
       let currentNonce = await signer.getNonce();
       const delegationAddress = await getDelegationAddress(signer);
@@ -79,7 +81,10 @@ const EIP7702Page = () => {
         toast.error("无法获取链 ID，请先连接钱包");
         return;
       }
-      const provider = new AlchemyProvider(chainId, ALCHEMY_KEY_V3 ?? "");
+      const provider = new JsonRpcProvider(
+        `https://eth-${chainId === 1 ? "mainnet" : "sepolia"}.g.alchemy.com/v2/${ALCHEMY_KEY_V3 ?? ""}`,
+        chainId
+      );
       const signer = new Wallet(pk, provider);
       const delegationAddress = await getDelegationAddress(signer);
       if (delegationAddress === null) {

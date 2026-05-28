@@ -17,7 +17,6 @@ import FaucetTokenPage from "@/pages/FaucetTokenPage";
 import UtilsPage from "@/pages/UtilsPage";
 import BurnTokenPage from "@/pages/BurnTokenPage";
 import SolanaUtilsPage from "@/pages/SolanaUtilsPage";
-import BuyBlurNFTPage from "@/pages/BuyBlurNFTPage";
 import ERC6551Page from "@/pages/ERC6551Page";
 import EstimateTxFeePage from "@/pages/EstimateTxFeePage";
 import CreateTransactionPage from "@/pages/CreateTransactionPage";
@@ -267,7 +266,6 @@ function App() {
               <Route path="/signEIP712" element={<SignEIP712Page />} />
               <Route path="/getOpenSeaData" element={<GetOpenSeaDataPage />} />
               <Route path="/buyNFT" element={<BuyNFTPage />} />
-              <Route path="/buyBlurNFT" element={<BuyBlurNFTPage />} />
               <Route path="/getIPFS" element={<GetIPFSPage />} />
               <Route path="/faucet" element={<FaucetTokenPage />} />
               <Route path="/burn" element={<BurnTokenPage />} />

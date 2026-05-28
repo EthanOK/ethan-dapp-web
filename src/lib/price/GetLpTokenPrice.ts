@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { Contract, formatUnits, JsonRpcProvider, parseUnits } from "ethers";
 import {
   PancakeRouter,
   UniswapRouter,
@@ -30,10 +30,10 @@ const getTokenPrice = async (
       return "error";
     }
 
-    const provider = new ethers.providers.JsonRpcProvider(rpc);
-    const routerContract = new ethers.Contract(routerV2, routerABI, provider);
-    const token0Contract = new ethers.Contract(token0, erc20ABI, provider);
-    const token1Contract = new ethers.Contract(token1, erc20ABI, provider);
+    const provider = new JsonRpcProvider(rpc);
+    const routerContract = new Contract(routerV2, routerABI, provider);
+    const token0Contract = new Contract(token0, erc20ABI, provider);
+    const token1Contract = new Contract(token1, erc20ABI, provider);
 
     const decimals0 = await token0Contract.decimals();
     const decimals1 = await token1Contract.decimals();
@@ -41,10 +41,10 @@ const getTokenPrice = async (
     const symbol1 = await token1Contract.symbol();
 
     const amounts = await routerContract.getAmountsOut(
-      ethers.utils.parseUnits("1", decimals0),
+      parseUnits("1", decimals0),
       [token0, token1]
     );
-    const token1Price = ethers.utils.formatUnits(amounts[1], decimals1);
+    const token1Price = formatUnits(amounts[1], decimals1);
     const pairPrice = `1 ${symbol0} = ${token1Price} ${symbol1}`;
 
     console.log(pairPrice);
