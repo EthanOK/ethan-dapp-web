@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.10](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.9...v2.2.10) (2026-05-28)
+
+
+### Features
+
+* **market:** add 6M chart range and ignore local docs ([8a80385](https://github.com/EthanOK/ethan-dapp-web/commit/8a803853dfb081cb721f437ad6e4e267f179a976))
+* **market:** add K-line chart and rename route to /market ([775da83](https://github.com/EthanOK/ethan-dapp-web/commit/775da8390df24b5d895b5ad4ccba61db4bdbc5e5))
+
 ### [2.2.9](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.8...v2.2.9) (2026-05-22)
 
 
