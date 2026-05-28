@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import DataTable from "../utils/table/DataTable";
+import DataTable, { type DataTableRow } from "../utils/table/DataTable";
 import { getSystemData, getPriceBaseUSDT } from "../api/GetData";
 import { useAppKitAccount } from "@reown/appkit/react";
 
 const DataDisplayPage = () => {
-  const [tableData, setTableData] = useState<unknown[]>([]);
+  const [tableData, setTableData] = useState<DataTableRow[]>([]);
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [ethPrice, setEthPrice] = useState("");
@@ -50,7 +50,7 @@ const DataDisplayPage = () => {
       const account = localStorage.getItem("userAddress");
       if (account !== null) setCurrentAccount(account);
       const data = await getSystemData();
-      setTableData(Array.isArray(data) ? data : []);
+      setTableData(Array.isArray(data) ? (data as DataTableRow[]) : []);
     } catch {}
   };
 

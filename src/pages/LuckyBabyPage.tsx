@@ -1,4 +1,4 @@
-// @ts-nocheck — TODO: 逐步补充类型
+// @ts-nocheck — TODO: add types incrementally
 import { useEffect, useState } from "react";
 import {
   participate,
@@ -437,8 +437,8 @@ const LuckyBabyPage = () => {
           <select
             id="payTokenType"
             style={{ width: "360px", height: "28px", fontSize: "12px" }}
-            value={selectedPayType} // 设置当前选中的值
-            onChange={handleChangePayType} // 添加事件处理函数
+            value={selectedPayType} // controlled value
+            onChange={handleChangePayType} // change handler
           >
             <option value="0" style={{ textAlign: "center" }}>
               ETH
@@ -469,8 +469,8 @@ const LuckyBabyPage = () => {
           <select
             id="prizeType"
             style={{ width: "400px", height: "28px", fontSize: "12px" }}
-            value={selectedPrizeType} // 设置当前选中的值
-            onChange={handleChangePrizeType} // 添加事件处理函数
+            value={selectedPrizeType} // controlled value
+            onChange={handleChangePrizeType} // change handler
           >
             <option value="0" style={{ textAlign: "center" }}>
               ETH

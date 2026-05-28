@@ -64,7 +64,7 @@ const BuyBlurNFTPage = () => {
     };
     const messageString = login.message ?? "";
     const result = await signBlurLoginMessage(signer, messageString);
-    if (result === null || result === false) return;
+    if (result === null) return;
     const requestData = {
       message: login.message,
       walletAddress: login.walletAddress,

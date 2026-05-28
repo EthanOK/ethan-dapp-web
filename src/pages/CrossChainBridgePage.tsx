@@ -1,4 +1,4 @@
-// @ts-nocheck — TODO: 逐步补充类型
+// @ts-nocheck — TODO: add types incrementally
 import { useEffect, useState } from "react";
 import {
   getFaucetContract,
@@ -85,7 +85,7 @@ const CrossChainBridgePage = () => {
           return null;
         }
         localStorage.setItem("chainId", 97);
-        // 刷新页面
+        // Reload page
         window.location.reload();
         return;
       }
@@ -97,7 +97,7 @@ const CrossChainBridgePage = () => {
 
       let _amountValue = utils.parseEther(amountValue);
 
-      // 请求后端
+      // Request backend
       let resultData = await getCrossChainSignature(
         chainId,
         1,
@@ -155,7 +155,7 @@ const CrossChainBridgePage = () => {
           return null;
         }
         localStorage.setItem("chainId", 5);
-        // 刷新页面
+        // Reload page
         window.location.reload();
         return;
       }
@@ -167,7 +167,7 @@ const CrossChainBridgePage = () => {
 
       let _amountValue = utils.parseEther(amountValue);
 
-      // 请求后端
+      // Request backend
       let resultData = await getCrossChainSignature(
         chainId,
         1,
@@ -232,7 +232,7 @@ const CrossChainBridgePage = () => {
         return null;
       }
       localStorage.setItem("chainId", 5);
-      // 刷新页面
+      // Reload page
       window.location.reload();
       return;
     }
@@ -273,7 +273,7 @@ const CrossChainBridgePage = () => {
         return null;
       }
       localStorage.setItem("chainId", 97);
-      // 刷新页面
+      // Reload page
       window.location.reload();
       return;
     }
@@ -302,7 +302,7 @@ const CrossChainBridgePage = () => {
     try {
       let crossChainContract = await getCrossChainContract(ccAddress);
 
-      // 请求后端
+      // Request backend
       let resultData = await getCrossChainSignature(
         chainId,
         2,

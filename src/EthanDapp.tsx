@@ -109,7 +109,7 @@ export const getDefaultNetwork = (chainId: string | number): AppKitNetwork => {
   return sepolia;
 };
 
-// 头部下拉：用 CAIP network id 做 value，确保 Solana/EVM 都能正确显示与切换
+// Header network select: CAIP network id as value for Solana/EVM display and switching
 const headerNetworksAll: AppKitNetwork[] = [
   mainnet,
   sepolia,
@@ -131,7 +131,7 @@ const metadata = {
   icons: ["https://ethan-dapp.vercel.app/favicon.ico"]
 };
 
-// 使用 data URI 作为链图标，避免从 CDN 拉取时出现 403
+// Chain icons as data URIs to avoid CDN 403 errors
 const FALLBACK_CHAIN_ICON =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
@@ -246,7 +246,7 @@ function App() {
     }
   }, [isConnected, address, currentChainId]);
 
-  // 仅连接 Bitcoin 时同步头部网络值（默认 account hook 可能无 EVM address）
+  // When only Bitcoin is connected, sync header network (default account hook may lack EVM address)
   useEffect(() => {
     if (caipNetwork?.chainNamespace !== "bip122") return;
     if (!bitcoinAccount?.isConnected || !bitcoinAccount?.address) return;
@@ -264,7 +264,7 @@ function App() {
     currentChainId
   ]);
 
-  // Solana 网络切换后，主动刷新一次 native balance，避免 AppKit 按钮停留在旧余额/0
+  // After Solana network switch, refresh native balance so AppKit button does not show stale/zero balance
   useEffect(() => {
     const isSolana = caipNetwork?.chainNamespace === "solana";
     const solAddress = solanaAccount?.address;
@@ -284,7 +284,7 @@ function App() {
     currentChainId
   ]);
 
-  // Bitcoin 网络切换后刷新 native balance（与 Solana 一致）
+  // After Bitcoin network switch, refresh native balance (same as Solana)
   useEffect(() => {
     const isBitcoin = caipNetwork?.chainNamespace === "bip122";
     const btcAddress = bitcoinAccount?.address;

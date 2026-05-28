@@ -5,7 +5,7 @@ export type BitcoinUtxo = {
   status?: { confirmed?: boolean; block_height?: number };
 };
 
-/** 根据地址前缀推断是否为测试网风格地址（tb1 / m / n / 2） */
+/** Infer testnet-style address from prefix (tb1 / m / n / 2). */
 export function isBitcoinTestnetAddress(address: string): boolean {
   const a = address.trim();
   if (/^tb1/i.test(a)) return true;

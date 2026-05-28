@@ -45,7 +45,7 @@ export const getBlurCalldata = async (
     orderInfos,
     buyer: buyerAddress,
     safeMode: false,
-    // accessToken 是登陆 blur 获得的token
+    // accessToken is obtained after Blur login
     accessToken: buyerBlurAccessToken
   };
 

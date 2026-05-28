@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// @ts-nocheck — TODO: 逐步补充类型
+// @ts-nocheck — TODO: add types incrementally
 import { useEffect, useState } from "react";
 import seaportAbi from "../contracts/seaport1_5.json";
 import order_data_t from "../testdata/orderdata";

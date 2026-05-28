@@ -90,7 +90,7 @@ const SignEIP712Page = () => {
     const blurAccessToken = await getBlurAccessTokenByNFTGO(requestData);
     if (blurAccessToken)
       localStorage.setItem("blurAccessToken", blurAccessToken);
-    if (result !== false) setMessage(JSON.stringify(result, null, "\t"));
+    if (result) setMessage(JSON.stringify(result, null, "\t"));
   };
 
   const signEthanDappHandler = async () => {

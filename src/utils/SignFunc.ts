@@ -1,24 +1,51 @@
-// @ts-nocheck — TODO: 逐步补充类型
 import { BigNumber, ethers, utils } from "ethers";
+import type { Signer } from "ethers";
 import { _TypedDataEncoder } from "@ethersproject/hash";
 import { getYunGouAddressAndParameters } from "./Utils";
 import { PRIVATEKEY_VERIFYER } from "../common/SystemConfiguration";
 import { getSignerAndChainId } from "./GetProvider";
 import { order_data } from "../testdata/orderdata_yungou";
 import { Seaport } from "@opensea/seaport-js";
-import { BulkOrder, EIP_712_BULK_ORDER_TYPE_DEMO } from "signbulkorder-sdk";
+import type {
+  Order as SeaportOrder,
+  OrderComponents,
+  Signer as SeaportSigner
+} from "@opensea/seaport-js/lib/types";
+import { BulkOrder } from "bulkorder-sdk";
+import type { Order as BulkSignedOrder } from "bulkorder-sdk";
 import { SiweMessage } from "siwe";
 import { toast } from "sonner";
+
+type WalletError = { code?: number | string; message?: string };
+type YunGouOrderData = typeof order_data;
+
+const isUserRejected = (error: unknown): boolean => {
+  const e = error as WalletError;
+  return e.code === 4001 || e.code === "ACTION_REJECTED";
+};
+
+const toSeaportSigner = (signer: Signer): SeaportSigner =>
+  signer as SeaportSigner;
+
+async function getSeaportDomainData(seaport: Seaport, chainId: number) {
+  return {
+    name: "Seaport",
+    version: "1.5",
+    chainId,
+    verifyingContract: seaport.contract.address
+  };
+}
 
 export const signSiweMessage = async () => {
   try {
     const [signer_, chainId_] = await getSignerAndChainId();
+    if (!signer_ || !chainId_) return null;
     const signerAddress = await signer_.getAddress();
     const domain = window.location.host;
     const origin = window.location.origin;
 
     const now = new Date();
-    const pad = (n) => n.toString().padStart(2, "0");
+    const pad = (n: number) => n.toString().padStart(2, "0");
     const datePart = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
     const randomPart = Math.floor(Math.random() * 1e16).toString();
     const nonce = datePart + randomPart;
@@ -38,17 +65,18 @@ export const signSiweMessage = async () => {
     const prepared = msg.prepareMessage();
     const signature = await signer_.signMessage(prepared);
     return { message: prepared, signature, siweMessage: msg };
-  } catch (error) {
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+  } catch (error: unknown) {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
     return null;
   }
 };
 
-const signEIP712Message = async (signer, chainId) => {
+const signEIP712Message = async (_signer: Signer, _chainId: number) => {
   try {
     const [signer_, chainId_] = await getSignerAndChainId();
+    if (!signer_ || chainId_ == null) return null;
     const types = {
       VerifyClaim: [
         { name: "userAddress", type: "address" },
@@ -59,12 +87,12 @@ const signEIP712Message = async (signer, chainId) => {
     const domainData = {
       name: "YunGou DApp",
       version: "2",
-      chainId: parseInt(chainId_, 10),
+      chainId: chainId_,
       verifyingContract: "0x0000006c517ed32ff128b33f137bb4ac31b0c6dd"
     };
     const randNo = utils.hexlify(utils.randomBytes(8));
     const amount = utils.hexlify(utils.randomBytes(1));
-    // 获取签名者的地址
+    // Get signer address
     console.log(signer_);
     const signerAddress = await signer_.getAddress();
 
@@ -76,7 +104,11 @@ const signEIP712Message = async (signer, chainId) => {
 
     // TODO:_signTypedData
     console.log("_signTypedData");
-    const signature = await signer_._signTypedData(domainData, types, message);
+    const signature = await toSeaportSigner(signer_)._signTypedData(
+      domainData,
+      types,
+      message
+    );
 
     const recoveredAddress = ethers.utils.verifyTypedData(
       domainData,
@@ -92,15 +124,15 @@ const signEIP712Message = async (signer, chainId) => {
     }
     const params = { domainData, message, signature };
     return params;
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error);
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
     return null;
   }
 };
-const signStringMessage = async (signer) => {
+const signStringMessage = async (signer: Signer) => {
   // TODO: signMessage String
   console.log("signMessage String");
   let messageString = "Hello, this is a String Message.";
@@ -119,21 +151,22 @@ const signStringMessage = async (signer) => {
       console.log("签名验证失败！");
     }
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error);
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
-    if (error.code === -32000) {
-      alert(error.message);
+    const e = error as WalletError;
+    if (e.code === -32000) {
+      alert(e.message);
     }
     return false;
   }
 };
-const signHexDataMessage = async (signer, hexData) => {
-  // TODO: signMessage 十六进制数据
+const signHexDataMessage = async (signer: Signer, hexData: string) => {
+  // TODO: signMessage with hex data
   console.log("signMessage Hex data");
-  // 将十六进制数据转换为字节数组
+  // Convert hex data to byte array
   console.log(hexData);
   // const hexData =
   //   "0xf6896007477ab25a659f87c4f8c5e3baac32547bf305e77aa57743046e10578b";
@@ -150,25 +183,26 @@ const signHexDataMessage = async (signer, hexData) => {
       console.log("签名验证失败！");
     }
     return signatureHex;
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error);
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
-    if (error.code === -32000) {
-      alert(error.message);
+    const e = error as WalletError;
+    if (e.code === -32000) {
+      alert(e.message);
     }
     return null;
   }
 };
-const signEIP712YunGouMessage = async (signer, chainId) => {
+const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
   const [YG_Address, message] = await getYunGouAddressAndParameters(chainId);
 
   const domainData = {
     name: "YunGou",
     version: "2.0",
     chainId: chainId,
-    verifyingContract: YG_Address
+    verifyingContract: YG_Address as string
   };
 
   const types = {
@@ -196,10 +230,10 @@ const signEIP712YunGouMessage = async (signer, chainId) => {
   console.log("_signTypedData");
 
   try {
-    const orderSignature = await signer._signTypedData(
+    const orderSignature = await toSeaportSigner(signer)._signTypedData(
       domainData,
       types,
-      message
+      message as Record<string, unknown>
     );
 
     console.log("orderSignature:" + orderSignature);
@@ -212,7 +246,9 @@ const signEIP712YunGouMessage = async (signer, chainId) => {
     // let hash_ = _TypedDataEncoder.hash(domainData, types, message);
 
     // keccak256(abi.encode(TYPE_HASH, parameters))
-    let orderHash = _TypedDataEncoder.from(types).hash(message);
+    let orderHash = _TypedDataEncoder
+      .from(types)
+      .hash(message as Record<string, unknown>);
 
     console.log("orderHash: " + orderHash);
     let result = {
@@ -221,19 +257,22 @@ const signEIP712YunGouMessage = async (signer, chainId) => {
       systemSignature: systemSignature
     };
     return result;
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error);
 
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
-    } else if (error.code === -32000) {
-      alert(error.message);
+    } else {
+      const e = error as WalletError;
+      if (e.code === -32000) {
+        alert(e.message);
+      }
     }
     return false;
   }
 };
 
-const signEIP712OpenSeaMessage = async (signer, chainId) => {
+const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
   const domainData = {
     name: "Seaport",
     version: "1.5",
@@ -403,7 +442,7 @@ const signEIP712OpenSeaMessage = async (signer, chainId) => {
   console.log("_signTypedData");
 
   try {
-    const orderSignature = await signer._signTypedData(
+    const orderSignature = await toSeaportSigner(signer)._signTypedData(
       domainData,
       types,
       message
@@ -419,26 +458,27 @@ const signEIP712OpenSeaMessage = async (signer, chainId) => {
       orderSignature: orderSignature
     };
     return result;
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error);
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
-    if (error.code === -32000) {
-      alert(error.message);
+    const e = error as WalletError;
+    if (e.code === -32000) {
+      alert(e.message);
     }
     return false;
   }
 };
 
-//TODO:OpenSea 的批量签名
-const signBulkOrderOpenSeaMessage = async (signer, chainId) => {
-  const seaport = new Seaport(signer);
-  const domainData = await seaport._getDomainData();
+// TODO: OpenSea bulk order signing
+const signBulkOrderOpenSeaMessage = async (signer: Signer, chainId: number) => {
+  const seaport = new Seaport(toSeaportSigner(signer));
+  const domainData = await getSeaportDomainData(seaport, chainId);
 
   console.log(domainData);
 
-  const orders = [];
+  const orders: OrderComponents[] = [];
 
   for (let i = 1; i <= 3; i++) {
     const order = {
@@ -481,17 +521,18 @@ const signBulkOrderOpenSeaMessage = async (signer, chainId) => {
       ),
       conduitKey:
         "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-      counter: BigNumber.from("0")
+      counter: BigNumber.from("0"),
+      totalOriginalConsiderationItems: 2
     };
     order.offer[0].identifierOrCriteria = BigNumber.from(i);
-    orders.push(order);
+    orders.push(order as unknown as OrderComponents);
   }
 
-  let ordersWithSign = [];
+  let ordersWithSign: SeaportOrder[] = [];
   try {
     ordersWithSign = await seaport.signBulkOrder(orders);
-  } catch (error) {
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+  } catch (error: unknown) {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
   }
@@ -500,16 +541,48 @@ const signBulkOrderOpenSeaMessage = async (signer, chainId) => {
 };
 
 // TODO: Custom Bulk Order Signature
-const signCustomBulkOrderMessage = async (signer, chainId) => {
-  const seaport = new Seaport(signer);
-  const domainData = await seaport._getDomainData();
-  const bulkOrder = new BulkOrder(signer, domainData);
+const signCustomBulkOrderMessage = async (signer: Signer, chainId: number) => {
+  const seaport = new Seaport(toSeaportSigner(signer));
+  const domainData = await getSeaportDomainData(seaport, chainId);
+
+  const eip712BulkOrderType = {
+    BulkOrder: [{ name: "tree", type: "OrderComponents[2][2][2][2][2][2][2]" }],
+    OrderComponents: [
+      { name: "offerer", type: "address" },
+      { name: "offer", type: "OfferItem[]" },
+      { name: "consideration", type: "ConsiderationItem[]" },
+      { name: "orderType", type: "uint8" },
+      { name: "startTime", type: "uint256" },
+      { name: "endTime", type: "uint256" },
+      { name: "salt", type: "uint256" },
+      { name: "counter", type: "uint256" }
+    ],
+    OfferItem: [
+      { name: "itemType", type: "uint8" },
+      { name: "token", type: "address" },
+      { name: "identifierOrCriteria", type: "uint256" },
+      { name: "startAmount", type: "uint256" },
+      { name: "endAmount", type: "uint256" }
+    ],
+    ConsiderationItem: [
+      { name: "itemType", type: "uint8" },
+      { name: "token", type: "address" },
+      { name: "identifierOrCriteria", type: "uint256" },
+      { name: "startAmount", type: "uint256" },
+      { name: "endAmount", type: "uint256" },
+      { name: "recipient", type: "address" }
+    ]
+  };
+  const bulkOrder = new BulkOrder(
+    signer as ConstructorParameters<typeof BulkOrder>[0],
+    domainData,
+    eip712BulkOrderType
+  );
 
   const orders = [];
   for (let i = 1; i <= 4; i++) {
     const order = {
       offerer: "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2",
-      zone: "0x004C00500000aD104D7DBd00e3ae0A5C00560C00",
       offer: [
         {
           itemType: 2,
@@ -540,25 +613,23 @@ const signCustomBulkOrderMessage = async (signer, chainId) => {
       orderType: 0,
       startTime: "1686193412",
       endTime: "1688785412",
-      zoneHash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
       salt: "24446860302761739304752683030156737591518664810215442929818227897836383814680",
-      conduitKey:
-        "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
       counter: "0"
     };
-    order.offer[0].identifierOrCriteria = i;
+    order.offer[0].identifierOrCriteria = String(i);
     orders.push(order);
   }
 
-  let ordersWithSign = [];
+  let ordersWithSign: BulkSignedOrder[] = [];
   try {
-    ordersWithSign = await bulkOrder.signBulkOrder(
-      orders,
-      EIP_712_BULK_ORDER_TYPE_DEMO
-    );
-  } catch (error) {
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    ordersWithSign = await bulkOrder.signBulkOrder(orders);
+
+    // verify the signature
+    const account = await signer.getAddress();
+    const verified = await bulkOrder.verifyBulkOrder(ordersWithSign, account);
+    console.log("verified:", verified);
+  } catch (error: unknown) {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
   }
@@ -567,10 +638,16 @@ const signCustomBulkOrderMessage = async (signer, chainId) => {
 };
 
 // getSystemSignature_YunGou
-const getSystemSignature = async (orderSignature, data) => {
+const getSystemSignature = async (
+  orderSignature: string,
+  data: YunGouOrderData
+): Promise<string | false> => {
   try {
-    let privateKey = PRIVATEKEY_VERIFYER;
-    let signer = new ethers.Wallet(privateKey);
+    const privateKey = PRIVATEKEY_VERIFYER;
+    if (!privateKey) {
+      throw new Error("REACT_APP_PRIVATEKEY_VERIFYER is not configured");
+    }
+    const signer = new ethers.Wallet(privateKey);
 
     const type = [
       "bytes",
@@ -598,19 +675,20 @@ const getSystemSignature = async (orderSignature, data) => {
     console.log("systemMassageHash:" + hashData);
     let signPromise_ = await signer.signMessage(binaryData_);
     return signPromise_;
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error);
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
-    if (error.code === -32000) {
-      alert(error.message);
+    const e = error as WalletError;
+    if (e.code === -32000) {
+      alert(e.message);
     }
     return false;
   }
 };
 
-const signBlurLoginMessage = async (signer, messageString) => {
+const signBlurLoginMessage = async (signer: Signer, messageString: string) => {
   console.log(messageString);
 
   try {
@@ -628,13 +706,14 @@ const signBlurLoginMessage = async (signer, messageString) => {
       console.log("签名验证失败！");
     }
     return signatureM;
-  } catch (error) {
+  } catch (error: unknown) {
     console.log(error);
-    if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    if (isUserRejected(error)) {
       toast.error("User rejected request!");
     }
-    if (error.code === -32000) {
-      alert(error.message);
+    const e = error as WalletError;
+    if (e.code === -32000) {
+      alert(e.message);
     }
     return null;
   }
