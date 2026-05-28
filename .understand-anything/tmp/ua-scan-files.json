@@ -1,0 +1,817 @@
+{
+  "scriptCompleted": true,
+  "files": [
+    {
+      "path": ".dockerignore",
+      "language": "unknown",
+      "sizeLines": 2,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 11,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".husky/pre-commit",
+      "language": "unknown",
+      "sizeLines": 2,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".npmrc",
+      "language": "unknown",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".prettierignore",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/config.json",
+      "language": "json",
+      "sizeLines": 3,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/fingerprints.json",
+      "language": "json",
+      "sizeLines": 6118,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/knowledge-graph.json",
+      "language": "json",
+      "sizeLines": 11379,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/meta.json",
+      "language": "json",
+      "sizeLines": 5,
+      "fileCategory": "config"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "language": "markdown",
+      "sizeLines": 180,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "sizeLines": 77,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "craco.config.js",
+      "language": "javascript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "sizeLines": 8,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 13,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "sizeLines": 110,
+      "fileCategory": "config"
+    },
+    {
+      "path": "public/index.html",
+      "language": "html",
+      "sizeLines": 49,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "public/manifest.json",
+      "language": "json",
+      "sizeLines": 25,
+      "fileCategory": "config"
+    },
+    {
+      "path": "public/robots.txt",
+      "language": "txt",
+      "sizeLines": 3,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 37,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "skills-lock.json",
+      "language": "json",
+      "sizeLines": 65,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/api/ChangeData.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/GetData.ts",
+      "language": "typescript",
+      "sizeLines": 316,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/App.css",
+      "language": "css",
+      "sizeLines": 1072,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/App.test.tsx",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/App.tsx",
+      "language": "typescript",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/common/ChainsConfig.ts",
+      "language": "typescript",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/common/FaucetConfig.ts",
+      "language": "typescript",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/common/SystemConfiguration.ts",
+      "language": "typescript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/AddressStyledQR.tsx",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/contracts/BatchTransferTokenABI.json",
+      "language": "json",
+      "sizeLines": 258,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/crossChainABI.json",
+      "language": "json",
+      "sizeLines": 225,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/erc20ABI.json",
+      "language": "json",
+      "sizeLines": 277,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/erc721A.json",
+      "language": "json",
+      "sizeLines": 459,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/faucetABI.json",
+      "language": "json",
+      "sizeLines": 36,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/luckyBabyABI.json",
+      "language": "json",
+      "sizeLines": 645,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/seaport1_5.json",
+      "language": "json",
+      "sizeLines": 2259,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/UniswapV2RouterABI.json",
+      "language": "json",
+      "sizeLines": 398,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/usdtABI.json",
+      "language": "json",
+      "sizeLines": 390,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/YGMEABI.json",
+      "language": "json",
+      "sizeLines": 459,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/yungou1_5.json",
+      "language": "json",
+      "sizeLines": 603,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/yungou2_0.json",
+      "language": "json",
+      "sizeLines": 909,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/YunGouAggregators.json",
+      "language": "json",
+      "sizeLines": 198,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/demo/utf8ToBytes.js",
+      "language": "javascript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/demo/web3jsencode.js",
+      "language": "javascript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/EthanDapp.tsx",
+      "language": "typescript",
+      "sizeLines": 615,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/idls/wsol_idl.json",
+      "language": "json",
+      "sizeLines": 729,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/index.css",
+      "language": "css",
+      "sizeLines": 166,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/index.tsx",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/BurnTokenPage.tsx",
+      "language": "typescript",
+      "sizeLines": 325,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/BuyBlurNFTPage.tsx",
+      "language": "typescript",
+      "sizeLines": 231,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/BuyNFTPage.tsx",
+      "language": "typescript",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/CreateTransactionPage.tsx",
+      "language": "typescript",
+      "sizeLines": 637,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/CrossChainBridgePage.tsx",
+      "language": "typescript",
+      "sizeLines": 500,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/DataDisplayPage.tsx",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/EIP7702Page.tsx",
+      "language": "typescript",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ENSPage.tsx",
+      "language": "typescript",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ERC20AllowancePage.tsx",
+      "language": "typescript",
+      "sizeLines": 308,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ERC6551Page.tsx",
+      "language": "typescript",
+      "sizeLines": 292,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/EstimateTxFeePage.tsx",
+      "language": "typescript",
+      "sizeLines": 162,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/FaucetTokenPage.tsx",
+      "language": "typescript",
+      "sizeLines": 552,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/GetCollectionPage.tsx",
+      "language": "typescript",
+      "sizeLines": 175,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/GetIPFSPage.tsx",
+      "language": "typescript",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/GetOpenSeaDataPage.tsx",
+      "language": "typescript",
+      "sizeLines": 132,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/HomePage.css",
+      "language": "css",
+      "sizeLines": 949,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/HomePage.tsx",
+      "language": "typescript",
+      "sizeLines": 977,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/LayerZeroOFTBridgePage.css",
+      "language": "css",
+      "sizeLines": 218,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/LayerZeroOFTBridgePage.tsx",
+      "language": "typescript",
+      "sizeLines": 1448,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/LuckyBabyPage.tsx",
+      "language": "typescript",
+      "sizeLines": 538,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/MarketChartPage.css",
+      "language": "css",
+      "sizeLines": 705,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/MarketChartPage.tsx",
+      "language": "typescript",
+      "sizeLines": 1475,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/MintNFTPage.tsx",
+      "language": "typescript",
+      "sizeLines": 133,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/SignEIP712Page.tsx",
+      "language": "typescript",
+      "sizeLines": 213,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/SolanaUtilsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 780,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/UtilsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 396,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/Web3AuthPage.tsx",
+      "language": "typescript",
+      "sizeLines": 283,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/Web3AuthSolanaPage.tsx",
+      "language": "typescript",
+      "sizeLines": 375,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/WsolPage.tsx",
+      "language": "typescript",
+      "sizeLines": 497,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/YunGouAggregatorsPage.css",
+      "language": "css",
+      "sizeLines": 117,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/YunGouAggregatorsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 391,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/react-app-env.d.ts",
+      "language": "typescript",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/reportWebVitals.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/setupTests.ts",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/testdata/orderdata_yungou.ts",
+      "language": "typescript",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/testdata/orderdata.ts",
+      "language": "typescript",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/testdata/ordersdata.ts",
+      "language": "typescript",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/types/eth-url-parser.d.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/types/global.d.ts",
+      "language": "typescript",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/AlchemySDK.js",
+      "language": "javascript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/BitcoinBalance.ts",
+      "language": "typescript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/BlurFunc.ts",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/CalculateTokenPrice.js",
+      "language": "javascript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/CallLuckyBaby.js",
+      "language": "javascript",
+      "sizeLines": 286,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/CallnftMint.ts",
+      "language": "typescript",
+      "sizeLines": 126,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/CallYunGouContracts.js",
+      "language": "javascript",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/coinGeckoApi.ts",
+      "language": "typescript",
+      "sizeLines": 139,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/ConnectMysql.js",
+      "language": "javascript",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/ConnectMysqlDemo.js",
+      "language": "javascript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/ConnectWallet.ts",
+      "language": "typescript",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/EIP7702Utils.ts",
+      "language": "typescript",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/EstimateTxFee.ts",
+      "language": "typescript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/format.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetAccessListInTx.ts",
+      "language": "typescript",
+      "sizeLines": 30,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetBlurCallData.ts",
+      "language": "typescript",
+      "sizeLines": 136,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetContract.ts",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetLpTokenPrice.js",
+      "language": "javascript",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetNFTListByOwner.ts",
+      "language": "typescript",
+      "sizeLines": 107,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetOrder.ts",
+      "language": "typescript",
+      "sizeLines": 270,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetOrdersTestnet.ts",
+      "language": "typescript",
+      "sizeLines": 455,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetPhantomProvider.ts",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetProvider.ts",
+      "language": "typescript",
+      "sizeLines": 359,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetSolanaConnection.js",
+      "language": "javascript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetTokenboundClient.js",
+      "language": "javascript",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetWsolProgram.js",
+      "language": "javascript",
+      "sizeLines": 66,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/HandleTxData.js",
+      "language": "javascript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/LayerZero.ts",
+      "language": "typescript",
+      "sizeLines": 242,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/multicall3.ts",
+      "language": "typescript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/OpenseaFunc.ts",
+      "language": "typescript",
+      "sizeLines": 594,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/OperateDb.js",
+      "language": "javascript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/OperateMysql.js",
+      "language": "javascript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/PhantomSendTransaction.js",
+      "language": "javascript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/ServeBack.js",
+      "language": "javascript",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/SignFunc.ts",
+      "language": "typescript",
+      "sizeLines": 653,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/SignsnapsShot.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/SolanaGetBalance.ts",
+      "language": "typescript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/SolanaSignAndVerify.js",
+      "language": "javascript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/Suscribers.ts",
+      "language": "typescript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/table/DataTable.js",
+      "language": "javascript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/Utils.ts",
+      "language": "typescript",
+      "sizeLines": 285,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "sizeLines": 21,
+      "fileCategory": "config"
+    },
+    {
+      "path": "vercel.json",
+      "language": "json",
+      "sizeLines": 10,
+      "fileCategory": "config"
+    }
+  ],
+  "totalFiles": 131,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "moderate",
+  "stats": {
+    "filesScanned": 131,
+    "byCategory": {
+      "infra": 3,
+      "config": 24,
+      "code": 93,
+      "docs": 4,
+      "markup": 7
+    },
+    "byLanguage": {
+      "unknown": 5,
+      "config": 1,
+      "json": 23,
+      "markdown": 3,
+      "javascript": 20,
+      "yaml": 1,
+      "dockerfile": 1,
+      "html": 1,
+      "txt": 1,
+      "typescript": 69,
+      "css": 6
+    }
+  }
+}

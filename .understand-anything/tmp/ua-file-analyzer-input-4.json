@@ -1,0 +1,51 @@
+{
+  "projectRoot": "/Users/ethan/workspace/website/ethan-dapp-web",
+  "batchFiles": [
+    {"path": "src/common/ChainsConfig.ts", "language": "typescript", "sizeLines": 75, "fileCategory": "code"},
+    {"path": "src/pages/ERC20AllowancePage.tsx", "language": "typescript", "sizeLines": 308, "fileCategory": "code"},
+    {"path": "src/pages/EstimateTxFeePage.tsx", "language": "typescript", "sizeLines": 162, "fileCategory": "code"},
+    {"path": "src/pages/GetCollectionPage.tsx", "language": "typescript", "sizeLines": 175, "fileCategory": "code"},
+    {"path": "src/pages/LuckyBabyPage.tsx", "language": "typescript", "sizeLines": 538, "fileCategory": "code"},
+    {"path": "src/utils/CallLuckyBaby.js", "language": "javascript", "sizeLines": 286, "fileCategory": "code"},
+    {"path": "src/utils/EstimateTxFee.ts", "language": "typescript", "sizeLines": 38, "fileCategory": "code"},
+    {"path": "src/utils/GetNFTListByOwner.ts", "language": "typescript", "sizeLines": 107, "fileCategory": "code"},
+    {"path": "src/utils/Utils.ts", "language": "typescript", "sizeLines": 285, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "src/common/ChainsConfig.ts": [],
+    "src/pages/ERC20AllowancePage.tsx": [
+      "src/common/ChainsConfig.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/EstimateTxFeePage.tsx": [
+      "src/utils/EstimateTxFee.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/GetCollectionPage.tsx": [
+      "src/utils/GetNFTListByOwner.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/LuckyBabyPage.tsx": [
+      "src/utils/CallLuckyBaby.js",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/CallLuckyBaby.js": [
+      "src/contracts/luckyBabyABI.json",
+      "src/contracts/usdtABI.json",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/EstimateTxFee.ts": [],
+    "src/utils/GetNFTListByOwner.ts": [
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/Utils.ts": [
+      "src/common/ChainsConfig.ts",
+      "src/common/SystemConfiguration.ts",
+      "src/testdata/orderdata_yungou.ts"
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "projectRoot": "/Users/ethan/workspace/website/ethan-dapp-web",
+  "batchFiles": [
+    {"path": "src/api/ChangeData.ts", "language": "typescript", "sizeLines": 22, "fileCategory": "code"},
+    {"path": "src/common/FaucetConfig.ts", "language": "typescript", "sizeLines": 86, "fileCategory": "code"},
+    {"path": "src/common/SystemConfiguration.ts", "language": "typescript", "sizeLines": 98, "fileCategory": "code"},
+    {"path": "src/pages/CrossChainBridgePage.tsx", "language": "typescript", "sizeLines": 500, "fileCategory": "code"},
+    {"path": "src/pages/EIP7702Page.tsx", "language": "typescript", "sizeLines": 154, "fileCategory": "code"},
+    {"path": "src/pages/FaucetTokenPage.tsx", "language": "typescript", "sizeLines": 552, "fileCategory": "code"},
+    {"path": "src/pages/MintNFTPage.tsx", "language": "typescript", "sizeLines": 133, "fileCategory": "code"},
+    {"path": "src/utils/CallnftMint.ts", "language": "typescript", "sizeLines": 126, "fileCategory": "code"},
+    {"path": "src/utils/EIP7702Utils.ts", "language": "typescript", "sizeLines": 64, "fileCategory": "code"},
+    {"path": "src/utils/GetContract.ts", "language": "typescript", "sizeLines": 91, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "src/api/ChangeData.ts": ["src/common/SystemConfiguration.ts"],
+    "src/common/FaucetConfig.ts": ["src/common/ChainsConfig.ts", "src/utils/Utils.ts"],
+    "src/common/SystemConfiguration.ts": [],
+    "src/pages/CrossChainBridgePage.tsx": [
+      "src/api/ChangeData.ts",
+      "src/api/GetData.ts",
+      "src/common/FaucetConfig.ts",
+      "src/common/SystemConfiguration.ts",
+      "src/utils/GetContract.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/EIP7702Page.tsx": [
+      "src/common/SystemConfiguration.ts",
+      "src/utils/EIP7702Utils.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/FaucetTokenPage.tsx": [
+      "src/common/FaucetConfig.ts",
+      "src/EthanDapp.tsx",
+      "src/utils/GetContract.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/MintNFTPage.tsx": ["src/utils/CallnftMint.ts"],
+    "src/utils/CallnftMint.ts": [
+      "src/common/FaucetConfig.ts",
+      "src/common/SystemConfiguration.ts",
+      "src/contracts/BatchTransferTokenABI.json",
+      "src/contracts/YGMEABI.json",
+      "src/utils/GetProvider.ts",
+      "src/utils/SignFunc.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/EIP7702Utils.ts": [],
+    "src/utils/GetContract.ts": [
+      "src/common/FaucetConfig.ts",
+      "src/contracts/crossChainABI.json",
+      "src/contracts/erc20ABI.json",
+      "src/contracts/erc721A.json",
+      "src/contracts/faucetABI.json",
+      "src/utils/GetProvider.ts"
+    ]
+  }
+}

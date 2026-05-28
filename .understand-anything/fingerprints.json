@@ -1,0 +1,6119 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "4f983171f13b5792ccebacee3fa00bc866bcdf1a",
+  "generatedAt": "2026-05-28T04:44:36.577Z",
+  "files": {
+    ".dockerignore": {
+      "filePath": ".dockerignore",
+      "contentHash": "4d6c9103fab3d73aa0c5f8a218beea3664b01097a6eb135a6782d7a893917cf5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    ".env.example": {
+      "filePath": ".env.example",
+      "contentHash": "f139a8869ca9e1ae95fa9b41084e642c79a40460adecf73df8a14514206ebdc5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    ".husky/pre-commit": {
+      "filePath": ".husky/pre-commit",
+      "contentHash": "aefe541514b5147ab68255c92214c54bd54ef856ae5cd91e694bf782a7305d00",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    ".npmrc": {
+      "filePath": ".npmrc",
+      "contentHash": "c7122f73007b47d78ddfd6b237139f8efb158fb75310768d2465230835b7360a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    ".prettierignore": {
+      "filePath": ".prettierignore",
+      "contentHash": "0fb954280b2e79b6a4fcd4cc6232433a56ab5bdc1474534d6ec6bb87ac8ae52b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": false
+    },
+    ".understand-anything/.understandignore": {
+      "filePath": ".understand-anything/.understandignore",
+      "contentHash": "31f353569d79c1439f35331ae13f42c24a782c7260b56929af7f48ec019f9b8c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": false
+    },
+    "CHANGELOG.md": {
+      "filePath": "CHANGELOG.md",
+      "contentHash": "fe34f8adaa5388d3fce82eb0e40668d8013684b04376c52275500ea22bd54480",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 181,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "69e0085de7e1cb707dcb7acd8802ca36b7a9e47dde720d2c692bb6b70c8618c6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 78,
+      "hasStructuralAnalysis": true
+    },
+    "craco.config.js": {
+      "filePath": "craco.config.js",
+      "contentHash": "3f5c2fa72851713cfdbfc9da07cabce9c25a59440a80e8dc44d1671241507ad8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "docker-compose.yml": {
+      "filePath": "docker-compose.yml",
+      "contentHash": "f8a3b8b055e03d83a6cd669f2403347e2c28789d89660b5f0513906e2a5b43b1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "Dockerfile": {
+      "filePath": "Dockerfile",
+      "contentHash": "4fae2740b2f846cc70a03fce1e7531967a87d5c958d24be88a5ea22c65b9015e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "bfe70d75375ae8f0aba223318d14d0b58256441ffec8eb26edc1ade88538ae04",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 111,
+      "hasStructuralAnalysis": true
+    },
+    "public/index.html": {
+      "filePath": "public/index.html",
+      "contentHash": "a4100402e99d6b7c247872e71d81cdef77ea1643838e303adcb817c9e3e89969",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 50,
+      "hasStructuralAnalysis": false
+    },
+    "public/manifest.json": {
+      "filePath": "public/manifest.json",
+      "contentHash": "cd8e12c1d2b0628da631cfe616edcc3425db06a6ec62b14f67a9606d40908948",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "public/robots.txt": {
+      "filePath": "public/robots.txt",
+      "contentHash": "90d24bc3bf698ac1e173739502298ccca72adf1f564fab05f484b8c48d1cadd2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": false
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "2e345d600b5391af28d2d530182f47e7f0e8b67361d785220db16623db08ba55",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "skills-lock.json": {
+      "filePath": "skills-lock.json",
+      "contentHash": "3a5ff4785c37f3907b4175b153fcf3f814136d27969548df38656625992e5e4f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "src/api/ChangeData.ts": {
+      "filePath": "src/api/ChangeData.ts",
+      "contentHash": "de61bd847076669d9b5570fd89d20148c4b9e4c8ecb24fb9bdde359dea460f8e",
+      "functions": [
+        {
+          "name": "changeCrossChainDatas",
+          "params": [
+            "chainId",
+            "ccType",
+            "amount",
+            "toChainId"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "React_Serve_Back"
+          ]
+        }
+      ],
+      "exports": [
+        "changeCrossChainDatas"
+      ],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "src/api/GetData.ts": {
+      "filePath": "src/api/GetData.ts",
+      "contentHash": "4ef57c3c7af87d691513dfb19fb28029aadb9e1251b2042ac16cb3c3caad1366",
+      "functions": [
+        {
+          "name": "getSystemData",
+          "params": [],
+          "returnType": "Promise<unknown[]>",
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "getUserToken",
+          "params": [
+            "params"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "getOrderHashSignatureOpenSea",
+          "params": [
+            "chainId",
+            "contract",
+            "tokenId"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "getENSOfAddress",
+          "params": [
+            "address"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getENSOfAddressTheGraph",
+          "params": [
+            "address"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getAddressOfENS",
+          "params": [
+            "ens"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getAddressOfENSTheGraph",
+          "params": [
+            "ens"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getNameByTokenIdTheGraph",
+          "params": [
+            "tokenId"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getENSByTokenId",
+          "params": [
+            "tokenId"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getENSOfAddressByContract",
+          "params": [
+            "address"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getCrossChainSignature",
+          "params": [
+            "chainId",
+            "ccType",
+            "amount"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "getClaimYGIOBalance",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getENSUniversalResolver",
+          "params": [
+            "address"
+          ],
+          "returnType": "Promise<{ code: number; data: string | null }>",
+          "exported": true,
+          "lineCount": 44
+        },
+        {
+          "name": "getPriceBaseUSDT",
+          "params": [],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "getPriceBaseUSDTByBinance",
+          "params": [],
+          "returnType": "Promise<{\n  code: number;\n  data: { ethPrice: string };\n}>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getBlurLoginMessageByOpensea",
+          "params": [
+            "userAddress"
+          ],
+          "returnType": "Promise<{ data?: string } | null>",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "getBlurLoginMessageByNFTGO",
+          "params": [
+            "userAddress"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "getBlurAccessTokenByOpensea",
+          "params": [
+            "requestData"
+          ],
+          "returnType": "Promise<string | null>",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "getBlurAccessTokenByNFTGO",
+          "params": [
+            "requestData"
+          ],
+          "returnType": "Promise<string | null>",
+          "exported": true,
+          "lineCount": 21
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers",
+            "utils"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "React_Serve_Back",
+            "main_rpc"
+          ]
+        }
+      ],
+      "exports": [
+        "getSystemData",
+        "getUserToken",
+        "getOrderHashSignatureOpenSea",
+        "getENSOfAddress",
+        "getENSOfAddressTheGraph",
+        "getAddressOfENS",
+        "getAddressOfENSTheGraph",
+        "getNameByTokenIdTheGraph",
+        "getENSByTokenId",
+        "getENSOfAddressByContract",
+        "getCrossChainSignature",
+        "getClaimYGIOBalance",
+        "getENSUniversalResolver",
+        "getPriceBaseUSDT",
+        "getPriceBaseUSDTByBinance",
+        "getBlurLoginMessageByOpensea",
+        "getBlurLoginMessageByNFTGO",
+        "getBlurAccessTokenByOpensea",
+        "getBlurAccessTokenByNFTGO"
+      ],
+      "totalLines": 317,
+      "hasStructuralAnalysis": true
+    },
+    "src/App.css": {
+      "filePath": "src/App.css",
+      "contentHash": "716031d1606ce1b97d9c9f7b578bc9e0c4e9e675e232f03eae3fc0693a505ce8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1073,
+      "hasStructuralAnalysis": false
+    },
+    "src/App.test.tsx": {
+      "filePath": "src/App.test.tsx",
+      "contentHash": "3741e00b6b2f4946076bd026b59b823e5ce8c7c851f62633a40c7bc8f3ca3f12",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/react",
+          "specifiers": [
+            "render",
+            "screen"
+          ]
+        },
+        {
+          "source": "./EthanDapp",
+          "specifiers": [
+            "App"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "src/App.tsx": {
+      "filePath": "src/App.tsx",
+      "contentHash": "d15c9c96fbde209c9869504311bc273979f1f4b400d5600995a095e9f716dad9",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./EthanDapp",
+          "specifiers": [
+            "App"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 4,
+      "hasStructuralAnalysis": true
+    },
+    "src/common/ChainsConfig.ts": {
+      "filePath": "src/common/ChainsConfig.ts",
+      "contentHash": "d050e4f64f8f3cfb3e726851b150a6b69d7dd34eaba15af5164e321b46a311aa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "SupportChains"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "src/common/FaucetConfig.ts": {
+      "filePath": "src/common/FaucetConfig.ts",
+      "contentHash": "99fed44901c357a0f972df9664a2c86870690fef2c9710b94d0a8381ead1c10a",
+      "functions": [
+        {
+          "name": "getFaucetTokenListByChain",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "FaucetTokenItem[]",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getChainName",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "getFaucetTokenAddress",
+          "params": [
+            "chainId",
+            "tokenName"
+          ],
+          "returnType": "string | undefined",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "normalizeFaucetConfigKeys"
+          ]
+        },
+        {
+          "source": "./ChainsConfig",
+          "specifiers": [
+            "SupportChains"
+          ]
+        }
+      ],
+      "exports": [
+        "faucetConfig",
+        "faucetTokenListByChain",
+        "faucetTokenList",
+        "getFaucetTokenListByChain",
+        "faucetChainIdList",
+        "getChainName",
+        "getFaucetTokenAddress"
+      ],
+      "totalLines": 87,
+      "hasStructuralAnalysis": true
+    },
+    "src/common/SystemConfiguration.ts": {
+      "filePath": "src/common/SystemConfiguration.ts",
+      "contentHash": "53f5cc9b3d980f58af58c3439790be014bf5ef7f2d7ab11981e609fce8b8107e",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        }
+      ],
+      "exports": [
+        "EIP7702Delegator_Metamask",
+        "DISCORD_WEBHOOK_URL",
+        "PancakeRouter",
+        "UniswapRouter",
+        "chainName_G",
+        "chainName_S",
+        "YUNGOU_END",
+        "hashYUNGOU",
+        "OPENSEA_MAIN_API",
+        "suffixOfYunGou",
+        "main_rpc",
+        "goerli_rpc",
+        "bsc_rpc",
+        "chainName_TBSC",
+        "projectId_walletconnect",
+        "YunGou2_0_main",
+        "YunGou2_0_goerli",
+        "YunGou2_0_sepolia",
+        "YunGou2_0_tbsc",
+        "YunGou2_0_bsc",
+        "PRIVATEKEY_VERIFYER",
+        "nftMint_goerli",
+        "React_Serve_Back",
+        "YunGouAggregatorsAddress_G",
+        "DefaultChainId",
+        "YunGouAggregators_main",
+        "YunGouAggregators_bsc",
+        "YunGouAggregators_goerli",
+        "YunGouAggregators_tbsc",
+        "YunGouAggregators_sepolia",
+        "crossChain_goerli",
+        "crossChain_tbsc",
+        "EXPIRES_TIME",
+        "SECRETKEY",
+        "ZERO_ADDRESS",
+        "LOGIN_SOLANA_MESSAGE",
+        "SOLANA_DEV_RPC",
+        "batchTransferToken_sepolia",
+        "ALCHEMY_KEY_V3"
+      ],
+      "totalLines": 99,
+      "hasStructuralAnalysis": true
+    },
+    "src/components/AddressStyledQR.tsx": {
+      "filePath": "src/components/AddressStyledQR.tsx",
+      "contentHash": "493ab340415ba45bc1a5a17f7520a95b863840d279caef34f1f23a953661dc7d",
+      "functions": [
+        {
+          "name": "buildQr",
+          "params": [
+            "data",
+            "imageDataUrl"
+          ],
+          "returnType": "QRCodeStyling",
+          "exported": false,
+          "lineCount": 20
+        },
+        {
+          "name": "getSingletonQr",
+          "params": [],
+          "returnType": "QRCodeStyling",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "prewarmAddressStyledQr",
+          "params": [],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "AddressStyledQR",
+          "params": [
+            "{ value, className }"
+          ],
+          "exported": false,
+          "lineCount": 29
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef"
+          ]
+        },
+        {
+          "source": "qr-code-styling",
+          "specifiers": [
+            "QRCodeStyling"
+          ]
+        }
+      ],
+      "exports": [
+        "PREWARM_PLACEHOLDER",
+        "prewarmAddressStyledQr"
+      ],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/BatchTransferTokenABI.json": {
+      "filePath": "src/contracts/BatchTransferTokenABI.json",
+      "contentHash": "3c33f562d1c20e29a2d08844d3b09668586c65fc80ebec967b55cd6f9254edb9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 259,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/crossChainABI.json": {
+      "filePath": "src/contracts/crossChainABI.json",
+      "contentHash": "ea880fdc20c07e947ab4532c0dbdc4f7e4d72d24c08dfd6e23604994d3beb3ea",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 226,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/erc20ABI.json": {
+      "filePath": "src/contracts/erc20ABI.json",
+      "contentHash": "6e74af3c3c91548935fad099b07ec541f0899a334bc674f1c2fd1c899b6b4d78",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 278,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/erc721A.json": {
+      "filePath": "src/contracts/erc721A.json",
+      "contentHash": "67d3c56c2cb9856d1ca571e24d93cbfec7055909d030337770ff848ad756dfb9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 460,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/faucetABI.json": {
+      "filePath": "src/contracts/faucetABI.json",
+      "contentHash": "7a58d56167e3b8e97b613d9a01caa3dbe0e0e24e13b659a055a27a3de0610309",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/luckyBabyABI.json": {
+      "filePath": "src/contracts/luckyBabyABI.json",
+      "contentHash": "49b31b2da044e016bfb2d0791f301be694d736ce631ea6bcba06db4cfab9cb8f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 646,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/seaport1_5.json": {
+      "filePath": "src/contracts/seaport1_5.json",
+      "contentHash": "3f32b6b53aa2df193bb4bd7570e7123c893c6fcc28daee4bf341d05a797db73b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2260,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/UniswapV2RouterABI.json": {
+      "filePath": "src/contracts/UniswapV2RouterABI.json",
+      "contentHash": "2e9e4e2923bc6afa41b8e9171ba96a818b5f9cf6a1f88e6b6ac0406a008852c4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 399,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/usdtABI.json": {
+      "filePath": "src/contracts/usdtABI.json",
+      "contentHash": "04711f88e0da932077c5a15d19a425ebe08f20ddffa3f142909620291691484f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 391,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/YGMEABI.json": {
+      "filePath": "src/contracts/YGMEABI.json",
+      "contentHash": "15286bbce87bb743352302290a7cb4d863dc161ebb4aa654cea7881e8691d519",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 460,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/yungou1_5.json": {
+      "filePath": "src/contracts/yungou1_5.json",
+      "contentHash": "9b3070e15a3a14ad007f3e475fad89a356abc3328863ff7c64d5f79cce8bb9a8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 604,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/yungou2_0.json": {
+      "filePath": "src/contracts/yungou2_0.json",
+      "contentHash": "b7371ecafdda19ebe0f7534e75ee9e0cfb24057ae8f67c8695896f0b327997e9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 910,
+      "hasStructuralAnalysis": true
+    },
+    "src/contracts/YunGouAggregators.json": {
+      "filePath": "src/contracts/YunGouAggregators.json",
+      "contentHash": "e82bfba577d367bca2fd49aa3bedef6d1722143ce779cef10e1340e14f658b3e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 199,
+      "hasStructuralAnalysis": true
+    },
+    "src/demo/utf8ToBytes.js": {
+      "filePath": "src/demo/utf8ToBytes.js",
+      "contentHash": "bb2d7fdcf70bdcfb8cf199f369e8aa12ecc5b453de4ac4b61ce99b47f3e60b46",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "src/demo/web3jsencode.js": {
+      "filePath": "src/demo/web3jsencode.js",
+      "contentHash": "c176d15a58264bddf8ba30014ba2b3103fe72680472d78e1796dfc94a81d4ca7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "src/EthanDapp.tsx": {
+      "filePath": "src/EthanDapp.tsx",
+      "contentHash": "68dfafd66e78fc66819fddb84134b7706b36593bc6aa795aeee733103b7aa104",
+      "functions": [
+        {
+          "name": "getDefaultNetwork",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "AppKitNetwork",
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "getStoredTheme",
+          "params": [],
+          "returnType": "\"light\" | \"dark\"",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "getDefaultSidebarOpen",
+          "params": [],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "App",
+          "params": [],
+          "exported": false,
+          "lineCount": 429
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "Router",
+            "Routes",
+            "Route",
+            "NavLink"
+          ]
+        },
+        {
+          "source": "./pages/MintNFTPage",
+          "specifiers": [
+            "MintNFTPage"
+          ]
+        },
+        {
+          "source": "./pages/SignEIP712Page",
+          "specifiers": [
+            "SignEIP712Page"
+          ]
+        },
+        {
+          "source": "./pages/HomePage",
+          "specifiers": [
+            "HomePage"
+          ]
+        },
+        {
+          "source": "./pages/GetOpenSeaDataPage",
+          "specifiers": [
+            "GetOpenSeaDataPage"
+          ]
+        },
+        {
+          "source": "./pages/GetIPFSPage",
+          "specifiers": [
+            "GetIPFSPage"
+          ]
+        },
+        {
+          "source": "./App.css",
+          "specifiers": []
+        },
+        {
+          "source": "./common/SystemConfiguration",
+          "specifiers": [
+            "DefaultChainId",
+            "projectId_walletconnect"
+          ]
+        },
+        {
+          "source": "./pages/BuyNFTPage",
+          "specifiers": [
+            "BuyNFTPage"
+          ]
+        },
+        {
+          "source": "./pages/ENSPage",
+          "specifiers": [
+            "ENSPage"
+          ]
+        },
+        {
+          "source": "./pages/FaucetTokenPage",
+          "specifiers": [
+            "FaucetTokenPage"
+          ]
+        },
+        {
+          "source": "./pages/UtilsPage",
+          "specifiers": [
+            "UtilsPage"
+          ]
+        },
+        {
+          "source": "./pages/BurnTokenPage",
+          "specifiers": [
+            "BurnTokenPage"
+          ]
+        },
+        {
+          "source": "./pages/SolanaUtilsPage",
+          "specifiers": [
+            "SolanaUtilsPage"
+          ]
+        },
+        {
+          "source": "./pages/BuyBlurNFTPage",
+          "specifiers": [
+            "BuyBlurNFTPage"
+          ]
+        },
+        {
+          "source": "./pages/ERC6551Page",
+          "specifiers": [
+            "ERC6551Page"
+          ]
+        },
+        {
+          "source": "./pages/EstimateTxFeePage",
+          "specifiers": [
+            "EstimateTxFeePage"
+          ]
+        },
+        {
+          "source": "./pages/CreateTransactionPage",
+          "specifiers": [
+            "CreateTransactionPage"
+          ]
+        },
+        {
+          "source": "./pages/GetCollectionPage",
+          "specifiers": [
+            "GetCollectionPage"
+          ]
+        },
+        {
+          "source": "./pages/YunGouAggregatorsPage",
+          "specifiers": [
+            "YunGouAggregatorsPage"
+          ]
+        },
+        {
+          "source": "./pages/Web3AuthPage",
+          "specifiers": [
+            "Web3AuthPage"
+          ]
+        },
+        {
+          "source": "./pages/WsolPage",
+          "specifiers": [
+            "WsolPage"
+          ]
+        },
+        {
+          "source": "./pages/Web3AuthSolanaPage",
+          "specifiers": [
+            "Web3AuthSolanaPage"
+          ]
+        },
+        {
+          "source": "./pages/EIP7702Page",
+          "specifiers": [
+            "EIP7702Page"
+          ]
+        },
+        {
+          "source": "./pages/ERC20AllowancePage",
+          "specifiers": [
+            "ERC20AllowancePage"
+          ]
+        },
+        {
+          "source": "./pages/LayerZeroOFTBridgePage",
+          "specifiers": [
+            "LayerZeroOFTBridgePage"
+          ]
+        },
+        {
+          "source": "./pages/MarketChartPage",
+          "specifiers": [
+            "MarketChartPage"
+          ]
+        },
+        {
+          "source": "@reown/appkit-adapter-ethers5",
+          "specifiers": [
+            "Ethers5Adapter"
+          ]
+        },
+        {
+          "source": "@reown/appkit/networks",
+          "specifiers": [
+            "base",
+            "bsc",
+            "mainnet",
+            "sepolia",
+            "hoodi",
+            "solanaDevnet",
+            "solana",
+            "bitcoin",
+            "bitcoinTestnet"
+          ]
+        },
+        {
+          "source": "@reown/appkit",
+          "specifiers": [
+            "createAppKit"
+          ]
+        },
+        {
+          "source": "./utils/Suscribers",
+          "specifiers": [
+            "initializeSubscribers"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast",
+            "Toaster"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount",
+            "useAppKitNetwork"
+          ]
+        },
+        {
+          "source": "./utils/ConnectWallet",
+          "specifiers": [
+            "login"
+          ]
+        },
+        {
+          "source": "@reown/appkit-adapter-solana",
+          "specifiers": [
+            "SolanaAdapter"
+          ]
+        },
+        {
+          "source": "@reown/appkit-adapter-bitcoin",
+          "specifiers": [
+            "BitcoinAdapter"
+          ]
+        }
+      ],
+      "exports": [
+        "getDefaultNetwork",
+        "modal"
+      ],
+      "totalLines": 616,
+      "hasStructuralAnalysis": true
+    },
+    "src/idls/wsol_idl.json": {
+      "filePath": "src/idls/wsol_idl.json",
+      "contentHash": "5eedf6c05605b471c96fdb80a352fa65e8d5a1646002b8a2b46707c95a6873e9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 730,
+      "hasStructuralAnalysis": true
+    },
+    "src/index.css": {
+      "filePath": "src/index.css",
+      "contentHash": "a09c204d0f814353cf99cd626b34a90085fdbde793130276e258a2decf73a6ee",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 167,
+      "hasStructuralAnalysis": false
+    },
+    "src/index.tsx": {
+      "filePath": "src/index.tsx",
+      "contentHash": "c33acbe1f501802fcf30d5f5b84c7249c590c9cd8a55bba59d216a0addd809d1",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        },
+        {
+          "source": "react-dom/client",
+          "specifiers": [
+            "ReactDOM"
+          ]
+        },
+        {
+          "source": "./index.css",
+          "specifiers": []
+        },
+        {
+          "source": "./EthanDapp",
+          "specifiers": [
+            "App"
+          ]
+        },
+        {
+          "source": "./reportWebVitals",
+          "specifiers": [
+            "reportWebVitals"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 25,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/BurnTokenPage.tsx": {
+      "filePath": "src/pages/BurnTokenPage.tsx",
+      "contentHash": "ffe58656dd463a01749d06f3796c7dd50d9017639357ee3a4c4c2e33fd582485",
+      "functions": [
+        {
+          "name": "BurnTokenPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 312
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/GetContract",
+          "specifiers": [
+            "getERC20Contract",
+            "getERC20Decimals"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress",
+            "getScanURL"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber"
+          ]
+        },
+        {
+          "source": "ethers/lib/utils",
+          "specifiers": [
+            "formatUnits",
+            "parseUnits"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "../utils/format",
+          "specifiers": [
+            "truncateHash"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 326,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/BuyBlurNFTPage.tsx": {
+      "filePath": "src/pages/BuyBlurNFTPage.tsx",
+      "contentHash": "b1ee2dfcb1d4914a2fb530a23057b282920cc4f48749670738d64db2548c8df9",
+      "functions": [
+        {
+          "name": "BuyBlurNFTPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 218
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress"
+          ]
+        },
+        {
+          "source": "../api/GetData",
+          "specifiers": [
+            "getBlurLoginMessageByNFTGO",
+            "getBlurAccessTokenByNFTGO"
+          ]
+        },
+        {
+          "source": "../utils/SignFunc",
+          "specifiers": [
+            "signBlurLoginMessage"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getSignerAndAccountAndChainId"
+          ]
+        },
+        {
+          "source": "../utils/BlurFunc",
+          "specifiers": [
+            "onlyBuyBlurNFT"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 232,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/BuyNFTPage.tsx": {
+      "filePath": "src/pages/BuyNFTPage.tsx",
+      "contentHash": "81905aabded9ed6e157d54f5f939c4db3a58f7af7af66ae109266bd08d3781bb",
+      "functions": [
+        {
+          "name": "BuyNFTPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 251
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress",
+            "stringToArray"
+          ]
+        },
+        {
+          "source": "../api/GetData",
+          "specifiers": [
+            "getOrderHashSignatureOpenSea"
+          ]
+        },
+        {
+          "source": "../utils/OpenseaFunc",
+          "specifiers": [
+            "fulfillBasicOrder",
+            "fulfillOrder",
+            "fulfillBasicOrder_efficient",
+            "fulfillAvailableAdvancedOrders",
+            "fulfillAvailableOrders"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 266,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/CreateTransactionPage.tsx": {
+      "filePath": "src/pages/CreateTransactionPage.tsx",
+      "contentHash": "e225f9d4638a462f7f078613cf2e10e64d6290e1d26ae7ab3713803e75624167",
+      "functions": [
+        {
+          "name": "parseToAddresses",
+          "params": [
+            "raw"
+          ],
+          "returnType": "string[]",
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "parseNonceInput",
+          "params": [
+            "raw"
+          ],
+          "returnType": "number | \"empty\" | \"invalid\"",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "CreateTransactionPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 577
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress",
+            "utf8ToHexBytes",
+            "getScanURL",
+            "getDecimalBigNumber"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getSigner",
+            "getProvider",
+            "getDefaultReadonlyProvider"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "../utils/format",
+          "specifiers": [
+            "truncateHash"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "../utils/multicall3",
+          "specifiers": [
+            "multicall3Aggregate3Value"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 638,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/CrossChainBridgePage.tsx": {
+      "filePath": "src/pages/CrossChainBridgePage.tsx",
+      "contentHash": "b3d82ee9d7ead41867776d898a1f30d58b275426b25ca3feb7f8f0833dfa4bcb",
+      "functions": [
+        {
+          "name": "CrossChainBridgePage",
+          "params": [],
+          "exported": false,
+          "lineCount": 479
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/GetContract",
+          "specifiers": [
+            "getFaucetContract",
+            "getERC20Contract",
+            "getCrossChainContract"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "getDecimal",
+            "getDecimalBigNumber",
+            "isAddress"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber",
+            "ethers",
+            "utils"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "crossChain_goerli",
+            "crossChain_tbsc"
+          ]
+        },
+        {
+          "source": "../api/GetData",
+          "specifiers": [
+            "getClaimYGIOBalance",
+            "getCrossChainSignature"
+          ]
+        },
+        {
+          "source": "../api/ChangeData",
+          "specifiers": [
+            "changeCrossChainDatas"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "switchChain"
+          ]
+        },
+        {
+          "source": "../common/FaucetConfig",
+          "specifiers": [
+            "faucetConfig"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 501,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/DataDisplayPage.tsx": {
+      "filePath": "src/pages/DataDisplayPage.tsx",
+      "contentHash": "72e603ca0d819791c43b44dede3ba0c7802fd7e95949077d5f76d4ace4ca9e89",
+      "functions": [
+        {
+          "name": "DataDisplayPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 84
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/table/DataTable",
+          "specifiers": [
+            "DataTable"
+          ]
+        },
+        {
+          "source": "../api/GetData",
+          "specifiers": [
+            "getSystemData",
+            "getPriceBaseUSDT"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/EIP7702Page.tsx": {
+      "filePath": "src/pages/EIP7702Page.tsx",
+      "contentHash": "5576851cc5110f1d5430b2df2b37c1a3879be3589c7dd5ec5956ab8bd874ba92",
+      "functions": [
+        {
+          "name": "EIP7702Page",
+          "params": [],
+          "exported": false,
+          "lineCount": 134
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getChainId"
+          ]
+        },
+        {
+          "source": "../utils/EIP7702Utils",
+          "specifiers": [
+            "createAuthorization",
+            "createEIP7702Account",
+            "getDelegationAddress",
+            "revokeEIP7702Account"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "ALCHEMY_KEY_V3",
+            "EIP7702Delegator_Metamask"
+          ]
+        },
+        {
+          "source": "ethers-v6",
+          "specifiers": [
+            "Wallet"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "getScanURL"
+          ]
+        },
+        {
+          "source": "ethers-v6",
+          "specifiers": [
+            "AlchemyProvider"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 155,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/ENSPage.tsx": {
+      "filePath": "src/pages/ENSPage.tsx",
+      "contentHash": "6a8219a2d9c9e3eb53f98fa5af8f76a7d82d5a2108319e1cfac0b3d8ee99c2c7",
+      "functions": [
+        {
+          "name": "ENSPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 237
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/GetData",
+          "specifiers": [
+            "getENSUniversalResolver",
+            "getAddressOfENSTheGraph",
+            "getENSByTokenId"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 250,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/ERC20AllowancePage.tsx": {
+      "filePath": "src/pages/ERC20AllowancePage.tsx",
+      "contentHash": "ba963a4a9dc05debfa24c06486edf236e98a8fc6923b43653a7d11a0e7d92b7b",
+      "functions": [
+        {
+          "name": "ERC20AllowancePage",
+          "params": [],
+          "exported": false,
+          "lineCount": 272
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useMemo",
+            "useState"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getDefaultReadonlyProvider",
+            "getProvider"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress"
+          ]
+        },
+        {
+          "source": "../common/ChainsConfig",
+          "specifiers": [
+            "SupportChains"
+          ]
+        },
+        {
+          "source": "utils/multicall3",
+          "specifiers": [
+            "decodeMulticallResult",
+            "multicall3Aggregate3StaticCall"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 309,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/ERC6551Page.tsx": {
+      "filePath": "src/pages/ERC6551Page.tsx",
+      "contentHash": "169e723733afcf79ff09d6df1f9e42879fab1e3a9a72e9c9848b4837cb70638a",
+      "functions": [
+        {
+          "name": "ERC6551Page",
+          "params": [],
+          "exported": false,
+          "lineCount": 280
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "getScanURL",
+            "isAddress"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getSignerAndChainId"
+          ]
+        },
+        {
+          "source": "@tokenbound/sdk",
+          "specifiers": [
+            "TBVersion",
+            "TokenboundClient"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "Contract",
+            "Signer"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 293,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/EstimateTxFeePage.tsx": {
+      "filePath": "src/pages/EstimateTxFeePage.tsx",
+      "contentHash": "93679c3076d5d9ec7b1637884f48fc3c4d9aa1434c3231906d6e4d25c42d6629",
+      "functions": [
+        {
+          "name": "EstimateTxFeePage",
+          "params": [],
+          "exported": false,
+          "lineCount": 151
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress",
+            "getDecimalBigNumber"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getProvider"
+          ]
+        },
+        {
+          "source": "../utils/EstimateTxFee",
+          "specifiers": [
+            "estimateTxFee"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 163,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/FaucetTokenPage.tsx": {
+      "filePath": "src/pages/FaucetTokenPage.tsx",
+      "contentHash": "b63c1bd6f88d841176988ea65b6abab3c14e089bcece3be1659bb497e8b4ef87",
+      "functions": [
+        {
+          "name": "FaucetTokenPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 527
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/GetContract",
+          "specifiers": [
+            "getFaucetContract",
+            "getERC20Contract",
+            "getERC20Decimals"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "getDecimal",
+            "getDecimalBigNumber"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getSignerAndChainId"
+          ]
+        },
+        {
+          "source": "../common/FaucetConfig",
+          "specifiers": [
+            "faucetChainIdList",
+            "faucetConfig",
+            "getFaucetTokenAddress",
+            "getFaucetTokenListByChain",
+            "getChainName"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount",
+            "useAppKitNetwork"
+          ]
+        },
+        {
+          "source": "../EthanDapp",
+          "specifiers": [
+            "getDefaultNetwork",
+            "modal"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 553,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/GetCollectionPage.tsx": {
+      "filePath": "src/pages/GetCollectionPage.tsx",
+      "contentHash": "857e6c3a7262c186ee7ee6d27bf647786b6cd6b588dd0848caf6bdec70bfad97",
+      "functions": [
+        {
+          "name": "GetCollectionPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 161
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getSignerAndChainId"
+          ]
+        },
+        {
+          "source": "../utils/GetNFTListByOwner",
+          "specifiers": [
+            "getContractsForOwner",
+            "getNFTListByOwnerAndContract"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 176,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/GetIPFSPage.tsx": {
+      "filePath": "src/pages/GetIPFSPage.tsx",
+      "contentHash": "a32b6d095014aa583d64c7b10fd44c0a57aa3697037ed991a894e260ef2b3f4f",
+      "functions": [
+        {
+          "name": "GetIPFSPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 72
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 78,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/GetOpenSeaDataPage.tsx": {
+      "filePath": "src/pages/GetOpenSeaDataPage.tsx",
+      "contentHash": "4369dc587a74753be4aaa1ae35e971d11626dbaed0e825e0a42b9f63fc86629e",
+      "functions": [
+        {
+          "name": "GetOpenSeaDataPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 124
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress"
+          ]
+        },
+        {
+          "source": "../api/GetData",
+          "specifiers": [
+            "getOrderHashSignatureOpenSea"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 133,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/HomePage.css": {
+      "filePath": "src/pages/HomePage.css",
+      "contentHash": "57d19d2286aa0c6ed83bd49edc8f3ec86c8d50866f021d83eca49d3eb037c171",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 950,
+      "hasStructuralAnalysis": false
+    },
+    "src/pages/HomePage.tsx": {
+      "filePath": "src/pages/HomePage.tsx",
+      "contentHash": "10af4a83422c88fe72ca5b8299d0c6692d359fb904310e8a422c93da419224a9",
+      "functions": [
+        {
+          "name": "middleEllipsis",
+          "params": [
+            "input",
+            "head",
+            "tail",
+            "ellipsis"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "getCachedMarketData",
+          "params": [],
+          "returnType": "{\n  tickerList: CoinItem[];\n  spotPrices: Record<string, string | null>;\n  updatedAt: number;\n} | null",
+          "exported": false,
+          "lineCount": 23
+        },
+        {
+          "name": "setCachedMarketData",
+          "params": [
+            "tickerList",
+            "spotPrices"
+          ],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "emptyCoin",
+          "params": [
+            "symbol"
+          ],
+          "returnType": "CoinItem",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "formatPrice",
+          "params": [
+            "num"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "formatChange",
+          "params": [
+            "val"
+          ],
+          "returnType": "{\n  text: string;\n  isUp: boolean;\n}",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "formatMarketCap",
+          "params": [
+            "num"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "parsePositiveChainId",
+          "params": [
+            "v"
+          ],
+          "returnType": "number | undefined",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "walletPaymentUriForQr",
+          "params": [
+            "address",
+            "chainNamespace",
+            "evmChainId",
+            "value"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "fetchTickerFromCoinGecko",
+          "params": [],
+          "returnType": "Promise<CoinItem[]>",
+          "exported": false,
+          "lineCount": 34
+        },
+        {
+          "name": "CoinCard",
+          "params": [
+            "{\n  item,\n  onClick\n}"
+          ],
+          "exported": false,
+          "lineCount": 53
+        },
+        {
+          "name": "HomePage",
+          "params": [],
+          "exported": false,
+          "lineCount": 691
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState",
+            "useCallback",
+            "useMemo"
+          ]
+        },
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "useNavigate"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getChainIdAndBalanceETHAndTransactionCount"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "DefaultChainId"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount",
+            "useAppKitNetwork"
+          ]
+        },
+        {
+          "source": "@reown/appkit/networks",
+          "specifiers": [
+            "bitcoinTestnet"
+          ]
+        },
+        {
+          "source": "@reown/appkit-adapter-solana/react",
+          "specifiers": [
+            "useAppKitConnection"
+          ]
+        },
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "LAMPORTS_PER_SOL",
+            "PublicKey"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "eth-url-parser",
+          "specifiers": [
+            "buildEthUrl",
+            "parseEthUrl"
+          ]
+        },
+        {
+          "source": "../components/AddressStyledQR",
+          "specifiers": [
+            "AddressStyledQR",
+            "prewarmAddressStyledQr",
+            "PREWARM_PLACEHOLDER"
+          ]
+        },
+        {
+          "source": "../utils/BitcoinBalance",
+          "specifiers": [
+            "getBitCoinBalance"
+          ]
+        },
+        {
+          "source": "./HomePage.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 978,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/LayerZeroOFTBridgePage.css": {
+      "filePath": "src/pages/LayerZeroOFTBridgePage.css",
+      "contentHash": "cbe9f677ca00e1a11ab60965a19b7ba8a3407312bf0ef1abedac70ba6aaf2911",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 219,
+      "hasStructuralAnalysis": false
+    },
+    "src/pages/LayerZeroOFTBridgePage.tsx": {
+      "filePath": "src/pages/LayerZeroOFTBridgePage.tsx",
+      "contentHash": "17790817fe43c4c6cb69151c7574aefb1eca99ca21d6d3da1403672c4a3ebb5b",
+      "functions": [
+        {
+          "name": "formatLzBridgeRouteSummary",
+          "params": [
+            "srcChainId",
+            "dstEid",
+            "opts"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "getDefaultOftForChain",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "isLzMetaSourceChain",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 2
+        },
+        {
+          "name": "metaChainLabel",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "readStoredMetaChainId",
+          "params": [],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "persistMetaChainId",
+          "params": [
+            "chainId"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "readStoredDstEid",
+          "params": [],
+          "returnType": "string | null",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "persistDstEid",
+          "params": [
+            "eid"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "addressToBytes32",
+          "params": [
+            "addr"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "explorerTxUrl",
+          "params": [
+            "chainId",
+            "txHash"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "formatAllowanceForDisplay",
+          "params": [
+            "raw",
+            "tokenDecimals"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "extractRevertHexData",
+          "params": [
+            "err"
+          ],
+          "returnType": "string | undefined",
+          "exported": false,
+          "lineCount": 38
+        },
+        {
+          "name": "decodeLayerZeroOftRevert",
+          "params": [
+            "data",
+            "tokenDecimals"
+          ],
+          "returnType": "string | null",
+          "exported": false,
+          "lineCount": 45
+        },
+        {
+          "name": "formatBridgeContractError",
+          "params": [
+            "err",
+            "tokenDecimals"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "buildSendParam",
+          "params": [
+            "dstEid",
+            "recipient",
+            "amountLD",
+            "minAmountLD",
+            "extraOptionsHex",
+            "composeHex",
+            "oftCmdHex"
+          ],
+          "returnType": "SendParamTuple",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "LayerZeroOFTBridgePage",
+          "params": [],
+          "exported": false,
+          "lineCount": 1121
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useMemo",
+            "useState"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount",
+            "useAppKitNetwork"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getDefaultReadonlyProvider",
+            "getProvider",
+            "getSigner",
+            "getSignerAndChainId"
+          ]
+        },
+        {
+          "source": "../EthanDapp",
+          "specifiers": [
+            "getDefaultNetwork",
+            "modal"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "isAddress",
+            "getDecimalBigNumber"
+          ]
+        },
+        {
+          "source": "../utils/format",
+          "specifiers": [
+            "truncateHash"
+          ]
+        },
+        {
+          "source": "../common/ChainsConfig",
+          "specifiers": [
+            "SupportChains"
+          ]
+        },
+        {
+          "source": "../common/FaucetConfig",
+          "specifiers": [
+            "faucetChainIdList",
+            "getChainName"
+          ]
+        },
+        {
+          "source": "../utils/multicall3",
+          "specifiers": [
+            "decodeMulticallResult",
+            "multicall3Aggregate3StaticCall",
+            "Multicall3Call"
+          ]
+        },
+        {
+          "source": "../utils/LayerZero",
+          "specifiers": [
+            "evmChainIdToLzV2SrcEndpointId",
+            "getLayerZeroScanLink"
+          ]
+        },
+        {
+          "source": "./LayerZeroOFTBridgePage.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 1449,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/LuckyBabyPage.tsx": {
+      "filePath": "src/pages/LuckyBabyPage.tsx",
+      "contentHash": "90fde1de85475d0e21547e6d98d3f7b0a74c14d78cd8a8c7a2cd6b09713dc074",
+      "functions": [
+        {
+          "name": "LuckyBabyPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 521
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/CallLuckyBaby",
+          "specifiers": [
+            "participate",
+            "getWinners",
+            "redeemPrize",
+            "getNumberParticipants",
+            "getCurrentIssueIdOpenState",
+            "openPrizePool",
+            "incrementNewIssue"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "stringToArray"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 539,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/MarketChartPage.css": {
+      "filePath": "src/pages/MarketChartPage.css",
+      "contentHash": "1d52a480079066cac9c82f0d6314999f49721478f3bb3243aa40a822cdb6c63e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 706,
+      "hasStructuralAnalysis": false
+    },
+    "src/pages/MarketChartPage.tsx": {
+      "filePath": "src/pages/MarketChartPage.tsx",
+      "contentHash": "44159308f643070ede1182f2646fe5121c8b2c447f6f42a644985ea070c3d7ce",
+      "functions": [
+        {
+          "name": "lockScreenLandscape",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "unlockScreenOrientation",
+          "params": [],
+          "returnType": "void",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "getChartUi",
+          "params": [
+            "width"
+          ],
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "ChartExpandIcon",
+          "params": [],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "ChartShrinkIcon",
+          "params": [],
+          "exported": false,
+          "lineCount": 16
+        },
+        {
+          "name": "formatPrice",
+          "params": [
+            "num"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 19
+        },
+        {
+          "name": "formatChange",
+          "params": [
+            "val"
+          ],
+          "returnType": "{\n  text: string;\n  isUp: boolean;\n}",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "formatMarketCap",
+          "params": [
+            "num"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "formatVolume",
+          "params": [
+            "num"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "formatCrosshairTime",
+          "params": [
+            "time"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 19
+        },
+        {
+          "name": "isDarkMode",
+          "params": [],
+          "returnType": "boolean",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "getChartColors",
+          "params": [],
+          "exported": false,
+          "lineCount": 13
+        },
+        {
+          "name": "MarketChartPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 1252
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState",
+            "useRef",
+            "useCallback"
+          ]
+        },
+        {
+          "source": "react-router-dom",
+          "specifiers": [
+            "useSearchParams",
+            "useNavigate",
+            "useLocation"
+          ]
+        },
+        {
+          "source": "lightweight-charts",
+          "specifiers": [
+            "createChart",
+            "IChartApi",
+            "ISeriesApi",
+            "ColorType",
+            "AreaSeries",
+            "CandlestickSeries",
+            "HistogramSeries",
+            "createTextWatermark"
+          ]
+        },
+        {
+          "source": "lightweight-charts",
+          "specifiers": [
+            "CandlestickData",
+            "LineData",
+            "Time"
+          ]
+        },
+        {
+          "source": "../utils/coinGeckoApi",
+          "specifiers": [
+            "fetchMarketChart",
+            "fetchCoinSpot",
+            "fetchOHLC",
+            "PricePoint",
+            "OHLCPoint",
+            "CoinRouteState"
+          ]
+        },
+        {
+          "source": "./MarketChartPage.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 1476,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/MintNFTPage.tsx": {
+      "filePath": "src/pages/MintNFTPage.tsx",
+      "contentHash": "5f2ec109611ce19a62b82a1dda1fc0b37538ace16411b9395919f4f6163e54c0",
+      "functions": [
+        {
+          "name": "MintNFTPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 127
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/CallnftMint",
+          "specifiers": [
+            "mintNFT",
+            "signEIP712MessageMintNft"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 134,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/SignEIP712Page.tsx": {
+      "filePath": "src/pages/SignEIP712Page.tsx",
+      "contentHash": "e1f1521a521312a9f7cff1f59c57c9e89dd518cdb4867240f61905a3d52dd888",
+      "functions": [
+        {
+          "name": "SignEIP712Page",
+          "params": [],
+          "exported": false,
+          "lineCount": 194
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../utils/SignFunc",
+          "specifiers": [
+            "signEIP712YunGouMessage",
+            "signEIP712OpenSeaMessage",
+            "signBlurLoginMessage",
+            "signBulkOrderOpenSeaMessage",
+            "signCustomBulkOrderMessage"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getSignerAndChainId"
+          ]
+        },
+        {
+          "source": "../api/GetData",
+          "specifiers": [
+            "getBlurAccessTokenByNFTGO",
+            "getBlurLoginMessageByNFTGO"
+          ]
+        },
+        {
+          "source": "../utils/ConnectWallet",
+          "specifiers": [
+            "login"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 214,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/SolanaUtilsPage.tsx": {
+      "filePath": "src/pages/SolanaUtilsPage.tsx",
+      "contentHash": "e6b28643144ca5afc3c4edd005de5eb50b30f576182b6ec3a345e78d73660cb2",
+      "functions": [
+        {
+          "name": "SolanaUtilsContent",
+          "params": [],
+          "exported": false,
+          "lineCount": 748
+        },
+        {
+          "name": "SolanaUtilsPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "buffer",
+          "specifiers": [
+            "* as buffer"
+          ]
+        },
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "Keypair",
+            "LAMPORTS_PER_SOL",
+            "PublicKey",
+            "SystemProgram",
+            "Transaction"
+          ]
+        },
+        {
+          "source": "../utils/SolanaSignAndVerify",
+          "specifiers": [
+            "signSolanaMessage",
+            "verifySolanaSignature",
+            "verifySolanaSignatureV2"
+          ]
+        },
+        {
+          "source": "../utils/GetSolanaConnection",
+          "specifiers": [
+            "getDevConnection"
+          ]
+        },
+        {
+          "source": "../utils/SolanaGetBalance",
+          "specifiers": [
+            "getSolBalance"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "getAssociatedAddress",
+            "stringToArray"
+          ]
+        },
+        {
+          "source": "bs58",
+          "specifiers": [
+            "base58"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@reown/appkit-adapter-solana/react",
+          "specifiers": [
+            "Provider"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount",
+            "useAppKitProvider"
+          ]
+        },
+        {
+          "source": "@reown/appkit-adapter-solana/react",
+          "specifiers": [
+            "useAppKitConnection"
+          ]
+        },
+        {
+          "source": "../utils/format",
+          "specifiers": [
+            "truncateHash"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 781,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/UtilsPage.tsx": {
+      "filePath": "src/pages/UtilsPage.tsx",
+      "contentHash": "bae4d6942f4796ecc51f71b6c2785c18650bc499fa454b64a3329a069ad69d7c",
+      "functions": [
+        {
+          "name": "UtilsPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 381
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber",
+            "ethers"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../api/GetData",
+          "specifiers": [
+            "getPriceBaseUSDTByBinance"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "caculatePriceBySqrtPriceX96",
+            "getAddressCreate",
+            "isAddress"
+          ]
+        },
+        {
+          "source": "../utils/GetLpTokenPrice",
+          "specifiers": [
+            "getTokenPrice"
+          ]
+        },
+        {
+          "source": "../utils/SignFunc",
+          "specifiers": [
+            "signHexDataMessage"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getSigner"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 397,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/Web3AuthPage.tsx": {
+      "filePath": "src/pages/Web3AuthPage.tsx",
+      "contentHash": "f31f5bade84835f1f13d77d51645feeefc66590b6b0ca9862e28ccde8dcd0a50",
+      "functions": [
+        {
+          "name": "initWeb3AuthModal",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "Web3AuthPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 242
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@web3auth/modal",
+          "specifiers": [
+            "Web3Auth"
+          ]
+        },
+        {
+          "source": "@web3auth/base",
+          "specifiers": [
+            "WEB3AUTH_NETWORK"
+          ]
+        },
+        {
+          "source": "@web3auth/ethereum-provider",
+          "specifiers": [
+            "EthereumPrivateKeyProvider"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "../utils/SignsnapsShot",
+          "specifiers": [
+            "signSetAlias"
+          ]
+        },
+        {
+          "source": "@ethersproject/wallet",
+          "specifiers": [
+            "Wallet"
+          ]
+        },
+        {
+          "source": "@ethersproject/providers",
+          "specifiers": [
+            "Web3Provider"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 284,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/Web3AuthSolanaPage.tsx": {
+      "filePath": "src/pages/Web3AuthSolanaPage.tsx",
+      "contentHash": "37f5ccba5c499936968fee64f1d004a03089976ecf54a16a589af9fb77707da7",
+      "functions": [
+        {
+          "name": "initWeb3AuthModal",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "Web3AuthSolanaPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 307
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@web3auth/modal",
+          "specifiers": [
+            "Web3Auth"
+          ]
+        },
+        {
+          "source": "@web3auth/base",
+          "specifiers": [
+            "CHAIN_NAMESPACES",
+            "IProvider",
+            "WEB3AUTH_NETWORK"
+          ]
+        },
+        {
+          "source": "@web3auth/ethereum-provider",
+          "specifiers": [
+            "EthereumPrivateKeyProvider"
+          ]
+        },
+        {
+          "source": "@web3auth/solana-provider",
+          "specifiers": [
+            "SolanaPrivateKeyProvider",
+            "SolanaWallet"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "Connection",
+            "LAMPORTS_PER_SOL",
+            "PublicKey"
+          ]
+        },
+        {
+          "source": "bs58",
+          "specifiers": [
+            "bs58"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 376,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/WsolPage.tsx": {
+      "filePath": "src/pages/WsolPage.tsx",
+      "contentHash": "93794f615d76c1bf3c75ff68be979bc44c819f94c655f3b9682e609dcbdf2c23",
+      "functions": [
+        {
+          "name": "WsolPageContent",
+          "params": [],
+          "exported": false,
+          "lineCount": 464
+        },
+        {
+          "name": "WsolPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "buffer",
+          "specifiers": [
+            "* as buffer"
+          ]
+        },
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "LAMPORTS_PER_SOL",
+            "PublicKey",
+            "SystemProgram"
+          ]
+        },
+        {
+          "source": "../utils/GetSolanaConnection",
+          "specifiers": [
+            "getDevConnection"
+          ]
+        },
+        {
+          "source": "../utils/SolanaGetBalance",
+          "specifiers": [
+            "getSolBalance"
+          ]
+        },
+        {
+          "source": "../utils/GetWsolProgram",
+          "specifiers": [
+            "getMetadataPDA",
+            "getWethMintAddress",
+            "getWethProgram",
+            "getWethBalance",
+            "getDestinationAddress",
+            "getStoragePDA"
+          ]
+        },
+        {
+          "source": "@coral-xyz/anchor",
+          "specifiers": [
+            "BN"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        },
+        {
+          "source": "@reown/appkit-adapter-solana/react",
+          "specifiers": [
+            "Provider"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitProvider"
+          ]
+        },
+        {
+          "source": "@reown/appkit-adapter-solana/react",
+          "specifiers": [
+            "useAppKitConnection"
+          ]
+        },
+        {
+          "source": "@solana/spl-token",
+          "specifiers": [
+            "ASSOCIATED_TOKEN_PROGRAM_ID",
+            "TOKEN_PROGRAM_ID"
+          ]
+        },
+        {
+          "source": "../utils/format",
+          "specifiers": [
+            "truncateHash"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 498,
+      "hasStructuralAnalysis": true
+    },
+    "src/pages/YunGouAggregatorsPage.css": {
+      "filePath": "src/pages/YunGouAggregatorsPage.css",
+      "contentHash": "906594805083690d4e124c53f8f9803dff059b14b1ca2b3f311ee9ff81470958",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 118,
+      "hasStructuralAnalysis": false
+    },
+    "src/pages/YunGouAggregatorsPage.tsx": {
+      "filePath": "src/pages/YunGouAggregatorsPage.tsx",
+      "contentHash": "b53a956ad5c85d8cc258c8c44d73426460384a295baab59c26605ba506a0811d",
+      "functions": [
+        {
+          "name": "YunGouAggregatorsPage",
+          "params": [],
+          "exported": false,
+          "lineCount": 360
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "../contracts/seaport1_5.json",
+          "specifiers": [
+            "seaportAbi"
+          ]
+        },
+        {
+          "source": "../testdata/orderdata",
+          "specifiers": [
+            "order_data_t"
+          ]
+        },
+        {
+          "source": "../testdata/ordersdata",
+          "specifiers": [
+            "orders_data_t"
+          ]
+        },
+        {
+          "source": "../contracts/YunGouAggregators.json",
+          "specifiers": [
+            "yunGouAggregatorsAbi"
+          ]
+        },
+        {
+          "source": "../contracts/yungou2_0.json",
+          "specifiers": [
+            "yunGou2_0Abi"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber",
+            "ethers"
+          ]
+        },
+        {
+          "source": "opensea-js",
+          "specifiers": [
+            "OpenSeaSDK",
+            "Chain"
+          ]
+        },
+        {
+          "source": "../utils/GetProvider",
+          "specifiers": [
+            "getSigner",
+            "getProvider"
+          ]
+        },
+        {
+          "source": "../utils/Utils",
+          "specifiers": [
+            "getYunGouAddress",
+            "getScanURL",
+            "getYunGouAddressAndOrder",
+            "stringToArray",
+            "getYunGouAggregatorsAddress"
+          ]
+        },
+        {
+          "source": "../utils/GetOrder",
+          "specifiers": [
+            "Orders"
+          ]
+        },
+        {
+          "source": "../utils/GetOrdersTestnet",
+          "specifiers": [
+            "OrdersTest"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "OPENSEA_MAIN_API",
+            "YUNGOU_END",
+            "chainName_S"
+          ]
+        },
+        {
+          "source": "@reown/appkit/react",
+          "specifiers": [
+            "useAppKitAccount",
+            "useAppKitNetwork"
+          ]
+        },
+        {
+          "source": "./YunGouAggregatorsPage.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 392,
+      "hasStructuralAnalysis": true
+    },
+    "src/react-app-env.d.ts": {
+      "filePath": "src/react-app-env.d.ts",
+      "contentHash": "57eda4c4c04a1dca45c62857326882ce9cc948c4b52973c0e3c3b7e4c3fa3990",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "src/reportWebVitals.ts": {
+      "filePath": "src/reportWebVitals.ts",
+      "contentHash": "919f33dfc8ac1ed315ff55c37d8acfd20c5088c9847e86b4b83f3c2543dc63b5",
+      "functions": [
+        {
+          "name": "reportWebVitals",
+          "params": [
+            "onPerfEntry"
+          ],
+          "exported": false,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "web-vitals",
+          "specifiers": [
+            "Metric"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "src/setupTests.ts": {
+      "filePath": "src/setupTests.ts",
+      "contentHash": "3d949470e4bf07f73d826ddc73cb23dc2c87c26f893d8dfec02ae23bd88aebf6",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@testing-library/jest-dom",
+          "specifiers": []
+        }
+      ],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "src/testdata/orderdata_yungou.ts": {
+      "filePath": "src/testdata/orderdata_yungou.ts",
+      "contentHash": "9fe3f18311f495b2d18fc0011fc769f06f574951d2e0c09ec5d583650a1bbb12",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber"
+          ]
+        }
+      ],
+      "exports": [
+        "order_data",
+        "order_data_tbsc"
+      ],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "src/testdata/orderdata.ts": {
+      "filePath": "src/testdata/orderdata.ts",
+      "contentHash": "e83ad93503e336376ca669a4371afcc83b54ac58ec74ec9a627290ee2c562a59",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "src/testdata/ordersdata.ts": {
+      "filePath": "src/testdata/ordersdata.ts",
+      "contentHash": "9fde86a2130ae3b6446ded0c3d7452d8fb540d038a98fb22927c5dee527a24a3",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 94,
+      "hasStructuralAnalysis": true
+    },
+    "src/types/eth-url-parser.d.ts": {
+      "filePath": "src/types/eth-url-parser.d.ts",
+      "contentHash": "b58332326791bc7e7482458d9a3166b27cd7e01128918709acb5df89ccab1e2b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "src/types/global.d.ts": {
+      "filePath": "src/types/global.d.ts",
+      "contentHash": "9e823f1de61b32eceb470b1b373d537bc00de9c310dc2aac3d98af76a1b19bd5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/AlchemySDK.js": {
+      "filePath": "src/utils/AlchemySDK.js",
+      "contentHash": "ceb7c8376fde94c3f2aebff508dd3df6dc6c11b2b8fcb5a2b4a12602e65d5247",
+      "functions": [
+        {
+          "name": "getAlchemy",
+          "params": [
+            "chainId"
+          ],
+          "exported": false,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "alchemy-sdk",
+          "specifiers": [
+            "Alchemy",
+            "Network"
+          ]
+        },
+        {
+          "source": "./SystemConfiguration",
+          "specifiers": [
+            "ALCHEMY_KEY_V3"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/BitcoinBalance.ts": {
+      "filePath": "src/utils/BitcoinBalance.ts",
+      "contentHash": "5a8ed695e390b6686ad4863b92cae08eac4b0847082ca2c18ecdd96735da25f2",
+      "functions": [
+        {
+          "name": "isBitcoinTestnetAddress",
+          "params": [
+            "address"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "apiRoots",
+          "params": [
+            "testnet"
+          ],
+          "returnType": "{ blockstream: string; mempool: string }",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "fetchUtxosFromBase",
+          "params": [
+            "baseUrl",
+            "address"
+          ],
+          "returnType": "Promise<BitcoinUtxo[] | null>",
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "getUTXOs",
+          "params": [
+            "address",
+            "testnet"
+          ],
+          "returnType": "Promise<BitcoinUtxo[]>",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "getBitCoinBalance",
+          "params": [
+            "address",
+            "options"
+          ],
+          "returnType": "Promise<number>",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "isBitcoinTestnetAddress",
+        "getUTXOs",
+        "getBitCoinBalance"
+      ],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/BlurFunc.ts": {
+      "filePath": "src/utils/BlurFunc.ts",
+      "contentHash": "5b98ca9eb2e69c807e76afb3ac79dbef92ebbf3dc0ef812083308a3c42435ebf",
+      "functions": [
+        {
+          "name": "onlyBuyBlurNFT",
+          "params": [
+            "contract",
+            "tokenId",
+            "userAddress",
+            "blurAccessToken"
+          ],
+          "returnType": "Promise<[string | null, TxLike | null]>",
+          "exported": true,
+          "lineCount": 58
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./GetBlurCallData",
+          "specifiers": [
+            "getBlurCalldata"
+          ]
+        },
+        {
+          "source": "./GetProvider",
+          "specifiers": [
+            "getSignerAndChainId"
+          ]
+        },
+        {
+          "source": "./HandleTxData",
+          "specifiers": [
+            "addSuffixOfTxData"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "suffixOfYunGou"
+          ]
+        },
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "getScanURL"
+          ]
+        }
+      ],
+      "exports": [
+        "onlyBuyBlurNFT"
+      ],
+      "totalLines": 75,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/CalculateTokenPrice.js": {
+      "filePath": "src/utils/CalculateTokenPrice.js",
+      "contentHash": "6d5fb91fe7b34d65edf725531e2ce32af613b2c5ff737d1b9aca925590695bcf",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/CallLuckyBaby.js": {
+      "filePath": "src/utils/CallLuckyBaby.js",
+      "contentHash": "426a760eb02cab4c0bf076047dbcdc3881203ef0398b28a3b8efbf9be97b3d0e",
+      "functions": [
+        {
+          "name": "participate",
+          "params": [
+            "count"
+          ],
+          "exported": true,
+          "lineCount": 77
+        },
+        {
+          "name": "openPrizePool",
+          "params": [],
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "incrementNewIssue",
+          "params": [
+            "numberMax",
+            "countMaxPer",
+            "startTime",
+            "endTime",
+            "payToken",
+            "prize"
+          ],
+          "exported": true,
+          "lineCount": 46
+        },
+        {
+          "name": "getWinners",
+          "params": [],
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "redeemPrize",
+          "params": [],
+          "exported": true,
+          "lineCount": 33
+        },
+        {
+          "name": "getNumberParticipants",
+          "params": [],
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "getCurrentIssueIdOpenState",
+          "params": [],
+          "exported": true,
+          "lineCount": 19
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./GetProvider",
+          "specifiers": [
+            "getSignerAndAccountAndChainId"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers",
+            "BigNumber"
+          ]
+        },
+        {
+          "source": "../contracts/usdtABI.json",
+          "specifiers": [
+            "usdtabi"
+          ]
+        },
+        {
+          "source": "../contracts/luckyBabyABI.json",
+          "specifiers": [
+            "luckyBabyabi"
+          ]
+        },
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "getScanURL",
+            "equalityStringIgnoreCase"
+          ]
+        }
+      ],
+      "exports": [
+        "participate",
+        "getWinners",
+        "redeemPrize",
+        "getNumberParticipants",
+        "getCurrentIssueIdOpenState",
+        "openPrizePool",
+        "incrementNewIssue"
+      ],
+      "totalLines": 287,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/CallnftMint.ts": {
+      "filePath": "src/utils/CallnftMint.ts",
+      "contentHash": "430daa36c6ea1561c2764be69c389737a754b980d8f1dbc5c9d2b8aa0f048cad",
+      "functions": [
+        {
+          "name": "getSwapCallData",
+          "params": [
+            "account",
+            "amount"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "mintNFT",
+          "params": [
+            "mintAmount"
+          ],
+          "returnType": "Promise<[string | null, ethers.ContractTransaction | null]>",
+          "exported": true,
+          "lineCount": 50
+        },
+        {
+          "name": "signEIP712MessageMintNft",
+          "params": [
+            "mintAmount"
+          ],
+          "returnType": "Promise<[string | null, ethers.ContractTransaction | null]>",
+          "exported": true,
+          "lineCount": 49
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./GetProvider",
+          "specifiers": [
+            "getSignerAndChainId"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "./SignFunc",
+          "specifiers": [
+            "signEIP712Message"
+          ]
+        },
+        {
+          "source": "../contracts/YGMEABI.json",
+          "specifiers": [
+            "YGMEABI"
+          ]
+        },
+        {
+          "source": "../contracts/BatchTransferTokenABI.json",
+          "specifiers": [
+            "BatchTransferTokenABI"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "DefaultChainId",
+            "batchTransferToken_sepolia"
+          ]
+        },
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "getScanURL",
+            "equalityStringIgnoreCase",
+            "getInfuraProvider"
+          ]
+        },
+        {
+          "source": "../common/FaucetConfig",
+          "specifiers": [
+            "faucetConfig"
+          ]
+        }
+      ],
+      "exports": [
+        "mintNFT",
+        "signEIP712MessageMintNft"
+      ],
+      "totalLines": 127,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/CallYunGouContracts.js": {
+      "filePath": "src/utils/CallYunGouContracts.js",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/coinGeckoApi.ts": {
+      "filePath": "src/utils/coinGeckoApi.ts",
+      "contentHash": "cc061012fc50750b3549b861f4ea312b21688eb76267f2440c3ace4fb6398342",
+      "functions": [
+        {
+          "name": "fetchCoinSpot",
+          "params": [
+            "coinId",
+            "signal"
+          ],
+          "returnType": "Promise<{\n  name: string;\n  symbol: string;\n  image: string | null;\n  currentPrice: number;\n  marketCap: number;\n  changePct: number;\n} | null>",
+          "exported": true,
+          "lineCount": 41
+        },
+        {
+          "name": "fetchMarketChart",
+          "params": [
+            "coinId",
+            "days",
+            "signal"
+          ],
+          "returnType": "Promise<MarketChartResponse>",
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "fetchOHLC",
+          "params": [
+            "coinId",
+            "days",
+            "signal"
+          ],
+          "returnType": "Promise<OHLCPoint[]>",
+          "exported": true,
+          "lineCount": 26
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "fetchCoinSpot",
+        "fetchMarketChart",
+        "fetchOHLC"
+      ],
+      "totalLines": 140,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/ConnectMysql.js": {
+      "filePath": "src/utils/ConnectMysql.js",
+      "contentHash": "5d315dd1e65ecbe766807b1dd991a1fa155774bb4533e7d446887ec7ec45f8bb",
+      "functions": [
+        {
+          "name": "getPoolMysql",
+          "params": [],
+          "exported": false,
+          "lineCount": 16
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/ConnectMysqlDemo.js": {
+      "filePath": "src/utils/ConnectMysqlDemo.js",
+      "contentHash": "21bef01e323da52e6e78c0f046a3b438c55a8ad4806818c51ba937ac4614efe1",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/ConnectWallet.ts": {
+      "filePath": "src/utils/ConnectWallet.ts",
+      "contentHash": "74c789765fce615709b0e64caf5a79898f89a8afa91207f36f3476b221573bdc",
+      "functions": [
+        {
+          "name": "login",
+          "params": [],
+          "returnType": "Promise<\n  boolean | Record<string, unknown> | null\n>",
+          "exported": true,
+          "lineCount": 24
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./SignFunc",
+          "specifiers": [
+            "signSiweMessage"
+          ]
+        },
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "sendToWebhook"
+          ]
+        }
+      ],
+      "exports": [
+        "login"
+      ],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/EIP7702Utils.ts": {
+      "filePath": "src/utils/EIP7702Utils.ts",
+      "contentHash": "ea96e79ad0debcd7f31bf4de251df0bd51305c13d0c7fbf220c3cedd4385ab90",
+      "functions": [
+        {
+          "name": "getDelegationAddress",
+          "params": [
+            "signer"
+          ],
+          "returnType": "Promise<string | null>",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "createAuthorization",
+          "params": [
+            "wallet",
+            "nonce",
+            "authAddress"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "createEIP7702Account",
+          "params": [
+            "signer",
+            "auth"
+          ],
+          "returnType": "Promise<string | null>",
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "revokeEIP7702Account",
+          "params": [
+            "signer"
+          ],
+          "returnType": "Promise<string>",
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers-v6",
+          "specifiers": [
+            "ZeroAddress",
+            "Signer"
+          ]
+        }
+      ],
+      "exports": [
+        "getDelegationAddress",
+        "createAuthorization",
+        "createEIP7702Account",
+        "revokeEIP7702Account"
+      ],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/EstimateTxFee.ts": {
+      "filePath": "src/utils/EstimateTxFee.ts",
+      "contentHash": "33677f95f4e2c111eb675115cc11843272be17d9a7e8782d99d2ffe58b6051c4",
+      "functions": [
+        {
+          "name": "estimateTxFee",
+          "params": [
+            "provider",
+            "from",
+            "to",
+            "data",
+            "value"
+          ],
+          "returnType": "Promise<EstimateTxFeeResult>",
+          "exported": true,
+          "lineCount": 29
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers/lib/utils",
+          "specifiers": [
+            "formatEther",
+            "formatUnits"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber",
+            "providers"
+          ]
+        }
+      ],
+      "exports": [
+        "estimateTxFee"
+      ],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/format.ts": {
+      "filePath": "src/utils/format.ts",
+      "contentHash": "54ffdaee0cbfeca56f4fb4289505457ba52f63933fe350928c62d07a5c77ecec",
+      "functions": [
+        {
+          "name": "truncateHash",
+          "params": [
+            "hash",
+            "head",
+            "tail"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "truncateHash"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetAccessListInTx.ts": {
+      "filePath": "src/utils/GetAccessListInTx.ts",
+      "contentHash": "d1fcb10cafd8c9d485086d281794844f52b3ba9a3b845d88b58f1e702a0c913a",
+      "functions": [
+        {
+          "name": "getAccessList",
+          "params": [
+            "provider",
+            "transaction"
+          ],
+          "returnType": "Promise<EthCreateAccessListResult | null>",
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "getAccessList"
+      ],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetBlurCallData.ts": {
+      "filePath": "src/utils/GetBlurCallData.ts",
+      "contentHash": "c0f1e479ad9080dce9e3c06b86ca9629b0dcbdd1b82a7854c2944745e7d29002",
+      "functions": [
+        {
+          "name": "getBlurCalldata",
+          "params": [
+            "tokenAddress",
+            "tokenId",
+            "buyerAddress",
+            "buyerBlurAccessToken"
+          ],
+          "returnType": "Promise<BlurTxData | null | 0>",
+          "exported": true,
+          "lineCount": 63
+        },
+        {
+          "name": "getNFTGoBlurOrderInfos",
+          "params": [
+            "contractAddress",
+            "tokenId"
+          ],
+          "returnType": "Promise<BlurOrderInfo[]>",
+          "exported": false,
+          "lineCount": 55
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./GetProvider",
+          "specifiers": [
+            "getBalanceETH"
+          ]
+        }
+      ],
+      "exports": [
+        "getBlurCalldata"
+      ],
+      "totalLines": 137,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetContract.ts": {
+      "filePath": "src/utils/GetContract.ts",
+      "contentHash": "6fab0a3896873a88cc8a186590e34ab93aac1ad7f545971a8deb5f22326c4b18",
+      "functions": [
+        {
+          "name": "getContract",
+          "params": [
+            "contractAddress",
+            "abi",
+            "signer"
+          ],
+          "returnType": "Promise<ethers.Contract>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "getFaucetContract",
+          "params": [],
+          "returnType": "Promise<ethers.Contract | null>",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "getERC20Contract",
+          "params": [
+            "token"
+          ],
+          "returnType": "Promise<ethers.Contract | null>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getERC20Decimals",
+          "params": [
+            "token"
+          ],
+          "returnType": "Promise<number>",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "getERC721Contract",
+          "params": [
+            "token"
+          ],
+          "returnType": "Promise<ethers.Contract | null>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getCrossChainContract",
+          "params": [
+            "token"
+          ],
+          "returnType": "Promise<ethers.Contract | null>",
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "Signer"
+          ]
+        },
+        {
+          "source": "./GetProvider",
+          "specifiers": [
+            "getSignerAndChainId",
+            "getSigner"
+          ]
+        },
+        {
+          "source": "../contracts/faucetABI.json",
+          "specifiers": [
+            "faucetABI"
+          ]
+        },
+        {
+          "source": "../contracts/erc20ABI.json",
+          "specifiers": [
+            "erc20ABI"
+          ]
+        },
+        {
+          "source": "../contracts/erc721A.json",
+          "specifiers": [
+            "erc721ABI"
+          ]
+        },
+        {
+          "source": "../contracts/crossChainABI.json",
+          "specifiers": [
+            "crossChainABI"
+          ]
+        },
+        {
+          "source": "../common/FaucetConfig",
+          "specifiers": [
+            "faucetConfig"
+          ]
+        }
+      ],
+      "exports": [
+        "getERC20Decimals",
+        "getContract",
+        "getFaucetContract",
+        "getERC20Contract",
+        "getCrossChainContract",
+        "getERC721Contract"
+      ],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetLpTokenPrice.js": {
+      "filePath": "src/utils/GetLpTokenPrice.js",
+      "contentHash": "ad9b1a2e21b970ab628b372bb4fbd1e696908b138cf373e14013364303f0847b",
+      "functions": [
+        {
+          "name": "getTokenPrice",
+          "params": [
+            "platform",
+            "token0",
+            "token1"
+          ],
+          "exported": true,
+          "lineCount": 47
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers",
+            "BigNumber"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "PancakeRouter",
+            "UniswapRouter",
+            "bsc_rpc",
+            "main_rpc"
+          ]
+        },
+        {
+          "source": "../contracts/UniswapV2RouterABI.json",
+          "specifiers": [
+            "routerABI"
+          ]
+        },
+        {
+          "source": "../contracts/erc20ABI.json",
+          "specifiers": [
+            "erc20ABI"
+          ]
+        }
+      ],
+      "exports": [
+        "getTokenPrice"
+      ],
+      "totalLines": 60,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetNFTListByOwner.ts": {
+      "filePath": "src/utils/GetNFTListByOwner.ts",
+      "contentHash": "034376c38dde079db5b10f2fae5cdf8525034c2361fb96a33ea54e0b13c3b6f2",
+      "functions": [
+        {
+          "name": "getNFTListByOwner",
+          "params": [
+            "chainId",
+            "owner"
+          ],
+          "returnType": "Promise<void>",
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "getNFTListByOwnerAndContract",
+          "params": [
+            "chainId",
+            "owner",
+            "contract"
+          ],
+          "returnType": "Promise<GetNFTListByOwnerAndContractResult | null>",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "getContractsForOwner",
+          "params": [
+            "chainId",
+            "owner"
+          ],
+          "returnType": "Promise<GetContractsForOwnerResult | null>",
+          "exported": true,
+          "lineCount": 28
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "getAlchemyURL"
+          ]
+        }
+      ],
+      "exports": [
+        "getNFTListByOwner",
+        "getNFTListByOwnerAndContract",
+        "getContractsForOwner"
+      ],
+      "totalLines": 108,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetOrder.ts": {
+      "filePath": "src/utils/GetOrder.ts",
+      "contentHash": "27fe8c0cd544692aa5683aa086315b27d2d5a05ae6f0c765251570e2e62d8b42",
+      "functions": [
+        {
+          "name": "getFulfillment_transaction",
+          "params": [
+            "openseaSDK",
+            "accountAddress",
+            "tokenAddress",
+            "tokenId"
+          ],
+          "returnType": "Promise<any>",
+          "exported": false,
+          "lineCount": 35
+        },
+        {
+          "name": "getFulfillment_order",
+          "params": [
+            "openseaSDK",
+            "accountAddress",
+            "tokenAddress",
+            "tokenId"
+          ],
+          "returnType": "Promise<any>",
+          "exported": false,
+          "lineCount": 34
+        },
+        {
+          "name": "getFulfillAvailableOrders_data",
+          "params": [
+            "openseaSDK",
+            "accountAddress",
+            "tokenAddress_s",
+            "tokenIds"
+          ],
+          "returnType": "Promise<any>",
+          "exported": false,
+          "lineCount": 83
+        },
+        {
+          "name": "getFulfillAvailableAdvancedOrders_datas",
+          "params": [
+            "openseaSDK",
+            "accountAddress",
+            "tokenAddress_s",
+            "tokenIds"
+          ],
+          "returnType": "Promise<any>",
+          "exported": false,
+          "lineCount": 94
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 271,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetOrdersTestnet.ts": {
+      "filePath": "src/utils/GetOrdersTestnet.ts",
+      "contentHash": "394ed040137d7bcc6bf17abd8fa2c117f23f3097209defcfd91f5b5d0de8b292",
+      "functions": [
+        {
+          "name": "getFulfillment_transactions",
+          "params": [
+            "chainName",
+            "fulfiller",
+            "tokenAddress",
+            "tokenIds"
+          ],
+          "returnType": "Promise<any[] | null>",
+          "exported": false,
+          "lineCount": 31
+        },
+        {
+          "name": "getFulfillment_transaction",
+          "params": [
+            "chainName",
+            "fulfiller",
+            "tokenAddress",
+            "tokenId"
+          ],
+          "returnType": "Promise<any | null>",
+          "exported": false,
+          "lineCount": 23
+        },
+        {
+          "name": "getFulfillAvailableAdvancedOrders_datas",
+          "params": [
+            "chainName",
+            "fulfiller",
+            "tokenAddress_s",
+            "tokenIds"
+          ],
+          "returnType": "Promise<any[] | null>",
+          "exported": false,
+          "lineCount": 103
+        },
+        {
+          "name": "getFulfillAvailableOrders_data",
+          "params": [
+            "chainName",
+            "fulfiller",
+            "tokenAddress_s",
+            "tokenIds"
+          ],
+          "returnType": "Promise<any[] | null>",
+          "exported": false,
+          "lineCount": 98
+        },
+        {
+          "name": "getFulfillment_order",
+          "params": [
+            "chainName",
+            "fulfiller",
+            "tokenAddress",
+            "tokenId"
+          ],
+          "returnType": "Promise<any[] | null>",
+          "exported": false,
+          "lineCount": 36
+        },
+        {
+          "name": "waitOneSecond",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "getOrderHashs",
+          "params": [
+            "chainName",
+            "contract_address",
+            "token_ids"
+          ],
+          "returnType": "Promise<[string[], string[]]>",
+          "exported": false,
+          "lineCount": 42
+        },
+        {
+          "name": "getOrderHash",
+          "params": [
+            "chainName",
+            "contract_address",
+            "token_id"
+          ],
+          "returnType": "Promise<[string, string, string] | null>",
+          "exported": false,
+          "lineCount": 36
+        },
+        {
+          "name": "getFulfillmentData",
+          "params": [
+            "hash",
+            "chain",
+            "protocol_address",
+            "fulfiller"
+          ],
+          "returnType": "Promise<TestnetFulfillmentResponse>",
+          "exported": false,
+          "lineCount": 33
+        },
+        {
+          "name": "getFulfillmentData_transaction",
+          "params": [
+            "hash",
+            "chain",
+            "protocol_address",
+            "fulfiller"
+          ],
+          "returnType": "Promise<any>",
+          "exported": false,
+          "lineCount": 22
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 456,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetPhantomProvider.ts": {
+      "filePath": "src/utils/GetPhantomProvider.ts",
+      "contentHash": "7cf59f0f47deded63124739018d422c38ade9b342ccfbdb6b0b92543e8d951aa",
+      "functions": [
+        {
+          "name": "getPhantomProvider",
+          "params": [],
+          "returnType": "Promise<\n  PhantomProvider | undefined\n>",
+          "exported": true,
+          "lineCount": 33
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "PublicKey"
+          ]
+        }
+      ],
+      "exports": [
+        "getPhantomProvider"
+      ],
+      "totalLines": 57,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetProvider.ts": {
+      "filePath": "src/utils/GetProvider.ts",
+      "contentHash": "1418f46d302161101d652b6b0a42addcd70a0fe55b036240eb7d89e70d987164",
+      "functions": [
+        {
+          "name": "parseEvmChainIdFromStored",
+          "params": [
+            "stored"
+          ],
+          "returnType": "number | null",
+          "exported": false,
+          "lineCount": 21
+        },
+        {
+          "name": "getDefaultReadonlyProvider",
+          "params": [],
+          "returnType": "providers.StaticJsonRpcProvider | null",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "switchChain",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "Promise<boolean>",
+          "exported": true,
+          "lineCount": 49
+        },
+        {
+          "name": "getProvider",
+          "params": [],
+          "returnType": "Promise<Ethers5Provider | null>",
+          "exported": true,
+          "lineCount": 68
+        },
+        {
+          "name": "getProviderV6",
+          "params": [],
+          "returnType": "Promise<\n  BrowserProvider | Ethers5Provider | null\n>",
+          "exported": true,
+          "lineCount": 67
+        },
+        {
+          "name": "getProviderWeb3",
+          "params": [],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "getChainId",
+          "params": [],
+          "returnType": "Promise<number | null>",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getSigner",
+          "params": [],
+          "returnType": "Promise<Signer | null>",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getSignerV6",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getAccount",
+          "params": [],
+          "returnType": "Promise<string | null>",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "getSignerAndChainId",
+          "params": [],
+          "returnType": "Promise<\n  [Signer | null, number | null]\n>",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "getSignerAndAccountAndChainId",
+          "params": [],
+          "returnType": "Promise<\n  [Signer | null, string | null, number | null]\n>",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "getBalance",
+          "params": [
+            "account"
+          ],
+          "returnType": "Promise<ethers.BigNumber | null>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "getBalanceETH",
+          "params": [
+            "account"
+          ],
+          "returnType": "Promise<string | null>",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getTransactionCount",
+          "params": [
+            "account"
+          ],
+          "returnType": "Promise<number | null>",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getChainIdAndBalanceETHAndTransactionCount",
+          "params": [
+            "account"
+          ],
+          "returnType": "Promise<{ chainId: number; balance: string; nonce: number } | null>",
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "Signer"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "providers"
+          ]
+        },
+        {
+          "source": "@walletconnect/ethereum-provider",
+          "specifiers": [
+            "EthereumProvider"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "projectId_walletconnect"
+          ]
+        },
+        {
+          "source": "../common/ChainsConfig",
+          "specifiers": [
+            "SupportChains"
+          ]
+        },
+        {
+          "source": "ethers-v6",
+          "specifiers": [
+            "BrowserProvider"
+          ]
+        },
+        {
+          "source": "./Suscribers",
+          "specifiers": [
+            "store"
+          ]
+        }
+      ],
+      "exports": [
+        "getDefaultReadonlyProvider",
+        "switchChain",
+        "getProviderV6",
+        "getSignerV6",
+        "getChainIdAndBalanceETHAndTransactionCount",
+        "getProvider",
+        "getSigner",
+        "getChainId",
+        "getProviderWeb3",
+        "getBalance",
+        "getBalanceETH",
+        "getTransactionCount",
+        "getSignerAndChainId",
+        "getSignerAndAccountAndChainId",
+        "getAccount"
+      ],
+      "totalLines": 360,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetSolanaConnection.js": {
+      "filePath": "src/utils/GetSolanaConnection.js",
+      "contentHash": "1b4c22e048cffc993d7dda8ef01e8596d9c9cde43ddfe870fd3528765f283c02",
+      "functions": [
+        {
+          "name": "getDevConnection",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "getTestConnection",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "getMainConnection",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetTokenboundClient.js": {
+      "filePath": "src/utils/GetTokenboundClient.js",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/GetWsolProgram.js": {
+      "filePath": "src/utils/GetWsolProgram.js",
+      "contentHash": "ace89a33bb05ae0ddf0aa6fd28776ec0b822dade4a95a4f5608d0a86040610e8",
+      "functions": [
+        {
+          "name": "getWethProgram",
+          "params": [
+            "connection",
+            "wallet"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getStoragePDA",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getWethMintAddress",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getDestinationAddress",
+          "params": [
+            "mint",
+            "owner"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getMetadataPDA",
+          "params": [
+            "mint"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "getWethBalance",
+          "params": [
+            "connection",
+            "owner"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@coral-xyz/anchor",
+          "specifiers": [
+            "* as anchor"
+          ]
+        },
+        {
+          "source": "@coral-xyz/anchor",
+          "specifiers": [
+            "Program"
+          ]
+        },
+        {
+          "source": "../idls/wsol_idl.json",
+          "specifiers": [
+            "wsol_idl"
+          ]
+        },
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "PublicKey"
+          ]
+        },
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "getAssociatedAddress"
+          ]
+        },
+        {
+          "source": "@solana/spl-token",
+          "specifiers": [
+            "ASSOCIATED_TOKEN_PROGRAM_ID",
+            "getAssociatedTokenAddressSync",
+            "TOKEN_2022_PROGRAM_ID",
+            "TOKEN_PROGRAM_ID"
+          ]
+        }
+      ],
+      "exports": [
+        "getStoragePDA",
+        "getWethMintAddress",
+        "getDestinationAddress",
+        "getMetadataPDA",
+        "getWethBalance",
+        "getWethProgram"
+      ],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/HandleTxData.js": {
+      "filePath": "src/utils/HandleTxData.js",
+      "contentHash": "fde88dc6c1b0c25042cfc55a29856d117319f38d3f41a9a8ceb6a5b910223008",
+      "functions": [
+        {
+          "name": "addSuffixOfTxData",
+          "params": [
+            "inputData",
+            "suffixData"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "getNewTx",
+          "params": [
+            "signer",
+            "contractAddress",
+            "inputData",
+            "suffixData",
+            "value_wei"
+          ],
+          "exported": true,
+          "lineCount": 25
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "equalityStringIgnoreCase"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [
+        "addSuffixOfTxData",
+        "getNewTx"
+      ],
+      "totalLines": 39,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/LayerZero.ts": {
+      "filePath": "src/utils/LayerZero.ts",
+      "contentHash": "0318a29094bc7f0f46e8780ff2a2e10eb69a770dbab6b4706a81decb4aaad825",
+      "functions": [
+        {
+          "name": "evmChainIdToLzV2SrcEndpointId",
+          "params": [
+            "evmChainId"
+          ],
+          "returnType": "number | undefined",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getBlockExplorerLink",
+          "params": [
+            "srcEid",
+            "txHash"
+          ],
+          "returnType": "Promise<string | undefined>",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "getLayerZeroScanLink",
+          "params": [
+            "txHash",
+            "isTestnet"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "parseLayerZeroMessagesBody",
+          "params": [
+            "raw"
+          ],
+          "returnType": "LayerZeroMessagesResponse",
+          "exported": false,
+          "lineCount": 20
+        },
+        {
+          "name": "getLayerZeroMessages",
+          "params": [
+            "txHash",
+            "isTestnet"
+          ],
+          "returnType": "Promise<LayerZeroMessagesResponse>",
+          "exported": true,
+          "lineCount": 38
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "deploymentMetadataUrl",
+        "evmChainIdToLzV2SrcEndpointId",
+        "getBlockExplorerLink",
+        "getLayerZeroScanLink",
+        "getLayerZeroMessages"
+      ],
+      "totalLines": 243,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/multicall3.ts": {
+      "filePath": "src/utils/multicall3.ts",
+      "contentHash": "7c1dec8eea85fcb993b724c68a94c59dbcabc01ec4ace402196463b069fad0e4",
+      "functions": [
+        {
+          "name": "multicall3Aggregate3StaticCall",
+          "params": [
+            "provider",
+            "calls",
+            "multicallAddress"
+          ],
+          "returnType": "Promise<Multicall3Result[]>",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "multicall3Aggregate3Value",
+          "params": [
+            "signer",
+            "calls",
+            "opts"
+          ],
+          "returnType": "Promise<providers.TransactionResponse>",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "decodeMulticallResult",
+          "params": [
+            "iface",
+            "functionFragment",
+            "result"
+          ],
+          "returnType": "T | undefined",
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "ethers"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumberish",
+            "Signer",
+            "providers"
+          ]
+        }
+      ],
+      "exports": [
+        "MULTICALL3_ADDRESS",
+        "multicall3Aggregate3StaticCall",
+        "multicall3Aggregate3Value",
+        "decodeMulticallResult"
+      ],
+      "totalLines": 99,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/OpenseaFunc.ts": {
+      "filePath": "src/utils/OpenseaFunc.ts",
+      "contentHash": "2f5b7d1af6cf6ef70751d1f44d9690e520c5e525f75c1ee0ad4ad3723ae771e5",
+      "functions": [
+        {
+          "name": "getNumericChainId",
+          "params": [],
+          "returnType": "number | null",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "fulfillBasicOrder",
+          "params": [
+            "contract_",
+            "tokenId_",
+            "currentAccount"
+          ],
+          "exported": true,
+          "lineCount": 105
+        },
+        {
+          "name": "fulfillOrder",
+          "params": [
+            "contract_",
+            "tokenId_",
+            "currentAccount"
+          ],
+          "exported": true,
+          "lineCount": 76
+        },
+        {
+          "name": "fulfillBasicOrder_efficient",
+          "params": [
+            "contract_",
+            "tokenId_",
+            "currentAccount"
+          ],
+          "exported": true,
+          "lineCount": 83
+        },
+        {
+          "name": "fulfillAvailableOrders",
+          "params": [
+            "contracts_",
+            "tokenIds_",
+            "currentAccount"
+          ],
+          "exported": true,
+          "lineCount": 124
+        },
+        {
+          "name": "fulfillAvailableAdvancedOrders",
+          "params": [
+            "contracts_",
+            "tokenIds_",
+            "currentAccount"
+          ],
+          "exported": true,
+          "lineCount": 168
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber",
+            "ethers"
+          ]
+        },
+        {
+          "source": "opensea-js",
+          "specifiers": [
+            "OpenSeaSDK",
+            "Chain"
+          ]
+        },
+        {
+          "source": "../contracts/seaport1_5.json",
+          "specifiers": [
+            "seaportAbi"
+          ]
+        },
+        {
+          "source": "./GetOrder",
+          "specifiers": [
+            "Orders"
+          ]
+        },
+        {
+          "source": "./GetOrdersTestnet",
+          "specifiers": [
+            "OrdersTest"
+          ]
+        },
+        {
+          "source": "./HandleTxData",
+          "specifiers": [
+            "addSuffixOfTxData",
+            "getNewTx"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "chainName_G",
+            "YUNGOU_END",
+            "suffixOfYunGou",
+            "chainName_TBSC",
+            "OPENSEA_MAIN_API",
+            "chainName_S"
+          ]
+        },
+        {
+          "source": "./GetProvider",
+          "specifiers": [
+            "getProvider"
+          ]
+        },
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "getScanURL"
+          ]
+        }
+      ],
+      "exports": [
+        "fulfillBasicOrder",
+        "fulfillOrder",
+        "fulfillBasicOrder_efficient",
+        "fulfillAvailableAdvancedOrders",
+        "fulfillAvailableOrders"
+      ],
+      "totalLines": 595,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/OperateDb.js": {
+      "filePath": "src/utils/OperateDb.js",
+      "contentHash": "d3d26876c1c1829b179794394a11bbfd50db35ef7bcf6b58284b93a15c840c94",
+      "functions": [
+        {
+          "name": "getResultSelectDB",
+          "params": [
+            "pool",
+            "sql"
+          ],
+          "exported": false,
+          "lineCount": 33
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 37,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/OperateMysql.js": {
+      "filePath": "src/utils/OperateMysql.js",
+      "contentHash": "40295b969c532ed80e76a21d9a94cd5420beb4088bf18331ba97ae7fd7ee1c45",
+      "functions": [
+        {
+          "name": "getResultSelectDB",
+          "params": [
+            "sql"
+          ],
+          "exported": false,
+          "lineCount": 37
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 42,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/PhantomSendTransaction.js": {
+      "filePath": "src/utils/PhantomSendTransaction.js",
+      "contentHash": "1afac678e6c18d75e6e2fb841c61b38354877ddea2ad87b1df29a39a3490f030",
+      "functions": [
+        {
+          "name": "sendTransactionOfPhantom",
+          "params": [
+            "connection",
+            "provider",
+            "transaction"
+          ],
+          "exported": false,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/ServeBack.js": {
+      "filePath": "src/utils/ServeBack.js",
+      "contentHash": "5cc045dbeae77c1ee200e988ac6768845146292db4b57443369d7aff099cba8f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 50,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/SignFunc.ts": {
+      "filePath": "src/utils/SignFunc.ts",
+      "contentHash": "b7fb098b0a895c04489c8f9bd769a3e33656b9362c26614e6e5ff619e831bf5c",
+      "functions": [
+        {
+          "name": "signSiweMessage",
+          "params": [],
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "signEIP712Message",
+          "params": [
+            "signer",
+            "chainId"
+          ],
+          "exported": true,
+          "lineCount": 54
+        },
+        {
+          "name": "signStringMessage",
+          "params": [
+            "signer"
+          ],
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "signHexDataMessage",
+          "params": [
+            "signer",
+            "hexData"
+          ],
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "signEIP712YunGouMessage",
+          "params": [
+            "signer",
+            "chainId"
+          ],
+          "exported": true,
+          "lineCount": 71
+        },
+        {
+          "name": "signEIP712OpenSeaMessage",
+          "params": [
+            "signer",
+            "chainId"
+          ],
+          "exported": true,
+          "lineCount": 197
+        },
+        {
+          "name": "signBulkOrderOpenSeaMessage",
+          "params": [
+            "signer",
+            "chainId"
+          ],
+          "exported": true,
+          "lineCount": 66
+        },
+        {
+          "name": "signCustomBulkOrderMessage",
+          "params": [
+            "signer",
+            "chainId"
+          ],
+          "exported": true,
+          "lineCount": 65
+        },
+        {
+          "name": "getSystemSignature",
+          "params": [
+            "orderSignature",
+            "data"
+          ],
+          "exported": true,
+          "lineCount": 42
+        },
+        {
+          "name": "signBlurLoginMessage",
+          "params": [
+            "signer",
+            "messageString"
+          ],
+          "exported": true,
+          "lineCount": 29
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber",
+            "ethers",
+            "utils"
+          ]
+        },
+        {
+          "source": "@ethersproject/hash",
+          "specifiers": [
+            "_TypedDataEncoder"
+          ]
+        },
+        {
+          "source": "./Utils",
+          "specifiers": [
+            "getYunGouAddressAndParameters"
+          ]
+        },
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "PRIVATEKEY_VERIFYER"
+          ]
+        },
+        {
+          "source": "./GetProvider",
+          "specifiers": [
+            "getSignerAndChainId"
+          ]
+        },
+        {
+          "source": "../testdata/orderdata_yungou",
+          "specifiers": [
+            "order_data"
+          ]
+        },
+        {
+          "source": "@opensea/seaport-js",
+          "specifiers": [
+            "Seaport"
+          ]
+        },
+        {
+          "source": "signbulkorder-sdk",
+          "specifiers": [
+            "BulkOrder",
+            "EIP_712_BULK_ORDER_TYPE_DEMO"
+          ]
+        },
+        {
+          "source": "siwe",
+          "specifiers": [
+            "SiweMessage"
+          ]
+        },
+        {
+          "source": "sonner",
+          "specifiers": [
+            "toast"
+          ]
+        }
+      ],
+      "exports": [
+        "signSiweMessage",
+        "signEIP712Message",
+        "signStringMessage",
+        "signHexDataMessage",
+        "getSystemSignature",
+        "signEIP712YunGouMessage",
+        "signEIP712OpenSeaMessage",
+        "signBlurLoginMessage",
+        "signBulkOrderOpenSeaMessage",
+        "signCustomBulkOrderMessage"
+      ],
+      "totalLines": 654,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/SignsnapsShot.ts": {
+      "filePath": "src/utils/SignsnapsShot.ts",
+      "contentHash": "07acad7e7840e0ea1a951abe1b5bfc3b622c710c464a6129bcee9db5df04617e",
+      "functions": [
+        {
+          "name": "signSetAlias",
+          "params": [
+            "web3",
+            "address",
+            "alias"
+          ],
+          "returnType": "Promise<any | null>",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@snapshot-labs/snapshot.js",
+          "specifiers": [
+            "snapshot"
+          ]
+        }
+      ],
+      "exports": [
+        "signSetAlias"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/SolanaGetBalance.ts": {
+      "filePath": "src/utils/SolanaGetBalance.ts",
+      "contentHash": "f94c3c080761728a8cb4940781f59771f197c933680baa946ca6d1a33b455014",
+      "functions": [
+        {
+          "name": "getSolBalance",
+          "params": [
+            "connection",
+            "ownerAddress"
+          ],
+          "returnType": "Promise<number | null>",
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "Connection",
+            "PublicKey"
+          ]
+        }
+      ],
+      "exports": [
+        "getSolBalance"
+      ],
+      "totalLines": 17,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/SolanaSignAndVerify.js": {
+      "filePath": "src/utils/SolanaSignAndVerify.js",
+      "contentHash": "0ad6b4d02c24219ed54a04fd60290775358075cf9f0fa4b74a59dc7148a56117",
+      "functions": [
+        {
+          "name": "signSolanaMessage",
+          "params": [
+            "provider_solana",
+            "message_string"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "verifySolanaSignature",
+          "params": [
+            "signature_string",
+            "message_string",
+            "account_string"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "verifySolanaSignatureV2",
+          "params": [
+            "signature_string",
+            "message_string",
+            "account_string"
+          ],
+          "exported": true,
+          "lineCount": 11
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "bs58",
+          "specifiers": [
+            "base58"
+          ]
+        },
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "PublicKey"
+          ]
+        },
+        {
+          "source": "@noble/ed25519",
+          "specifiers": [
+            "verifyAsync"
+          ]
+        },
+        {
+          "source": "tweetnacl",
+          "specifiers": [
+            "sign"
+          ]
+        }
+      ],
+      "exports": [
+        "signSolanaMessage",
+        "verifySolanaSignature",
+        "verifySolanaSignatureV2"
+      ],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/Suscribers.ts": {
+      "filePath": "src/utils/Suscribers.ts",
+      "contentHash": "1967a9d057928206e4b3789bf76b72e016637f2fbf7545737c4d090ec387777a",
+      "functions": [
+        {
+          "name": "updateStore",
+          "params": [
+            "key",
+            "value"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "initializeSubscribers",
+          "params": [
+            "modal"
+          ],
+          "returnType": "void",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "store",
+        "updateStore",
+        "initializeSubscribers"
+      ],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/table/DataTable.js": {
+      "filePath": "src/utils/table/DataTable.js",
+      "contentHash": "2a083af5beff8209df7d6c0605bc8f219e56bf5e387cbb3602285b50205befb3",
+      "functions": [
+        {
+          "name": "DataTable",
+          "params": [],
+          "exported": false,
+          "lineCount": 33
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "src/utils/Utils.ts": {
+      "filePath": "src/utils/Utils.ts",
+      "contentHash": "caa2a2feb116de73fb53d4466f9c7c3571e9881ee4ce31d4fd63b5d8a3541aa5",
+      "functions": [
+        {
+          "name": "equalityStringIgnoreCase",
+          "params": [
+            "string1",
+            "string2"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "getScanURL",
+          "params": [],
+          "returnType": "Promise<string>",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "getInfuraProvider",
+          "params": [],
+          "returnType": "Promise<\n  providers.JsonRpcProvider | undefined\n>",
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "getYunGouAddress",
+          "params": [],
+          "returnType": "Promise<string | undefined>",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getYunGouAggregatorsAddress",
+          "params": [],
+          "returnType": "Promise<string>",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "getYunGouAddressAndParameters",
+          "params": [
+            "chainId"
+          ],
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "getYunGouAddressAndOrder",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "Promise<[string, typeof order_data] | undefined>",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "isAddress",
+          "params": [
+            "address"
+          ],
+          "returnType": "boolean",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "isContract",
+          "params": [
+            "provider",
+            "address"
+          ],
+          "returnType": "Promise<boolean>",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "stringToArray",
+          "params": [
+            "string"
+          ],
+          "returnType": "string[]",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getDecimal",
+          "params": [
+            "bigNumber",
+            "decimals"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getDecimalBigNumber",
+          "params": [
+            "number",
+            "decimals"
+          ],
+          "returnType": "ethers.BigNumber",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getExtractAddress",
+          "params": [
+            "address"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "utf8ToHexBytes",
+          "params": [
+            "str"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "caculatePriceBySqrtPriceX96",
+          "params": [
+            "sqrtPriceX96_"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "getAddressCreate",
+          "params": [
+            "sender",
+            "nonce"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getAssociatedAddress",
+          "params": [
+            "mintAddress",
+            "ownerAddress"
+          ],
+          "returnType": "Promise<string>",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getAlchemyURL",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "string | null",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getAlchemy",
+          "params": [
+            "chainId"
+          ],
+          "returnType": "Alchemy | null",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "normalizeFaucetConfigKeys",
+          "params": [
+            "config"
+          ],
+          "returnType": "Record<string, Record<string, string>>",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "sendToWebhook",
+          "params": [
+            "data"
+          ],
+          "returnType": "Promise<unknown>",
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../common/SystemConfiguration",
+          "specifiers": [
+            "YunGou2_0_main",
+            "YunGou2_0_goerli",
+            "YunGou2_0_tbsc",
+            "YunGou2_0_bsc",
+            "YunGouAggregators_bsc",
+            "YunGouAggregators_main",
+            "YunGouAggregators_tbsc",
+            "YunGouAggregators_goerli",
+            "ALCHEMY_KEY_V3",
+            "YunGou2_0_sepolia",
+            "YunGouAggregators_sepolia",
+            "DISCORD_WEBHOOK_URL"
+          ]
+        },
+        {
+          "source": "../testdata/orderdata_yungou",
+          "specifiers": [
+            "order_data",
+            "order_data_tbsc"
+          ]
+        },
+        {
+          "source": "ethers",
+          "specifiers": [
+            "BigNumber",
+            "ethers",
+            "providers"
+          ]
+        },
+        {
+          "source": "decimal.js",
+          "specifiers": [
+            "Decimal"
+          ]
+        },
+        {
+          "source": "@solana/spl-token",
+          "specifiers": [
+            "getAssociatedTokenAddress"
+          ]
+        },
+        {
+          "source": "@solana/web3.js",
+          "specifiers": [
+            "PublicKey"
+          ]
+        },
+        {
+          "source": "alchemy-sdk",
+          "specifiers": [
+            "Alchemy",
+            "Network"
+          ]
+        },
+        {
+          "source": "../common/ChainsConfig",
+          "specifiers": [
+            "SupportChains"
+          ]
+        }
+      ],
+      "exports": [
+        "normalizeFaucetConfigKeys",
+        "sendToWebhook",
+        "equalityStringIgnoreCase",
+        "getScanURL",
+        "getYunGouAddress",
+        "getYunGouAddressAndParameters",
+        "getYunGouAddressAndOrder",
+        "isAddress",
+        "stringToArray",
+        "getYunGouAggregatorsAddress",
+        "getDecimal",
+        "getDecimalBigNumber",
+        "getExtractAddress",
+        "utf8ToHexBytes",
+        "caculatePriceBySqrtPriceX96",
+        "getAddressCreate",
+        "getAssociatedAddress",
+        "isContract",
+        "getAlchemyURL",
+        "getAlchemy",
+        "getInfuraProvider"
+      ],
+      "totalLines": 286,
+      "hasStructuralAnalysis": true
+    },
+    "tsconfig.json": {
+      "filePath": "tsconfig.json",
+      "contentHash": "4511c8369dae8c2b5af20dd6947a5e91f78e37997ae8d9bb6c59b57d7522c336",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "vercel.json": {
+      "filePath": "vercel.json",
+      "contentHash": "9c6fbc340c89cbc5c922d00878a493e4db7c2663454448f0a5b6ac5874332df6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

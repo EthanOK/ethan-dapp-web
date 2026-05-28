@@ -1,0 +1,1185 @@
+{
+  "name": "ethan-dapp-web",
+  "description": "基于 React 的多链 DApp Web 前端（Create React App + CRACO），通过 Reown AppKit、Web3Auth 与 ethers 集成 EVM、Solana 与 Bitcoin 钱包，并提供 NFT/市场与治理相关能力。项目超过 100 个源文件，若需更快分析可考虑对子目录单独运行 /understand。",
+  "languages": [
+    "css",
+    "dockerfile",
+    "html",
+    "javascript",
+    "json",
+    "markdown",
+    "txt",
+    "typescript",
+    "yaml"
+  ],
+  "frameworks": [
+    "React",
+    "React Router",
+    "CRACO",
+    "ethers.js",
+    "Solana Web3.js",
+    "Reown AppKit",
+    "Web3Auth",
+    "OpenSea SDK",
+    "Docker",
+    "Docker Compose"
+  ],
+  "files": [
+    {
+      "path": ".dockerignore",
+      "language": "unknown",
+      "sizeLines": 2,
+      "fileCategory": "infra"
+    },
+    {
+      "path": ".env.example",
+      "language": "config",
+      "sizeLines": 11,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".husky/pre-commit",
+      "language": "unknown",
+      "sizeLines": 2,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".npmrc",
+      "language": "unknown",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".prettierignore",
+      "language": "unknown",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".understand-anything/config.json",
+      "language": "json",
+      "sizeLines": 3,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/fingerprints.json",
+      "language": "json",
+      "sizeLines": 6118,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/knowledge-graph.json",
+      "language": "json",
+      "sizeLines": 11379,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/meta.json",
+      "language": "json",
+      "sizeLines": 5,
+      "fileCategory": "config"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "language": "markdown",
+      "sizeLines": 180,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "sizeLines": 77,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "craco.config.js",
+      "language": "javascript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "sizeLines": 8,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "Dockerfile",
+      "language": "dockerfile",
+      "sizeLines": 13,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "sizeLines": 110,
+      "fileCategory": "config"
+    },
+    {
+      "path": "public/index.html",
+      "language": "html",
+      "sizeLines": 49,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "public/manifest.json",
+      "language": "json",
+      "sizeLines": 25,
+      "fileCategory": "config"
+    },
+    {
+      "path": "public/robots.txt",
+      "language": "txt",
+      "sizeLines": 3,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 37,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "skills-lock.json",
+      "language": "json",
+      "sizeLines": 65,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/api/ChangeData.ts",
+      "language": "typescript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/api/GetData.ts",
+      "language": "typescript",
+      "sizeLines": 316,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/App.css",
+      "language": "css",
+      "sizeLines": 1072,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/App.test.tsx",
+      "language": "typescript",
+      "sizeLines": 8,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/App.tsx",
+      "language": "typescript",
+      "sizeLines": 3,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/common/ChainsConfig.ts",
+      "language": "typescript",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/common/FaucetConfig.ts",
+      "language": "typescript",
+      "sizeLines": 86,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/common/SystemConfiguration.ts",
+      "language": "typescript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/components/AddressStyledQR.tsx",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/contracts/BatchTransferTokenABI.json",
+      "language": "json",
+      "sizeLines": 258,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/crossChainABI.json",
+      "language": "json",
+      "sizeLines": 225,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/erc20ABI.json",
+      "language": "json",
+      "sizeLines": 277,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/erc721A.json",
+      "language": "json",
+      "sizeLines": 459,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/faucetABI.json",
+      "language": "json",
+      "sizeLines": 36,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/luckyBabyABI.json",
+      "language": "json",
+      "sizeLines": 645,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/seaport1_5.json",
+      "language": "json",
+      "sizeLines": 2259,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/UniswapV2RouterABI.json",
+      "language": "json",
+      "sizeLines": 398,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/usdtABI.json",
+      "language": "json",
+      "sizeLines": 390,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/YGMEABI.json",
+      "language": "json",
+      "sizeLines": 459,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/yungou1_5.json",
+      "language": "json",
+      "sizeLines": 603,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/yungou2_0.json",
+      "language": "json",
+      "sizeLines": 909,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/contracts/YunGouAggregators.json",
+      "language": "json",
+      "sizeLines": 198,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/demo/utf8ToBytes.js",
+      "language": "javascript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/demo/web3jsencode.js",
+      "language": "javascript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/EthanDapp.tsx",
+      "language": "typescript",
+      "sizeLines": 615,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/idls/wsol_idl.json",
+      "language": "json",
+      "sizeLines": 729,
+      "fileCategory": "config"
+    },
+    {
+      "path": "src/index.css",
+      "language": "css",
+      "sizeLines": 166,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/index.tsx",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/BurnTokenPage.tsx",
+      "language": "typescript",
+      "sizeLines": 325,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/BuyBlurNFTPage.tsx",
+      "language": "typescript",
+      "sizeLines": 231,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/BuyNFTPage.tsx",
+      "language": "typescript",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/CreateTransactionPage.tsx",
+      "language": "typescript",
+      "sizeLines": 637,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/CrossChainBridgePage.tsx",
+      "language": "typescript",
+      "sizeLines": 500,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/DataDisplayPage.tsx",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/EIP7702Page.tsx",
+      "language": "typescript",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ENSPage.tsx",
+      "language": "typescript",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ERC20AllowancePage.tsx",
+      "language": "typescript",
+      "sizeLines": 308,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/ERC6551Page.tsx",
+      "language": "typescript",
+      "sizeLines": 292,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/EstimateTxFeePage.tsx",
+      "language": "typescript",
+      "sizeLines": 162,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/FaucetTokenPage.tsx",
+      "language": "typescript",
+      "sizeLines": 552,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/GetCollectionPage.tsx",
+      "language": "typescript",
+      "sizeLines": 175,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/GetIPFSPage.tsx",
+      "language": "typescript",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/GetOpenSeaDataPage.tsx",
+      "language": "typescript",
+      "sizeLines": 132,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/HomePage.css",
+      "language": "css",
+      "sizeLines": 949,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/HomePage.tsx",
+      "language": "typescript",
+      "sizeLines": 977,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/LayerZeroOFTBridgePage.css",
+      "language": "css",
+      "sizeLines": 218,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/LayerZeroOFTBridgePage.tsx",
+      "language": "typescript",
+      "sizeLines": 1448,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/LuckyBabyPage.tsx",
+      "language": "typescript",
+      "sizeLines": 538,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/MarketChartPage.css",
+      "language": "css",
+      "sizeLines": 705,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/MarketChartPage.tsx",
+      "language": "typescript",
+      "sizeLines": 1475,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/MintNFTPage.tsx",
+      "language": "typescript",
+      "sizeLines": 133,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/SignEIP712Page.tsx",
+      "language": "typescript",
+      "sizeLines": 213,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/SolanaUtilsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 780,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/UtilsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 396,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/Web3AuthPage.tsx",
+      "language": "typescript",
+      "sizeLines": 283,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/Web3AuthSolanaPage.tsx",
+      "language": "typescript",
+      "sizeLines": 375,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/WsolPage.tsx",
+      "language": "typescript",
+      "sizeLines": 497,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/pages/YunGouAggregatorsPage.css",
+      "language": "css",
+      "sizeLines": 117,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "src/pages/YunGouAggregatorsPage.tsx",
+      "language": "typescript",
+      "sizeLines": 391,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/react-app-env.d.ts",
+      "language": "typescript",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/reportWebVitals.ts",
+      "language": "typescript",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/setupTests.ts",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/testdata/orderdata_yungou.ts",
+      "language": "typescript",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/testdata/orderdata.ts",
+      "language": "typescript",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/testdata/ordersdata.ts",
+      "language": "typescript",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/types/eth-url-parser.d.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/types/global.d.ts",
+      "language": "typescript",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/AlchemySDK.js",
+      "language": "javascript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/BitcoinBalance.ts",
+      "language": "typescript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/BlurFunc.ts",
+      "language": "typescript",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/CalculateTokenPrice.js",
+      "language": "javascript",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/CallLuckyBaby.js",
+      "language": "javascript",
+      "sizeLines": 286,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/CallnftMint.ts",
+      "language": "typescript",
+      "sizeLines": 126,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/CallYunGouContracts.js",
+      "language": "javascript",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/coinGeckoApi.ts",
+      "language": "typescript",
+      "sizeLines": 139,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/ConnectMysql.js",
+      "language": "javascript",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/ConnectMysqlDemo.js",
+      "language": "javascript",
+      "sizeLines": 10,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/ConnectWallet.ts",
+      "language": "typescript",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/EIP7702Utils.ts",
+      "language": "typescript",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/EstimateTxFee.ts",
+      "language": "typescript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/format.ts",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetAccessListInTx.ts",
+      "language": "typescript",
+      "sizeLines": 30,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetBlurCallData.ts",
+      "language": "typescript",
+      "sizeLines": 136,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetContract.ts",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetLpTokenPrice.js",
+      "language": "javascript",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetNFTListByOwner.ts",
+      "language": "typescript",
+      "sizeLines": 107,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetOrder.ts",
+      "language": "typescript",
+      "sizeLines": 270,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetOrdersTestnet.ts",
+      "language": "typescript",
+      "sizeLines": 455,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetPhantomProvider.ts",
+      "language": "typescript",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetProvider.ts",
+      "language": "typescript",
+      "sizeLines": 359,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetSolanaConnection.js",
+      "language": "javascript",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetTokenboundClient.js",
+      "language": "javascript",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/GetWsolProgram.js",
+      "language": "javascript",
+      "sizeLines": 66,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/HandleTxData.js",
+      "language": "javascript",
+      "sizeLines": 38,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/LayerZero.ts",
+      "language": "typescript",
+      "sizeLines": 242,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/multicall3.ts",
+      "language": "typescript",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/OpenseaFunc.ts",
+      "language": "typescript",
+      "sizeLines": 594,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/OperateDb.js",
+      "language": "javascript",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/OperateMysql.js",
+      "language": "javascript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/PhantomSendTransaction.js",
+      "language": "javascript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/ServeBack.js",
+      "language": "javascript",
+      "sizeLines": 49,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/SignFunc.ts",
+      "language": "typescript",
+      "sizeLines": 653,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/SignsnapsShot.ts",
+      "language": "typescript",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/SolanaGetBalance.ts",
+      "language": "typescript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/SolanaSignAndVerify.js",
+      "language": "javascript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/Suscribers.ts",
+      "language": "typescript",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/table/DataTable.js",
+      "language": "javascript",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/utils/Utils.ts",
+      "language": "typescript",
+      "sizeLines": 285,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "sizeLines": 21,
+      "fileCategory": "config"
+    },
+    {
+      "path": "vercel.json",
+      "language": "json",
+      "sizeLines": 10,
+      "fileCategory": "config"
+    }
+  ],
+  "totalFiles": 131,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "moderate",
+  "importMap": {
+    ".dockerignore": [],
+    ".env.example": [],
+    ".husky/pre-commit": [],
+    ".npmrc": [],
+    ".prettierignore": [],
+    ".understand-anything/.understandignore": [],
+    ".understand-anything/config.json": [],
+    ".understand-anything/fingerprints.json": [],
+    ".understand-anything/knowledge-graph.json": [],
+    ".understand-anything/meta.json": [],
+    "CHANGELOG.md": [],
+    "CLAUDE.md": [],
+    "craco.config.js": [],
+    "docker-compose.yml": [],
+    "Dockerfile": [],
+    "package.json": [],
+    "public/index.html": [],
+    "public/manifest.json": [],
+    "public/robots.txt": [],
+    "README.md": [],
+    "skills-lock.json": [],
+    "src/api/ChangeData.ts": [
+      "src/common/SystemConfiguration.ts"
+    ],
+    "src/api/GetData.ts": [
+      "src/common/SystemConfiguration.ts"
+    ],
+    "src/App.css": [],
+    "src/App.test.tsx": [
+      "src/EthanDapp.tsx"
+    ],
+    "src/App.tsx": [
+      "src/EthanDapp.tsx"
+    ],
+    "src/common/ChainsConfig.ts": [],
+    "src/common/FaucetConfig.ts": [
+      "src/common/ChainsConfig.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/common/SystemConfiguration.ts": [],
+    "src/components/AddressStyledQR.tsx": [],
+    "src/contracts/BatchTransferTokenABI.json": [],
+    "src/contracts/crossChainABI.json": [],
+    "src/contracts/erc20ABI.json": [],
+    "src/contracts/erc721A.json": [],
+    "src/contracts/faucetABI.json": [],
+    "src/contracts/luckyBabyABI.json": [],
+    "src/contracts/seaport1_5.json": [],
+    "src/contracts/UniswapV2RouterABI.json": [],
+    "src/contracts/usdtABI.json": [],
+    "src/contracts/YGMEABI.json": [],
+    "src/contracts/yungou1_5.json": [],
+    "src/contracts/yungou2_0.json": [],
+    "src/contracts/YunGouAggregators.json": [],
+    "src/demo/utf8ToBytes.js": [],
+    "src/demo/web3jsencode.js": [],
+    "src/EthanDapp.tsx": [
+      "src/App.css",
+      "src/common/SystemConfiguration.ts",
+      "src/pages/BurnTokenPage.tsx",
+      "src/pages/BuyBlurNFTPage.tsx",
+      "src/pages/BuyNFTPage.tsx",
+      "src/pages/CreateTransactionPage.tsx",
+      "src/pages/EIP7702Page.tsx",
+      "src/pages/ENSPage.tsx",
+      "src/pages/ERC20AllowancePage.tsx",
+      "src/pages/ERC6551Page.tsx",
+      "src/pages/EstimateTxFeePage.tsx",
+      "src/pages/FaucetTokenPage.tsx",
+      "src/pages/GetCollectionPage.tsx",
+      "src/pages/GetIPFSPage.tsx",
+      "src/pages/GetOpenSeaDataPage.tsx",
+      "src/pages/HomePage.tsx",
+      "src/pages/LayerZeroOFTBridgePage.tsx",
+      "src/pages/MarketChartPage.tsx",
+      "src/pages/MintNFTPage.tsx",
+      "src/pages/SignEIP712Page.tsx",
+      "src/pages/SolanaUtilsPage.tsx",
+      "src/pages/UtilsPage.tsx",
+      "src/pages/Web3AuthPage.tsx",
+      "src/pages/Web3AuthSolanaPage.tsx",
+      "src/pages/WsolPage.tsx",
+      "src/pages/YunGouAggregatorsPage.tsx",
+      "src/utils/ConnectWallet.ts",
+      "src/utils/Suscribers.ts"
+    ],
+    "src/idls/wsol_idl.json": [],
+    "src/index.css": [],
+    "src/index.tsx": [
+      "src/EthanDapp.tsx",
+      "src/index.css",
+      "src/reportWebVitals.ts"
+    ],
+    "src/pages/BurnTokenPage.tsx": [
+      "src/utils/format.ts",
+      "src/utils/GetContract.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/BuyBlurNFTPage.tsx": [
+      "src/api/GetData.ts",
+      "src/utils/BlurFunc.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/SignFunc.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/BuyNFTPage.tsx": [
+      "src/api/GetData.ts",
+      "src/utils/OpenseaFunc.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/CreateTransactionPage.tsx": [
+      "src/utils/format.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/multicall3.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/CrossChainBridgePage.tsx": [
+      "src/api/ChangeData.ts",
+      "src/api/GetData.ts",
+      "src/common/FaucetConfig.ts",
+      "src/common/SystemConfiguration.ts",
+      "src/utils/GetContract.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/DataDisplayPage.tsx": [
+      "src/api/GetData.ts",
+      "src/utils/table/DataTable.js"
+    ],
+    "src/pages/EIP7702Page.tsx": [
+      "src/common/SystemConfiguration.ts",
+      "src/utils/EIP7702Utils.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/ENSPage.tsx": [
+      "src/api/GetData.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/ERC20AllowancePage.tsx": [
+      "src/common/ChainsConfig.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/ERC6551Page.tsx": [
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/EstimateTxFeePage.tsx": [
+      "src/utils/EstimateTxFee.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/FaucetTokenPage.tsx": [
+      "src/common/FaucetConfig.ts",
+      "src/EthanDapp.tsx",
+      "src/utils/GetContract.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/GetCollectionPage.tsx": [
+      "src/utils/GetNFTListByOwner.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/GetIPFSPage.tsx": [],
+    "src/pages/GetOpenSeaDataPage.tsx": [
+      "src/api/GetData.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/HomePage.css": [],
+    "src/pages/HomePage.tsx": [
+      "src/common/SystemConfiguration.ts",
+      "src/components/AddressStyledQR.tsx",
+      "src/pages/HomePage.css",
+      "src/utils/BitcoinBalance.ts",
+      "src/utils/GetProvider.ts"
+    ],
+    "src/pages/LayerZeroOFTBridgePage.css": [],
+    "src/pages/LayerZeroOFTBridgePage.tsx": [
+      "src/common/ChainsConfig.ts",
+      "src/common/FaucetConfig.ts",
+      "src/EthanDapp.tsx",
+      "src/pages/LayerZeroOFTBridgePage.css",
+      "src/utils/format.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/LayerZero.ts",
+      "src/utils/multicall3.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/LuckyBabyPage.tsx": [
+      "src/utils/CallLuckyBaby.js",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/MarketChartPage.css": [],
+    "src/pages/MarketChartPage.tsx": [
+      "src/pages/MarketChartPage.css",
+      "src/utils/coinGeckoApi.ts"
+    ],
+    "src/pages/MintNFTPage.tsx": [
+      "src/utils/CallnftMint.ts"
+    ],
+    "src/pages/SignEIP712Page.tsx": [
+      "src/api/GetData.ts",
+      "src/utils/ConnectWallet.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/SignFunc.ts"
+    ],
+    "src/pages/SolanaUtilsPage.tsx": [
+      "src/utils/format.ts",
+      "src/utils/GetSolanaConnection.js",
+      "src/utils/SolanaGetBalance.ts",
+      "src/utils/SolanaSignAndVerify.js",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/UtilsPage.tsx": [
+      "src/api/GetData.ts",
+      "src/utils/GetLpTokenPrice.js",
+      "src/utils/GetProvider.ts",
+      "src/utils/SignFunc.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/Web3AuthPage.tsx": [
+      "src/utils/SignsnapsShot.ts"
+    ],
+    "src/pages/Web3AuthSolanaPage.tsx": [],
+    "src/pages/WsolPage.tsx": [
+      "src/utils/format.ts",
+      "src/utils/GetSolanaConnection.js",
+      "src/utils/GetWsolProgram.js",
+      "src/utils/SolanaGetBalance.ts"
+    ],
+    "src/pages/YunGouAggregatorsPage.css": [],
+    "src/pages/YunGouAggregatorsPage.tsx": [
+      "src/common/SystemConfiguration.ts",
+      "src/contracts/seaport1_5.json",
+      "src/contracts/yungou2_0.json",
+      "src/contracts/YunGouAggregators.json",
+      "src/pages/YunGouAggregatorsPage.css",
+      "src/testdata/orderdata.ts",
+      "src/testdata/ordersdata.ts",
+      "src/utils/GetOrder.ts",
+      "src/utils/GetOrdersTestnet.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/react-app-env.d.ts": [],
+    "src/reportWebVitals.ts": [],
+    "src/setupTests.ts": [],
+    "src/testdata/orderdata_yungou.ts": [],
+    "src/testdata/orderdata.ts": [],
+    "src/testdata/ordersdata.ts": [],
+    "src/types/eth-url-parser.d.ts": [],
+    "src/types/global.d.ts": [],
+    "src/utils/AlchemySDK.js": [],
+    "src/utils/BitcoinBalance.ts": [],
+    "src/utils/BlurFunc.ts": [
+      "src/common/SystemConfiguration.ts",
+      "src/utils/GetBlurCallData.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/HandleTxData.js",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/CalculateTokenPrice.js": [],
+    "src/utils/CallLuckyBaby.js": [
+      "src/contracts/luckyBabyABI.json",
+      "src/contracts/usdtABI.json",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/CallnftMint.ts": [
+      "src/common/FaucetConfig.ts",
+      "src/common/SystemConfiguration.ts",
+      "src/contracts/BatchTransferTokenABI.json",
+      "src/contracts/YGMEABI.json",
+      "src/utils/GetProvider.ts",
+      "src/utils/SignFunc.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/CallYunGouContracts.js": [],
+    "src/utils/coinGeckoApi.ts": [],
+    "src/utils/ConnectMysql.js": [],
+    "src/utils/ConnectMysqlDemo.js": [
+      "src/utils/ConnectMysql.js",
+      "src/utils/OperateMysql.js"
+    ],
+    "src/utils/ConnectWallet.ts": [
+      "src/utils/SignFunc.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/EIP7702Utils.ts": [],
+    "src/utils/EstimateTxFee.ts": [],
+    "src/utils/format.ts": [],
+    "src/utils/GetAccessListInTx.ts": [],
+    "src/utils/GetBlurCallData.ts": [
+      "src/utils/GetProvider.ts"
+    ],
+    "src/utils/GetContract.ts": [
+      "src/common/FaucetConfig.ts",
+      "src/contracts/crossChainABI.json",
+      "src/contracts/erc20ABI.json",
+      "src/contracts/erc721A.json",
+      "src/contracts/faucetABI.json",
+      "src/utils/GetProvider.ts"
+    ],
+    "src/utils/GetLpTokenPrice.js": [
+      "src/common/SystemConfiguration.ts",
+      "src/contracts/erc20ABI.json",
+      "src/contracts/UniswapV2RouterABI.json"
+    ],
+    "src/utils/GetNFTListByOwner.ts": [
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/GetOrder.ts": [],
+    "src/utils/GetOrdersTestnet.ts": [],
+    "src/utils/GetPhantomProvider.ts": [],
+    "src/utils/GetProvider.ts": [
+      "src/common/ChainsConfig.ts",
+      "src/common/SystemConfiguration.ts",
+      "src/utils/Suscribers.ts"
+    ],
+    "src/utils/GetSolanaConnection.js": [
+      "src/common/SystemConfiguration.ts"
+    ],
+    "src/utils/GetTokenboundClient.js": [],
+    "src/utils/GetWsolProgram.js": [
+      "src/idls/wsol_idl.json",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/HandleTxData.js": [
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/LayerZero.ts": [],
+    "src/utils/multicall3.ts": [],
+    "src/utils/OpenseaFunc.ts": [
+      "src/common/SystemConfiguration.ts",
+      "src/contracts/seaport1_5.json",
+      "src/utils/GetOrder.ts",
+      "src/utils/GetOrdersTestnet.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/HandleTxData.js",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/OperateDb.js": [],
+    "src/utils/OperateMysql.js": [],
+    "src/utils/PhantomSendTransaction.js": [],
+    "src/utils/ServeBack.js": [],
+    "src/utils/SignFunc.ts": [
+      "src/common/SystemConfiguration.ts",
+      "src/testdata/orderdata_yungou.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/SignsnapsShot.ts": [],
+    "src/utils/SolanaGetBalance.ts": [],
+    "src/utils/SolanaSignAndVerify.js": [],
+    "src/utils/Suscribers.ts": [],
+    "src/utils/table/DataTable.js": [],
+    "src/utils/Utils.ts": [
+      "src/common/ChainsConfig.ts",
+      "src/common/SystemConfiguration.ts",
+      "src/testdata/orderdata_yungou.ts"
+    ],
+    "tsconfig.json": [],
+    "vercel.json": []
+  }
+}
