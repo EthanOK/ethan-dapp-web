@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { isAddress } from "../utils/Utils";
+import { isAddress } from "@/lib/shared/Utils";
 import {
   getBlurLoginMessageByNFTGO,
   getBlurAccessTokenByNFTGO
-} from "../api/GetData";
-import { signBlurLoginMessage } from "../utils/SignFunc";
-import { getSignerAndAccountAndChainId } from "../utils/GetProvider";
-import { onlyBuyBlurNFT } from "../utils/BlurFunc";
-import { useAppKitAccount } from "@reown/appkit/react";
+} from "@/services/GetData";
+import { signBlurLoginMessage } from "@/lib/signing/SignFunc";
+import { getSignerAndAccountAndChainId } from "@/lib/wallet/GetProvider";
+import { onlyBuyBlurNFT } from "@/lib/nft/BlurFunc";
+import { useEvmWallet } from "@/hooks";
 
 const BuyBlurNFTPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [blurAccessToken, setBlurAccessToken] = useState<string | null>(null);
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);
@@ -64,7 +64,7 @@ const BuyBlurNFTPage = () => {
     };
     const messageString = login.message ?? "";
     const result = await signBlurLoginMessage(signer, messageString);
-    if (result === null || result === false) return;
+    if (result === null) return;
     const requestData = {
       message: login.message,
       walletAddress: login.walletAddress,

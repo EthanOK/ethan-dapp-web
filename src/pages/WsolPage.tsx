@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck — TODO: 逐步补充类型
+// @ts-nocheck — TODO: add types incrementally
 import { useEffect, useRef, useState } from "react";
 import * as buffer from "buffer";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
-import { getDevConnection } from "../utils/GetSolanaConnection";
-import { getSolBalance } from "../utils/SolanaGetBalance";
+import { getDevConnection } from "@/lib/solana/GetSolanaConnection";
+import { getSolBalance } from "@/lib/solana/SolanaGetBalance";
 import {
   getMetadataPDA,
   getWethMintAddress,
@@ -12,7 +12,7 @@ import {
   getWethBalance,
   getDestinationAddress,
   getStoragePDA
-} from "../utils/GetWsolProgram";
+} from "@/lib/solana/GetWsolProgram";
 import { BN } from "@coral-xyz/anchor";
 import { toast } from "sonner";
 
@@ -23,7 +23,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
-import { truncateHash } from "../utils/format";
+import { truncateHash } from "@/lib/shared/Format";
 
 const WsolPageContent = () => {
   const { walletProvider } = useAppKitProvider<Provider>("solana");
@@ -60,7 +60,7 @@ const WsolPageContent = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    const POLL_MS = 15000; // 15s 轮询，减少 WalletConnect RPC 请求频率
+    const POLL_MS = 15000; // Poll every 15s to reduce WalletConnect RPC load
     const intervalId = setInterval(() => {
       if (document.visibilityState === "visible") {
         updateShowData();
@@ -123,7 +123,7 @@ const WsolPageContent = () => {
     return sendTransaction(txTransaction, connection);
   };
 
-  // 网络切换（connection 改变）时立刻刷新一次余额
+  // Refresh balance immediately when network (connection) changes
   useEffect(() => {
     if (connected) {
       updateShowData();

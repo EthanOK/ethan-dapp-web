@@ -1,27 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import { toast } from "sonner";
-import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import {
+  useEvmWallet,
+  useOpenAppKitModal,
+  useSwitchAppKitNetwork,
+  useWalletChain
+} from "@/hooks";
 import {
   getDefaultReadonlyProvider,
   getProvider,
   getSigner,
   getSignerAndChainId
-} from "../utils/GetProvider";
-import { getDefaultNetwork, modal } from "../EthanDapp";
-import { isAddress, getDecimalBigNumber } from "../utils/Utils";
-import { truncateHash } from "../utils/format";
-import { SupportChains } from "../common/ChainsConfig";
-import { faucetChainIdList, getChainName } from "../common/FaucetConfig";
+} from "@/lib/wallet/GetProvider";
+import { isAddress, getDecimalBigNumber } from "@/lib/shared/Utils";
+import { truncateHash } from "@/lib/shared/Format";
+import { SupportChains } from "@/config/ChainsConfig";
+import { faucetChainIdList, getChainName } from "@/config/FaucetConfig";
 import {
   decodeMulticallResult,
   multicall3Aggregate3StaticCall,
   type Multicall3Call
-} from "../utils/multicall3";
+} from "@/lib/evm/Multicall3";
 import {
   evmChainIdToLzV2SrcEndpointId,
   getLayerZeroScanLink
-} from "../utils/LayerZero";
+} from "@/lib/evm/LayerZero";
 import "./LayerZeroOFTBridgePage.css";
 
 /** LayerZero V2 testnet dstEid presets (official EIDs) */
@@ -324,8 +328,15 @@ const buildSendParam = (
 ];
 
 const LayerZeroOFTBridgePage = () => {
-  const { address, isConnected } = useAppKitAccount();
-  const { chainId: chainIdCurrent } = useAppKitNetwork();
+  const { address, isConnected } = useEvmWallet();
+  const { chainIdNum: walletChainNum, chainIdCurrent } = useWalletChain();
+  const { isConnecting: isConnectingWallet, openConnectModal } =
+    useOpenAppKitModal();
+  const {
+    isSwitching: isSwitchingMetaChain,
+    switchNetwork,
+    switchToChainAndWait
+  } = useSwitchAppKitNetwork();
 
   const [selectedSourceChainId, setSelectedSourceChainId] = useState<number>(
     () => readStoredMetaChainId()
@@ -367,8 +378,6 @@ const LayerZeroOFTBridgePage = () => {
   const [chainId, setChainId] = useState<number | undefined>(undefined);
 
   const [isLoadingMeta, setIsLoadingMeta] = useState(false);
-  const [isSwitchingMetaChain, setIsSwitchingMetaChain] = useState(false);
-  const [isConnectingWallet, setIsConnectingWallet] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   /** One-click: approve exact amount if needed → quoteSend → send */
   const [isBridgeOneClick, setIsBridgeOneClick] = useState(false);
@@ -473,12 +482,6 @@ const LayerZeroOFTBridgePage = () => {
 
   const canReadMeta = isAddress(oftTrimmed);
 
-  const walletChainNum = useMemo(() => {
-    if (chainIdCurrent == null) return null;
-    const n = Number(chainIdCurrent);
-    return Number.isFinite(n) ? n : null;
-  }, [chainIdCurrent]);
-
   /** Wallet must match Select Chain before load / bridge (Faucet-style) */
   const needsMetaChainSwitch = useMemo(
     () =>
@@ -515,7 +518,7 @@ const LayerZeroOFTBridgePage = () => {
     persistMetaChainId(cid);
     if (chainIdCurrent != null && cid !== Number(chainIdCurrent)) {
       try {
-        await modal.switchNetwork(getDefaultNetwork(cid));
+        await switchNetwork(cid);
       } catch (error) {
         console.error("Failed to switch chain:", error);
         toast.error("切换链失败，请手动切换");
@@ -525,59 +528,11 @@ const LayerZeroOFTBridgePage = () => {
 
   const switchToMetaChain = async (targetChainId: number): Promise<boolean> => {
     const targetName = metaChainLabel(targetChainId);
-    setIsSwitchingMetaChain(true);
-    try {
-      await modal.switchNetwork(getDefaultNetwork(targetChainId));
-      const deadline = Date.now() + 15000;
-      let onTarget = false;
-      while (Date.now() < deadline) {
-        const [, cid] = await getSignerAndChainId();
-        if (cid === targetChainId) {
-          onTarget = true;
-          break;
-        }
-        await new Promise((r) => setTimeout(r, 400));
-      }
-      const [, cidAfter] = await getSignerAndChainId();
-      if (!onTarget && cidAfter !== targetChainId) {
-        toast.error(`切换超时或未在 ${targetName}，请手动切换后重试`);
-        return false;
-      }
-      try {
-        localStorage.setItem("chainId", String(targetChainId));
-        persistMetaChainId(targetChainId);
-        window.dispatchEvent(
-          new CustomEvent("app-network-changed", {
-            detail: { chainId: String(targetChainId) }
-          })
-        );
-      } catch {
-        /* ignore */
-      }
-      return true;
-    } catch {
-      toast.error(`切换网络失败，请手动切换到 ${targetName}`);
-      return false;
-    } finally {
-      setIsSwitchingMetaChain(false);
-    }
-  };
-
-  const handleConnectWallet = async () => {
-    setIsConnectingWallet(true);
-    try {
-      localStorage.setItem("LoginType", "reown");
-      const maybeModal = modal as unknown as {
-        open?: () => Promise<void> | void;
-      };
-      await maybeModal?.open?.();
-    } catch (error) {
-      console.error("Connect failed:", error);
-      localStorage.removeItem("LoginType");
-      toast.error("Connect wallet failed, please try again");
-    } finally {
-      setIsConnectingWallet(false);
-    }
+    const ok = await switchToChainAndWait(targetChainId, {
+      onMismatchMessage: `切换超时或未在 ${targetName}，请手动切换后重试`
+    });
+    if (ok) persistMetaChainId(targetChainId);
+    return ok;
   };
 
   const canQuoteOrSend =
@@ -1111,7 +1066,7 @@ const LayerZeroOFTBridgePage = () => {
             <button
               type="button"
               className="cta-button connect-wallet-button"
-              onClick={() => void handleConnectWallet()}
+              onClick={() => void openConnectModal()}
               disabled={isConnectingWallet}
             >
               {isConnectingWallet ? "Connecting..." : "Connect Wallet"}

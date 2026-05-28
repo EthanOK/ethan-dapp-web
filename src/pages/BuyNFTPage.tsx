@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { isAddress, stringToArray } from "../utils/Utils";
-import { getOrderHashSignatureOpenSea } from "../api/GetData";
+import { isAddress, stringToArray } from "@/lib/shared/Utils";
+import { getOrderHashSignatureOpenSea } from "@/services/GetData";
 import {
   fulfillBasicOrder,
   fulfillOrder,
   fulfillBasicOrder_efficient,
   fulfillAvailableAdvancedOrders,
   fulfillAvailableOrders
-} from "../utils/OpenseaFunc";
-import { useAppKitAccount } from "@reown/appkit/react";
+} from "@/lib/nft/OpenseaFunc";
+import { useEvmWallet } from "@/hooks";
 
 const BuyNFTPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

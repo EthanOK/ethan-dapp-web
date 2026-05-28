@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck — TODO: 逐步补充类型
+// @ts-nocheck — TODO: add types incrementally
 import { useEffect, useState } from "react";
 import { Web3Auth } from "@web3auth/modal";
 import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
@@ -78,13 +78,13 @@ const Web3AuthSolanaPage = () => {
         // IMP START - SDK Initialization
         await initWeb3AuthModal();
         // IMP END - SDK Initialization
-        // initModal 完成即可认为页面 ready（即便未连接时 provider 可能为 null）
+        // Page is ready once initModal completes (provider may be null when disconnected)
         setIsReady(true);
 
         const p = web3auth.provider;
         setProvider(p);
 
-        // 只有在已连接时，provider 才具备完整的 solana rpc methods（否则可能出现 Method not found）
+        // Full Solana RPC methods are only available when connected (otherwise "Method not found")
         if (web3auth.connected && p) {
           setLoggedIn(true);
           const sw = new SolanaWallet(p);
@@ -107,7 +107,7 @@ const Web3AuthSolanaPage = () => {
       } catch (error) {
         console.error(error);
         uiConsole({ error: "Web3Auth initModal failed", detail: error });
-        // 即便初始化失败，也允许用户点击尝试重新触发连接（避免“彻底没反应”）
+        // Even if init fails, allow click to retry connect (avoid a dead UI)
         setIsReady(true);
       }
     };

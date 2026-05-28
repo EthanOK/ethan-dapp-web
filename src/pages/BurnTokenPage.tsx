@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { getERC20Contract, getERC20Decimals } from "../utils/GetContract";
-import { isAddress, getScanURL } from "../utils/Utils";
+import { getERC20Contract, getERC20Decimals } from "@/lib/evm/GetContract";
+import { isAddress, getScanURL } from "@/lib/shared/Utils";
 import { BigNumber } from "ethers";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import { toast } from "sonner";
-import { useAppKitAccount } from "@reown/appkit/react";
-import { truncateHash } from "../utils/format";
+import { useEvmWallet } from "@/hooks";
+import { truncateHash } from "@/lib/shared/Format";
 
 const PLACEHOLDER_ADDRESS = "0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b";
 
@@ -23,7 +23,7 @@ const BurnTokenPage = () => {
   type TxResult = { link?: string; status: TxStatus };
   const [burnTx, setBurnTx] = useState<TxResult | null>(null);
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

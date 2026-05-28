@@ -1,15 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import App from "./EthanDapp";
-import reportWebVitals from "./reportWebVitals";
+import App from "@/app/App";
+import { getStoredAppTheme } from "@/hooks/useAppTheme";
 
 try {
-  const saved = localStorage.getItem("app-theme");
-  document.documentElement.setAttribute(
-    "data-theme",
-    saved === "light" ? "light" : "dark"
-  );
+  document.documentElement.setAttribute("data-theme", getStoredAppTheme());
 } catch (_) {}
 
 const root = ReactDOM.createRoot(
@@ -20,5 +16,3 @@ root.render(
     <App />
   </React.StrictMode>
 );
-
-reportWebVitals();

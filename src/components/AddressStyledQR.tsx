@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import QRCodeStyling from "qr-code-styling";
 
 /**
- * 同步路径：中心 logo 直接内联为 data URL，避免首次打开时等待 fetch 导致的空白。
- * 内容来自 `public/qr-center-mark.svg`。
+ * Sync path: inline center logo as data URL to avoid blank QR while waiting for fetch.
+ * Content from `public/qr-center-mark.svg`.
  */
 const LOGO_DATA_URL =
   "data:image/svg+xml;charset=utf-8," +
@@ -46,7 +46,7 @@ function getSingletonQr(): QRCodeStyling {
 }
 
 export function prewarmAddressStyledQr(): void {
-  // 仅初始化实例（不触发 DOM append），让首次打开弹窗更丝滑
+  // Initialize instance only (no DOM append) for smoother first modal open
   getSingletonQr();
 }
 
@@ -56,7 +56,7 @@ type Props = {
 };
 
 /**
- * 生成带中心 logo 的二维码（同步）。
+ * Render a QR code with a centered logo (synchronous).
  */
 const AddressStyledQR = ({ value, className }: Props) => {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -68,7 +68,7 @@ const AddressStyledQR = ({ value, className }: Props) => {
     const qr = getSingletonQr();
     qr.update({ data: value });
 
-    // 只 append 一次；如果 host 变了（例如弹窗重新挂载），就把旧 host 清空再挂到新 host 上
+    // Append once; if host changes (e.g. modal remount), clear old host and attach to the new one
     if (singletonHost !== host) {
       if (singletonHost) singletonHost.innerHTML = "";
       host.innerHTML = "";

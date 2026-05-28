@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { isAddress } from "../utils/Utils";
-import { getOrderHashSignatureOpenSea } from "../api/GetData";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { isAddress } from "@/lib/shared/Utils";
+import { getOrderHashSignatureOpenSea } from "@/services/GetData";
+import { useEvmWallet } from "@/hooks";
 import { toast } from "sonner";
 
 const GetOpenSeaDataPage = () => {
@@ -10,7 +10,7 @@ const GetOpenSeaDataPage = () => {
   const [tokenId, setTokenId] = useState("");
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

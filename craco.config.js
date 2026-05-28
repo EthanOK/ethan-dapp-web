@@ -1,7 +1,11 @@
+const path = require("path");
 const webpack = require("webpack");
 
 module.exports = {
   webpack: {
+    alias: {
+      "@": path.resolve(__dirname, "src")
+    },
     configure: (config) => {
       const fallback = config.resolve.fallback || {};
       Object.assign(fallback, {

@@ -1,0 +1,66 @@
+{
+  "projectRoot": "/Users/ethan/workspace/website/ethan-dapp-web",
+  "batchFiles": [
+    {"path": "src/pages/BurnTokenPage.tsx", "language": "typescript", "sizeLines": 325, "fileCategory": "code"},
+    {"path": "src/pages/CreateTransactionPage.tsx", "language": "typescript", "sizeLines": 637, "fileCategory": "code"},
+    {"path": "src/pages/LayerZeroOFTBridgePage.tsx", "language": "typescript", "sizeLines": 1448, "fileCategory": "code"},
+    {"path": "src/pages/SolanaUtilsPage.tsx", "language": "typescript", "sizeLines": 780, "fileCategory": "code"},
+    {"path": "src/pages/WsolPage.tsx", "language": "typescript", "sizeLines": 497, "fileCategory": "code"},
+    {"path": "src/utils/GetSolanaConnection.js", "language": "javascript", "sizeLines": 19, "fileCategory": "code"},
+    {"path": "src/utils/GetWsolProgram.js", "language": "javascript", "sizeLines": 66, "fileCategory": "code"},
+    {"path": "src/utils/LayerZero.ts", "language": "typescript", "sizeLines": 242, "fileCategory": "code"},
+    {"path": "src/utils/SolanaGetBalance.ts", "language": "typescript", "sizeLines": 16, "fileCategory": "code"},
+    {"path": "src/utils/SolanaSignAndVerify.js", "language": "javascript", "sizeLines": 45, "fileCategory": "code"},
+    {"path": "src/utils/format.ts", "language": "typescript", "sizeLines": 6, "fileCategory": "code"},
+    {"path": "src/utils/multicall3.ts", "language": "typescript", "sizeLines": 98, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "src/pages/BurnTokenPage.tsx": [
+      "src/utils/format.ts",
+      "src/utils/GetContract.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/CreateTransactionPage.tsx": [
+      "src/utils/format.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/multicall3.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/LayerZeroOFTBridgePage.tsx": [
+      "src/common/ChainsConfig.ts",
+      "src/common/FaucetConfig.ts",
+      "src/EthanDapp.tsx",
+      "src/pages/LayerZeroOFTBridgePage.css",
+      "src/utils/format.ts",
+      "src/utils/GetProvider.ts",
+      "src/utils/LayerZero.ts",
+      "src/utils/multicall3.ts",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/SolanaUtilsPage.tsx": [
+      "src/utils/format.ts",
+      "src/utils/GetSolanaConnection.js",
+      "src/utils/SolanaGetBalance.ts",
+      "src/utils/SolanaSignAndVerify.js",
+      "src/utils/Utils.ts"
+    ],
+    "src/pages/WsolPage.tsx": [
+      "src/utils/format.ts",
+      "src/utils/GetSolanaConnection.js",
+      "src/utils/GetWsolProgram.js",
+      "src/utils/SolanaGetBalance.ts"
+    ],
+    "src/utils/GetSolanaConnection.js": [
+      "src/common/SystemConfiguration.ts"
+    ],
+    "src/utils/GetWsolProgram.js": [
+      "src/idls/wsol_idl.json",
+      "src/utils/Utils.ts"
+    ],
+    "src/utils/LayerZero.ts": [],
+    "src/utils/SolanaGetBalance.ts": [],
+    "src/utils/SolanaSignAndVerify.js": [],
+    "src/utils/format.ts": [],
+    "src/utils/multicall3.ts": []
+  }
+}

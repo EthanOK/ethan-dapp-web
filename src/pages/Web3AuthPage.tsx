@@ -3,7 +3,7 @@ import { Web3Auth } from "@web3auth/modal";
 import { WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { ethers } from "ethers";
-import { signSetAlias } from "../utils/SignsnapsShot";
+import { signSetAlias } from "@/lib/signing/SignsnapsShot";
 import { Wallet } from "@ethersproject/wallet";
 import { Web3Provider } from "@ethersproject/providers";
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// @ts-nocheck — TODO: 逐步补充类型
+// @ts-nocheck — TODO: add types incrementally
 import { useEffect, useRef, useState } from "react";
 import * as buffer from "buffer";
 import {
@@ -13,16 +13,16 @@ import {
   signSolanaMessage,
   verifySolanaSignature,
   verifySolanaSignatureV2
-} from "../utils/SolanaSignAndVerify";
-import { getDevConnection } from "../utils/GetSolanaConnection";
-import { getSolBalance } from "../utils/SolanaGetBalance";
-import { getAssociatedAddress, stringToArray } from "../utils/Utils";
+} from "@/lib/solana/SolanaSignAndVerify";
+import { getDevConnection } from "@/lib/solana/GetSolanaConnection";
+import { getSolBalance } from "@/lib/solana/SolanaGetBalance";
+import { getAssociatedAddress, stringToArray } from "@/lib/shared/Utils";
 import base58 from "bs58";
 import { toast } from "sonner";
 import type { Provider } from "@reown/appkit-adapter-solana/react";
 import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
-import { truncateHash } from "../utils/format";
+import { truncateHash } from "@/lib/shared/Format";
 
 const SolanaUtilsContent = () => {
   type TxStatus = "pending" | "success" | "failed" | "rejected";
@@ -68,7 +68,7 @@ const SolanaUtilsContent = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    const POLL_MS = 15000; // 15s 轮询，减少 WalletConnect RPC 请求频率
+    const POLL_MS = 15000; // Poll every 15s to reduce WalletConnect RPC load
     const intervalId = setInterval(() => {
       if (document.visibilityState === "visible") {
         updateShowData();
@@ -125,7 +125,7 @@ const SolanaUtilsContent = () => {
     }
   };
 
-  // 网络切换（connection 改变）时立刻刷新一次余额
+  // Refresh balance immediately when network (connection) changes
   useEffect(() => {
     if (connected) {
       updateShowData();
@@ -272,7 +272,7 @@ const SolanaUtilsContent = () => {
       return;
     }
     let addressArray: string[];
-    // 支持单个地址（不包 JSON 数组）
+    // Support a single address (not wrapped in a JSON array)
     if (isValidSolanaAddress(raw)) {
       addressArray = [raw];
     } else {

@@ -1,0 +1,2667 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 9,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": "src/common/ChainsConfig.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 75,
+      "nonEmptyLines": 74,
+      "exports": [
+        {
+          "name": "SupportChains",
+          "line": 11,
+          "isDefault": false
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/ERC20AllowancePage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 308,
+      "nonEmptyLines": 278,
+      "functions": [
+        {
+          "name": "ERC20AllowancePage",
+          "startLine": 35,
+          "endLine": 306,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useAppKitAccount",
+          "lineNumber": 36
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useState",
+          "lineNumber": 38
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "(localStorage.getItem(\"chainId\") ?? \"\").trim",
+          "lineNumber": 39
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 39
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useState",
+          "lineNumber": 41
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useState",
+          "lineNumber": 42
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useState",
+          "lineNumber": 43
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useState",
+          "lineNumber": 44
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useState",
+          "lineNumber": 45
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useEffect",
+          "lineNumber": 47
+        },
+        {
+          "caller": "onNetworkChanged",
+          "callee": "setSelectedChainIdRaw",
+          "lineNumber": 51
+        },
+        {
+          "caller": "onNetworkChanged",
+          "callee": "String",
+          "lineNumber": 51
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "window.addEventListener",
+          "lineNumber": 53
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "window.removeEventListener",
+          "lineNumber": 55
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useEffect",
+          "lineNumber": 58
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "setOwner",
+          "lineNumber": 59
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "tokenAddress.trim",
+          "lineNumber": 62
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "owner.trim",
+          "lineNumber": 63
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "spender.trim",
+          "lineNumber": 64
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useMemo",
+          "lineNumber": 66
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "isAddress",
+          "lineNumber": 68
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "isAddress",
+          "lineNumber": 69
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "isAddress",
+          "lineNumber": 70
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "useMemo",
+          "lineNumber": 74
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "(selectedChainIdRaw ?? \"\").trim",
+          "lineNumber": 75
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "stored.startsWith",
+          "lineNumber": 78
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "stored.split",
+          "lineNumber": 79
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "Number",
+          "lineNumber": 80
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "Number.isFinite",
+          "lineNumber": 81
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "/^\\d+$/.test",
+          "lineNumber": 82
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "Number",
+          "lineNumber": 83
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "Number.isFinite",
+          "lineNumber": 84
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "SupportChains.find",
+          "lineNumber": 88
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "Number",
+          "lineNumber": 88
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "isAddress",
+          "lineNumber": 96
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "toast.error",
+          "lineNumber": 97
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "isAddress",
+          "lineNumber": 100
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "toast.error",
+          "lineNumber": 101
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "isAddress",
+          "lineNumber": 104
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "toast.error",
+          "lineNumber": 105
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "setIsLoading",
+          "lineNumber": 109
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "setResult",
+          "lineNumber": 110
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "getProvider",
+          "lineNumber": 112
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "getDefaultReadonlyProvider",
+          "lineNumber": 112
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "toast.error",
+          "lineNumber": 114
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "provider.getNetwork",
+          "lineNumber": 120
+        },
+        {
+          "caller": "parseCallError",
+          "callee": "String",
+          "lineNumber": 134
+        },
+        {
+          "caller": "parseCallError",
+          "callee": "String",
+          "lineNumber": 138
+        },
+        {
+          "caller": "parseCallError",
+          "callee": "/missing revert data|call exception/i.test",
+          "lineNumber": 139
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "erc20Iface.encodeFunctionData",
+          "lineNumber": 152
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "erc20Iface.encodeFunctionData",
+          "lineNumber": 157
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "erc20Iface.encodeFunctionData",
+          "lineNumber": 162
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "multicall3Aggregate3StaticCall",
+          "lineNumber": 171
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "toast.error",
+          "lineNumber": 173
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "parseCallError",
+          "lineNumber": 173
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "decodeMulticallResult",
+          "lineNumber": 177
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "Number.isFinite",
+          "lineNumber": 182
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "Number",
+          "lineNumber": 182
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "Number",
+          "lineNumber": 183
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "decodeMulticallResult",
+          "lineNumber": 185
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "decodeMulticallResult",
+          "lineNumber": 191
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "toast.error",
+          "lineNumber": 197
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "rawAllowance.toString",
+          "lineNumber": 201
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "ethers.utils.formatUnits",
+          "lineNumber": 202
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "setResult",
+          "lineNumber": 203
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "toast.success",
+          "lineNumber": 213
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "toast.error",
+          "lineNumber": 216
+        },
+        {
+          "caller": "queryAllowance",
+          "callee": "setIsLoading",
+          "lineNumber": 218
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "setTokenAddress",
+          "lineNumber": 242
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "setOwner",
+          "lineNumber": 255
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "setSpender",
+          "lineNumber": 268
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "String",
+          "lineNumber": 289
+        },
+        {
+          "caller": "ERC20AllowancePage",
+          "callee": "String",
+          "lineNumber": 293
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/EstimateTxFeePage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 162,
+      "nonEmptyLines": 149,
+      "functions": [
+        {
+          "name": "EstimateTxFeePage",
+          "startLine": 10,
+          "endLine": 160,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useState",
+          "lineNumber": 11
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useState",
+          "lineNumber": 12
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useState",
+          "lineNumber": 13
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useAppKitAccount",
+          "lineNumber": 22
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useEffect",
+          "lineNumber": 24
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "setCurrentAccount",
+          "lineNumber": 25
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useEffect",
+          "lineNumber": 28
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "setIsMounted",
+          "lineNumber": 29
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "setIsMounted",
+          "lineNumber": 30
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "useEffect",
+          "lineNumber": 33
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 35
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "setCurrentAccount",
+          "lineNumber": 36
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "isAddress",
+          "lineNumber": 41
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "toast.error",
+          "lineNumber": 42
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "isAddress",
+          "lineNumber": 45
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "toast.error",
+          "lineNumber": 46
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "data.trim",
+          "lineNumber": 49
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "dataTrimmed.startsWith",
+          "lineNumber": 50
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "toast.error",
+          "lineNumber": 51
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "getDecimalBigNumber",
+          "lineNumber": 55
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "setResult",
+          "lineNumber": 57
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "setIsLoading",
+          "lineNumber": 58
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "getProvider",
+          "lineNumber": 61
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "toast.error",
+          "lineNumber": 63
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "estimateTxFee",
+          "lineNumber": 66
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "setResult",
+          "lineNumber": 73
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "JSON.stringify",
+          "lineNumber": 73
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "toast.error",
+          "lineNumber": 76
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "String",
+          "lineNumber": 76
+        },
+        {
+          "caller": "estimateTxFeeHandler",
+          "callee": "setIsLoading",
+          "lineNumber": 78
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "setFrom",
+          "lineNumber": 97
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "setTo",
+          "lineNumber": 110
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "setValue",
+          "lineNumber": 123
+        },
+        {
+          "caller": "EstimateTxFeePage",
+          "callee": "setData",
+          "lineNumber": 134
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/GetCollectionPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 175,
+      "nonEmptyLines": 165,
+      "functions": [
+        {
+          "name": "GetCollectionPage",
+          "startLine": 13,
+          "endLine": 173,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useState",
+          "lineNumber": 14
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useState",
+          "lineNumber": 15
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useAppKitAccount",
+          "lineNumber": 21
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useEffect",
+          "lineNumber": 23
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setCurrentAccount",
+          "lineNumber": 24
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useEffect",
+          "lineNumber": 27
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setIsMounted",
+          "lineNumber": 28
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setInterval",
+          "lineNumber": 29
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 30
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setCurrentAccount",
+          "lineNumber": 31
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "clearInterval",
+          "lineNumber": 34
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setIsMounted",
+          "lineNumber": 35
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "useEffect",
+          "lineNumber": 39
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "localStorage.getItem",
+          "lineNumber": 41
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setCurrentAccount",
+          "lineNumber": 42
+        },
+        {
+          "caller": "getCollectionHandler",
+          "callee": "owner.trim",
+          "lineNumber": 47
+        },
+        {
+          "caller": "getCollectionHandler",
+          "callee": "isAddress",
+          "lineNumber": 48
+        },
+        {
+          "caller": "getCollectionHandler",
+          "callee": "toast.error",
+          "lineNumber": 49
+        },
+        {
+          "caller": "getCollectionHandler",
+          "callee": "getSignerAndChainId",
+          "lineNumber": 53
+        },
+        {
+          "caller": "getCollectionHandler",
+          "callee": "getContractsForOwner",
+          "lineNumber": 55
+        },
+        {
+          "caller": "getCollectionHandler",
+          "callee": "setMessage",
+          "lineNumber": 56
+        },
+        {
+          "caller": "getCollectionHandler",
+          "callee": "JSON.stringify",
+          "lineNumber": 56
+        },
+        {
+          "caller": "getCollectionHandler",
+          "callee": "toast.error",
+          "lineNumber": 58
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "contract.trim",
+          "lineNumber": 63
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "owner2.trim",
+          "lineNumber": 64
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "isAddress",
+          "lineNumber": 65
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "isAddress",
+          "lineNumber": 65
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "toast.error",
+          "lineNumber": 66
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "getSignerAndChainId",
+          "lineNumber": 70
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "getNFTListByOwnerAndContract",
+          "lineNumber": 72
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "setMessage",
+          "lineNumber": 73
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "JSON.stringify",
+          "lineNumber": 73
+        },
+        {
+          "caller": "getNFTListHandler",
+          "callee": "toast.error",
+          "lineNumber": 75
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setOwner",
+          "lineNumber": 93
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setContract",
+          "lineNumber": 119
+        },
+        {
+          "caller": "GetCollectionPage",
+          "callee": "setOwner2",
+          "lineNumber": 132
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/pages/LuckyBabyPage.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 538,
+      "nonEmptyLines": 505,
+      "functions": [
+        {
+          "name": "LuckyBabyPage",
+          "startLine": 16,
+          "endLine": 536,
+          "params": []
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 25
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 26
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 27
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 28
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 29
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useState",
+          "lineNumber": 30
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useAppKitAccount",
+          "lineNumber": 32
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useEffect",
+          "lineNumber": 33
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "setCurrentAccount",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handleChangePayType",
+          "callee": "setSelectedPayType",
+          "lineNumber": 40
+        },
+        {
+          "caller": "handleChangePrizeType",
+          "callee": "setSelectedPrizeType",
+          "lineNumber": 43
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useEffect",
+          "lineNumber": 46
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "setIsMounted",
+          "lineNumber": 47
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "setInterval",
+          "lineNumber": 48
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "clearInterval",
+          "lineNumber": 50
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "setIsMounted",
+          "lineNumber": 51
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "useEffect",
+          "lineNumber": 55
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "configData",
+          "lineNumber": 57
+        },
+        {
+          "caller": "configData",
+          "callee": "localStorage.getItem",
+          "lineNumber": 63
+        },
+        {
+          "caller": "configData",
+          "callee": "setCurrentAccount",
+          "lineNumber": 64
+        },
+        {
+          "caller": "configData",
+          "callee": "getCurrentIssueIdOpenState",
+          "lineNumber": 66
+        },
+        {
+          "caller": "configData",
+          "callee": "setCurrentIssueId",
+          "lineNumber": 67
+        },
+        {
+          "caller": "configData",
+          "callee": "currentIssueId_.toString",
+          "lineNumber": 67
+        },
+        {
+          "caller": "configData",
+          "callee": "setOpenState",
+          "lineNumber": 68
+        },
+        {
+          "caller": "configData",
+          "callee": "openState_.toString",
+          "lineNumber": 68
+        },
+        {
+          "caller": "configData",
+          "callee": "parseInt",
+          "lineNumber": 70
+        },
+        {
+          "caller": "configData",
+          "callee": "getNumberParticipants",
+          "lineNumber": 71
+        },
+        {
+          "caller": "configData",
+          "callee": "setNumberAllTicket",
+          "lineNumber": 72
+        },
+        {
+          "caller": "configData",
+          "callee": "allNumber.toString",
+          "lineNumber": 72
+        },
+        {
+          "caller": "configData",
+          "callee": "setNumberCurrTicket",
+          "lineNumber": 73
+        },
+        {
+          "caller": "configData",
+          "callee": "currentNumber.toString",
+          "lineNumber": 73
+        },
+        {
+          "caller": "configData",
+          "callee": "console.log",
+          "lineNumber": 76
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "getCurrentIssueIdOpenState",
+          "lineNumber": 81
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "setCurrentIssueId",
+          "lineNumber": 82
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "currentIssueId_.toString",
+          "lineNumber": 82
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "setOpenState",
+          "lineNumber": 83
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "openState_.toString",
+          "lineNumber": 83
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "parseInt",
+          "lineNumber": 85
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "getNumberParticipants",
+          "lineNumber": 86
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "setNumberAllTicket",
+          "lineNumber": 87
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "allNumber.toString",
+          "lineNumber": 87
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "setNumberCurrTicket",
+          "lineNumber": 88
+        },
+        {
+          "caller": "updateNumber",
+          "callee": "currentNumber.toString",
+          "lineNumber": 88
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 93
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "alert",
+          "lineNumber": 96
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "participate",
+          "lineNumber": 100
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "setMessage",
+          "lineNumber": 105
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "tx.wait",
+          "lineNumber": 106
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "console.log",
+          "lineNumber": 108
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "setAlertMessage",
+          "lineNumber": 109
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "setShowAlert",
+          "lineNumber": 110
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "setTimeout",
+          "lineNumber": 111
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "setShowAlert",
+          "lineNumber": 112
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "console.log",
+          "lineNumber": 115
+        },
+        {
+          "caller": "participateHandler",
+          "callee": "console.log",
+          "lineNumber": 119
+        },
+        {
+          "caller": "getWinnersHandler",
+          "callee": "getWinners",
+          "lineNumber": 125
+        },
+        {
+          "caller": "getWinnersHandler",
+          "callee": "setWinners",
+          "lineNumber": 128
+        },
+        {
+          "caller": "getWinnersHandler",
+          "callee": "JSON.stringify",
+          "lineNumber": 128
+        },
+        {
+          "caller": "getWinnersHandler",
+          "callee": "console.log",
+          "lineNumber": 131
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "redeemPrize",
+          "lineNumber": 137
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "alert",
+          "lineNumber": 139
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "setRedeemMessage",
+          "lineNumber": 143
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "tx.wait",
+          "lineNumber": 144
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "console.log",
+          "lineNumber": 146
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "setAlertMessage",
+          "lineNumber": 147
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "setShowAlert",
+          "lineNumber": 148
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "setTimeout",
+          "lineNumber": 149
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "setShowAlert",
+          "lineNumber": 150
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "console.log",
+          "lineNumber": 153
+        },
+        {
+          "caller": "redeemPrizeHandler",
+          "callee": "console.log",
+          "lineNumber": 157
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "openPrizePool",
+          "lineNumber": 163
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "alert",
+          "lineNumber": 165
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "tx.wait",
+          "lineNumber": 169
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "console.log",
+          "lineNumber": 171
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "setAlertMessage",
+          "lineNumber": 172
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "setShowAlert",
+          "lineNumber": 173
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "setTimeout",
+          "lineNumber": 174
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "setShowAlert",
+          "lineNumber": 175
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "console.log",
+          "lineNumber": 178
+        },
+        {
+          "caller": "openPrizePoolHandler",
+          "callee": "console.log",
+          "lineNumber": 182
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 188
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 190
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 192
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 194
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 199
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 201
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 206
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 208
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 210
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "document.getElementById",
+          "lineNumber": 212
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "stringToArray",
+          "lineNumber": 228
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "stringToArray",
+          "lineNumber": 230
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "stringToArray",
+          "lineNumber": 233
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "alert",
+          "lineNumber": 234
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "incrementNewIssue",
+          "lineNumber": 238
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "alert",
+          "lineNumber": 247
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "tx.wait",
+          "lineNumber": 251
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "console.log",
+          "lineNumber": 253
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "setAlertMessage",
+          "lineNumber": 254
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "setShowAlert",
+          "lineNumber": 255
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "setTimeout",
+          "lineNumber": 256
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "setShowAlert",
+          "lineNumber": 257
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "console.log",
+          "lineNumber": 260
+        },
+        {
+          "caller": "createNewIssueHandler",
+          "callee": "console.log",
+          "lineNumber": 264
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "participateButton",
+          "lineNumber": 363
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "PleaseLogin",
+          "lineNumber": 363
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "getWinnersButton",
+          "lineNumber": 378
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "PleaseLogin",
+          "lineNumber": 378
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "redeemPrizeButton",
+          "lineNumber": 391
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "PleaseLogin",
+          "lineNumber": 391
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "createNewIssueButton",
+          "lineNumber": 523
+        },
+        {
+          "caller": "LuckyBabyPage",
+          "callee": "PleaseLogin",
+          "lineNumber": 523
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/utils/CallLuckyBaby.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 286,
+      "nonEmptyLines": 235,
+      "functions": [
+        {
+          "name": "participate",
+          "startLine": 11,
+          "endLine": 87,
+          "params": [
+            "count"
+          ]
+        },
+        {
+          "name": "openPrizePool",
+          "startLine": 89,
+          "endLine": 123,
+          "params": []
+        },
+        {
+          "name": "incrementNewIssue",
+          "startLine": 125,
+          "endLine": 170,
+          "params": [
+            "numberMax",
+            "countMaxPer",
+            "startTime",
+            "endTime",
+            "payToken",
+            "prize"
+          ]
+        },
+        {
+          "name": "getWinners",
+          "startLine": 172,
+          "endLine": 201,
+          "params": []
+        },
+        {
+          "name": "redeemPrize",
+          "startLine": 203,
+          "endLine": 235,
+          "params": []
+        },
+        {
+          "name": "getNumberParticipants",
+          "startLine": 237,
+          "endLine": 256,
+          "params": []
+        },
+        {
+          "name": "getCurrentIssueIdOpenState",
+          "startLine": 258,
+          "endLine": 276,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "participate",
+          "line": 278,
+          "isDefault": false
+        },
+        {
+          "name": "getWinners",
+          "line": 278,
+          "isDefault": false
+        },
+        {
+          "name": "redeemPrize",
+          "line": 278,
+          "isDefault": false
+        },
+        {
+          "name": "getNumberParticipants",
+          "line": 278,
+          "isDefault": false
+        },
+        {
+          "name": "getCurrentIssueIdOpenState",
+          "line": 278,
+          "isDefault": false
+        },
+        {
+          "name": "openPrizePool",
+          "line": 278,
+          "isDefault": false
+        },
+        {
+          "name": "incrementNewIssue",
+          "line": 278,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "participate",
+          "callee": "alert",
+          "lineNumber": 13
+        },
+        {
+          "caller": "participate",
+          "callee": "getScanURL",
+          "lineNumber": 16
+        },
+        {
+          "caller": "participate",
+          "callee": "getSignerAndAccountAndChainId",
+          "lineNumber": 18
+        },
+        {
+          "caller": "participate",
+          "callee": "BigNumber.from",
+          "lineNumber": 23
+        },
+        {
+          "caller": "participate",
+          "callee": "luckyBaby.currentIssueId",
+          "lineNumber": 26
+        },
+        {
+          "caller": "participate",
+          "callee": "luckyBaby.issueDatas",
+          "lineNumber": 28
+        },
+        {
+          "caller": "participate",
+          "callee": "alert",
+          "lineNumber": 31
+        },
+        {
+          "caller": "participate",
+          "callee": "luckyBaby.getCountRemainOfAccount",
+          "lineNumber": 34
+        },
+        {
+          "caller": "participate",
+          "callee": "console.log",
+          "lineNumber": 38
+        },
+        {
+          "caller": "participate",
+          "callee": "countRemain.toString",
+          "lineNumber": 38
+        },
+        {
+          "caller": "participate",
+          "callee": "alert",
+          "lineNumber": 40
+        },
+        {
+          "caller": "participate",
+          "callee": "countRemain.toString",
+          "lineNumber": 40
+        },
+        {
+          "caller": "participate",
+          "callee": "console.log",
+          "lineNumber": 47
+        },
+        {
+          "caller": "participate",
+          "callee": "alert",
+          "lineNumber": 48
+        },
+        {
+          "caller": "participate",
+          "callee": "payToken.balanceOf",
+          "lineNumber": 52
+        },
+        {
+          "caller": "participate",
+          "callee": "alert",
+          "lineNumber": 54
+        },
+        {
+          "caller": "participate",
+          "callee": "payToken.allowance",
+          "lineNumber": 57
+        },
+        {
+          "caller": "participate",
+          "callee": "console.log",
+          "lineNumber": 59
+        },
+        {
+          "caller": "participate",
+          "callee": "payToken.approve",
+          "lineNumber": 60
+        },
+        {
+          "caller": "participate",
+          "callee": "payAmount.toString",
+          "lineNumber": 60
+        },
+        {
+          "caller": "participate",
+          "callee": "tx.wait",
+          "lineNumber": 61
+        },
+        {
+          "caller": "participate",
+          "callee": "alert",
+          "lineNumber": 64
+        },
+        {
+          "caller": "participate",
+          "callee": "luckyBaby.participate",
+          "lineNumber": 68
+        },
+        {
+          "caller": "participate",
+          "callee": "console.log",
+          "lineNumber": 69
+        },
+        {
+          "caller": "participate",
+          "callee": "console.log",
+          "lineNumber": 71
+        },
+        {
+          "caller": "participate",
+          "callee": "equalityStringIgnoreCase",
+          "lineNumber": 77
+        },
+        {
+          "caller": "participate",
+          "callee": "alert",
+          "lineNumber": 84
+        },
+        {
+          "caller": "openPrizePool",
+          "callee": "getScanURL",
+          "lineNumber": 90
+        },
+        {
+          "caller": "openPrizePool",
+          "callee": "getSignerAndAccountAndChainId",
+          "lineNumber": 92
+        },
+        {
+          "caller": "openPrizePool",
+          "callee": "luckyBaby.currentIssueId",
+          "lineNumber": 100
+        },
+        {
+          "caller": "openPrizePool",
+          "callee": "luckyBaby.openPrizePool",
+          "lineNumber": 102
+        },
+        {
+          "caller": "openPrizePool",
+          "callee": "console.log",
+          "lineNumber": 104
+        },
+        {
+          "caller": "openPrizePool",
+          "callee": "console.log",
+          "lineNumber": 106
+        },
+        {
+          "caller": "openPrizePool",
+          "callee": "equalityStringIgnoreCase",
+          "lineNumber": 113
+        },
+        {
+          "caller": "incrementNewIssue",
+          "callee": "getScanURL",
+          "lineNumber": 133
+        },
+        {
+          "caller": "incrementNewIssue",
+          "callee": "getSignerAndAccountAndChainId",
+          "lineNumber": 135
+        },
+        {
+          "caller": "incrementNewIssue",
+          "callee": "luckyBaby.incrementNewIssue",
+          "lineNumber": 142
+        },
+        {
+          "caller": "incrementNewIssue",
+          "callee": "console.log",
+          "lineNumber": 151
+        },
+        {
+          "caller": "incrementNewIssue",
+          "callee": "console.log",
+          "lineNumber": 153
+        },
+        {
+          "caller": "incrementNewIssue",
+          "callee": "equalityStringIgnoreCase",
+          "lineNumber": 160
+        },
+        {
+          "caller": "getWinners",
+          "callee": "getSignerAndAccountAndChainId",
+          "lineNumber": 174
+        },
+        {
+          "caller": "getWinners",
+          "callee": "luckyBaby.currentIssueId",
+          "lineNumber": 182
+        },
+        {
+          "caller": "getWinners",
+          "callee": "luckyBaby.getWinners",
+          "lineNumber": 183
+        },
+        {
+          "caller": "getWinners",
+          "callee": "equalityStringIgnoreCase",
+          "lineNumber": 189
+        },
+        {
+          "caller": "getWinners",
+          "callee": "equalityStringIgnoreCase",
+          "lineNumber": 191
+        },
+        {
+          "caller": "getWinners",
+          "callee": "alert",
+          "lineNumber": 198
+        },
+        {
+          "caller": "redeemPrize",
+          "callee": "getScanURL",
+          "lineNumber": 204
+        },
+        {
+          "caller": "redeemPrize",
+          "callee": "getSignerAndAccountAndChainId",
+          "lineNumber": 206
+        },
+        {
+          "caller": "redeemPrize",
+          "callee": "luckyBaby.currentIssueId",
+          "lineNumber": 214
+        },
+        {
+          "caller": "redeemPrize",
+          "callee": "luckyBaby.redeemPrize",
+          "lineNumber": 215
+        },
+        {
+          "caller": "redeemPrize",
+          "callee": "console.log",
+          "lineNumber": 216
+        },
+        {
+          "caller": "redeemPrize",
+          "callee": "console.log",
+          "lineNumber": 218
+        },
+        {
+          "caller": "redeemPrize",
+          "callee": "equalityStringIgnoreCase",
+          "lineNumber": 225
+        },
+        {
+          "caller": "getNumberParticipants",
+          "callee": "getSignerAndAccountAndChainId",
+          "lineNumber": 239
+        },
+        {
+          "caller": "getNumberParticipants",
+          "callee": "luckyBaby.currentIssueId",
+          "lineNumber": 247
+        },
+        {
+          "caller": "getNumberParticipants",
+          "callee": "luckyBaby.getNumberParticipants",
+          "lineNumber": 248
+        },
+        {
+          "caller": "getCurrentIssueIdOpenState",
+          "callee": "getSignerAndAccountAndChainId",
+          "lineNumber": 260
+        },
+        {
+          "caller": "getCurrentIssueIdOpenState",
+          "callee": "luckyBaby.currentIssueId",
+          "lineNumber": 268
+        },
+        {
+          "caller": "getCurrentIssueIdOpenState",
+          "callee": "luckyBaby.issueDatas",
+          "lineNumber": 269
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/utils/EstimateTxFee.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 38,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "estimateTxFee",
+          "startLine": 10,
+          "endLine": 38,
+          "params": [
+            "provider",
+            "from",
+            "to",
+            "data",
+            "value"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "estimateTxFee",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "estimateTxFee",
+          "callee": "provider.getGasPrice",
+          "lineNumber": 17
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "console.log",
+          "lineNumber": 18
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "formatUnits",
+          "lineNumber": 18
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "provider.estimateGas",
+          "lineNumber": 20
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "console.log",
+          "lineNumber": 28
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "estGas.toString",
+          "lineNumber": 28
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "estGas.mul",
+          "lineNumber": 30
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "console.log",
+          "lineNumber": 31
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "formatEther",
+          "lineNumber": 31
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "formatUnits",
+          "lineNumber": 34
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "estGas.toString",
+          "lineNumber": 35
+        },
+        {
+          "caller": "estimateTxFee",
+          "callee": "formatEther",
+          "lineNumber": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/utils/GetNFTListByOwner.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 107,
+      "nonEmptyLines": 92,
+      "functions": [
+        {
+          "name": "getNFTListByOwner",
+          "startLine": 19,
+          "endLine": 42,
+          "params": [
+            "chainId",
+            "owner"
+          ]
+        },
+        {
+          "name": "getNFTListByOwnerAndContract",
+          "startLine": 44,
+          "endLine": 78,
+          "params": [
+            "chainId",
+            "owner",
+            "contract"
+          ]
+        },
+        {
+          "name": "getContractsForOwner",
+          "startLine": 80,
+          "endLine": 107,
+          "params": [
+            "chainId",
+            "owner"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "getNFTListByOwner",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "getNFTListByOwnerAndContract",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "getContractsForOwner",
+          "line": 80,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "getNFTListByOwner",
+          "callee": "getAlchemyURL",
+          "lineNumber": 25
+        },
+        {
+          "caller": "getNFTListByOwner",
+          "callee": "fetch",
+          "lineNumber": 31
+        },
+        {
+          "caller": "getNFTListByOwner",
+          "callee": "res.json",
+          "lineNumber": 34
+        },
+        {
+          "caller": "getNFTListByOwner",
+          "callee": "ownedNfts.push",
+          "lineNumber": 39
+        },
+        {
+          "caller": "getNFTListByOwner",
+          "callee": "console.log",
+          "lineNumber": 41
+        },
+        {
+          "caller": "getNFTListByOwnerAndContract",
+          "callee": "getAlchemyURL",
+          "lineNumber": 52
+        },
+        {
+          "caller": "getNFTListByOwnerAndContract",
+          "callee": "fetch",
+          "lineNumber": 58
+        },
+        {
+          "caller": "getNFTListByOwnerAndContract",
+          "callee": "res.json",
+          "lineNumber": 61
+        },
+        {
+          "caller": "getNFTListByOwnerAndContract",
+          "callee": "ownedNfts.push",
+          "lineNumber": 66
+        },
+        {
+          "caller": "getNFTListByOwnerAndContract",
+          "callee": "ownedNfts.forEach",
+          "lineNumber": 69
+        },
+        {
+          "caller": "getNFTListByOwnerAndContract",
+          "callee": "tokenIds.add",
+          "lineNumber": 70
+        },
+        {
+          "caller": "getNFTListByOwnerAndContract",
+          "callee": "Array.from",
+          "lineNumber": 75
+        },
+        {
+          "caller": "getContractsForOwner",
+          "callee": "getAlchemyURL",
+          "lineNumber": 86
+        },
+        {
+          "caller": "getContractsForOwner",
+          "callee": "fetch",
+          "lineNumber": 92
+        },
+        {
+          "caller": "getContractsForOwner",
+          "callee": "res.json",
+          "lineNumber": 95
+        },
+        {
+          "caller": "getContractsForOwner",
+          "callee": "contracts.push",
+          "lineNumber": 100
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "src/utils/Utils.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 285,
+      "nonEmptyLines": 263,
+      "functions": [
+        {
+          "name": "equalityStringIgnoreCase",
+          "startLine": 23,
+          "endLine": 32,
+          "params": [
+            "string1",
+            "string2"
+          ]
+        },
+        {
+          "name": "getScanURL",
+          "startLine": 34,
+          "endLine": 47,
+          "params": []
+        },
+        {
+          "name": "getInfuraProvider",
+          "startLine": 49,
+          "endLine": 61,
+          "params": []
+        },
+        {
+          "name": "getYunGouAddress",
+          "startLine": 63,
+          "endLine": 71,
+          "params": []
+        },
+        {
+          "name": "getYunGouAggregatorsAddress",
+          "startLine": 73,
+          "endLine": 82,
+          "params": []
+        },
+        {
+          "name": "getYunGouAddressAndParameters",
+          "startLine": 84,
+          "endLine": 108,
+          "params": [
+            "chainId"
+          ]
+        },
+        {
+          "name": "getYunGouAddressAndOrder",
+          "startLine": 111,
+          "endLine": 133,
+          "params": [
+            "chainId"
+          ]
+        },
+        {
+          "name": "isAddress",
+          "startLine": 135,
+          "endLine": 137,
+          "params": [
+            "address"
+          ]
+        },
+        {
+          "name": "isContract",
+          "startLine": 139,
+          "endLine": 145,
+          "params": [
+            "provider",
+            "address"
+          ]
+        },
+        {
+          "name": "stringToArray",
+          "startLine": 147,
+          "endLine": 151,
+          "params": [
+            "string"
+          ]
+        },
+        {
+          "name": "getDecimal",
+          "startLine": 153,
+          "endLine": 155,
+          "params": [
+            "bigNumber",
+            "decimals"
+          ]
+        },
+        {
+          "name": "getDecimalBigNumber",
+          "startLine": 157,
+          "endLine": 162,
+          "params": [
+            "number",
+            "decimals"
+          ]
+        },
+        {
+          "name": "getExtractAddress",
+          "startLine": 164,
+          "endLine": 170,
+          "params": [
+            "address"
+          ]
+        },
+        {
+          "name": "utf8ToHexBytes",
+          "startLine": 172,
+          "endLine": 175,
+          "params": [
+            "str"
+          ]
+        },
+        {
+          "name": "caculatePriceBySqrtPriceX96",
+          "startLine": 177,
+          "endLine": 188,
+          "params": [
+            "sqrtPriceX96_"
+          ]
+        },
+        {
+          "name": "getAddressCreate",
+          "startLine": 190,
+          "endLine": 192,
+          "params": [
+            "sender",
+            "nonce"
+          ]
+        },
+        {
+          "name": "getAssociatedAddress",
+          "startLine": 194,
+          "endLine": 204,
+          "params": [
+            "mintAddress",
+            "ownerAddress"
+          ]
+        },
+        {
+          "name": "getAlchemyURL",
+          "startLine": 206,
+          "endLine": 214,
+          "params": [
+            "chainId"
+          ]
+        },
+        {
+          "name": "getAlchemy",
+          "startLine": 216,
+          "endLine": 230,
+          "params": [
+            "chainId"
+          ]
+        },
+        {
+          "name": "normalizeFaucetConfigKeys",
+          "startLine": 232,
+          "endLine": 246,
+          "params": [
+            "config"
+          ]
+        },
+        {
+          "name": "sendToWebhook",
+          "startLine": 248,
+          "endLine": 263,
+          "params": [
+            "data"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "normalizeFaucetConfigKeys",
+          "line": 232,
+          "isDefault": false
+        },
+        {
+          "name": "sendToWebhook",
+          "line": 248,
+          "isDefault": false
+        },
+        {
+          "name": "equalityStringIgnoreCase",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getScanURL",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getYunGouAddress",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getYunGouAddressAndParameters",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getYunGouAddressAndOrder",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "isAddress",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "stringToArray",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getYunGouAggregatorsAddress",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getDecimal",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getDecimalBigNumber",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getExtractAddress",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "utf8ToHexBytes",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "caculatePriceBySqrtPriceX96",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getAddressCreate",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getAssociatedAddress",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "isContract",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getAlchemyURL",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getAlchemy",
+          "line": 265,
+          "isDefault": false
+        },
+        {
+          "name": "getInfuraProvider",
+          "line": 265,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "equalityStringIgnoreCase",
+          "callee": "string1.toLowerCase",
+          "lineNumber": 28
+        },
+        {
+          "caller": "equalityStringIgnoreCase",
+          "callee": "string2.toLowerCase",
+          "lineNumber": 28
+        },
+        {
+          "caller": "getScanURL",
+          "callee": "localStorage.getItem",
+          "lineNumber": 35
+        },
+        {
+          "caller": "getScanURL",
+          "callee": "parseInt",
+          "lineNumber": 36
+        },
+        {
+          "caller": "getScanURL",
+          "callee": "Number.isFinite",
+          "lineNumber": 37
+        },
+        {
+          "caller": "getScanURL",
+          "callee": "SupportChains.find",
+          "lineNumber": 40
+        },
+        {
+          "caller": "getScanURL",
+          "callee": "parseInt",
+          "lineNumber": 41
+        },
+        {
+          "caller": "getInfuraProvider",
+          "callee": "localStorage.getItem",
+          "lineNumber": 52
+        },
+        {
+          "caller": "getInfuraProvider",
+          "callee": "parseInt",
+          "lineNumber": 53
+        },
+        {
+          "caller": "getYunGouAddress",
+          "callee": "localStorage.getItem",
+          "lineNumber": 64
+        },
+        {
+          "caller": "getYunGouAddress",
+          "callee": "parseInt",
+          "lineNumber": 65
+        },
+        {
+          "caller": "getYunGouAggregatorsAddress",
+          "callee": "localStorage.getItem",
+          "lineNumber": 74
+        },
+        {
+          "caller": "getYunGouAggregatorsAddress",
+          "callee": "parseInt",
+          "lineNumber": 75
+        },
+        {
+          "caller": "getYunGouAddressAndParameters",
+          "callee": "parseInt",
+          "lineNumber": 85
+        },
+        {
+          "caller": "getYunGouAddressAndOrder",
+          "callee": "parseInt",
+          "lineNumber": 114
+        },
+        {
+          "caller": "isAddress",
+          "callee": "ethers.utils.isAddress",
+          "lineNumber": 136
+        },
+        {
+          "caller": "isContract",
+          "callee": "provider.getCode",
+          "lineNumber": 143
+        },
+        {
+          "caller": "stringToArray",
+          "callee": "string.substring(1, string.length - 1).split",
+          "lineNumber": 149
+        },
+        {
+          "caller": "stringToArray",
+          "callee": "string.substring",
+          "lineNumber": 149
+        },
+        {
+          "caller": "stringToArray",
+          "callee": "hexStringArray.map",
+          "lineNumber": 150
+        },
+        {
+          "caller": "stringToArray",
+          "callee": "hexString.trim",
+          "lineNumber": 150
+        },
+        {
+          "caller": "getDecimal",
+          "callee": "Number",
+          "lineNumber": 154
+        },
+        {
+          "caller": "getDecimal",
+          "callee": "ethers.utils.formatUnits",
+          "lineNumber": 154
+        },
+        {
+          "caller": "getDecimalBigNumber",
+          "callee": "ethers.utils.parseUnits",
+          "lineNumber": 161
+        },
+        {
+          "caller": "getExtractAddress",
+          "callee": "String",
+          "lineNumber": 165
+        },
+        {
+          "caller": "getExtractAddress",
+          "callee": "str.substring",
+          "lineNumber": 168
+        },
+        {
+          "caller": "getExtractAddress",
+          "callee": "str.substring",
+          "lineNumber": 168
+        },
+        {
+          "caller": "utf8ToHexBytes",
+          "callee": "ethers.utils.toUtf8Bytes",
+          "lineNumber": 173
+        },
+        {
+          "caller": "utf8ToHexBytes",
+          "callee": "ethers.utils.hexlify",
+          "lineNumber": 174
+        },
+        {
+          "caller": "caculatePriceBySqrtPriceX96",
+          "callee": "BigNumber.from",
+          "lineNumber": 180
+        },
+        {
+          "caller": "caculatePriceBySqrtPriceX96",
+          "callee": "sqrtPriceX96.mul(sqrtPriceX96).toString",
+          "lineNumber": 181
+        },
+        {
+          "caller": "caculatePriceBySqrtPriceX96",
+          "callee": "sqrtPriceX96.mul",
+          "lineNumber": 181
+        },
+        {
+          "caller": "caculatePriceBySqrtPriceX96",
+          "callee": "BigNumber.from(\"2\").pow(192).toString",
+          "lineNumber": 182
+        },
+        {
+          "caller": "caculatePriceBySqrtPriceX96",
+          "callee": "BigNumber.from(\"2\").pow",
+          "lineNumber": 182
+        },
+        {
+          "caller": "caculatePriceBySqrtPriceX96",
+          "callee": "BigNumber.from",
+          "lineNumber": 182
+        },
+        {
+          "caller": "caculatePriceBySqrtPriceX96",
+          "callee": "new Decimal(sqrtPriceX96_m2)\n    .div(new Decimal(_X_m2_192))\n    .toNumber",
+          "lineNumber": 183
+        },
+        {
+          "caller": "caculatePriceBySqrtPriceX96",
+          "callee": "new Decimal(sqrtPriceX96_m2)\n    .div",
+          "lineNumber": 183
+        },
+        {
+          "caller": "getAddressCreate",
+          "callee": "ethers.utils.getContractAddress",
+          "lineNumber": 191
+        },
+        {
+          "caller": "getAssociatedAddress",
+          "callee": "(\n    await getAssociatedTokenAddress(\n      new PublicKey(mintAddress),\n      new PublicKey(ownerAddress)\n    )\n  ).toString",
+          "lineNumber": 198
+        },
+        {
+          "caller": "getAssociatedAddress",
+          "callee": "getAssociatedTokenAddress",
+          "lineNumber": 199
+        },
+        {
+          "caller": "getAlchemyURL",
+          "callee": "Number",
+          "lineNumber": 207
+        },
+        {
+          "caller": "getAlchemyURL",
+          "callee": "Number",
+          "lineNumber": 210
+        },
+        {
+          "caller": "getAlchemy",
+          "callee": "Number",
+          "lineNumber": 217
+        },
+        {
+          "caller": "getAlchemy",
+          "callee": "Number",
+          "lineNumber": 223
+        },
+        {
+          "caller": "normalizeFaucetConfigKeys",
+          "callee": "Object.keys",
+          "lineNumber": 237
+        },
+        {
+          "caller": "normalizeFaucetConfigKeys",
+          "callee": "Object.keys",
+          "lineNumber": 240
+        },
+        {
+          "caller": "normalizeFaucetConfigKeys",
+          "callee": "key.toLowerCase",
+          "lineNumber": 241
+        },
+        {
+          "caller": "normalizeFaucetConfigKeys",
+          "callee": "String",
+          "lineNumber": 243
+        },
+        {
+          "caller": "sendToWebhook",
+          "callee": "fetch",
+          "lineNumber": 250
+        },
+        {
+          "caller": "sendToWebhook",
+          "callee": "JSON.stringify",
+          "lineNumber": 253
+        },
+        {
+          "caller": "sendToWebhook",
+          "callee": "JSON.stringify",
+          "lineNumber": 253
+        },
+        {
+          "caller": "sendToWebhook",
+          "callee": "response.json",
+          "lineNumber": 258
+        },
+        {
+          "caller": "sendToWebhook",
+          "callee": "console.error",
+          "lineNumber": 260
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 21,
+        "functionCount": 21,
+        "classCount": 0
+      }
+    }
+  ]
+}

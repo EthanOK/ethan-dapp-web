@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { mintNFT, signEIP712MessageMintNft } from "../utils/CallnftMint";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { mintNFT, signEIP712MessageMintNft } from "@/lib/nft/CallNftMint";
+import { useEvmWallet } from "@/hooks";
 
 const MintNFTPage = () => {
   const [selectedAmount, setSelectedAmount] = useState("1");
@@ -8,7 +8,7 @@ const MintNFTPage = () => {
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ethers } from "ethers";
-import { useAppKitAccount } from "@reown/appkit/react";
-import { getDefaultReadonlyProvider, getProvider } from "../utils/GetProvider";
-import { isAddress } from "../utils/Utils";
-import { SupportChains } from "../common/ChainsConfig";
+import { useEvmWallet } from "@/hooks";
+import {
+  getDefaultReadonlyProvider,
+  getProvider
+} from "@/lib/wallet/GetProvider";
+import { isAddress } from "@/lib/shared/Utils";
+import { SupportChains } from "@/config/ChainsConfig";
 import {
   decodeMulticallResult,
   multicall3Aggregate3StaticCall
-} from "utils/multicall3";
+} from "@/lib/evm/Multicall3";
 
 const PLACEHOLDER_TOKEN = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // USDT
 const PLACEHOLDER_OWNER = "0xe698a7917eEE4fDf03296add549eE4A7167DD406";
@@ -33,7 +36,7 @@ const ERC20_ABI = [
 ];
 
 const ERC20AllowancePage = () => {
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   const [selectedChainIdRaw, setSelectedChainIdRaw] = useState<string>(() =>
     (localStorage.getItem("chainId") ?? "").trim()

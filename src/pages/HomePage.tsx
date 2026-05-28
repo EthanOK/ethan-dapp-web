@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider";
-import { DefaultChainId } from "../common/SystemConfiguration";
+import { getChainIdAndBalanceETHAndTransactionCount } from "@/lib/wallet/GetProvider";
+import { DefaultChainId } from "@/config/SystemConfiguration";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { useEvmWallet } from "@/hooks";
 import { bitcoinTestnet } from "@reown/appkit/networks";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
@@ -12,8 +13,8 @@ import { build as buildEthUrl, parse as parseEthUrl } from "eth-url-parser";
 import AddressStyledQR, {
   prewarmAddressStyledQr,
   PREWARM_PLACEHOLDER
-} from "../components/AddressStyledQR";
-import { getBitCoinBalance } from "../utils/BitcoinBalance";
+} from "@/components/AddressStyledQR";
+import { getBitCoinBalance } from "@/lib/shared/BitcoinBalance";
 import "./HomePage.css";
 
 const COINGECKO_MARKETS_URL =
@@ -170,7 +171,7 @@ function parsePositiveChainId(
   return undefined;
 }
 
-/** 扫码用：Solana / Bitcoin 固定前缀；EVM 用 EIP-681/831 的 ethereum URI */
+/** QR payload: fixed prefix for Solana/Bitcoin; EVM uses EIP-681/831 ethereum URI. */
 function walletPaymentUriForQr(
   address: string,
   chainNamespace: string | undefined,
@@ -181,7 +182,7 @@ function walletPaymentUriForQr(
   if (chainNamespace === "bip122") return `bitcoin:${address}`;
 
   try {
-    // 生成形如：ethereum:0xabc...@1（chain_id 可选）
+    // e.g. ethereum:0xabc...@1 (chain_id optional)
     return buildEthUrl({
       scheme: "ethereum",
       target_address: address,
@@ -307,7 +308,7 @@ const HomePage = () => {
   const [addressQrOpen, setAddressQrOpen] = useState(false);
   const [donateQrOpen, setDonateQrOpen] = useState(false);
 
-  // 你的收款地址（用于 Donate 弹窗与 footer 显示）
+  // Donation addresses (Donate modal + footer)
   const {
     target_address: donateAddress,
     parameters: { value: donateValue },
@@ -321,7 +322,7 @@ const HomePage = () => {
   }, [tickerList, marketSearch]);
 
   const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
   const solanaAccount = useAppKitAccount({ namespace: "solana" });
   const bitcoinAccount = useAppKitAccount({ namespace: "bip122" });
   const { connection: solanaConnection } = useAppKitConnection();
@@ -339,7 +340,7 @@ const HomePage = () => {
   }, [caipNetwork?.id, currentChainId]);
 
   const donateQrPayload = useMemo(() => {
-    // Donate 默认二维码：按 EVM 方式生成（ethereum:...@chainId）
+    // Default Donate QR: EVM ethereum:...@chainId format
     return walletPaymentUriForQr(
       donateAddress,
       undefined,
@@ -384,7 +385,7 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
-    // 预热二维码实例，避免首次打开弹窗时才初始化导致的闪烁/空白
+    // Pre-warm QR instance to avoid flash/blank on first modal open
     prewarmAddressStyledQr();
     loadTicker();
     const interval = setInterval(loadTicker, 30000);
@@ -416,7 +417,7 @@ const HomePage = () => {
 
   useEffect(() => {
     if (!isBitcoinNetwork) return;
-    // 与 AppKit 一致：优先 accountState；部分钱包在 balance 拉取前 address 会出现在 allAccounts
+    // Match AppKit: prefer accountState; some wallets expose address in allAccounts before balance loads
     const fromAll = bitcoinAccount?.allAccounts?.[0]?.caipAddress;
     const btcAddress =
       bitcoinAccount?.address ??
@@ -428,7 +429,7 @@ const HomePage = () => {
       setCurrentAccountNonce(null);
       return;
     }
-    // 先展示地址，再异步拉余额（mempool.space UTXO）
+    // Show address first, then fetch balance async (mempool.space UTXO)
     setCurrentAccount(btcAddress);
     setChainId(String(currentChainId ?? ""));
     setCurrentAccountNonce(null);

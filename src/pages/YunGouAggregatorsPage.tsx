@@ -1,30 +1,30 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// @ts-nocheck — TODO: 逐步补充类型
+// @ts-nocheck — TODO: add types incrementally
 import { useEffect, useState } from "react";
-import seaportAbi from "../contracts/seaport1_5.json";
-import order_data_t from "../testdata/orderdata";
-import orders_data_t from "../testdata/ordersdata";
-import yunGouAggregatorsAbi from "../contracts/YunGouAggregators.json";
-import yunGou2_0Abi from "../contracts/yungou2_0.json";
+import seaportAbi from "@/abis/evm/seaport1_5.json";
+import order_data_t from "@/fixtures/OrderData";
+import orders_data_t from "@/fixtures/OrdersData";
+import yunGouAggregatorsAbi from "@/abis/evm/YunGouAggregators.json";
+import yunGou2_0Abi from "@/abis/evm/yungou2_0.json";
 import { BigNumber, ethers } from "ethers";
 import { OpenSeaSDK, Chain } from "opensea-js";
 
-import { getSigner, getProvider } from "../utils/GetProvider";
+import { getSigner, getProvider } from "@/lib/wallet/GetProvider";
 import {
   getYunGouAddress,
   getScanURL,
   getYunGouAddressAndOrder,
   stringToArray,
   getYunGouAggregatorsAddress
-} from "../utils/Utils";
-import Orders from "../utils/GetOrder";
-import OrdersTest from "../utils/GetOrdersTestnet";
+} from "@/lib/shared/Utils";
+import Orders from "@/lib/nft/GetOrder";
+import OrdersTest from "@/lib/nft/GetOrdersTestnet";
 import {
   OPENSEA_MAIN_API,
   YUNGOU_END,
   chainName_S
-} from "../common/SystemConfiguration";
-import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+} from "@/config/SystemConfiguration";
+import { useEvmWallet, useWalletChain } from "@/hooks";
 import "./YunGouAggregatorsPage.css";
 
 const YunGouAggregatorsPage = () => {
@@ -33,8 +33,8 @@ const YunGouAggregatorsPage = () => {
   const [message, setMessage] = useState("");
   const [etherscan, setEtherscan] = useState("");
 
-  const { chainId: currentChainId } = useAppKitNetwork();
-  const { address, isConnected } = useAppKitAccount();
+  const { chainIdCurrent: currentChainId } = useWalletChain();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) {

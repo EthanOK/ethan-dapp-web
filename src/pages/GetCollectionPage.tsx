@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { isAddress } from "../utils/Utils";
-import { getSignerAndChainId } from "../utils/GetProvider";
+import { isAddress } from "@/lib/shared/Utils";
+import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import {
   getContractsForOwner,
   getNFTListByOwnerAndContract
-} from "../utils/GetNFTListByOwner";
-import { useAppKitAccount } from "@reown/appkit/react";
+} from "@/lib/nft/GetNFTListByOwner";
+import { useEvmWallet } from "@/hooks";
 import { toast } from "sonner";
 
 const PLACEHOLDER = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
@@ -18,7 +18,7 @@ const GetCollectionPage = () => {
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);
