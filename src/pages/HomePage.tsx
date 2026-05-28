@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { getChainIdAndBalanceETHAndTransactionCount } from "../utils/GetProvider";
-import { DefaultChainId } from "../common/SystemConfiguration";
+import { getChainIdAndBalanceETHAndTransactionCount } from "@/lib/wallet/GetProvider";
+import { DefaultChainId } from "@/config/SystemConfiguration";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { useEvmWallet } from "@/hooks";
 import { bitcoinTestnet } from "@reown/appkit/networks";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
@@ -12,8 +13,8 @@ import { build as buildEthUrl, parse as parseEthUrl } from "eth-url-parser";
 import AddressStyledQR, {
   prewarmAddressStyledQr,
   PREWARM_PLACEHOLDER
-} from "../components/AddressStyledQR";
-import { getBitCoinBalance } from "../utils/BitcoinBalance";
+} from "@/components/AddressStyledQR";
+import { getBitCoinBalance } from "@/lib/shared/BitcoinBalance";
 import "./HomePage.css";
 
 const COINGECKO_MARKETS_URL =
@@ -321,7 +322,7 @@ const HomePage = () => {
   }, [tickerList, marketSearch]);
 
   const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
   const solanaAccount = useAppKitAccount({ namespace: "solana" });
   const bitcoinAccount = useAppKitAccount({ namespace: "bip122" });
   const { connection: solanaConnection } = useAppKitConnection();

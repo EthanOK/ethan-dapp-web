@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { isAddress, getDecimalBigNumber } from "../utils/Utils";
-import { getProvider } from "../utils/GetProvider";
-import { estimateTxFee } from "../utils/EstimateTxFee";
+import { isAddress, getDecimalBigNumber } from "@/lib/shared/Utils";
+import { getProvider } from "@/lib/wallet/GetProvider";
+import { estimateTxFee } from "@/lib/evm/EstimateTxFee";
 import { toast } from "sonner";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useEvmWallet } from "@/hooks";
 
 const PLACEHOLDER_ADDRESS = "0xe698a7917eEE4fDf03296add549eE4A7167DD406";
 
@@ -19,7 +19,7 @@ const EstimateTxFeePage = () => {
   const [result, setResult] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

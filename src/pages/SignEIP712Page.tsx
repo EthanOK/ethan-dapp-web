@@ -5,14 +5,14 @@ import {
   signBlurLoginMessage,
   signBulkOrderOpenSeaMessage,
   signCustomBulkOrderMessage
-} from "../utils/SignFunc";
-import { getSignerAndChainId } from "../utils/GetProvider";
+} from "@/lib/signing/SignFunc";
+import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import {
   getBlurAccessTokenByNFTGO,
   getBlurLoginMessageByNFTGO
-} from "../api/GetData";
-import { login } from "../utils/ConnectWallet";
-import { useAppKitAccount } from "@reown/appkit/react";
+} from "@/services/GetData";
+import { login } from "@/lib/wallet/ConnectWallet";
+import { useEvmWallet } from "@/hooks";
 import { toast } from "sonner";
 
 const SignEIP712Page = () => {
@@ -20,7 +20,7 @@ const SignEIP712Page = () => {
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

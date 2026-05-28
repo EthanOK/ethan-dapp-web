@@ -1,3 +1,1 @@
-import App from "./EthanDapp";
-
-export default App;
+export { default } from "@/app/App";

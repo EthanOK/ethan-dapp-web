@@ -18,7 +18,7 @@ import {
   type PricePoint,
   type OHLCPoint,
   type CoinRouteState
-} from "../utils/coinGeckoApi";
+} from "@/lib/price/CoinGeckoApi";
 import "./MarketChartPage.css";
 
 const SPOT_POLL_MS = 30000;

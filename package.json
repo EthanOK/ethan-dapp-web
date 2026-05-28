@@ -18,9 +18,6 @@
     "@solana/wallet-adapter-react-ui": "^0.9.39",
     "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.98.4",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "@tokenbound/sdk": "^0.4.5",
     "@walletconnect/ethereum-provider": "^2.8.0",
     "@web3auth/base": "^9.4.4",
@@ -44,7 +41,6 @@
     "siwe": "^3.0.0",
     "sonner": "^2.0.6",
     "tweetnacl": "^1.0.3",
-    "web-vitals": "^2.1.4",
     "web3": "^1.10.0"
   },
   "lint-staged": {
@@ -60,9 +56,6 @@
     "start": "REACT_APP_VERSION=$npm_package_version craco start",
     "build": "GENERATE_SOURCEMAP=false REACT_APP_VERSION=$npm_package_version craco build",
     "preview": "serve -s build",
-    "test": "craco test",
-    "eject": "react-scripts eject",
-    "lint": "react-scripts lint",
     "release": "standard-version --release-as patch"
   },
   "eslintConfig": {
@@ -93,7 +86,6 @@
   },
   "devDependencies": {
     "@craco/craco": "^7.1.0",
-    "@types/jest": "^29.5.12",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

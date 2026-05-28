@@ -3,9 +3,9 @@ import {
   getENSUniversalResolver,
   getAddressOfENSTheGraph,
   getENSByTokenId
-} from "../api/GetData";
-import { isAddress } from "../utils/Utils";
-import { useAppKitAccount } from "@reown/appkit/react";
+} from "@/services/GetData";
+import { isAddress } from "@/lib/shared/Utils";
+import { useEvmWallet } from "@/hooks";
 import { toast } from "sonner";
 
 const ENSPage = () => {
@@ -18,7 +18,7 @@ const ENSPage = () => {
   const [messageAddress, setMessageAddress] = useState("");
   const [messageName, setMessageName] = useState("");
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

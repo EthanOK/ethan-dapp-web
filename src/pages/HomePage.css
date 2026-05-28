@@ -1,4 +1,4 @@
-/* HomePage - Web3 风格 */
+/* HomePage — Web3 style */
 .home-page {
   max-width: 1200px;
   margin: 0 auto;
@@ -31,7 +31,7 @@
   margin: 0;
 }
 
-/* 信息卡片网格 */
+/* Info card grid */
 .home-cards {
   display: grid;
   gap: 16px;
@@ -60,7 +60,7 @@
   margin-bottom: 32px;
 }
 
-/* 一行五币种 - 独立样式 */
+/* Five tickers in one row */
 .home-spot-row {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -227,7 +227,7 @@
   color: #ef4444;
 }
 
-/* 区块标题 */
+/* Section headings */
 .home-section {
   margin-bottom: 32px;
 }
@@ -241,7 +241,7 @@
   border-bottom: 1px solid var(--w3-border);
 }
 
-/* 网络选择 */
+/* Network selector */
 .home-network-wrap {
   margin-bottom: 24px;
 }
@@ -270,7 +270,7 @@
   border-color: var(--w3-border-accent);
 }
 
-/* YunGou 卡片 */
+/* YunGou card */
 .home-panel {
   background: var(--w3-bg-card);
   border: 1px solid var(--w3-border);
@@ -327,7 +327,7 @@
   border-color: var(--w3-border-accent);
 }
 
-/* 按钮组 */
+/* Button group */
 .home-actions {
   display: flex;
   flex-wrap: wrap;
@@ -360,7 +360,7 @@
   margin: 0 0 6px;
 }
 
-/* 行情横向滑动 - 紧凑卡片 */
+/* Market ticker strip — compact cards */
 .home-market-wrap {
   margin-top: 32px;
   padding-top: 20px;

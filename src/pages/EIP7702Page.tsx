@@ -1,26 +1,26 @@
 import { useState } from "react";
-import { getChainId } from "../utils/GetProvider";
+import { getChainId } from "@/lib/wallet/GetProvider";
 import {
   createAuthorization,
   createEIP7702Account,
   getDelegationAddress,
   revokeEIP7702Account
-} from "../utils/EIP7702Utils";
+} from "@/lib/evm/EIP7702Utils";
 import {
   ALCHEMY_KEY_V3,
   EIP7702Delegator_Metamask
-} from "../common/SystemConfiguration";
+} from "@/config/SystemConfiguration";
 import { Wallet } from "ethers-v6";
-import { getScanURL } from "../utils/Utils";
+import { getScanURL } from "@/lib/shared/Utils";
 import { AlchemyProvider } from "ethers-v6";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useEvmWallet } from "@/hooks";
 import { toast } from "sonner";
 
 const EIP7702Page = () => {
   const [privateKey, setPrivateKey] = useState("");
   const [txLink, setTxLink] = useState("");
 
-  const { address } = useAppKitAccount();
+  const { address } = useEvmWallet();
 
   const createEIP7702AccountHandler = async () => {
     const pk = privateKey.trim();

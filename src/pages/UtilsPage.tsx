@@ -1,15 +1,15 @@
 import { BigNumber, ethers } from "ethers";
 import { useEffect, useState } from "react";
-import { getPriceBaseUSDTByBinance } from "../api/GetData";
+import { getPriceBaseUSDTByBinance } from "@/services/GetData";
 import {
   caculatePriceBySqrtPriceX96,
   getAddressCreate,
   isAddress
-} from "../utils/Utils";
-import { getTokenPrice } from "../utils/GetLpTokenPrice";
-import { signHexDataMessage } from "../utils/SignFunc";
-import { getSigner } from "../utils/GetProvider";
-import { useAppKitAccount } from "@reown/appkit/react";
+} from "@/lib/shared/Utils";
+import { getTokenPrice } from "@/lib/price/GetLpTokenPrice";
+import { signHexDataMessage } from "@/lib/signing/SignFunc";
+import { getSigner } from "@/lib/wallet/GetProvider";
+import { useEvmWallet } from "@/hooks";
 
 const UtilsPage = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -27,7 +27,7 @@ const UtilsPage = () => {
   const [lpTokenPrice, setLpTokenPrice] = useState<string | null>(null);
   const [selectedValue, setSelectedValue] = useState("1");
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

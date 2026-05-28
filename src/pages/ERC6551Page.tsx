@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { getScanURL, isAddress } from "../utils/Utils";
-import { getSignerAndChainId } from "../utils/GetProvider";
+import { getScanURL, isAddress } from "@/lib/shared/Utils";
+import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import { TBVersion, TokenboundClient } from "@tokenbound/sdk";
 import { Contract, Signer } from "ethers";
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useEvmWallet } from "@/hooks";
 import { toast } from "sonner";
 
 const url_iframe = "https://iframe-tokenbound.vercel.app";
@@ -20,7 +20,7 @@ const ERC6551Page = () => {
   const [srcIframe, setSrcIframe] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [hashURL, setHashURL] = useState("");
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

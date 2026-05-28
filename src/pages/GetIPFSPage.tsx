@@ -1,4 +1,4 @@
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useEvmWallet } from "@/hooks";
 import { useEffect, useState } from "react";
 
 const GetIPFSPage = () => {
@@ -7,7 +7,7 @@ const GetIPFSPage = () => {
   const [ipfsUrl, setIpfsUrl] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   useEffect(() => {
     if (isConnected && address) setCurrentAccount(address);

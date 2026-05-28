@@ -4,20 +4,24 @@ import {
   getFaucetContract,
   getERC20Contract,
   getERC20Decimals
-} from "../utils/GetContract";
-import { getDecimal, getDecimalBigNumber } from "../utils/Utils";
+} from "@/lib/evm/GetContract";
+import { getDecimal, getDecimalBigNumber } from "@/lib/shared/Utils";
 import { BigNumber } from "ethers";
-import { getSignerAndChainId } from "../utils/GetProvider";
+import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import {
   faucetChainIdList,
   faucetConfig,
   getFaucetTokenAddress,
   getFaucetTokenListByChain,
   getChainName
-} from "../common/FaucetConfig";
-import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
-import { getDefaultNetwork, modal } from "../EthanDapp";
+} from "@/config/FaucetConfig";
 import { toast } from "sonner";
+import {
+  useEvmWallet,
+  useOpenAppKitModal,
+  useSwitchAppKitNetwork,
+  useWalletChain
+} from "@/hooks";
 
 const faucetFromAddress = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
 
@@ -37,11 +41,14 @@ const FaucetTokenPage = () => {
   const [tokenBalance, setTokenBalance] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isTransactionProcessing, setIsTransactionProcessing] = useState(false);
-  const [isSwitchingChain, setIsSwitchingChain] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  const { address, isConnected } = useAppKitAccount();
-  const { chainId: chainIdCurrent } = useAppKitNetwork();
+  const { address, isConnected } = useEvmWallet();
+  const { chainIdCurrent } = useWalletChain();
+  const { isConnecting, openConnectModal } = useOpenAppKitModal();
+  const {
+    isSwitching: isSwitchingChain,
+    switchNetwork,
+    switchToChainAndWait
+  } = useSwitchAppKitNetwork();
 
   const shouldShowConnect = (() => {
     if (!isMounted) return false;
@@ -74,25 +81,6 @@ const FaucetTokenPage = () => {
       setCurrentAccount(null);
     }
   }, [isConnected, address, chainIdCurrent]);
-
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    try {
-      localStorage.setItem("LoginType", "reown");
-      // Prefer opening the AppKit modal when available
-      const maybeModal = modal as unknown as {
-        open?: () => Promise<void> | void;
-      };
-      await maybeModal?.open?.();
-      // If modal.open doesn't exist, user can still connect via header appkit button
-    } catch (error) {
-      console.error("Connect failed:", error);
-      localStorage.removeItem("LoginType");
-      toast.error("Connect wallet failed, please try again");
-    } finally {
-      setIsConnecting(false);
-    }
-  };
 
   useEffect(() => {
     if (selectedChainId) {
@@ -250,7 +238,7 @@ const FaucetTokenPage = () => {
     localStorage.setItem("faucetChainId", cid.toString());
     if (chainIdCurrent != null && cid !== chainIdCurrent) {
       try {
-        await modal.switchNetwork(getDefaultNetwork(cid));
+        await switchNetwork(cid);
       } catch (error) {
         console.error("Failed to switch chain:", error);
         toast.error("切换链失败，请手动切换");
@@ -267,39 +255,12 @@ const FaucetTokenPage = () => {
   const switchToTargetChain = async (): Promise<boolean> => {
     const targetChainId = selectedChainId ?? faucetChainIdList[0];
     if (chainId === targetChainId) return true;
-    try {
-      // toast.info("Please switch to " + getChainName(targetChainId));
-      await modal.switchNetwork(getDefaultNetwork(targetChainId));
-      const deadline = Date.now() + 15000;
-      while (Date.now() < deadline) {
-        const [, current] = await getSignerAndChainId();
-        if (current === targetChainId) {
-          setChainId(targetChainId);
-          localStorage.setItem("chainId", String(targetChainId));
-          window.dispatchEvent(
-            new CustomEvent("app-network-changed", {
-              detail: { chainId: String(targetChainId) }
-            })
-          );
-          // toast.success("Switched to " + getChainName(targetChainId));
-          return true;
-        }
-        await new Promise((r) => setTimeout(r, 400));
-      }
-      const [, current] = await getSignerAndChainId();
-      if (current !== targetChainId) {
-        toast.error(
-          "Switching network timeout or not completed, please switch manually and try again"
-        );
-        return false;
-      }
-      return true;
-    } catch (error) {
-      toast.error(
-        "Switching network failed or canceled, please switch manually and try again"
-      );
-      return false;
-    }
+    const ok = await switchToChainAndWait(targetChainId, {
+      onMismatchMessage:
+        "Switching network timeout or not completed, please switch manually and try again"
+    });
+    if (ok) setChainId(targetChainId);
+    return ok;
   };
 
   const checkAndSwitchChain = async (): Promise<number | null> => {
@@ -312,13 +273,8 @@ const FaucetTokenPage = () => {
   };
 
   const switchToTargetChainHandler = async () => {
-    setIsSwitchingChain(true);
-    try {
-      const ok = await switchToTargetChain();
-      if (ok) await updateBalance();
-    } finally {
-      setIsSwitchingChain(false);
-    }
+    const ok = await switchToTargetChain();
+    if (ok) await updateBalance();
   };
 
   const faucetTokenHandler = async (
@@ -537,7 +493,7 @@ const FaucetTokenPage = () => {
       {shouldShowConnect && (
         <section className="feature-panel">
           <button
-            onClick={handleConnect}
+            onClick={openConnectModal}
             className="cta-button connect-wallet-button"
             disabled={isConnecting}
           >

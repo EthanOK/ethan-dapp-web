@@ -4,17 +4,17 @@ import {
   utf8ToHexBytes,
   getScanURL,
   getDecimalBigNumber
-} from "../utils/Utils";
+} from "@/lib/shared/Utils";
 import {
   getSigner,
   getProvider,
   getDefaultReadonlyProvider
-} from "../utils/GetProvider";
+} from "@/lib/wallet/GetProvider";
 import { toast } from "sonner";
-import { useAppKitAccount } from "@reown/appkit/react";
-import { truncateHash } from "../utils/format";
+import { useEvmWallet } from "@/hooks";
+import { truncateHash } from "@/lib/shared/Format";
 import { ethers } from "ethers";
-import { multicall3Aggregate3Value } from "../utils/multicall3";
+import { multicall3Aggregate3Value } from "@/lib/evm/Multicall3";
 
 const PLACEHOLDER_ADDRESS = "0xe698a7917eEE4fDf03296add549eE4A7167DD406";
 
@@ -80,7 +80,7 @@ const CreateTransactionPage = () => {
   const [cancelTxHash, setCancelTxHash] = useState("");
   const [isFetchingNonceFromHash, setIsFetchingNonceFromHash] = useState(false);
 
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected } = useEvmWallet();
 
   const resolveTxProvider = async () => {
     const injected = await getProvider();
