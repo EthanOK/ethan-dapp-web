@@ -1,7 +1,9 @@
 {
   "files": {
     "main.css": "/static/css/main.36ee5fc3.css",
-    "main.js": "/static/js/main.6aeadca3.js",
+    "main.js": "/static/js/main.f3183370.js",
+    "static/css/416.b8ece4f7.chunk.css": "/static/css/416.b8ece4f7.chunk.css",
+    "static/js/416.aaa2b176.chunk.js": "/static/js/416.aaa2b176.chunk.js",
     "static/js/8961.ed9bb937.chunk.js": "/static/js/8961.ed9bb937.chunk.js",
     "static/js/2708.5c02f65b.chunk.js": "/static/js/2708.5c02f65b.chunk.js",
     "static/js/8223.3dcb0709.chunk.js": "/static/js/8223.3dcb0709.chunk.js",
@@ -93,11 +95,14 @@
     "static/js/8317.286f5198.chunk.js": "/static/js/8317.286f5198.chunk.js",
     "static/js/8546.a0c9e871.chunk.js": "/static/js/8546.a0c9e871.chunk.js",
     "static/js/9015.5f875f44.chunk.js": "/static/js/9015.5f875f44.chunk.js",
-    "static/media/index.cjs": "/static/media/index.02a87dd5cbbefe30bb30.cjs",
-    "index.html": "/index.html"
+    "static/js/6351.f9a8f579.chunk.js": "/static/js/6351.f9a8f579.chunk.js",
+    "static/media/axios.cjs": "/static/media/axios.133342feedd4ef08f79f.cjs",
+    "static/media/index.cjs": "/static/media/index.6dca216f184d6949403c.cjs",
+    "index.html": "/index.html",
+    "static/media/okx-sui-swap-stub.cjs": "/static/media/okx-sui-swap-stub.5b5372ff640b8a58e9b9.cjs"
   },
   "entrypoints": [
     "static/css/main.36ee5fc3.css",
-    "static/js/main.6aeadca3.js"
+    "static/js/main.f3183370.js"
   ]
 }

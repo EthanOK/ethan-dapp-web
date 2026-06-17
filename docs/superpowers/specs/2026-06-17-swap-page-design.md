@@ -229,8 +229,17 @@ Spender/router address comes from quote response or SDK config — confirm durin
 - Rotate any token exposed in chat before production use.
 - No secrets in frontend bundle beyond public contract addresses.
 
+### Mainnet contract addresses (chainId 1)
+
+| Field | Address |
+|-------|---------|
+| `bricSwapAddress` | `0xF7803651Be70EA1df2882880D637189f533BCe46` |
+| `multicallAddress` | `0x61cd896fe0Da27644E11790f5f385093D11C0BE9` |
+
+`multicallAddress` matches SDK `ETHEREUM_CORE_ADDRESSES.BRIC_MULTICALL`. `bricSwapAddress` is passed to `BricAggregatorHelper` constructor.
+
 ## Open Items (resolve at implementation)
 
-1. Confirm bric-sdk 0.3.8 API surface after `npm install`.
-2. Confirm native ETH sentinel address format expected by SDK.
-3. Confirm approve spender address source (quote vs static config).
+1. Confirm bric-sdk 0.3.8 API surface after `npm install`. ✅ Verified
+2. Confirm native ETH sentinel address format expected by SDK. ✅ `ZeroAddress`
+3. Confirm approve spender address source (quote vs static config). ✅ Spender = `bricSwapAddress`

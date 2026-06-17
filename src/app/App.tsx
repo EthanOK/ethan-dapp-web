@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -37,6 +37,8 @@ import {
   useReownWalletSync,
   useResponsiveSidebar
 } from "@/hooks";
+
+const SwapPage = lazy(() => import("@/pages/SwapPage"));
 
 if (typeof window !== "undefined") {
   (window as Window).Buffer =
@@ -86,6 +88,7 @@ function App() {
     { title: "ERC20 Allowance", linkTo: "/erc20Allowance" },
     { title: "OFT Bridge (LayerZero)", linkTo: "/layerzeroOftBridge" },
     { title: "Faucet Token", linkTo: "/faucet" },
+    { title: "BricSwap", linkTo: "/bricswap" },
     { title: "Burn Token", linkTo: "/burn" },
     { title: "ENS Service", linkTo: "/ens" },
     { title: "Mint NFT", linkTo: "/mintnft" },
@@ -268,6 +271,18 @@ function App() {
               <Route path="/buyNFT" element={<BuyNFTPage />} />
               <Route path="/getIPFS" element={<GetIPFSPage />} />
               <Route path="/faucet" element={<FaucetTokenPage />} />
+              <Route
+                path="/bricswap"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="feature-panel">Loading BricSwap…</div>
+                    }
+                  >
+                    <SwapPage />
+                  </Suspense>
+                }
+              />
               <Route path="/burn" element={<BurnTokenPage />} />
               <Route
                 path="/createTransaction"
