@@ -2,7 +2,6 @@ import {
   BricAggregatorHelper,
   ERC20Helper,
   TxStatus,
-  getContractAddresses,
   type CallResult,
   type SwapRouterDataOutput
 } from "@bric-labs/bric-sdk";
@@ -12,25 +11,18 @@ import {
   type Provider,
   type Signer
 } from "ethers";
-import {
-  BRIC_MAINNET_CHAIN_ID,
-  BRIC_SUPPORTED_AGGREGATORS,
-  BRIC_SWAP_AGGREGATOR_ADDRESS,
-  initBricSdk
-} from "@/config/BricConfig";
+import { BRIC_SUPPORTED_AGGREGATORS, initBricSdk } from "@/config/BricConfig";
 import { SupportChains } from "@/config/ChainsConfig";
+import type { SwapChainDefinition } from "@/config/SwapChainConfig";
 
-/** Mainnet USDT — non-zero allowance must be cleared before a new approval. */
-const MAINNET_USDT_ADDRESS = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-
-function requiresUsdtAllowanceReset(
+function requiresAllowanceReset(
+  chain: SwapChainDefinition,
   token: string,
   currentAllowance: bigint
 ): boolean {
-  return (
-    token.toLowerCase() === MAINNET_USDT_ADDRESS.toLowerCase() &&
-    currentAllowance > 0n
-  );
+  if (currentAllowance <= 0n) return false;
+  const list = chain.tokensRequiringAllowanceReset ?? [];
+  return list.some((t) => t.toLowerCase() === token.toLowerCase());
 }
 
 function assertApproveSucceeded(
@@ -60,9 +52,7 @@ function readQuoteAmountOut(quote: SwapRouterDataOutput): bigint {
   }
 }
 
-function getReadonlyProviderForChain(
-  chainId: number = BRIC_MAINNET_CHAIN_ID
-): JsonRpcProvider {
+function getReadonlyProviderForChain(chainId: number): JsonRpcProvider {
   const chain = SupportChains.find((c) => Number(c.id) === chainId);
   const rpc = chain?.rpcUrls?.[0];
   if (!rpc) {
@@ -72,13 +62,14 @@ function getReadonlyProviderForChain(
 }
 
 export async function createBricAggregator(
+  chain: SwapChainDefinition,
   signer: Signer
 ): Promise<BricAggregatorHelper> {
   initBricSdk();
   const helper = new BricAggregatorHelper(
     signer,
-    BRIC_MAINNET_CHAIN_ID,
-    BRIC_SWAP_AGGREGATOR_ADDRESS,
+    chain.chainId,
+    chain.bricSwapAddress,
     { waitForConfirmation: true, autoGasBuffer: true },
     signer.provider!,
     BRIC_SUPPORTED_AGGREGATORS
@@ -87,21 +78,22 @@ export async function createBricAggregator(
 }
 
 export async function createBricAggregatorReadonly(
-  chainId: number = BRIC_MAINNET_CHAIN_ID,
+  chain: SwapChainDefinition,
   provider?: Provider
 ): Promise<BricAggregatorHelper> {
   initBricSdk();
   return new BricAggregatorHelper(
     null,
-    chainId,
-    BRIC_SWAP_AGGREGATOR_ADDRESS,
+    chain.chainId,
+    chain.bricSwapAddress,
     { waitForConfirmation: true, autoGasBuffer: true },
-    provider ?? getReadonlyProviderForChain(chainId),
+    provider ?? getReadonlyProviderForChain(chain.chainId),
     BRIC_SUPPORTED_AGGREGATORS
   );
 }
 
 export async function fetchSwapQuote(params: {
+  chain: SwapChainDefinition;
   signer?: Signer | null;
   tokenIn: string;
   tokenOut: string;
@@ -113,8 +105,8 @@ export async function fetchSwapQuote(params: {
   const checkBalance =
     params.checkBalance ?? Boolean(params.signer && params.from);
   const aggregator = params.signer
-    ? await createBricAggregator(params.signer)
-    : await createBricAggregatorReadonly();
+    ? await createBricAggregator(params.chain, params.signer)
+    : await createBricAggregatorReadonly(params.chain);
 
   const quote = await aggregator.previewSwapExactInput(
     params.tokenIn,
@@ -147,6 +139,7 @@ export type Erc20AllowanceResult = {
 };
 
 export async function ensureErc20Allowance(params: {
+  chain: SwapChainDefinition;
   signer: Signer;
   token: string;
   owner: string;
@@ -157,11 +150,12 @@ export async function ensureErc20Allowance(params: {
   const provider = params.signer.provider;
   if (!provider) throw new Error("Signer has no provider");
 
-  const { BRIC_MULTICALL } = getContractAddresses(BRIC_MAINNET_CHAIN_ID);
-  const erc20Helper = new ERC20Helper(provider, BRIC_MULTICALL, true).connect(
-    params.signer
-  );
-  const spender = BRIC_SWAP_AGGREGATOR_ADDRESS;
+  const erc20Helper = new ERC20Helper(
+    provider,
+    params.chain.bricMulticallAddress,
+    true
+  ).connect(params.signer);
+  const spender = params.chain.bricSwapAddress;
   const [row] = await erc20Helper.batchBalancesAndAllowances(
     [params.token],
     spender,
@@ -170,9 +164,9 @@ export async function ensureErc20Allowance(params: {
   if (row.allowance >= params.amount) return null;
 
   let reset: CallResult | undefined;
-  if (requiresUsdtAllowanceReset(params.token, row.allowance)) {
+  if (requiresAllowanceReset(params.chain, params.token, row.allowance)) {
     reset = await erc20Helper.approve(params.token, spender, 0n);
-    assertApproveSucceeded(reset, "Failed to reset USDT allowance");
+    assertApproveSucceeded(reset, "Failed to reset allowance");
   }
 
   const approve = await erc20Helper.approve(
@@ -185,6 +179,7 @@ export async function ensureErc20Allowance(params: {
 }
 
 export async function executeSwapExactInput(params: {
+  chain: SwapChainDefinition;
   signer: Signer;
   tokenIn: string;
   amountIn: bigint;
@@ -196,7 +191,7 @@ export async function executeSwapExactInput(params: {
     throw new Error("Insufficient balance or swap route unavailable");
   }
 
-  const aggregator = await createBricAggregator(params.signer);
+  const aggregator = await createBricAggregator(params.chain, params.signer);
   aggregator.setOptions({ waitForConfirmation: true, autoGasBuffer: true });
 
   const result = await aggregator.swapExactInput(

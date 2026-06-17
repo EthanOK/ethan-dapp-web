@@ -15,6 +15,10 @@ import {
 import "./SwapTokenPickerModal.css";
 
 function formatListBalance(value: bigint, decimals: number): string {
+  if (value > 0n && decimals >= 6) {
+    const minUnits = 10n ** BigInt(decimals - 6);
+    if (value < minUnits) return "<0.000001";
+  }
   const raw = formatUnits(value, decimals);
   const [int, frac = ""] = raw.split(".");
   const frac6 = frac.padEnd(6, "0").slice(0, 6).replace(/0+$/, "");

@@ -136,17 +136,22 @@ export function calcTokenUsdValue(
   return Number(formatUnits(balance, decimals)) * priceUsd;
 }
 
+const SWAP_USD_MIN_DISPLAY = 0.000001;
+
+function formatUsdWithSixDecimals(usd: number): string {
+  const fixed = usd.toFixed(6).replace(/\.?0+$/, "");
+  return `$${fixed}`;
+}
+
 /** Compact USD label for swap amount rows (e.g. $395.82). */
 export function formatSwapUsdValue(usd: number): string {
   if (!Number.isFinite(usd) || usd <= 0) return "";
+  if (usd < SWAP_USD_MIN_DISPLAY) return "<$0.000001";
   if (usd >= 1_000_000) {
     return `$${usd.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  }
-  if (usd >= 100) {
-    return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
   if (usd >= 0.01) {
     return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
-  return `$${usd.toPrecision(2)}`;
+  return formatUsdWithSixDecimals(usd);
 }
