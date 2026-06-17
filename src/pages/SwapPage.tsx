@@ -8,7 +8,10 @@ import {
   useWalletChain
 } from "@/hooks";
 import { initBricSdk } from "@/config/BricConfig";
-import { getDefaultSwapChain } from "@/config/SwapChainConfig";
+import {
+  getDefaultSwapChain,
+  getSwapChainConfig
+} from "@/config/SwapChainConfig";
 import {
   ensureErc20Allowance,
   executeSwapExactInput,
@@ -45,7 +48,6 @@ import {
   filterTokenSidesByQuery,
   isReceiveAllowed,
   isSameTokenSide,
-  payTokenSide,
   resolveTokenSideFromSelectKey,
   sortTokenSidesByBalance,
   tokenBalanceKey,
@@ -63,26 +65,27 @@ const QUOTE_AMOUNT_DEBOUNCE_MS = 1000;
 /** Auto-refresh quote interval while inputs are valid. */
 const QUOTE_AUTO_REFRESH_MS = 15_000;
 
-const swapChain = getDefaultSwapChain();
-const DEFAULT_PAY_KEY = encodeTokenSelectKey(
-  payTokenSide(swapChain.payTokens[2], swapChain.chainId)
-);
-const DEFAULT_RECEIVE_KEY = encodeTokenSelectKey(
-  whitelistTokenSide(swapChain.whitelist[2], swapChain.chainId)
-);
-const XAUT_FALLBACK = whitelistTokenSide(
-  swapChain.whitelist[2],
-  swapChain.chainId
-);
+function buildDefaultsForChain(chainId: number) {
+  const swapChain = getSwapChainConfig(chainId) ?? getDefaultSwapChain();
+  const pick = (sym: string) =>
+    swapChain.tokens.find((t) => t.symbol.toLowerCase() === sym.toLowerCase());
+  const payToken =
+    pick("USDC") ??
+    pick("USDT") ??
+    pick(swapChain.nativeSymbol) ??
+    swapChain.tokens[0];
+  const receiveToken =
+    pick("SPCXon") ??
+    pick("XAUT") ??
+    swapChain.tokens.find((t) => t.symbol !== payToken.symbol) ??
+    swapChain.tokens[0];
 
-function getInitialSwapPairKeys(): {
-  paySelectKey: string;
-  receiveSelectKey: string;
-} {
-  const last = loadLastSwapPair(swapChain.chainId);
+  const fallbackPay = whitelistTokenSide(payToken, chainId);
+  const fallbackReceive = whitelistTokenSide(receiveToken, chainId);
   return {
-    paySelectKey: last?.paySelectKey ?? DEFAULT_PAY_KEY,
-    receiveSelectKey: last?.receiveSelectKey ?? DEFAULT_RECEIVE_KEY
+    defaultPayKey: encodeTokenSelectKey(fallbackPay),
+    defaultReceiveKey: encodeTokenSelectKey(fallbackReceive),
+    xautFallback: fallbackReceive
   };
 }
 
@@ -102,6 +105,10 @@ function formatTokenAmount(
   decimals: number,
   maxFrac = 6
 ): string {
+  if (value > 0n && decimals >= 6) {
+    const minUnits = 10n ** BigInt(decimals - 6);
+    if (value < minUnits) return "<0.000001";
+  }
   const raw = formatUnits(value, decimals);
   const [int, frac] = raw.split(".");
   if (!frac) return int;
@@ -165,13 +172,31 @@ const SwapPage = () => {
   const { chainIdCurrent } = useWalletChain();
   const { openConnectModal, isConnecting } = useOpenAppKitModal();
   const { isSwitching, switchToChainAndWait } = useSwitchAppKitNetwork();
+  const chainIdNum = chainIdCurrent != null ? Number(chainIdCurrent) : null;
+  const swapChain = useMemo(() => {
+    if (chainIdNum != null) {
+      const match = getSwapChainConfig(chainIdNum);
+      if (match) return match;
+    }
+    return getDefaultSwapChain();
+  }, [chainIdNum]);
+  const { defaultPayKey, defaultReceiveKey, xautFallback } = useMemo(
+    () => buildDefaultsForChain(swapChain.chainId),
+    [swapChain.chainId]
+  );
+  const initialPairKeys = useMemo(() => {
+    const last = loadLastSwapPair(swapChain.chainId);
+    return {
+      paySelectKey: last?.paySelectKey ?? defaultPayKey,
+      receiveSelectKey: last?.receiveSelectKey ?? defaultReceiveKey
+    };
+  }, [swapChain.chainId, defaultPayKey, defaultReceiveKey]);
 
-  const initialPairKeysRef = useRef(getInitialSwapPairKeys());
   const [paySelectKey, setPaySelectKey] = useState(
-    () => initialPairKeysRef.current.paySelectKey
+    () => initialPairKeys.paySelectKey
   );
   const [receiveSelectKey, setReceiveSelectKey] = useState(
-    () => initialPairKeysRef.current.receiveSelectKey
+    () => initialPairKeys.receiveSelectKey
   );
   const pairValidatedRef = useRef(false);
   const quoteRefreshSilentRef = useRef(false);
@@ -202,8 +227,27 @@ const SwapPage = () => {
     error: string | null;
   }>({ side: null, loading: false, error: null });
 
-  const chainIdNum = chainIdCurrent != null ? Number(chainIdCurrent) : null;
   const isOnSwapChain = chainIdNum != null && chainIdNum === swapChain.chainId;
+
+  // When the active swap chain changes (e.g. user switches wallet network),
+  // reset pair selection and cache to the new chain defaults.
+  useEffect(() => {
+    pairValidatedRef.current = false;
+    quoteRefreshSilentRef.current = false;
+    setSavedTokens(loadSavedSwapTokens(swapChain.chainId));
+    setPaySelectKey(defaultPayKey);
+    setReceiveSelectKey(defaultReceiveKey);
+    setPickerSearch("");
+    setAddressLookup({ side: null, loading: false, error: null });
+    setAmount("");
+    setDebouncedAmountIn(null);
+    setTokenBalances({});
+    setTokenPrices({});
+    setQuote(null);
+    setQuoteError(null);
+    setIsQuoting(false);
+    setRateInverted(false);
+  }, [swapChain.chainId, defaultPayKey, defaultReceiveKey]);
 
   useEffect(() => {
     initBricSdk();
@@ -419,7 +463,7 @@ const SwapPage = () => {
     pairValidatedRef.current = true;
 
     const { paySelectKey: savedPayKey, receiveSelectKey: savedReceiveKey } =
-      initialPairKeysRef.current;
+      initialPairKeys;
     const pay = resolveTokenSideFromSelectKey(
       savedPayKey,
       "",
@@ -428,8 +472,8 @@ const SwapPage = () => {
       swapChain
     );
     if (!pay) {
-      setPaySelectKey(DEFAULT_PAY_KEY);
-      setReceiveSelectKey(DEFAULT_RECEIVE_KEY);
+      setPaySelectKey(defaultPayKey);
+      setReceiveSelectKey(defaultReceiveKey);
       return;
     }
 
@@ -444,12 +488,19 @@ const SwapPage = () => {
 
     const coerced = coerceReceiveSide(
       pay,
-      receive ?? XAUT_FALLBACK,
-      XAUT_FALLBACK,
+      receive ?? xautFallback,
+      xautFallback,
       tokenCatalog
     );
     setReceiveSelectKey(encodeTokenSelectKey(coerced));
-  }, [tokenCatalog]);
+  }, [
+    tokenCatalog,
+    swapChain,
+    initialPairKeys,
+    defaultPayKey,
+    defaultReceiveKey,
+    xautFallback
+  ]);
 
   useEffect(() => {
     if (!paySide || !receiveSide || !isReceiveAllowed(paySide, receiveSide)) {
@@ -464,7 +515,7 @@ const SwapPage = () => {
     const coerced = coerceReceiveSide(
       paySide,
       receiveSide,
-      XAUT_FALLBACK,
+      xautFallback,
       tokenCatalog
     );
     setReceiveSelectKey(encodeTokenSelectKey(coerced));
@@ -491,6 +542,7 @@ const SwapPage = () => {
         const canUseWalletQuote = isConnected && isOnSwapChain && !!address;
         const signer = canUseWalletQuote ? await getSigner() : null;
         const result = await fetchSwapQuote({
+          chain: swapChain,
           signer,
           tokenIn: paySide.tokenAddress,
           tokenOut: receiveSide.tokenAddress,
@@ -554,7 +606,7 @@ const SwapPage = () => {
     const newReceive = coerceReceiveSide(
       newPay,
       paySide,
-      XAUT_FALLBACK,
+      xautFallback,
       tokenCatalog
     );
     setPaySelectKey(encodeTokenSelectKey(newPay));
@@ -615,6 +667,7 @@ const SwapPage = () => {
       }
 
       const allowanceResult = await ensureErc20Allowance({
+        chain: swapChain,
         signer,
         token: paySide.tokenAddress,
         owner: address,
@@ -636,6 +689,7 @@ const SwapPage = () => {
       }
 
       const result = await executeSwapExactInput({
+        chain: swapChain,
         signer,
         tokenIn: paySide.tokenAddress,
         amountIn,
@@ -1123,6 +1177,8 @@ const SwapPage = () => {
         open={pickerOpen === "pay"}
         title="Select pay token"
         networkBadge={swapChain.networkBadge}
+        chainAvatarBadge={swapChain.chainAvatarBadge}
+        chainAvatarColor={swapChain.chainAvatarColor}
         tokens={payPickerTokens}
         balances={tokenBalances}
         prices={tokenPrices}
@@ -1140,6 +1196,8 @@ const SwapPage = () => {
         open={pickerOpen === "receive"}
         title="Select receive token"
         networkBadge={swapChain.networkBadge}
+        chainAvatarBadge={swapChain.chainAvatarBadge}
+        chainAvatarColor={swapChain.chainAvatarColor}
         tokens={receivePickerTokens}
         balances={tokenBalances}
         prices={tokenPrices}

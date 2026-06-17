@@ -15,6 +15,10 @@ import {
 import "./SwapTokenPickerModal.css";
 
 function formatListBalance(value: bigint, decimals: number): string {
+  if (value > 0n && decimals >= 6) {
+    const minUnits = 10n ** BigInt(decimals - 6);
+    if (value < minUnits) return "<0.000001";
+  }
   const raw = formatUnits(value, decimals);
   const [int, frac = ""] = raw.split(".");
   const frac6 = frac.padEnd(6, "0").slice(0, 6).replace(/0+$/, "");
@@ -37,6 +41,8 @@ export type SwapTokenPickerModalProps = {
   open: boolean;
   title: string;
   networkBadge: string;
+  chainAvatarBadge: string;
+  chainAvatarColor: string;
   tokens: TokenSide[];
   balances: Record<string, bigint>;
   prices?: SwapTokenPriceMap;
@@ -54,6 +60,8 @@ export function SwapTokenPickerModal({
   open,
   title,
   networkBadge,
+  chainAvatarBadge,
+  chainAvatarColor,
   tokens,
   balances,
   prices = {},
@@ -177,8 +185,12 @@ export function SwapTokenPickerModal({
                       }}
                     >
                       {initials}
-                      <span className="swap-picker-avatar-chain" aria-hidden>
-                        Ξ
+                      <span
+                        className="swap-picker-avatar-chain"
+                        style={{ background: chainAvatarColor }}
+                        aria-hidden
+                      >
+                        {chainAvatarBadge}
                       </span>
                     </span>
                     <span className="swap-picker-token-info">

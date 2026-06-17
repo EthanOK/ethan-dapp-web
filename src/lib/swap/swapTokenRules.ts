@@ -4,17 +4,12 @@ import {
 } from "@/config/SwapChainConfig";
 import {
   customTokenSide,
-  payTokenSide,
   whitelistTokenSide,
   type TokenSide
 } from "@/lib/swap/swapTokenSide";
 
 export type { TokenSide } from "@/lib/swap/swapTokenSide";
-export {
-  customTokenSide,
-  payTokenSide,
-  whitelistTokenSide
-} from "@/lib/swap/swapTokenSide";
+export { customTokenSide, whitelistTokenSide } from "@/lib/swap/swapTokenSide";
 
 export const SLIPPAGE_PRESETS = [
   { label: "0.1%", bps: 10, decimal: 0.001 },
@@ -42,10 +37,7 @@ export function encodeTokenSelectKey(side: TokenSide): string {
 export function buildPaySelectOptions(
   chain = getDefaultSwapChain()
 ): TokenSide[] {
-  return [
-    ...chain.payTokens.map((t) => payTokenSide(t, chain.chainId)),
-    ...chain.whitelist.map((t) => whitelistTokenSide(t, chain.chainId))
-  ];
+  return [...chain.tokens.map((t) => whitelistTokenSide(t, chain.chainId))];
 }
 
 export function tokenBalanceKey(tokenAddress: string): string {
@@ -56,13 +48,9 @@ function defaultTokenSideRank(
   side: TokenSide,
   chain = getDefaultSwapChain()
 ): number {
-  if (side.kind === "pay") {
-    const i = chain.payTokens.findIndex((t) => t.id === side.key);
-    return i >= 0 ? i : 99;
-  }
   if (side.kind === "whitelist") {
-    const i = chain.whitelist.findIndex((t) => t.symbol === side.key);
-    return 100 + (i >= 0 ? i : 99);
+    const i = chain.tokens.findIndex((t) => t.symbol === side.key);
+    return i >= 0 ? i : 99;
   }
   return 1000;
 }
@@ -98,7 +86,7 @@ export function filterTokenSidesByQuery(
     if (side.symbol.toLowerCase().includes(q)) return true;
     if (side.tokenAddress.toLowerCase().includes(q)) return true;
     if (side.kind !== "whitelist") return false;
-    const meta = chain.whitelist.find((t) => t.symbol === side.symbol);
+    const meta = chain.tokens.find((t) => t.symbol === side.symbol);
     return meta?.underlyingAsset.toLowerCase().includes(q) ?? false;
   });
 }
@@ -109,7 +97,7 @@ export function getTokenDisplayName(
 ): string {
   if (side.kind === "custom") return side.name ?? side.symbol;
   if (side.kind === "whitelist") {
-    const meta = chain.whitelist.find((t) => t.symbol === side.symbol);
+    const meta = chain.tokens.find((t) => t.symbol === side.symbol);
     return meta?.underlyingAsset ?? side.symbol;
   }
   if (side.symbol === "ETH") return "Ethereum";
@@ -175,12 +163,8 @@ export function resolveTokenSideFromSelectKey(
     );
   }
 
-  if (kind === "pay" && key) {
-    const token = chain.payTokens.find((t) => t.id === key);
-    return token ? payTokenSide(token, chain.chainId) : null;
-  }
   if (kind === "whitelist" && key) {
-    const token = chain.whitelist.find((t) => t.symbol === key);
+    const token = chain.tokens.find((t) => t.symbol === key);
     return token ? whitelistTokenSide(token, chain.chainId) : null;
   }
   return null;
