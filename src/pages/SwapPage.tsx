@@ -230,13 +230,14 @@ const SwapPage = () => {
   const isOnSwapChain = chainIdNum != null && chainIdNum === swapChain.chainId;
 
   // When the active swap chain changes (e.g. user switches wallet network),
-  // reset pair selection and cache to the new chain defaults.
+  // reload saved tokens and restore the last pair for that chain.
   useEffect(() => {
     pairValidatedRef.current = false;
     quoteRefreshSilentRef.current = false;
     setSavedTokens(loadSavedSwapTokens(swapChain.chainId));
-    setPaySelectKey(defaultPayKey);
-    setReceiveSelectKey(defaultReceiveKey);
+    const last = loadLastSwapPair(swapChain.chainId);
+    setPaySelectKey(last?.paySelectKey ?? defaultPayKey);
+    setReceiveSelectKey(last?.receiveSelectKey ?? defaultReceiveKey);
     setPickerSearch("");
     setAddressLookup({ side: null, loading: false, error: null });
     setAmount("");
@@ -484,8 +485,13 @@ const SwapPage = () => {
       tokenCatalog,
       swapChain
     );
-    if (receive && isReceiveAllowed(pay, receive)) return;
+    if (receive && isReceiveAllowed(pay, receive)) {
+      setPaySelectKey(savedPayKey);
+      setReceiveSelectKey(savedReceiveKey);
+      return;
+    }
 
+    setPaySelectKey(savedPayKey);
     const coerced = coerceReceiveSide(
       pay,
       receive ?? xautFallback,
