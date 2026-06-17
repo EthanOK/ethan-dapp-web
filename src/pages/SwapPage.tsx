@@ -614,14 +614,25 @@ const SwapPage = () => {
         return;
       }
 
-      const approveResult = await ensureErc20Allowance({
+      const allowanceResult = await ensureErc20Allowance({
         signer,
         token: paySide.tokenAddress,
         owner: address,
         amount: amountIn
       });
-      if (approveResult?.txHash) {
-        showSwapTxToast("Approve confirmed", approveResult.txHash, 5000);
+      if (allowanceResult?.reset?.txHash) {
+        showSwapTxToast(
+          "Allowance reset confirmed",
+          allowanceResult.reset.txHash,
+          5000
+        );
+      }
+      if (allowanceResult?.approve.txHash) {
+        showSwapTxToast(
+          "Approve confirmed",
+          allowanceResult.approve.txHash,
+          5000
+        );
       }
 
       const result = await executeSwapExactInput({

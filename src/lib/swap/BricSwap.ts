@@ -20,6 +20,28 @@ import {
 } from "@/config/BricConfig";
 import { SupportChains } from "@/config/ChainsConfig";
 
+/** Mainnet USDT — non-zero allowance must be cleared before a new approval. */
+const MAINNET_USDT_ADDRESS = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+
+function requiresUsdtAllowanceReset(
+  token: string,
+  currentAllowance: bigint
+): boolean {
+  return (
+    token.toLowerCase() === MAINNET_USDT_ADDRESS.toLowerCase() &&
+    currentAllowance > 0n
+  );
+}
+
+function assertApproveSucceeded(
+  result: CallResult,
+  fallbackMessage: string
+): void {
+  if (result.status === TxStatus.Reverted) {
+    throw new Error(result.error?.message ?? fallbackMessage);
+  }
+}
+
 export type SwapQuoteResult = SwapRouterDataOutput & {
   minReceived: bigint;
 };
@@ -119,12 +141,17 @@ export async function fetchSwapQuote(params: {
   };
 }
 
+export type Erc20AllowanceResult = {
+  reset?: CallResult;
+  approve: CallResult;
+};
+
 export async function ensureErc20Allowance(params: {
   signer: Signer;
   token: string;
   owner: string;
   amount: bigint;
-}): Promise<CallResult | null> {
+}): Promise<Erc20AllowanceResult | null> {
   if (params.token === ZeroAddress) return null;
 
   const provider = params.signer.provider;
@@ -142,7 +169,19 @@ export async function ensureErc20Allowance(params: {
   );
   if (row.allowance >= params.amount) return null;
 
-  return erc20Helper.approve(params.token, spender, params.amount);
+  let reset: CallResult | undefined;
+  if (requiresUsdtAllowanceReset(params.token, row.allowance)) {
+    reset = await erc20Helper.approve(params.token, spender, 0n);
+    assertApproveSucceeded(reset, "Failed to reset USDT allowance");
+  }
+
+  const approve = await erc20Helper.approve(
+    params.token,
+    spender,
+    params.amount
+  );
+  assertApproveSucceeded(approve, "Approve failed");
+  return reset ? { reset, approve } : { approve };
 }
 
 export async function executeSwapExactInput(params: {
