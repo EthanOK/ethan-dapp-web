@@ -75,6 +75,7 @@ function buildDefaultsForChain(chainId: number) {
     pick(swapChain.nativeSymbol) ??
     swapChain.tokens[0];
   const receiveToken =
+    pick("SPCXon") ??
     pick("XAUT") ??
     swapChain.tokens.find((t) => t.symbol !== payToken.symbol) ??
     swapChain.tokens[0];
@@ -1176,6 +1177,8 @@ const SwapPage = () => {
         open={pickerOpen === "pay"}
         title="Select pay token"
         networkBadge={swapChain.networkBadge}
+        chainAvatarBadge={swapChain.chainAvatarBadge}
+        chainAvatarColor={swapChain.chainAvatarColor}
         tokens={payPickerTokens}
         balances={tokenBalances}
         prices={tokenPrices}
@@ -1193,6 +1196,8 @@ const SwapPage = () => {
         open={pickerOpen === "receive"}
         title="Select receive token"
         networkBadge={swapChain.networkBadge}
+        chainAvatarBadge={swapChain.chainAvatarBadge}
+        chainAvatarColor={swapChain.chainAvatarColor}
         tokens={receivePickerTokens}
         balances={tokenBalances}
         prices={tokenPrices}

@@ -1,6 +1,6 @@
 import type { SwapWhitelistToken } from "@/fixtures/SwapTokenWhitelist";
 
-/** Static snapshot placeholder for BSC whitelist (disabled for now). */
+/** BSC swap whitelist tokens. */
 export const SWAP_TOKEN_WHITELIST_BSC: SwapWhitelistToken[] = [
   {
     symbol: "BNB",
@@ -21,9 +21,9 @@ export const SWAP_TOKEN_WHITELIST_BSC: SwapWhitelistToken[] = [
     decimals: 18
   },
   {
-    symbol: "XAUT",
-    underlyingAsset: "Tether Gold (BSC)",
-    tokenAddress: "0x21caef8a43163eea865baee23b9c2e327696a3bf",
+    symbol: "SPCXon",
+    underlyingAsset: "SpaceX",
+    tokenAddress: "0xd0a58bc9d88d3ff48c0294cb7e45937d0e41a928",
     decimals: 18
   }
 ];

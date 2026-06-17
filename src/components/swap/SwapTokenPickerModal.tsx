@@ -41,6 +41,8 @@ export type SwapTokenPickerModalProps = {
   open: boolean;
   title: string;
   networkBadge: string;
+  chainAvatarBadge: string;
+  chainAvatarColor: string;
   tokens: TokenSide[];
   balances: Record<string, bigint>;
   prices?: SwapTokenPriceMap;
@@ -58,6 +60,8 @@ export function SwapTokenPickerModal({
   open,
   title,
   networkBadge,
+  chainAvatarBadge,
+  chainAvatarColor,
   tokens,
   balances,
   prices = {},
@@ -181,8 +185,12 @@ export function SwapTokenPickerModal({
                       }}
                     >
                       {initials}
-                      <span className="swap-picker-avatar-chain" aria-hidden>
-                        Ξ
+                      <span
+                        className="swap-picker-avatar-chain"
+                        style={{ background: chainAvatarColor }}
+                        aria-hidden
+                      >
+                        {chainAvatarBadge}
                       </span>
                     </span>
                     <span className="swap-picker-token-info">

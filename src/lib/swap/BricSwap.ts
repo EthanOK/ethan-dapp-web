@@ -1,6 +1,7 @@
 import {
   BricAggregatorHelper,
   ERC20Helper,
+  MULTICALL3_ADDRESS,
   TxStatus,
   type CallResult,
   type SwapRouterDataOutput
@@ -152,7 +153,7 @@ export async function ensureErc20Allowance(params: {
 
   const erc20Helper = new ERC20Helper(
     provider,
-    params.chain.bricMulticallAddress,
+    MULTICALL3_ADDRESS,
     true
   ).connect(params.signer);
   const spender = params.chain.bricSwapAddress;

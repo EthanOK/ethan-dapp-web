@@ -8,10 +8,12 @@ export type SwapChainDefinition = {
   chainId: number;
   name: string;
   networkBadge: string;
+  /** Small chain badge on token avatars (picker list). */
+  chainAvatarBadge: string;
+  chainAvatarColor: string;
   nativeSymbol: string;
   tokens: typeof SWAP_TOKEN_WHITELIST;
   bricSwapAddress: string;
-  bricMulticallAddress: string;
   /**
    * Tokens that require allowance reset (approve 0) before setting a new
    * non-zero allowance (e.g. mainnet USDT).
@@ -24,10 +26,11 @@ export const SWAP_CHAIN_ETHEREUM: SwapChainDefinition = {
   chainId: CHAIN_ID_MAPPING.ETHEREUM,
   name: "Ethereum Mainnet",
   networkBadge: "Ethereum",
+  chainAvatarBadge: "Ξ",
+  chainAvatarColor: "#627eea",
   nativeSymbol: "ETH",
   tokens: SWAP_TOKEN_WHITELIST,
   bricSwapAddress: "0xF7803651Be70EA1df2882880D637189f533BCe46",
-  bricMulticallAddress: "0x61cd896fe0Da27644E11790f5f385093D11C0BE9",
   tokensRequiringAllowanceReset: [
     // USDT (Ethereum mainnet)
     "0xdac17f958d2ee523a2206206994597c13d831ec7"
@@ -39,12 +42,12 @@ export const SWAP_CHAIN_BSC: SwapChainDefinition = {
   chainId: CHAIN_ID_MAPPING.BSC,
   name: "BNB Smart Chain",
   networkBadge: "BSC",
+  chainAvatarBadge: "B",
+  chainAvatarColor: "#f0b90b",
   nativeSymbol: "BNB",
   tokens: SWAP_TOKEN_WHITELIST_BSC,
-  // TODO: fill real addresses before enabling BSC
   bricSwapAddress: "0x0000000000000000000000000000000000000000",
-  bricMulticallAddress: "0x0000000000000000000000000000000000000000",
-  enabled: false
+  enabled: true
 };
 
 /** Registered swap chains. Only `enabled` entries are usable in the UI. */
