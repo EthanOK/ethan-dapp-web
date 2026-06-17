@@ -118,78 +118,28 @@ export function getTokenDisplayName(
   return side.symbol;
 }
 
-export function getAllowedReceiveSides(
-  pay: TokenSide,
-  chain = getDefaultSwapChain()
-): TokenSide[] {
-  if (pay.kind === "pay") {
-    const out: TokenSide[] = [];
-    const eth = chain.payTokens[0];
-    const usdt = chain.payTokens[1];
-    const usdc = chain.payTokens[2];
-    if (pay.symbol === "USDT" || pay.symbol === "USDC") {
-      out.push(payTokenSide(eth, chain.chainId));
-    }
-    if (pay.symbol === "ETH") {
-      out.push(payTokenSide(usdt, chain.chainId));
-      out.push(payTokenSide(usdc, chain.chainId));
-    }
-    if (pay.symbol === "USDT") {
-      out.push(payTokenSide(usdc, chain.chainId));
-    }
-    if (pay.symbol === "USDC") {
-      out.push(payTokenSide(usdt, chain.chainId));
-    }
-    return out.filter((r) => !isSameTokenSide(r, pay));
-  }
-
-  return chain.payTokens
-    .map((t) => payTokenSide(t, chain.chainId))
-    .filter((r) => !isSameTokenSide(r, pay));
-}
-
+/** Receive options = full catalog minus the current pay token. */
 export function buildReceiveSelectOptions(
   pay: TokenSide,
-  chain = getDefaultSwapChain()
+  catalog: TokenSide[] = buildPaySelectOptions()
 ): TokenSide[] {
-  const options = [...getAllowedReceiveSides(pay, chain)];
-  if (pay.kind === "pay") {
-    for (const w of chain.whitelist) {
-      const side = whitelistTokenSide(w, chain.chainId);
-      if (isReceiveAllowed(pay, side)) {
-        options.push(side);
-      }
-    }
-  }
-  return options;
+  return catalog.filter((side) => !isSameTokenSide(side, pay));
 }
 
 export function isReceiveAllowed(pay: TokenSide, receive: TokenSide): boolean {
-  if (isSameTokenSide(pay, receive)) return false;
-
-  if (pay.kind === "pay") {
-    if (receive.kind === "pay") {
-      return getAllowedReceiveSides(pay).some((r) => r.key === receive.key);
-    }
-    return receive.kind === "whitelist" || receive.kind === "custom";
-  }
-
-  return receive.kind === "pay";
+  return !isSameTokenSide(pay, receive);
 }
 
 export function coerceReceiveSide(
   pay: TokenSide,
   receive: TokenSide,
-  whitelistFallback: TokenSide,
-  chain = getDefaultSwapChain()
+  fallback: TokenSide,
+  catalog: TokenSide[] = buildPaySelectOptions()
 ): TokenSide {
   if (isReceiveAllowed(pay, receive)) return receive;
-  const allowed = buildReceiveSelectOptions(pay, chain);
+  const allowed = buildReceiveSelectOptions(pay, catalog);
   if (allowed.length > 0) return allowed[0];
-  if (pay.kind !== "pay") {
-    return payTokenSide(chain.payTokens[0], chain.chainId);
-  }
-  return whitelistFallback;
+  return fallback;
 }
 
 export function resolveTokenSideFromSelectKey(

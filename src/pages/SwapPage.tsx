@@ -28,6 +28,13 @@ import {
 } from "@/lib/swap/savedSwapTokens";
 import { loadLastSwapPair, saveLastSwapPair } from "@/lib/swap/swapLastPair";
 import {
+  calcTokenUsdValue,
+  fetchSwapTokenPricesForSides,
+  formatSwapUsdValue,
+  getSwapTokenPrice,
+  type SwapTokenPriceMap
+} from "@/lib/swap/swapTokenPrices";
+import {
   DEFAULT_SLIPPAGE,
   SLIPPAGE_PRESETS,
   addressesEqual,
@@ -45,7 +52,7 @@ import {
   whitelistTokenSide,
   type TokenSide
 } from "@/lib/swap/swapTokenRules";
-import { getScanURL, isAddress } from "@/lib/shared/Utils";
+import { getScanTxURL, isAddress } from "@/lib/shared/Utils";
 import { getProvider, getSigner } from "@/lib/wallet/GetProvider";
 import { truncateHash } from "@/lib/shared/Format";
 import { SwapTokenPickerModal } from "@/components/swap/SwapTokenPickerModal";
@@ -100,6 +107,27 @@ function formatTokenAmount(
   if (!frac) return int;
   const trimmed = frac.slice(0, maxFrac).replace(/0+$/, "");
   return trimmed ? `${int}.${trimmed}` : int;
+}
+
+/** Full on-chain precision — for MAX fill and parseUnits round-trip. */
+function formatTokenAmountExact(value: bigint, decimals: number): string {
+  const raw = formatUnits(value, decimals);
+  if (!raw.includes(".")) return raw;
+  const trimmed = raw.replace(/0+$/, "").replace(/\.$/, "");
+  return trimmed || "0";
+}
+
+function showSwapTxToast(title: string, txHash: string, duration = 8000) {
+  void getScanTxURL(txHash).then((txUrl) => {
+    toast.success(title, {
+      description: truncateHash(txHash, 10, 8),
+      action: {
+        label: "View tx",
+        onClick: () => window.open(txUrl, "_blank", "noopener,noreferrer")
+      },
+      duration
+    });
+  });
 }
 
 function formatRateNumber(rate: number): string {
@@ -160,6 +188,7 @@ const SwapPage = () => {
   const [tokenBalances, setTokenBalances] = useState<Record<string, bigint>>(
     {}
   );
+  const [tokenPrices, setTokenPrices] = useState<SwapTokenPriceMap>({});
   const [quote, setQuote] = useState<SwapQuoteResult | null>(null);
   const [isQuoting, setIsQuoting] = useState(false);
   const [isSwapping, setIsSwapping] = useState(false);
@@ -234,23 +263,13 @@ const SwapPage = () => {
 
   const receivePickerTokens = useMemo(() => {
     if (!paySide) return [];
-    let options = buildReceiveSelectOptions(paySide, swapChain);
-    if (paySide.kind === "pay") {
-      for (const s of savedTokens) {
-        if (
-          isReceiveAllowed(paySide, s) &&
-          !options.some((o) => addressesEqual(o.tokenAddress, s.tokenAddress))
-        ) {
-          options.push(s);
-        }
-      }
-    }
+    let options = buildReceiveSelectOptions(paySide, tokenCatalog);
     options = filterTokenSidesByQuery(options, pickerSearch, swapChain);
-    if (addressLookup.side && isReceiveAllowed(paySide, addressLookup.side)) {
+    if (addressLookup.side && !isSameTokenSide(paySide, addressLookup.side)) {
       options = mergeAddressLookupToken(options, addressLookup.side);
     }
     return sortTokenSidesByBalance(options, tokenBalances, swapChain);
-  }, [paySide, savedTokens, pickerSearch, tokenBalances, addressLookup.side]);
+  }, [paySide, tokenCatalog, pickerSearch, tokenBalances, addressLookup.side]);
 
   const slippage = SLIPPAGE_PRESETS[slippageIndex] ?? DEFAULT_SLIPPAGE;
 
@@ -259,10 +278,13 @@ const SwapPage = () => {
       ? (tokenBalances[tokenBalanceKey(paySide.tokenAddress)] ?? 0n)
       : 0n;
 
+  const receiveBalance =
+    receiveSide != null
+      ? (tokenBalances[tokenBalanceKey(receiveSide.tokenAddress)] ?? 0n)
+      : 0n;
+
   const sameToken =
     paySide && receiveSide ? isSameTokenSide(paySide, receiveSide) : false;
-  const pairInvalid =
-    paySide && receiveSide ? !isReceiveAllowed(paySide, receiveSide) : true;
 
   const amountIn = useMemo(() => {
     if (!paySide || !amount.trim()) return null;
@@ -308,6 +330,26 @@ const SwapPage = () => {
   useEffect(() => {
     loadAllBalances();
   }, [loadAllBalances]);
+
+  const loadTokenPrices = useCallback(async () => {
+    try {
+      const prices = await fetchSwapTokenPricesForSides(
+        swapChain.chainId,
+        tokenCatalog
+      );
+      setTokenPrices(prices);
+    } catch (error) {
+      console.warn(
+        "[BricSwap] token price fetch failed:",
+        error instanceof Error ? error.message : error
+      );
+      setTokenPrices({});
+    }
+  }, [tokenCatalog]);
+
+  useEffect(() => {
+    loadTokenPrices();
+  }, [loadTokenPrices]);
 
   useEffect(() => {
     if (!pickerOpen) {
@@ -404,7 +446,7 @@ const SwapPage = () => {
       pay,
       receive ?? XAUT_FALLBACK,
       XAUT_FALLBACK,
-      swapChain
+      tokenCatalog
     );
     setReceiveSelectKey(encodeTokenSelectKey(coerced));
   }, [tokenCatalog]);
@@ -418,26 +460,18 @@ const SwapPage = () => {
 
   useEffect(() => {
     if (!paySide || !receiveSide) return;
-    if (isReceiveAllowed(paySide, receiveSide)) return;
+    if (isSameTokenSide(paySide, receiveSide)) return;
     const coerced = coerceReceiveSide(
       paySide,
       receiveSide,
       XAUT_FALLBACK,
-      swapChain
+      tokenCatalog
     );
     setReceiveSelectKey(encodeTokenSelectKey(coerced));
   }, [paySide, receiveSide]);
 
   useEffect(() => {
-    if (
-      !isOnSwapChain ||
-      !address ||
-      !paySide ||
-      !receiveSide ||
-      !debouncedAmountIn ||
-      sameToken ||
-      pairInvalid
-    ) {
+    if (!paySide || !receiveSide || !debouncedAmountIn || sameToken) {
       setQuote(null);
       setQuoteError(null);
       setIsQuoting(false);
@@ -454,15 +488,16 @@ const SwapPage = () => {
 
     void (async () => {
       try {
-        const signer = await getSigner();
-        if (!signer) throw new Error("Wallet not connected");
+        const canUseWalletQuote = isConnected && isOnSwapChain && !!address;
+        const signer = canUseWalletQuote ? await getSigner() : null;
         const result = await fetchSwapQuote({
           signer,
           tokenIn: paySide.tokenAddress,
           tokenOut: receiveSide.tokenAddress,
           amountIn: debouncedAmountIn,
           slippageDecimal: slippage.decimal,
-          from: address
+          from: canUseWalletQuote && signer ? address : undefined,
+          checkBalance: canUseWalletQuote && !!signer
         });
         if (!cancelled) {
           setQuote(result);
@@ -483,6 +518,7 @@ const SwapPage = () => {
       cancelled = true;
     };
   }, [
+    isConnected,
     isOnSwapChain,
     address,
     paySide,
@@ -490,19 +526,15 @@ const SwapPage = () => {
     debouncedAmountIn,
     slippage.decimal,
     sameToken,
-    pairInvalid,
     quoteRefreshKey
   ]);
 
   useEffect(() => {
     if (
-      !isOnSwapChain ||
-      !address ||
       !paySide ||
       !receiveSide ||
       !debouncedAmountIn ||
       sameToken ||
-      pairInvalid ||
       isSwapping
     ) {
       return;
@@ -514,16 +546,7 @@ const SwapPage = () => {
     }, QUOTE_AUTO_REFRESH_MS);
 
     return () => window.clearInterval(timer);
-  }, [
-    isOnSwapChain,
-    address,
-    paySide,
-    receiveSide,
-    debouncedAmountIn,
-    sameToken,
-    pairInvalid,
-    isSwapping
-  ]);
+  }, [paySide, receiveSide, debouncedAmountIn, sameToken, isSwapping]);
 
   const handleFlip = () => {
     if (!paySide || !receiveSide) return;
@@ -532,7 +555,7 @@ const SwapPage = () => {
       newPay,
       paySide,
       XAUT_FALLBACK,
-      swapChain
+      tokenCatalog
     );
     setPaySelectKey(encodeTokenSelectKey(newPay));
     setReceiveSelectKey(encodeTokenSelectKey(newReceive));
@@ -552,15 +575,15 @@ const SwapPage = () => {
       const gasReserve = parseUnits("0.001", 18);
       const max =
         payBalance > gasReserve ? payBalance - gasReserve : payBalance;
-      setAmount(formatTokenAmount(max, paySide.decimals));
+      setAmount(formatTokenAmountExact(max, paySide.decimals));
       return;
     }
-    setAmount(formatTokenAmount(payBalance, paySide.decimals));
+    setAmount(formatTokenAmountExact(payBalance, paySide.decimals));
   };
 
   const handleSwitchSwapChain = async () => {
     await switchToChainAndWait(swapChain.chainId, {
-      onMismatchMessage: `请切换到 ${swapChain.name}`
+      onMismatchMessage: `Switch to ${swapChain.name}`
     });
   };
 
@@ -598,9 +621,7 @@ const SwapPage = () => {
         amount: amountIn
       });
       if (approveResult?.txHash) {
-        toast.success(
-          `Approve confirmed: ${truncateHash(approveResult.txHash)}`
-        );
+        showSwapTxToast("Approve confirmed", approveResult.txHash, 5000);
       }
 
       const result = await executeSwapExactInput({
@@ -612,10 +633,7 @@ const SwapPage = () => {
         receiver: address
       });
 
-      const scan = await getScanURL();
-      toast.success(`BricSwap success: ${scan}${result.txHash}`, {
-        duration: 8000
-      });
+      showSwapTxToast("Swap successful", result.txHash);
       setAmount("");
       setQuote(null);
       await loadAllBalances();
@@ -640,7 +658,6 @@ const SwapPage = () => {
     !quote ||
     !isExecutableSwapQuote(quote) ||
     sameToken ||
-    pairInvalid ||
     isQuoting ||
     isSwapping;
 
@@ -648,6 +665,43 @@ const SwapPage = () => {
     quote && receiveSide
       ? formatTokenAmount(BigInt(quote.amountOut), receiveSide.decimals)
       : null;
+
+  const payUsdLabel = useMemo(() => {
+    if (!paySide || amountIn == null || amountIn === 0n) return "";
+    const priceUsd = getSwapTokenPrice(
+      tokenPrices,
+      paySide.tokenAddress
+    )?.priceUsd;
+    if (!priceUsd) return "";
+    return formatSwapUsdValue(
+      calcTokenUsdValue(amountIn, paySide.decimals, priceUsd)
+    );
+  }, [amountIn, paySide, tokenPrices]);
+
+  const receiveUsdLabel = useMemo(() => {
+    if (
+      !receiveSide ||
+      !quote?.amountOut ||
+      isQuoting ||
+      (amountIn != null && amountIn !== debouncedAmountIn)
+    ) {
+      return "";
+    }
+    try {
+      const out = BigInt(quote.amountOut);
+      if (out === 0n) return "";
+      const priceUsd = getSwapTokenPrice(
+        tokenPrices,
+        receiveSide.tokenAddress
+      )?.priceUsd;
+      if (!priceUsd) return "";
+      return formatSwapUsdValue(
+        calcTokenUsdValue(out, receiveSide.decimals, priceUsd)
+      );
+    } catch {
+      return "";
+    }
+  }, [receiveSide, quote, tokenPrices, isQuoting, amountIn, debouncedAmountIn]);
 
   const minReceived =
     quote && receiveSide && quote.minReceived > 0n
@@ -683,13 +737,7 @@ const SwapPage = () => {
   };
 
   const canRefreshQuote =
-    !!amountIn &&
-    !!paySide &&
-    !!receiveSide &&
-    isOnSwapChain &&
-    !!address &&
-    !sameToken &&
-    !pairInvalid;
+    !!amountIn && !!paySide && !!receiveSide && !sameToken;
 
   const primaryButtonLabel = (() => {
     if (!isConnected) return "Connect Wallet";
@@ -702,10 +750,9 @@ const SwapPage = () => {
       return quote.error ?? "Insufficient balance";
     }
     if (sameToken) return "Tokens must differ";
-    if (pairInvalid) return "Invalid pair";
     if (!amountIn) return "Enter amount";
     if (quoteError) return "Quote unavailable";
-    return "BricSwap";
+    return "Swap";
   })();
 
   const showTokenBalances = isConnected && isOnSwapChain;
@@ -722,8 +769,8 @@ const SwapPage = () => {
   };
 
   const applyReceiveToken = (side: TokenSide) => {
-    if (paySide && !isReceiveAllowed(paySide, side)) {
-      toast.error("Invalid token pair");
+    if (paySide && isSameTokenSide(paySide, side)) {
+      toast.error("Pay and receive must be different tokens");
       return;
     }
     rememberCustomToken(side);
@@ -737,17 +784,13 @@ const SwapPage = () => {
     <div className="swap-page">
       <div className="swap-hero">
         <h2>BricSwap</h2>
-        <p className="swap-hero-sub">
-          {swapChain.name} · ETH / USDT / USDC ↔ AnyTokens
-        </p>
+        <p className="swap-hero-sub">{swapChain.name}</p>
       </div>
 
       <div className="swap-card">
         {!isOnSwapChain && isConnected && (
           <div className="swap-chain-banner">
-            <p className="swap-chain-banner-text">
-              当前网络不支持 BricSwap，请切换到 {swapChain.name}
-            </p>
+            <p className="swap-chain-banner-text">Switch to {swapChain.name}</p>
             <button
               type="button"
               className="swap-chain-banner-btn"
@@ -861,15 +904,20 @@ const SwapPage = () => {
               </span>
             </div>
             <div className="swap-field-main">
-              <input
-                id="swap-amount"
-                className="swap-amount-input"
-                type="text"
-                inputMode="decimal"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0"
-              />
+              <div className="swap-field-amount-col">
+                <input
+                  id="swap-amount"
+                  className="swap-amount-input"
+                  type="text"
+                  inputMode="decimal"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0"
+                />
+                {payUsdLabel ? (
+                  <span className="swap-usd-value">{payUsdLabel}</span>
+                ) : null}
+              </div>
               <button
                 type="button"
                 className="swap-token-chip"
@@ -914,19 +962,28 @@ const SwapPage = () => {
             <div className="swap-field-top">
               <span className="swap-field-label">You receive</span>
               <span className="swap-field-balance">
-                {receiveSide ? receiveSide.symbol : "—"}
+                {receiveSide && address && isOnSwapChain
+                  ? `${formatTokenAmount(receiveBalance, receiveSide.decimals)} ${receiveSide.symbol}`
+                  : receiveSide
+                    ? receiveSide.symbol
+                    : "—"}
               </span>
             </div>
             <div className="swap-field-main">
-              <div
-                className={`swap-receive-amount${isQuoting ? " is-loading" : ""}`}
-                aria-live="polite"
-              >
-                {isQuoting
-                  ? "Fetching quote…"
-                  : amountIn != null && amountIn !== debouncedAmountIn
-                    ? "—"
-                    : (estimatedOut ?? (amountIn ? "—" : "0"))}
+              <div className="swap-field-amount-col">
+                <div
+                  className={`swap-receive-amount${isQuoting ? " is-loading" : ""}`}
+                  aria-live="polite"
+                >
+                  {isQuoting
+                    ? "Fetching quote…"
+                    : amountIn != null && amountIn !== debouncedAmountIn
+                      ? "—"
+                      : (estimatedOut ?? (amountIn ? "—" : "0"))}
+                </div>
+                {receiveUsdLabel ? (
+                  <span className="swap-usd-value">{receiveUsdLabel}</span>
+                ) : null}
               </div>
               <button
                 type="button"
@@ -1057,6 +1114,7 @@ const SwapPage = () => {
         networkBadge={swapChain.networkBadge}
         tokens={payPickerTokens}
         balances={tokenBalances}
+        prices={tokenPrices}
         selectedTokenAddress={paySide?.tokenAddress ?? null}
         showBalances={showTokenBalances}
         search={pickerSearch}
@@ -1073,6 +1131,7 @@ const SwapPage = () => {
         networkBadge={swapChain.networkBadge}
         tokens={receivePickerTokens}
         balances={tokenBalances}
+        prices={tokenPrices}
         selectedTokenAddress={receiveSide?.tokenAddress ?? null}
         showBalances={showTokenBalances}
         search={pickerSearch}
@@ -1080,8 +1139,8 @@ const SwapPage = () => {
         addressLookupError={
           addressLookup.side &&
           paySide &&
-          !isReceiveAllowed(paySide, addressLookup.side)
-            ? "This token cannot be received for the current pay token"
+          isSameTokenSide(paySide, addressLookup.side)
+            ? "Cannot receive the same token as pay"
             : addressLookup.error
         }
         onSearchChange={setPickerSearch}

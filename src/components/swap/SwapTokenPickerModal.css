@@ -212,8 +212,17 @@
 .swap-picker-balance-col {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   flex-shrink: 0;
+  min-width: 72px;
+}
+
+.swap-picker-value-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
 }
 
 .swap-picker-balance {
@@ -222,6 +231,12 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--w3-text);
+}
+
+.swap-picker-usd {
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--w3-text-muted);
 }
 
 .swap-picker-check {

@@ -6,6 +6,7 @@
   --swap-field-bg: color-mix(in srgb, var(--w3-text) 3%, var(--w3-bg-elevated));
   max-width: 440px;
   margin: 0 auto;
+  padding-top: 48px;
 }
 
 .swap-hero {
@@ -328,6 +329,22 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.swap-field-amount-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.swap-usd-value {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  color: var(--w3-text-muted);
+  font-variant-numeric: tabular-nums;
+  min-height: 1.1em;
 }
 
 .swap-amount-input,

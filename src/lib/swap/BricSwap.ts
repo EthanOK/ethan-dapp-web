@@ -6,13 +6,19 @@ import {
   type CallResult,
   type SwapRouterDataOutput
 } from "@bric-labs/bric-sdk";
-import { ZeroAddress, type Signer } from "ethers";
+import {
+  JsonRpcProvider,
+  ZeroAddress,
+  type Provider,
+  type Signer
+} from "ethers";
 import {
   BRIC_MAINNET_CHAIN_ID,
   BRIC_SUPPORTED_AGGREGATORS,
   BRIC_SWAP_AGGREGATOR_ADDRESS,
   initBricSdk
 } from "@/config/BricConfig";
+import { SupportChains } from "@/config/ChainsConfig";
 
 export type SwapQuoteResult = SwapRouterDataOutput & {
   minReceived: bigint;
@@ -32,6 +38,17 @@ function readQuoteAmountOut(quote: SwapRouterDataOutput): bigint {
   }
 }
 
+function getReadonlyProviderForChain(
+  chainId: number = BRIC_MAINNET_CHAIN_ID
+): JsonRpcProvider {
+  const chain = SupportChains.find((c) => Number(c.id) === chainId);
+  const rpc = chain?.rpcUrls?.[0];
+  if (!rpc) {
+    throw new Error(`No RPC configured for chain ${chainId}`);
+  }
+  return new JsonRpcProvider(rpc, chainId);
+}
+
 export async function createBricAggregator(
   signer: Signer
 ): Promise<BricAggregatorHelper> {
@@ -47,22 +64,43 @@ export async function createBricAggregator(
   return helper.connect(signer, true);
 }
 
+export async function createBricAggregatorReadonly(
+  chainId: number = BRIC_MAINNET_CHAIN_ID,
+  provider?: Provider
+): Promise<BricAggregatorHelper> {
+  initBricSdk();
+  return new BricAggregatorHelper(
+    null,
+    chainId,
+    BRIC_SWAP_AGGREGATOR_ADDRESS,
+    { waitForConfirmation: true, autoGasBuffer: true },
+    provider ?? getReadonlyProviderForChain(chainId),
+    BRIC_SUPPORTED_AGGREGATORS
+  );
+}
+
 export async function fetchSwapQuote(params: {
-  signer: Signer;
+  signer?: Signer | null;
   tokenIn: string;
   tokenOut: string;
   amountIn: bigint;
   slippageDecimal: number;
-  from: string;
+  from?: string;
+  checkBalance?: boolean;
 }): Promise<SwapQuoteResult> {
-  const aggregator = await createBricAggregator(params.signer);
+  const checkBalance =
+    params.checkBalance ?? Boolean(params.signer && params.from);
+  const aggregator = params.signer
+    ? await createBricAggregator(params.signer)
+    : await createBricAggregatorReadonly();
+
   const quote = await aggregator.previewSwapExactInput(
     params.tokenIn,
     params.amountIn,
     params.tokenOut,
     params.slippageDecimal,
     params.from,
-    true
+    checkBalance
   );
 
   const amountOut = readQuoteAmountOut(quote);

@@ -6,6 +6,12 @@ import {
   tokenBalanceKey,
   type TokenSide
 } from "@/lib/swap/swapTokenRules";
+import {
+  calcTokenUsdValue,
+  formatSwapUsdValue,
+  getSwapTokenPrice,
+  type SwapTokenPriceMap
+} from "@/lib/swap/swapTokenPrices";
 import "./SwapTokenPickerModal.css";
 
 function formatListBalance(value: bigint, decimals: number): string {
@@ -33,6 +39,7 @@ export type SwapTokenPickerModalProps = {
   networkBadge: string;
   tokens: TokenSide[];
   balances: Record<string, bigint>;
+  prices?: SwapTokenPriceMap;
   selectedTokenAddress?: string | null;
   showBalances: boolean;
   search: string;
@@ -49,6 +56,7 @@ export function SwapTokenPickerModal({
   networkBadge,
   tokens,
   balances,
+  prices = {},
   selectedTokenAddress,
   showBalances,
   search,
@@ -69,12 +77,27 @@ export function SwapTokenPickerModal({
 
   const rows = useMemo(
     () =>
-      tokens.map((side) => ({
-        side,
-        key: rowKey(side),
-        balance: balances[tokenBalanceKey(side.tokenAddress)] ?? 0n
-      })),
-    [tokens, balances]
+      tokens.map((side) => {
+        const balance = balances[tokenBalanceKey(side.tokenAddress)] ?? 0n;
+        const priceUsd =
+          getSwapTokenPrice(prices, side.tokenAddress)?.priceUsd ?? 0;
+        let usdLabel = "";
+        if (priceUsd > 0) {
+          usdLabel =
+            balance > 0n
+              ? formatSwapUsdValue(
+                  calcTokenUsdValue(balance, side.decimals, priceUsd)
+                )
+              : formatSwapUsdValue(priceUsd);
+        }
+        return {
+          side,
+          key: rowKey(side),
+          balance,
+          usdLabel
+        };
+      }),
+    [tokens, balances, prices]
   );
 
   if (!open) return null;
@@ -121,7 +144,7 @@ export function SwapTokenPickerModal({
 
         <div className="swap-picker-table-head">
           <span>Token</span>
-          <span>{showBalances ? "Balance" : ""}</span>
+          <span>{showBalances ? "Balance" : "Price"}</span>
         </div>
 
         <ul className="swap-picker-list">
@@ -132,7 +155,7 @@ export function SwapTokenPickerModal({
           )}
 
           {!addressLookupLoading &&
-            rows.map(({ side, key, balance }) => {
+            rows.map(({ side, key, balance, usdLabel }) => {
               const selected =
                 selectedTokenAddress != null &&
                 addressesEqual(side.tokenAddress, selectedTokenAddress);
@@ -165,22 +188,25 @@ export function SwapTokenPickerModal({
                       </span>
                     </span>
                     <span className="swap-picker-balance-col">
-                      {showBalances ? (
-                        <span className="swap-picker-balance">
-                          {formatListBalance(balance, side.decimals)}
-                        </span>
-                      ) : (
-                        selected && (
-                          <span className="swap-picker-check" aria-hidden>
-                            ✓
+                      <span className="swap-picker-value-stack">
+                        {showBalances ? (
+                          <span className="swap-picker-balance">
+                            {formatListBalance(balance, side.decimals)}
                           </span>
-                        )
-                      )}
-                      {showBalances && selected && (
+                        ) : usdLabel ? (
+                          <span className="swap-picker-balance">
+                            {usdLabel}
+                          </span>
+                        ) : null}
+                        {usdLabel && showBalances ? (
+                          <span className="swap-picker-usd">{usdLabel}</span>
+                        ) : null}
+                      </span>
+                      {selected ? (
                         <span className="swap-picker-check" aria-hidden>
                           ✓
                         </span>
-                      )}
+                      ) : null}
                     </span>
                   </button>
                 </li>

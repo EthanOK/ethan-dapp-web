@@ -2,8 +2,6 @@ import {
   CHAIN_ID_MAPPING,
   setBricDexProxyBaseUrl,
   setSwapAggregatorPriority,
-  RwaBuySwapAggregatorPriority,
-  RwaSellSwapAggregatorPriority,
   SupportedAggregator
 } from "@bric-labs/bric-sdk";
 

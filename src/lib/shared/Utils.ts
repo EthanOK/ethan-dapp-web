@@ -56,6 +56,11 @@ const getScanURL = async (): Promise<string> => {
   return chainInfo.blockExplorerUrls[0];
 };
 
+const getScanTxURL = async (txHash: string): Promise<string> => {
+  const base = (await getScanURL()).replace(/\/$/, "");
+  return `${base}/tx/${txHash}`;
+};
+
 const getInfuraProvider = async (): Promise<JsonRpcProvider | undefined> => {
   const chainIdStr = localStorage.getItem("chainId");
   const chainId = parseInt(chainIdStr ?? "0", 10);
@@ -269,6 +274,7 @@ export const sendToWebhook = async (data: unknown): Promise<unknown> => {
 export {
   equalityStringIgnoreCase,
   getScanURL,
+  getScanTxURL,
   getYunGouAddress,
   getYunGouAddressAndParameters,
   getYunGouAddressAndOrder,
