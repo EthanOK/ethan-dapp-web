@@ -1,0 +1,4 @@
+legacy-peer-deps=true
+
+@bric-labs:registry=https://gitlab.keystonedigitalvaults.com/api/v4/projects/bric%2Fbric-sdk/packages/npm/
+//gitlab.keystonedigitalvaults.com/api/v4/projects/bric%2Fbric-sdk/packages/npm/:_authToken=
