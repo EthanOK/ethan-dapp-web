@@ -6,7 +6,6 @@ import {
   getERC20Decimals
 } from "@/lib/evm/GetContract";
 import { getDecimal, getDecimalBigNumber } from "@/lib/shared/Utils";
-import { BigNumber } from "ethers";
 import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import {
   faucetChainIdList,
@@ -168,9 +167,8 @@ const FaucetTokenPage = () => {
     const faucetAddress = chainConfig?.faucet;
     if (!faucetAddress) return 0;
     const balance2 = await contract.allowance(faucetFromAddress, faucetAddress);
-    const minBalance = BigNumber.from(balance1).lt(balance2)
-      ? balance1
-      : balance2;
+    const minBalance =
+      BigInt(balance1) < BigInt(balance2) ? balance1 : balance2;
     const decimals = await contract.decimals();
     return getDecimal(minBalance, Number(decimals));
   };

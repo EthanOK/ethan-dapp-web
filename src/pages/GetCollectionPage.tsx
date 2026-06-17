@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { stringifyJson } from "@/lib/shared/Format";
 import { isAddress } from "@/lib/shared/Utils";
 import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import {
@@ -53,7 +54,7 @@ const GetCollectionPage = () => {
       const [, chainId] = await getSignerAndChainId();
       if (chainId == null) return;
       const result = await getContractsForOwner(chainId, o);
-      if (result !== null) setMessage(JSON.stringify(result, null, 2));
+      if (result !== null) setMessage(stringifyJson(result, 2));
     } catch (error) {
       toast.error((error as Error)?.message ?? "Failed");
     }
@@ -70,7 +71,7 @@ const GetCollectionPage = () => {
       const [, chainId] = await getSignerAndChainId();
       if (chainId == null) return;
       const result = await getNFTListByOwnerAndContract(chainId, o, c);
-      if (result !== null) setMessage(JSON.stringify(result, null, 2));
+      if (result !== null) setMessage(stringifyJson(result, 2));
     } catch (error) {
       toast.error((error as Error)?.message ?? "Failed");
     }

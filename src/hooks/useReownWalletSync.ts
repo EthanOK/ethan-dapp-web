@@ -18,10 +18,7 @@ function persistChainIdFromAppKit(currentChainId: string | number | undefined) {
 }
 
 export function clearAppSessionKeepChainId() {
-  const savedChainId = localStorage.getItem("chainId");
-  localStorage.clear();
-  if (savedChainId) localStorage.setItem("chainId", savedChainId);
-  window.location.reload();
+  localStorage.removeItem("userAddress");
 }
 
 /**
@@ -91,7 +88,8 @@ export function useReownWalletSync() {
     const loginType = localStorage.getItem("LoginType");
     const storedAccount = localStorage.getItem("userAddress");
     const storedConnect = localStorage.getItem("@appkit/connection_status");
-    const justConnected = !prevIsConnectedRef.current && isConnected;
+    const wasConnected = prevIsConnectedRef.current;
+    const justConnected = !wasConnected && isConnected;
     prevIsConnectedRef.current = isConnected;
 
     if (

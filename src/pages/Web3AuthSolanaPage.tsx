@@ -8,7 +8,8 @@ import {
   SolanaPrivateKeyProvider,
   SolanaWallet
 } from "@web3auth/solana-provider";
-import { ethers } from "ethers";
+import { stringifyJson } from "@/lib/shared/Format";
+import { formatEther } from "ethers";
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 
@@ -178,7 +179,7 @@ const Web3AuthSolanaPage = () => {
 
   const getSigner = async () => {
     // IMP START - Get Signer
-    const ethersProvider = new ethers.providers.Web3Provider(provider);
+    const ethersProvider = new ethers.BrowserProvider(provider);
     return ethersProvider.getSigner();
   };
 
@@ -217,7 +218,7 @@ const Web3AuthSolanaPage = () => {
     // // Get user's Ethereum public address
     // const address = await signer.getAddress();
     // // Get user's balance in ether
-    // const balance = ethers.utils.formatEther(
+    // const balance = formatEther(
     //   await signer.provider.getBalance(address)
     // );
 
@@ -271,7 +272,7 @@ const Web3AuthSolanaPage = () => {
 
   const [consoleOutput, setConsoleOutput] = useState("");
   function uiConsole(...args) {
-    const str = JSON.stringify(args?.length ? args : {}, null, 2);
+    const str = stringifyJson(args?.length ? args : {}, 2);
     setConsoleOutput(str);
     console.log(...args);
   }

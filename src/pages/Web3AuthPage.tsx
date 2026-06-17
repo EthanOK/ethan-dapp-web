@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Web3Auth } from "@web3auth/modal";
 import { WEB3AUTH_NETWORK } from "@web3auth/base";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
-import { ethers } from "ethers";
+import { stringifyJson } from "@/lib/shared/Format";
+import { BrowserProvider, formatEther } from "ethers";
 import { signSetAlias } from "@/lib/signing/SignsnapsShot";
 import { Wallet } from "@ethersproject/wallet";
 import { Web3Provider } from "@ethersproject/providers";
@@ -44,7 +45,7 @@ const Web3AuthPage = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [consoleOutput, setConsoleOutput] = useState<string>("");
   const uiConsole = (...args: unknown[]) => {
-    const str = JSON.stringify(args?.length ? args : {}, null, 2);
+    const str = stringifyJson(args?.length ? args : {}, 2);
     setConsoleOutput(str);
     console.log(...args);
   };
@@ -81,9 +82,7 @@ const Web3AuthPage = () => {
   };
 
   const getSigner = async () => {
-    const ethersProvider = new ethers.providers.Web3Provider(
-      provider as ethers.providers.ExternalProvider
-    );
+    const ethersProvider = new BrowserProvider(provider as never);
     return ethersProvider.getSigner();
   };
 
@@ -116,9 +115,7 @@ const Web3AuthPage = () => {
     }
     const signer = await getSigner();
     const address = await signer.getAddress();
-    const balance = ethers.utils.formatEther(
-      await signer.provider.getBalance(address)
-    );
+    const balance = formatEther(await signer.provider.getBalance(address));
     uiConsole(balance);
   };
 

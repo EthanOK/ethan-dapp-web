@@ -1,5 +1,5 @@
+import { Contract, Interface, type TransactionResponse } from "ethers";
 import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
-import { ethers } from "ethers";
 import { signEIP712Message } from "@/lib/signing/SignFunc";
 import YGMEABI from "@/abis/evm/YGMEABI.json";
 import BatchTransferTokenABI from "@/abis/evm/BatchTransferTokenABI.json";
@@ -15,8 +15,7 @@ import {
 import { faucetConfig } from "@/config/FaucetConfig";
 
 function getSwapCallData(account: string, amount: string): string {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const YGMEInterface = new ethers.utils.Interface(YGMEABI as any);
+  const YGMEInterface = new Interface(YGMEABI);
   return YGMEInterface.encodeFunctionData("swap", [
     account,
     "0x0000000000000000000000000000000000000000",
@@ -26,7 +25,7 @@ function getSwapCallData(account: string, amount: string): string {
 
 export const mintNFT = async (
   mintAmount: string
-): Promise<[string | null, ethers.ContractTransaction | null]> => {
+): Promise<[string | null, TransactionResponse | null]> => {
   const etherscanURL = await getScanURL();
   await getInfuraProvider();
   const [signer, chainId] = await getSignerAndChainId();
@@ -46,16 +45,16 @@ export const mintNFT = async (
   if (!ygme) return [null, null];
 
   try {
-    const batchTransfer = new ethers.Contract(
+    const batchTransfer = new Contract(
       contractAddress,
-      BatchTransferTokenABI as ethers.ContractInterface,
+      BatchTransferTokenABI,
       signer
     );
     const account = await signer.getAddress();
     const calls = [
       { target: ygme, callData: getSwapCallData(account, mintAmount) }
     ];
-    const preparetx = await batchTransfer.populateTransaction.aggregate(calls);
+    const preparetx = await batchTransfer.aggregate.populateTransaction(calls);
     const tx = await signer.sendTransaction({
       to: contractAddress,
       data: preparetx.data
@@ -77,7 +76,7 @@ export const mintNFT = async (
 
 export const signEIP712MessageMintNft = async (
   mintAmount: string
-): Promise<[string | null, ethers.ContractTransaction | null]> => {
+): Promise<[string | null, TransactionResponse | null]> => {
   try {
     const etherscanURL = await getScanURL();
     const [signer, chainId] = await getSignerAndChainId();
@@ -99,9 +98,9 @@ export const signEIP712MessageMintNft = async (
     const ygme = chainConfig?.ygme;
     if (!ygme) return [null, null];
 
-    const batchTransfer = new ethers.Contract(
+    const batchTransfer = new Contract(
       contractAddress,
-      BatchTransferTokenABI as ethers.ContractInterface,
+      BatchTransferTokenABI,
       signer
     );
     const tx = await batchTransfer.aggregate([

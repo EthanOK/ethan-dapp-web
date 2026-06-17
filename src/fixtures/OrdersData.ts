@@ -1,18 +1,16 @@
-import { BigNumber } from "ethers";
-
 const orderType = 0;
 const offerer = "0x6278a1e803a76796a3a1f7f6344fe874ebfe94b2";
 const offerToken = "0xeaafcc17f28afe5cda5b3f76770efb7ef162d20b";
-const offerTokenId = BigNumber.from("8");
-const unitPrice = BigNumber.from("10000000000000000");
+const offerTokenId = 8n;
+const unitPrice = 10000000000000000n;
 const sellAmount = 1;
 const startTime = 1686286200;
 const endTime = 1686986200;
 const paymentToken = "0x0000000000000000000000000000000000000000";
 const paymentTokenId = 0;
-const royaltyFee = BigNumber.from("250000000000000");
-const platformFee = BigNumber.from("250000000000000");
-const afterTaxPrice = BigNumber.from("9500000000000000");
+const royaltyFee = 250000000000000n;
+const platformFee = 250000000000000n;
+const afterTaxPrice = 9500000000000000n;
 
 const parameters_8 = {
   orderType,
@@ -35,7 +33,7 @@ const parameters_7 = {
   orderType,
   offerer,
   offerToken,
-  offerTokenId: BigNumber.from("7"),
+  offerTokenId: 7n,
   unitPrice,
   sellAmount,
   startTime,
@@ -53,10 +51,10 @@ const orderSignature_7 =
 const orderSignature_8 =
   "0xab3048141c5f3afbeacf507aed5cfbd4627729b53c633f9728dbc9bc88b4a5416378e64b7fb82eed1b6cdca294ecb45c8975e59fca8f60871a8817e2fc98d7891b";
 const buyAmount = 1;
-const totalRoyaltyFee = BigNumber.from("250000000000000");
-const totalPlatformFee = BigNumber.from("250000000000000");
-const totalAfterTaxIncome = BigNumber.from("9500000000000000");
-const totalPayment = BigNumber.from("10000000000000000");
+const totalRoyaltyFee = 250000000000000n;
+const totalPlatformFee = 250000000000000n;
+const totalAfterTaxIncome = 9500000000000000n;
+const totalPayment = 10000000000000000n;
 const expiryDate = 1686986400;
 const systemSignature_7 =
   "0xb55b71bbb4599d2cb68da7311aff64ee9398f994ffd15e7bc65d95b280f9cf8460d161ee426d360bc14b2c67ed4c9c334d337d37c508197bb83b87dab0ee0b321b";

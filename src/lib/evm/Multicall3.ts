@@ -1,5 +1,12 @@
-import { ethers } from "ethers";
-import type { BigNumberish, Signer, providers } from "ethers";
+import {
+  AbiCoder,
+  Contract,
+  Interface,
+  type BigNumberish,
+  type Provider,
+  type Signer,
+  type TransactionResponse
+} from "ethers";
 
 export const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
@@ -28,21 +35,14 @@ export type Multicall3ValueCall = {
 
 /**
  * Multicall3 `aggregate3` via **static call** (`eth_call`).
- *
- * Implementation detail: uses `contract.callStatic.aggregate3(...)`, so it will
- * never send a transaction or consume gas.
  */
 export const multicall3Aggregate3StaticCall = async (
-  provider: providers.Provider,
+  provider: Provider,
   calls: Multicall3Call[],
   multicallAddress: string = MULTICALL3_ADDRESS
 ): Promise<Multicall3Result[]> => {
-  const contract = new ethers.Contract(
-    multicallAddress,
-    MULTICALL3_ABI,
-    provider
-  );
-  const res = (await contract.callStatic.aggregate3(calls)) as Array<{
+  const contract = new Contract(multicallAddress, MULTICALL3_ABI, provider);
+  const res = (await contract.aggregate3.staticCall(calls)) as Array<{
     success: boolean;
     returnData: string;
   }>;
@@ -54,35 +54,25 @@ export const multicall3Aggregate3StaticCall = async (
 
 /**
  * Multicall3 `aggregate3Value` (sends a transaction).
- *
- * Useful for batch native transfers: set each call's `value` and use `callData: "0x"`.
  */
 export const multicall3Aggregate3Value = async (
   signer: Signer,
   calls: Multicall3ValueCall[],
   opts?: { multicallAddress?: string; totalValue?: BigNumberish }
-): Promise<providers.TransactionResponse> => {
+): Promise<TransactionResponse> => {
   const multicallAddress = opts?.multicallAddress ?? MULTICALL3_ADDRESS;
 
-  const contract = new ethers.Contract(
-    multicallAddress,
-    MULTICALL3_ABI,
-    signer
-  );
+  const contract = new Contract(multicallAddress, MULTICALL3_ABI, signer);
 
   const totalValue =
-    opts?.totalValue ??
-    calls.reduce(
-      (acc, c) => acc.add(ethers.BigNumber.from(c.value)),
-      ethers.BigNumber.from(0)
-    );
+    opts?.totalValue ?? calls.reduce((acc, c) => acc + BigInt(c.value), 0n);
 
   const tx = await contract.aggregate3Value(calls, { value: totalValue });
   return tx;
 };
 
 export const decodeMulticallResult = <T = unknown>(
-  iface: ethers.utils.Interface,
+  iface: Interface,
   functionFragment: string,
   result: Multicall3Result
 ): T | undefined => {

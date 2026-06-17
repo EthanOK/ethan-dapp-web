@@ -1,37 +1,104 @@
-# node -v : v22
+# ethan-dapp-web
 
-# Docker
+Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + TypeScript**. Wallet connection via [Reown AppKit](https://docs.reown.com/) and Web3Auth. Deployed on Vercel and Docker.
 
-## 1. pull and run
+**Node:** v22 recommended
+
+## Quick start
+
+```bash
+cp .env.example .env   # fill in RPC / WalletConnect keys
+npm install
+npm start              # http://localhost:3000
+```
+
+| Command | Description |
+|---------|-------------|
+| `npm start` | Dev server (CRACO) |
+| `npm run build` | Production build → `build/` |
+| `npm run preview` | Serve `build/` locally |
+| `npm run typecheck` | TypeScript check |
+| `npm run prettier` | Format source |
+| `npm run release` | Patch version bump (standard-version) |
+
+`start` / `build` inject `REACT_APP_VERSION` from `package.json` automatically.
+
+## Project layout
+
+```
+src/
+├── app/           App shell (App.tsx, App.css, Wallet.ts — AppKit init)
+├── pages/         Route pages (one feature per file)
+├── components/    Shared UI
+├── hooks/         React hooks (wallet, theme, sidebar, network switch)
+├── lib/           Domain logic
+│   ├── wallet/    Provider, ConnectWallet, AppKit subscribers
+│   ├── evm/       Contracts, LayerZero, multicall, EIP-7702
+│   ├── nft/       OpenSea, mint, orders
+│   ├── solana/    Connection, WSOL, sign/verify
+│   ├── signing/   EIP-712, bulk orders
+│   ├── price/     CoinGecko, LP price
+│   └── shared/    Utils, format helpers
+├── config/        Chains, faucet, system constants
+├── services/      Backend API fetch helpers (GetData.ts)
+├── abis/          Contract ABIs (evm/, solana/)
+├── fixtures/      Sample order data for signing demos
+└── types/         Ambient type declarations
+```
+
+Import alias: `@/` → `src/` (e.g. `@/lib/wallet/GetProvider`).
+
+Entry: `src/index.tsx` → `src/app/App.tsx`.
+
+## Features (sidebar)
+
+**Ethereum:** Home, tx fee estimate, raw tx builder, ERC20 allowance, LayerZero OFT bridge, faucet, burn, ENS, mint NFT, EIP-712 sign, EIP-7702, utils, ERC-6551, Web3Auth.
+
+**Solana:** Solana utils, WSOL wrap/unwrap.
+
+Additional routes (not in sidebar): `/market`, OpenSea buy/data, YunGou aggregators, IPFS, collection lookup, etc.
+
+## Environment
+
+Copy `.env.example` to `.env`. Common variables:
+
+- `REACT_APP_WALLETCONNECT_PROJECTID` — Reown / WalletConnect project id
+- `REACT_APP_ALCHEMY_MAINNET_URL`, `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC
+- `REACT_APP_MAINNET_RPC`, `REACT_APP_SEPOLIA_RPC` — fallback RPCs
+
+Backend API base URL is configured in `src/config/SystemConfiguration.ts` (`React_Serve_Back`). The backend service is not in this repo.
+
+## Docker
+
+### Pull and run
 
 ```shell
-// pull images
 docker pull 0xethan/ethan-dapp-web:latest
-
-// run container
 docker run -p 8888:3000 --name ethan-dapp-web --env-file .env 0xethan/ethan-dapp-web:latest
 ```
 
-## 2. docker build images
+### Build image
 
-### 本地使用 `单平台 + --load`
+Local (single platform):
 
-`docker buildx build -t 0xethan/ethan-dapp-web:v2.2.5 -t 0xethan/ethan-dapp-web:latest . --platform linux/arm64 --load`
+```shell
+docker buildx build -t 0xethan/ethan-dapp-web:latest . --platform linux/arm64 --load
+```
 
-### `推送` 到远程仓库 `多平台 + --push`
+Push multi-platform:
 
-`docker buildx build -t 0xethan/ethan-dapp-web:v2.2.5 -t 0xethan/ethan-dapp-web:latest . --platform linux/amd64,linux/arm64 --push`
-
-## 3. run container
-
-### docker run
-
-`docker run -p 8888:3000 --name ethan-dapp-web 0xethan/ethan-dapp-web:latest`
+```shell
+docker buildx build -t 0xethan/ethan-dapp-web:latest . --platform linux/amd64,linux/arm64 --push
+```
 
 ### docker-compose
 
-运行 docker-compose.yml
+```shell
+docker-compose up -d
+```
 
-`docker-compose up`
+## Notes
 
-`docker-compose up -d`
+- Pre-commit runs Prettier on staged files and `npm run build`; `build/` is committed.
+- EVM code uses **ethers v6** only (`ethers` package).
+- NFTGO / Blur aggregator integration has been removed (service discontinued).

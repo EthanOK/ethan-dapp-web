@@ -1,16 +1,6 @@
-import { BigNumber } from "ethers";
-
-type OpenSeaSDKLike = {
-  api: {
-    getOrder: (params: any) => Promise<any>;
-    generateFulfillmentData: (
-      accountAddress: string,
-      orderHash: string,
-      protocolAddress: string,
-      side: any
-    ) => Promise<any>;
-  };
-};
+/** Legacy OpenSea REST helpers; SDK v11 API shape differs from v6. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type OpenSeaSDKLike = any;
 
 const getFulfillment_transaction = async (
   openseaSDK: OpenSeaSDKLike,
@@ -95,7 +85,7 @@ const getFulfillAvailableOrders_data = async (
   let protocolAddress = "0x";
   let fulfillerConduitKey: string | undefined;
   const maximumFulfilled = tokenAddress_s.length;
-  let currentPriceSum = BigNumber.from(0);
+  let currentPriceSum = BigInt(0);
   let count = 0;
 
   for (let i = 0; i < tokenAddress_s.length; i++) {
@@ -150,8 +140,8 @@ const getFulfillAvailableOrders_data = async (
       considerationFulfillments.push([fulfillmentComponent]);
     }
 
-    const currentPrice = BigNumber.from(order.currentPrice);
-    currentPriceSum = currentPriceSum.add(currentPrice);
+    const currentPrice = BigInt(order.currentPrice);
+    currentPriceSum = currentPriceSum + currentPrice;
 
     orders.push(fulfillment.fulfillment_data.orders[0]);
   }
@@ -180,7 +170,7 @@ const getFulfillAvailableAdvancedOrders_datas = async (
   let protocolAddress = "0x";
   let fulfillerConduitKey: string | undefined;
   const maximumFulfilled = tokenAddress_s.length;
-  let currentPriceSum = BigNumber.from(0);
+  let currentPriceSum = BigInt(0);
   let count = 0;
 
   for (let i = 0; i < tokenAddress_s.length; i++) {
@@ -236,8 +226,8 @@ const getFulfillAvailableAdvancedOrders_datas = async (
       considerationFulfillments.push([fulfillmentComponent]);
     }
 
-    const currentPrice = BigNumber.from(order.currentPrice);
-    currentPriceSum = currentPriceSum.add(currentPrice);
+    const currentPrice = BigInt(order.currentPrice);
+    currentPriceSum = currentPriceSum + currentPrice;
 
     const advancedOrder = {
       parameters: fulfillment.fulfillment_data.orders[0].parameters,

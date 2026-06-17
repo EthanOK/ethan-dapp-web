@@ -1,6 +1,15 @@
-import { BigNumber, ethers, utils } from "ethers";
-import type { Signer } from "ethers";
-import { _TypedDataEncoder } from "@ethersproject/hash";
+import {
+  AbiCoder,
+  TypedDataEncoder,
+  Wallet,
+  getBytes,
+  hexlify,
+  keccak256,
+  randomBytes,
+  verifyMessage,
+  verifyTypedData,
+  type Signer
+} from "ethers";
 import { getYunGouAddressAndParameters } from "@/lib/shared/Utils";
 import { PRIVATEKEY_VERIFYER } from "@/config/SystemConfiguration";
 import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
@@ -8,8 +17,7 @@ import { order_data } from "@/fixtures/OrderDataYungou";
 import { Seaport } from "@opensea/seaport-js";
 import type {
   Order as SeaportOrder,
-  OrderComponents,
-  Signer as SeaportSigner
+  OrderComponents
 } from "@opensea/seaport-js/lib/types";
 import { BulkOrder } from "bulkorder-sdk";
 import type { Order as BulkSignedOrder } from "bulkorder-sdk";
@@ -24,15 +32,12 @@ const isUserRejected = (error: unknown): boolean => {
   return e.code === 4001 || e.code === "ACTION_REJECTED";
 };
 
-const toSeaportSigner = (signer: Signer): SeaportSigner =>
-  signer as SeaportSigner;
-
 async function getSeaportDomainData(seaport: Seaport, chainId: number) {
   return {
     name: "Seaport",
     version: "1.5",
     chainId,
-    verifyingContract: seaport.contract.address
+    verifyingContract: await seaport.contract.getAddress()
   };
 }
 
@@ -90,8 +95,8 @@ const signEIP712Message = async (_signer: Signer, _chainId: number) => {
       chainId: chainId_,
       verifyingContract: "0x0000006c517ed32ff128b33f137bb4ac31b0c6dd"
     };
-    const randNo = utils.hexlify(utils.randomBytes(8));
-    const amount = utils.hexlify(utils.randomBytes(1));
+    const randNo = hexlify(randomBytes(8));
+    const amount = hexlify(randomBytes(1));
     // Get signer address
     console.log(signer_);
     const signerAddress = await signer_.getAddress();
@@ -104,13 +109,9 @@ const signEIP712Message = async (_signer: Signer, _chainId: number) => {
 
     // TODO:_signTypedData
     console.log("_signTypedData");
-    const signature = await toSeaportSigner(signer_)._signTypedData(
-      domainData,
-      types,
-      message
-    );
+    const signature = await signer_.signTypedData(domainData, types, message);
 
-    const recoveredAddress = ethers.utils.verifyTypedData(
+    const recoveredAddress = verifyTypedData(
       domainData,
       types,
       message,
@@ -140,10 +141,7 @@ const signStringMessage = async (signer: Signer) => {
   try {
     const signatureM = await signer.signMessage(messageString);
     console.log(signatureM);
-    const recoveredAddressString = ethers.utils.verifyMessage(
-      messageString,
-      signatureM
-    );
+    const recoveredAddressString = verifyMessage(messageString, signatureM);
     const signerAddress = await signer.getAddress();
     if (recoveredAddressString === signerAddress) {
       console.log("签名验证成功！");
@@ -170,13 +168,13 @@ const signHexDataMessage = async (signer: Signer, hexData: string) => {
   console.log(hexData);
   // const hexData =
   //   "0xf6896007477ab25a659f87c4f8c5e3baac32547bf305e77aa57743046e10578b";
-  const data = ethers.utils.arrayify(hexData);
+  const data = getBytes(hexData);
 
   try {
     const signatureHex = await signer.signMessage(data);
     console.log(signatureHex);
     const signerAddress = await signer.getAddress();
-    const recoveredAddressHex = ethers.utils.verifyMessage(data, signatureHex);
+    const recoveredAddressHex = verifyMessage(data, signatureHex);
     if (recoveredAddressHex === signerAddress) {
       console.log("签名验证成功！");
     } else {
@@ -230,7 +228,7 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
   console.log("_signTypedData");
 
   try {
-    const orderSignature = await toSeaportSigner(signer)._signTypedData(
+    const orderSignature = await signer.signTypedData(
       domainData,
       types,
       message as Record<string, unknown>
@@ -243,12 +241,12 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
     console.log("systemSignature:" + systemSignature);
 
     // _hashTypedDataV4(keccak256(abi.encode(TYPE_HASH, parameters)))
-    // let hash_ = _TypedDataEncoder.hash(domainData, types, message);
+    // let hash_ = TypedDataEncoder.hash(domainData, types, message);
 
     // keccak256(abi.encode(TYPE_HASH, parameters))
-    let orderHash = _TypedDataEncoder
-      .from(types)
-      .hash(message as Record<string, unknown>);
+    let orderHash = TypedDataEncoder.from(types).hash(
+      message as Record<string, unknown>
+    );
 
     console.log("orderHash: " + orderHash);
     let result = {
@@ -401,40 +399,40 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
       {
         itemType: 2,
         token: "0x97f236E644db7Be9B8308525e6506E4B3304dA7B",
-        identifierOrCriteria: BigNumber.from("111"),
-        startAmount: BigNumber.from("1"),
-        endAmount: BigNumber.from("1")
+        identifierOrCriteria: BigInt("111"),
+        startAmount: BigInt("1"),
+        endAmount: BigInt("1")
       }
     ],
     consideration: [
       {
         itemType: 0,
         token: "0x0000000000000000000000000000000000000000",
-        identifierOrCriteria: BigNumber.from("0"),
-        startAmount: BigNumber.from("1082250000000000000"),
-        endAmount: BigNumber.from("1082250000000000000"),
+        identifierOrCriteria: BigInt("0"),
+        startAmount: BigInt("1082250000000000000"),
+        endAmount: BigInt("1082250000000000000"),
         recipient: "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2"
       },
       {
         itemType: 0,
         token: "0x0000000000000000000000000000000000000000",
-        identifierOrCriteria: BigNumber.from("0"),
-        startAmount: BigNumber.from("27750000000000000"),
-        endAmount: BigNumber.from("27750000000000000"),
+        identifierOrCriteria: BigInt("0"),
+        startAmount: BigInt("27750000000000000"),
+        endAmount: BigInt("27750000000000000"),
         recipient: "0x0000a26b00c1F0DF003000390027140000fAa719"
       }
     ],
     orderType: 0,
-    startTime: BigNumber.from("1686193412"),
-    endTime: BigNumber.from("1688785412"),
+    startTime: BigInt("1686193412"),
+    endTime: BigInt("1688785412"),
     zoneHash:
       "0x0000000000000000000000000000000000000000000000000000000000000000",
-    salt: BigNumber.from(
+    salt: BigInt(
       "24446860302761739304752683030156737591518664810215442929818227897836383814680"
     ),
     conduitKey:
       "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-    counter: BigNumber.from("0")
+    counter: BigInt("0")
   };
   console.log(message);
 
@@ -442,7 +440,7 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
   console.log("_signTypedData");
 
   try {
-    const orderSignature = await toSeaportSigner(signer)._signTypedData(
+    const orderSignature = await signer.signTypedData(
       domainData,
       types,
       message
@@ -450,7 +448,7 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
 
     console.log("orderSignature:" + orderSignature);
 
-    let orderHash = _TypedDataEncoder.from(types).hash(message);
+    let orderHash = TypedDataEncoder.from(types).hash(message);
 
     console.log("orderHash: " + orderHash);
     let result = {
@@ -473,7 +471,7 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
 
 // TODO: OpenSea bulk order signing
 const signBulkOrderOpenSeaMessage = async (signer: Signer, chainId: number) => {
-  const seaport = new Seaport(toSeaportSigner(signer));
+  const seaport = new Seaport(signer);
   const domainData = await getSeaportDomainData(seaport, chainId);
 
   console.log(domainData);
@@ -488,43 +486,43 @@ const signBulkOrderOpenSeaMessage = async (signer: Signer, chainId: number) => {
         {
           itemType: 2,
           token: "0x97f236E644db7Be9B8308525e6506E4B3304dA7B",
-          identifierOrCriteria: BigNumber.from("111"),
-          startAmount: BigNumber.from("1"),
-          endAmount: BigNumber.from("1")
+          identifierOrCriteria: BigInt("111"),
+          startAmount: BigInt("1"),
+          endAmount: BigInt("1")
         }
       ],
       consideration: [
         {
           itemType: 0,
           token: "0x0000000000000000000000000000000000000000",
-          identifierOrCriteria: BigNumber.from("0"),
-          startAmount: BigNumber.from("1082250000000000000"),
-          endAmount: BigNumber.from("1082250000000000000"),
+          identifierOrCriteria: BigInt("0"),
+          startAmount: BigInt("1082250000000000000"),
+          endAmount: BigInt("1082250000000000000"),
           recipient: "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2"
         },
         {
           itemType: 0,
           token: "0x0000000000000000000000000000000000000000",
-          identifierOrCriteria: BigNumber.from("0"),
-          startAmount: BigNumber.from("27750000000000000"),
-          endAmount: BigNumber.from("27750000000000000"),
+          identifierOrCriteria: BigInt("0"),
+          startAmount: BigInt("27750000000000000"),
+          endAmount: BigInt("27750000000000000"),
           recipient: "0x0000a26b00c1F0DF003000390027140000fAa719"
         }
       ],
       orderType: 0,
-      startTime: BigNumber.from("1686193412"),
-      endTime: BigNumber.from("1688785412"),
+      startTime: BigInt("1686193412"),
+      endTime: BigInt("1688785412"),
       zoneHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
-      salt: BigNumber.from(
+      salt: BigInt(
         "24446860302761739304752683030156737591518664810215442929818227897836383814680"
       ),
       conduitKey:
         "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
-      counter: BigNumber.from("0"),
+      counter: BigInt("0"),
       totalOriginalConsiderationItems: 2
     };
-    order.offer[0].identifierOrCriteria = BigNumber.from(i);
+    order.offer[0].identifierOrCriteria = BigInt(i);
     orders.push(order as unknown as OrderComponents);
   }
 
@@ -542,7 +540,7 @@ const signBulkOrderOpenSeaMessage = async (signer: Signer, chainId: number) => {
 
 // TODO: Custom Bulk Order Signature
 const signCustomBulkOrderMessage = async (signer: Signer, chainId: number) => {
-  const seaport = new Seaport(toSeaportSigner(signer));
+  const seaport = new Seaport(signer);
   const domainData = await getSeaportDomainData(seaport, chainId);
 
   const eip712BulkOrderType = {
@@ -647,7 +645,7 @@ const getSystemSignature = async (
     if (!privateKey) {
       throw new Error("REACT_APP_PRIVATEKEY_VERIFYER is not configured");
     }
-    const signer = new ethers.Wallet(privateKey);
+    const signer = new Wallet(privateKey);
 
     const type = [
       "bytes",
@@ -668,10 +666,10 @@ const getSystemSignature = async (
       data.expiryDate
     ];
 
-    const encodedData = ethers.utils.defaultAbiCoder.encode(type, args);
+    const encodedData = AbiCoder.defaultAbiCoder().encode(type, args);
     console.log("encodedData:" + encodedData);
-    const hashData = ethers.utils.keccak256(encodedData);
-    let binaryData_ = ethers.utils.arrayify(hashData);
+    const hashData = keccak256(encodedData);
+    let binaryData_ = getBytes(hashData);
     console.log("systemMassageHash:" + hashData);
     let signPromise_ = await signer.signMessage(binaryData_);
     return signPromise_;
@@ -688,37 +686,6 @@ const getSystemSignature = async (
   }
 };
 
-const signBlurLoginMessage = async (signer: Signer, messageString: string) => {
-  console.log(messageString);
-
-  try {
-    const signatureM = await signer.signMessage(messageString);
-    console.log(signatureM);
-
-    const recoveredAddressString = ethers.utils.verifyMessage(
-      messageString,
-      signatureM
-    );
-    const signerAddress = await signer.getAddress();
-    if (recoveredAddressString === signerAddress) {
-      console.log("签名验证成功！");
-    } else {
-      console.log("签名验证失败！");
-    }
-    return signatureM;
-  } catch (error: unknown) {
-    console.log(error);
-    if (isUserRejected(error)) {
-      toast.error("User rejected request!");
-    }
-    const e = error as WalletError;
-    if (e.code === -32000) {
-      alert(e.message);
-    }
-    return null;
-  }
-};
-
 export {
   signEIP712Message,
   signStringMessage,
@@ -726,7 +693,6 @@ export {
   getSystemSignature,
   signEIP712YunGouMessage,
   signEIP712OpenSeaMessage,
-  signBlurLoginMessage,
   signBulkOrderOpenSeaMessage,
   signCustomBulkOrderMessage
 };

@@ -1,4 +1,4 @@
-import { ethers, utils } from "ethers";
+import { AbiCoder, dnsEncode, getAddress, Interface } from "ethers";
 import { React_Serve_Back, main_rpc } from "@/config/SystemConfiguration";
 
 const url = React_Serve_Back;
@@ -101,14 +101,14 @@ export const getENSOfAddressByContract = async (
 export const getENSUniversalResolver = async (
   address: string
 ): Promise<{ code: number; data: string | null }> => {
-  const normalizedAddress = utils.getAddress(address);
+  const normalizedAddress = getAddress(address);
   const dnsName =
     normalizedAddress.substring(2).toLowerCase() + ".addr.reverse";
-  const reverseName = utils.dnsEncode(dnsName);
+  const reverseName = dnsEncode(dnsName);
   const contractABI = [
     "function reverse(bytes reverseName) view returns (string, address, address, address)"
   ];
-  const contractInterface = new ethers.utils.Interface(contractABI);
+  const contractInterface = new Interface(contractABI);
   const data = contractInterface.encodeFunctionData("reverse", [reverseName]);
   const requestParameters = {
     method: "eth_call",
@@ -133,7 +133,7 @@ export const getENSUniversalResolver = async (
       return { code: 200, data: null };
     }
     const abi = ["string", "address", "address", "address"];
-    const decodedData = ethers.utils.defaultAbiCoder.decode(
+    const decodedData = AbiCoder.defaultAbiCoder().decode(
       abi,
       result_json.result ?? "0x"
     );
@@ -153,49 +153,4 @@ export const getPriceBaseUSDTByBinance = async (): Promise<{
   );
   const result_json = (await result.json()) as { price: string };
   return { code: 200, data: { ethPrice: result_json.price } };
-};
-
-export const getBlurLoginMessageByNFTGO = async (
-  userAddress: string
-): Promise<unknown> => {
-  const postURL =
-    "https://api.nftgo.io/api/v1/nft-aggregator/blur/auth/challenge";
-  try {
-    const response = await fetch(postURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address: userAddress })
-    });
-    if (!response.ok) return null;
-    const responseData = (await response.json()) as {
-      errorCode?: number;
-      data?: unknown;
-    };
-    if (responseData.errorCode !== 0) return null;
-    return responseData.data;
-  } catch {
-    return null;
-  }
-};
-
-export const getBlurAccessTokenByNFTGO = async (
-  requestData: unknown
-): Promise<string | null> => {
-  const postURL = "https://api.nftgo.io/api/v1/nft-aggregator/blur/auth/login";
-  try {
-    const response = await fetch(postURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestData)
-    });
-    if (!response.ok) return null;
-    const responseData = (await response.json()) as {
-      errorCode?: number;
-      data?: { blurAuth?: string };
-    };
-    if (responseData.errorCode !== 0) return null;
-    return responseData.data?.blurAuth ?? null;
-  } catch {
-    return null;
-  }
 };

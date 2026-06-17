@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { id } from "ethers";
 
 const YunGouAggregatorsAddress_G = "0x5D5177aa0BD5ACeb22A249703DAe840667309F5d";
 
@@ -9,7 +9,7 @@ const chainName_TBSC = "bsctestnet";
 const OPENSEA_MAIN_API = process.env.REACT_APP_OPENSEA_MAIN_API;
 const PRIVATEKEY_VERIFYER = process.env.REACT_APP_PRIVATEKEY_VERIFYER;
 const YUNGOU = "yungou.io";
-const hashYUNGOU = ethers.utils.id(YUNGOU);
+const hashYUNGOU = id(YUNGOU);
 const YUNGOU_END = hashYUNGOU.slice(0, 10);
 const suffixOfYunGou = "0xba6d2ab1";
 
