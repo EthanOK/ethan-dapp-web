@@ -26,7 +26,7 @@ export const SWAP_CHAIN_ETHEREUM: SwapChainDefinition = {
   chainId: CHAIN_ID_MAPPING.ETHEREUM,
   name: "Ethereum Mainnet",
   networkBadge: "Ethereum",
-  chainAvatarBadge: "Ξ",
+  chainAvatarBadge: "E",
   chainAvatarColor: "#627eea",
   nativeSymbol: "ETH",
   tokens: SWAP_TOKEN_WHITELIST,
@@ -46,8 +46,9 @@ export const SWAP_CHAIN_BSC: SwapChainDefinition = {
   chainAvatarColor: "#f0b90b",
   nativeSymbol: "BNB",
   tokens: SWAP_TOKEN_WHITELIST_BSC,
+  // TODO: add bric swap address
   bricSwapAddress: "0x0000000000000000000000000000000000000000",
-  enabled: true
+  enabled: false
 };
 
 /** Registered swap chains. Only `enabled` entries are usable in the UI. */

@@ -234,7 +234,18 @@ const SwapPage = () => {
   useEffect(() => {
     pairValidatedRef.current = false;
     quoteRefreshSilentRef.current = false;
-    setSavedTokens(loadSavedSwapTokens(swapChain.chainId));
+    setSavedTokens((prev) => {
+      const next = loadSavedSwapTokens(swapChain.chainId);
+      if (
+        prev.length === next.length &&
+        prev.every((token, index) =>
+          addressesEqual(token.tokenAddress, next[index]?.tokenAddress ?? "")
+        )
+      ) {
+        return prev;
+      }
+      return next;
+    });
     const last = loadLastSwapPair(swapChain.chainId);
     setPaySelectKey(last?.paySelectKey ?? defaultPayKey);
     setReceiveSelectKey(last?.receiveSelectKey ?? defaultReceiveKey);
@@ -269,8 +280,21 @@ const SwapPage = () => {
 
   const tokenCatalog = useMemo(
     () => buildSwapTokenCatalog(swapChain, savedTokens),
-    [savedTokens]
+    [swapChain, savedTokens]
   );
+
+  const tokenCatalogPriceKey = useMemo(
+    () =>
+      [
+        swapChain.chainId,
+        ...tokenCatalog
+          .map((t) => t.tokenAddress.toLowerCase())
+          .sort((a, b) => a.localeCompare(b))
+      ].join("|"),
+    [swapChain.chainId, tokenCatalog]
+  );
+  const tokenCatalogRef = useRef(tokenCatalog);
+  tokenCatalogRef.current = tokenCatalog;
 
   const paySide = useMemo(
     () =>
@@ -380,7 +404,7 @@ const SwapPage = () => {
     try {
       const prices = await fetchSwapTokenPricesForSides(
         swapChain.chainId,
-        tokenCatalog
+        tokenCatalogRef.current
       );
       setTokenPrices(prices);
     } catch (error) {
@@ -390,7 +414,7 @@ const SwapPage = () => {
       );
       setTokenPrices({});
     }
-  }, [tokenCatalog]);
+  }, [swapChain.chainId, tokenCatalogPriceKey]);
 
   useEffect(() => {
     loadTokenPrices();
