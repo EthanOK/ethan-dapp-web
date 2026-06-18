@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.11](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.10...v2.2.11) (2026-06-18)
+
+
+### Features
+
+* add understand-anything ([d89c6e2](https://github.com/EthanOK/ethan-dapp-web/commit/d89c6e20d95dacacfe45b79dfbe9cd7e064dd941))
+* **bricswap:** add Ethereum BricSwap page at /bricswap ([0343efb](https://github.com/EthanOK/ethan-dapp-web/commit/0343efbbaee9be7b9ba9b7cafd34855e16193a96))
+* **bricswap:** CoinGecko swap pricing, fetch dedupe, and disable BSC ([e1f65c9](https://github.com/EthanOK/ethan-dapp-web/commit/e1f65c98bd4626b0172f9dcbe23188c416a75bb0))
+* **bricswap:** enable BSC swap with SDK 0.3.10 and chain-aware token picker. ([b9102ed](https://github.com/EthanOK/ethan-dapp-web/commit/b9102edcf5f28936a0295d5d254b65acdcd39163))
+* **bricswap:** guest quotes, Kyber prices, and gentler wallet disconnect ([1bbd9a2](https://github.com/EthanOK/ethan-dapp-web/commit/1bbd9a2f7de3c49abc6947b7a298e435a1593615))
+
+
+### Bug Fixes
+
+* **bricswap:** reset mainnet USDT allowance before exact approve ([e605188](https://github.com/EthanOK/ethan-dapp-web/commit/e6051881a302c48dd48d3a38947dd1c2b1df833f))
+* **bricswap:** restore last swap pair after refresh and chain switch ([e2cac95](https://github.com/EthanOK/ethan-dapp-web/commit/e2cac95e8c6b7f5f278885e3e21169a63c6cf351))
+
 ### [2.2.10](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.9...v2.2.10) (2026-05-28)
 
 
