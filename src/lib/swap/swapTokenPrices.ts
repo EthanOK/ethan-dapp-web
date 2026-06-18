@@ -1,4 +1,8 @@
 import { ZeroAddress, formatUnits } from "ethers";
+import {
+  COINGECKO_API_BASE,
+  COINGECKO_API_HEADERS
+} from "@/lib/price/CoinGeckoApi";
 import { tokenBalanceKey, type TokenSide } from "@/lib/swap/swapTokenRules";
 
 const KYBER_PRICE_URL =
@@ -7,7 +11,21 @@ const KYBER_PRICE_URL =
 /** Kyber native ETH placeholder — same as bric-sdk. */
 const KYBER_NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
-/** USD price from Kyber (average of buy/sell). */
+const COINGECKO_CHAIN_CONFIG: Record<
+  number,
+  { platform: string; wrappedNativeAddress: string }
+> = {
+  1: {
+    platform: "ethereum",
+    wrappedNativeAddress: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+  },
+  56: {
+    platform: "binance-smart-chain",
+    wrappedNativeAddress: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+  }
+};
+
+/** USD price (CoinGecko CEX aggregate preferred; Kyber DEX fallback). */
 export type SwapTokenPriceInfo = {
   priceUsd: number;
   priceBuy?: number;
@@ -24,11 +42,28 @@ type KyberPriceResponse = {
   data?: Record<string, Record<string, KyberPriceRow>>;
 };
 
+type CoinGeckoSimplePriceResponse = Record<
+  string,
+  { usd?: number; usd_24h_change?: number }
+>;
+
+function isNativeTokenAddress(address: string): boolean {
+  return address.toLowerCase() === ZeroAddress.toLowerCase();
+}
+
+function isKyberNativePlaceholder(address: string): boolean {
+  return address.toLowerCase() === KYBER_NATIVE_TOKEN_ADDRESS.toLowerCase();
+}
+
+function isNativeLikeTokenAddress(address: string): boolean {
+  return isNativeTokenAddress(address) || isKyberNativePlaceholder(address);
+}
+
 function toKyberTokenAddress(address: string): {
   address: string;
   isNative: boolean;
 } {
-  if (address.toLowerCase() === ZeroAddress.toLowerCase()) {
+  if (isNativeTokenAddress(address)) {
     return { address: KYBER_NATIVE_TOKEN_ADDRESS, isNative: true };
   }
   return { address, isNative: false };
@@ -70,11 +105,75 @@ function normalizeKyberResponse(
   return out;
 }
 
-/**
- * Batch fetch token USD prices in one Kyber API call (browser CORS-safe).
- * Network: POST token-api.kyberengineering.io/.../tokens/prices
- */
-export async function fetchSwapTokenPrices(
+function readCoinGeckoUsdPrice(
+  rows: CoinGeckoSimplePriceResponse,
+  address: string
+): number | null {
+  const row =
+    rows[address.toLowerCase()] ??
+    rows[address] ??
+    Object.entries(rows).find(
+      ([key]) => key.toLowerCase() === address.toLowerCase()
+    )?.[1];
+  const price = row?.usd;
+  return price != null && Number.isFinite(price) && price > 0 ? price : null;
+}
+
+async function fetchCoinGeckoTokenPrices(
+  chainId: number,
+  tokenAddresses: string[]
+): Promise<SwapTokenPriceMap> {
+  const config = COINGECKO_CHAIN_CONFIG[chainId];
+  if (!config) return {};
+
+  const unique = [
+    ...new Set(tokenAddresses.map((a) => a.trim()).filter(Boolean))
+  ];
+  if (unique.length === 0) return {};
+
+  const contractAddresses = [
+    ...new Set(
+      unique.map((address) => {
+        if (isNativeLikeTokenAddress(address)) {
+          return config.wrappedNativeAddress;
+        }
+        return address;
+      })
+    )
+  ];
+
+  const params = new URLSearchParams({
+    contract_addresses: contractAddresses.join(","),
+    vs_currencies: "usd"
+  });
+  const response = await fetch(
+    `${COINGECKO_API_BASE}/simple/token_price/${config.platform}?${params}`,
+    { headers: COINGECKO_API_HEADERS }
+  );
+  if (!response.ok) {
+    throw new Error(`CoinGecko price HTTP ${response.status}`);
+  }
+
+  const data = (await response.json()) as CoinGeckoSimplePriceResponse;
+  const out: SwapTokenPriceMap = {};
+
+  for (const address of unique) {
+    if (isNativeLikeTokenAddress(address)) {
+      const price = readCoinGeckoUsdPrice(data, config.wrappedNativeAddress);
+      if (price == null) continue;
+      out[tokenBalanceKey(ZeroAddress)] = { priceUsd: price };
+      continue;
+    }
+
+    const price = readCoinGeckoUsdPrice(data, address);
+    if (price == null) continue;
+    out[tokenBalanceKey(address)] = { priceUsd: price };
+  }
+
+  return out;
+}
+
+async function fetchKyberTokenPrices(
   chainId: number,
   tokenAddresses: string[]
 ): Promise<SwapTokenPriceMap> {
@@ -106,6 +205,77 @@ export async function fetchSwapTokenPrices(
   }
 
   return normalizeKyberResponse(chainId, data, hadNative);
+}
+
+const inflightPriceFetches = new Map<string, Promise<SwapTokenPriceMap>>();
+
+function buildPriceFetchKey(chainId: number, tokenAddresses: string[]): string {
+  const unique = [
+    ...new Set(
+      tokenAddresses.map((a) => a.trim().toLowerCase()).filter(Boolean)
+    )
+  ].sort();
+  return `${chainId}:${unique.join(",")}`;
+}
+
+async function fetchSwapTokenPricesInternal(
+  chainId: number,
+  tokenAddresses: string[]
+): Promise<SwapTokenPriceMap> {
+  const unique = [
+    ...new Set(tokenAddresses.map((a) => a.trim()).filter(Boolean))
+  ];
+  if (unique.length === 0) return {};
+
+  let prices: SwapTokenPriceMap = {};
+  try {
+    prices = await fetchCoinGeckoTokenPrices(chainId, unique);
+  } catch (error) {
+    console.warn(
+      "[BricSwap] CoinGecko price fetch failed, falling back to Kyber:",
+      error instanceof Error ? error.message : error
+    );
+  }
+
+  const missing = unique.filter((address) => !prices[tokenBalanceKey(address)]);
+  if (missing.length === 0) return prices;
+
+  try {
+    const kyberPrices = await fetchKyberTokenPrices(chainId, missing);
+    return { ...prices, ...kyberPrices };
+  } catch (error) {
+    if (Object.keys(prices).length > 0) {
+      console.warn(
+        "[BricSwap] Kyber fallback price fetch failed:",
+        error instanceof Error ? error.message : error
+      );
+      return prices;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Batch fetch token USD prices. CoinGecko (CEX aggregate) is preferred for
+ * Ondo/RWA tokens; Kyber DEX prices fill gaps for custom unlisted tokens.
+ */
+export async function fetchSwapTokenPrices(
+  chainId: number,
+  tokenAddresses: string[]
+): Promise<SwapTokenPriceMap> {
+  const key = buildPriceFetchKey(chainId, tokenAddresses);
+  const inflight = inflightPriceFetches.get(key);
+  if (inflight) return inflight;
+
+  const task = fetchSwapTokenPricesInternal(chainId, tokenAddresses).finally(
+    () => {
+      if (inflightPriceFetches.get(key) === task) {
+        inflightPriceFetches.delete(key);
+      }
+    }
+  );
+  inflightPriceFetches.set(key, task);
+  return task;
 }
 
 /** Same as {@link fetchSwapTokenPrices} but accepts catalog `TokenSide` entries. */

@@ -1,6 +1,9 @@
-const BASE_URL = "https://api.coingecko.com/api/v3";
+export const COINGECKO_API_BASE = "https://api.coingecko.com/api/v3";
 const CG_API_KEY = "CG-3DZELwY5HdLhsJjNpyN6hFy6";
-const CG_HEADERS = { "x-cg-demo-api-key": CG_API_KEY };
+export const COINGECKO_API_HEADERS = { "x-cg-demo-api-key": CG_API_KEY };
+
+const BASE_URL = COINGECKO_API_BASE;
+const CG_HEADERS = COINGECKO_API_HEADERS;
 
 export interface PricePoint {
   time: number;
