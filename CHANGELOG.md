@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.12](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.11...v2.2.12) (2026-06-22)
+
+
+### Features
+
+* **bricswap:** guard swap when bricSwapAddress is unset ([303d4c0](https://github.com/EthanOK/ethan-dapp-web/commit/303d4c064d291e7536b25abb1752456e956315a1))
+
 ### [2.2.11](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.10...v2.2.11) (2026-06-18)
 
 
