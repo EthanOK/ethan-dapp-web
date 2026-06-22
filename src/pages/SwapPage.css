@@ -72,6 +72,10 @@
   cursor: not-allowed;
 }
 
+.swap-chain-banner--unavailable {
+  background: color-mix(in srgb, #ef4444 8%, var(--swap-inset));
+}
+
 /* ---- Card shell ---- */
 
 .swap-card {

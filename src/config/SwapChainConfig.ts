@@ -1,4 +1,5 @@
 import { CHAIN_ID_MAPPING } from "@bric-labs/bric-sdk";
+import { ZeroAddress, isAddress } from "ethers";
 import { SWAP_TOKEN_WHITELIST } from "@/fixtures/SwapTokenWhitelist";
 import { SWAP_TOKEN_WHITELIST_BSC } from "@/fixtures/SwapTokenWhitelistBsc";
 import { whitelistTokenSide, type TokenSide } from "@/lib/swap/swapTokenSide";
@@ -51,6 +52,21 @@ export const SWAP_CHAIN_BSC: SwapChainDefinition = {
   enabled: false
 };
 
+/** True when `bricSwapAddress` is set to a non-zero contract. */
+export function isBricSwapAddressConfigured(
+  chain: SwapChainDefinition
+): boolean {
+  const address = chain.bricSwapAddress.trim();
+  return (
+    isAddress(address) && address.toLowerCase() !== ZeroAddress.toLowerCase()
+  );
+}
+
+/** Enabled chain with a configured BricSwap router/spender. */
+export function isSwapChainOperational(chain: SwapChainDefinition): boolean {
+  return chain.enabled && isBricSwapAddressConfigured(chain);
+}
+
 /** Registered swap chains. Only `enabled` entries are usable in the UI. */
 export const SWAP_CHAINS: SwapChainDefinition[] = [
   SWAP_CHAIN_ETHEREUM,
@@ -63,15 +79,16 @@ export function getSwapChainConfig(
   return SWAP_CHAINS.find((c) => c.chainId === chainId && c.enabled);
 }
 
-/** Default swap chain for the page (first enabled entry). */
+/** Default swap chain for the page (first enabled, configured entry). */
 export function getDefaultSwapChain(): SwapChainDefinition {
-  const chain = SWAP_CHAINS.find((c) => c.enabled);
-  if (!chain) throw new Error("No enabled swap chain configured");
+  const chain = SWAP_CHAINS.find((c) => isSwapChainOperational(c));
+  if (!chain) throw new Error("No operational swap chain configured");
   return chain;
 }
 
 export function isSwapChainSupported(chainId: number): boolean {
-  return getSwapChainConfig(chainId) != null;
+  const chain = getSwapChainConfig(chainId);
+  return chain != null && isBricSwapAddressConfigured(chain);
 }
 
 export function buildDefaultTokenSides(

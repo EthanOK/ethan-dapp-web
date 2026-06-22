@@ -10,7 +10,8 @@ import {
 import { initBricSdk } from "@/config/BricConfig";
 import {
   getDefaultSwapChain,
-  getSwapChainConfig
+  getSwapChainConfig,
+  isBricSwapAddressConfigured
 } from "@/config/SwapChainConfig";
 import {
   ensureErc20Allowance,
@@ -228,6 +229,7 @@ const SwapPage = () => {
   }>({ side: null, loading: false, error: null });
 
   const isOnSwapChain = chainIdNum != null && chainIdNum === swapChain.chainId;
+  const isSwapAvailable = isBricSwapAddressConfigured(swapChain);
 
   // When the active swap chain changes (e.g. user switches wallet network),
   // reload saved tokens and restore the last pair for that chain.
@@ -676,6 +678,13 @@ const SwapPage = () => {
   };
 
   const handleSwap = async () => {
+    if (!isBricSwapAddressConfigured(swapChain)) {
+      toast.error(
+        `BricSwap is not configured on ${swapChain.networkBadge} yet`
+      );
+      return;
+    }
+
     if (
       !address ||
       !paySide ||
@@ -836,6 +845,9 @@ const SwapPage = () => {
 
   const primaryButtonLabel = (() => {
     if (!isConnected) return "Connect Wallet";
+    if (isConnected && isOnSwapChain && !isSwapAvailable) {
+      return "Swap unavailable";
+    }
     if (isSwapping) return "Swapping…";
     if (isQuoting) return "Fetching quote…";
     if (amountIn != null && amountIn !== debouncedAmountIn) {
@@ -894,6 +906,15 @@ const SwapPage = () => {
             >
               {isSwitching ? "Switching…" : "Switch network"}
             </button>
+          </div>
+        )}
+
+        {isOnSwapChain && !isSwapAvailable && (
+          <div className="swap-chain-banner swap-chain-banner--unavailable">
+            <p className="swap-chain-banner-text">
+              BricSwap contract is not configured on {swapChain.networkBadge}{" "}
+              yet. Swaps are unavailable.
+            </p>
           </div>
         )}
 
