@@ -1,0 +1,308 @@
+.swap-market-info-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 16px;
+  background: var(--w3-bg-card);
+  animation: swap-market-info-in 0.18s ease-out;
+}
+
+@keyframes swap-market-info-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.swap-market-info-header {
+  display: grid;
+  grid-template-columns: 32px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.swap-market-info-header h4 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.swap-market-info-back,
+.swap-market-info-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: var(--w3-bg-elevated);
+  color: var(--w3-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.swap-market-info-back:hover,
+.swap-market-info-close:hover {
+  color: var(--w3-text);
+  background: var(--w3-bg-hover);
+}
+
+.swap-market-info-close {
+  font-size: 1.25rem;
+}
+
+.swap-market-info-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border-radius: calc(var(--w3-radius-sm) + 2px);
+  border: 1px solid var(--w3-border);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--w3-accent) 6%, var(--w3-bg-elevated)) 0%,
+    var(--w3-bg-elevated) 55%,
+    var(--w3-bg-card) 100%
+  );
+}
+
+.swap-market-info-avatar {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.swap-market-info-avatar-chain {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--w3-bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.48rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.swap-market-info-hero-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.swap-market-info-token-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.swap-market-info-symbol {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.swap-market-info-name {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--w3-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.swap-market-info-price-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.swap-market-info-price {
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.swap-market-info-change-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.swap-market-info-change-pill.up {
+  color: var(--w3-success, #22c55e);
+  background: color-mix(in srgb, var(--w3-success, #22c55e) 14%, transparent);
+}
+
+.swap-market-info-change-pill.down {
+  color: var(--w3-danger, #ef4444);
+  background: color-mix(in srgb, var(--w3-danger, #ef4444) 14%, transparent);
+}
+
+.swap-market-info-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.swap-market-info-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-elevated);
+  min-width: 0;
+}
+
+.swap-market-info-stat-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--w3-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.swap-market-info-stat-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--w3-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.swap-market-info-footer {
+  padding-top: 12px;
+  border-top: 1px solid var(--w3-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.swap-market-info-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.swap-market-info-meta-label {
+  font-size: 0.76rem;
+  color: var(--w3-text-muted);
+  flex-shrink: 0;
+}
+
+.swap-market-info-meta-value {
+  font-size: 0.76rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--w3-text);
+  text-align: right;
+}
+
+.swap-market-info-contract-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1;
+  justify-content: flex-end;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.swap-market-info-contract-link {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--w3-text);
+  text-decoration: none;
+  text-align: right;
+}
+
+.swap-market-info-contract-link:hover {
+  color: var(--w3-accent);
+  text-decoration: underline;
+}
+
+.swap-market-info-contract-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: calc(var(--w3-radius-sm) - 2px);
+  background: color-mix(in srgb, var(--w3-accent) 12%, transparent);
+  color: var(--w3-accent);
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.swap-market-info-contract-copy-btn:hover {
+  color: #fff;
+  background: var(--w3-accent);
+}
+
+.swap-market-info-contract-copy {
+  font-size: 0.88rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.swap-market-info-powered {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 0.66rem;
+  color: var(--w3-text-muted);
+}
+
+.swap-market-info-powered strong {
+  font-weight: 700;
+  color: var(--w3-text);
+}

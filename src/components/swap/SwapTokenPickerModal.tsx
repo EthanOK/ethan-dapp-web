@@ -1,5 +1,6 @@
 import { formatUnits } from "ethers";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   addressesEqual,
   getTokenDisplayName,
@@ -7,11 +8,19 @@ import {
   type TokenSide
 } from "@/lib/swap/swapTokenRules";
 import {
+  resolveFavoriteTokenSides,
+  SWAP_FAVORITE_MAX,
+  toggleFavoriteTokenAddress
+} from "@/lib/swap/swapFavoriteTokens";
+import {
   calcTokenUsdValue,
+  formatSwapTokenChange24h,
   formatSwapUsdValue,
   getSwapTokenPrice,
   type SwapTokenPriceMap
 } from "@/lib/swap/swapTokenPrices";
+import type { SwapChainDefinition } from "@/config/SwapChainConfig";
+import { SwapTokenMarketInfoPanel } from "@/components/swap/SwapTokenMarketInfoPanel";
 import "./SwapTokenPickerModal.css";
 
 function formatListBalance(value: bigint, decimals: number): string {
@@ -37,10 +46,18 @@ function rowKey(side: TokenSide): string {
   return tokenBalanceKey(side.tokenAddress);
 }
 
+type ListFilter = "all" | "imported";
+
 export type SwapTokenPickerModalProps = {
   open: boolean;
   title: string;
-  networkBadge: string;
+  chainId: number;
+  /** Full token catalog for resolving favorite shortcuts. */
+  catalog: TokenSide[];
+  favoriteAddressKeys: ReadonlySet<string>;
+  availableChains: SwapChainDefinition[];
+  activeChainId: number;
+  isSwitchingChain?: boolean;
   chainAvatarBadge: string;
   chainAvatarColor: string;
   tokens: TokenSide[];
@@ -53,13 +70,20 @@ export type SwapTokenPickerModalProps = {
   addressLookupError?: string | null;
   onSearchChange: (value: string) => void;
   onSelectSide: (side: TokenSide) => void;
+  onSelectChain?: (chainId: number) => void;
+  onFavoritesChange?: () => void;
   onClose: () => void;
 };
 
 export function SwapTokenPickerModal({
   open,
   title,
-  networkBadge,
+  chainId,
+  catalog,
+  favoriteAddressKeys,
+  availableChains,
+  activeChainId,
+  isSwitchingChain = false,
   chainAvatarBadge,
   chainAvatarColor,
   tokens,
@@ -72,8 +96,35 @@ export function SwapTokenPickerModal({
   addressLookupError = null,
   onSearchChange,
   onSelectSide,
+  onSelectChain,
+  onFavoritesChange,
   onClose
 }: SwapTokenPickerModalProps) {
+  const [listFilter, setListFilter] = useState<ListFilter>("all");
+  const [marketInfoSide, setMarketInfoSide] = useState<TokenSide | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setMarketInfoSide(null);
+      return;
+    }
+    setListFilter("all");
+  }, [open, chainId]);
+
+  const favoriteTokens = useMemo(
+    () => resolveFavoriteTokenSides(chainId, catalog),
+    [chainId, catalog, favoriteAddressKeys]
+  );
+
+  const handleToggleFavorite = (side: TokenSide) => {
+    const result = toggleFavoriteTokenAddress(chainId, side.tokenAddress);
+    if (result.limitReached) {
+      toast.error(`You can favorite up to ${SWAP_FAVORITE_MAX} tokens`);
+      return;
+    }
+    onFavoritesChange?.();
+  };
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -83,12 +134,21 @@ export function SwapTokenPickerModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  const filteredTokens = useMemo(() => {
+    if (listFilter === "imported") {
+      return tokens.filter((side) => side.kind === "custom");
+    }
+    return tokens;
+  }, [tokens, listFilter]);
+
   const rows = useMemo(
     () =>
-      tokens.map((side) => {
+      filteredTokens.map((side) => {
+        const priceInfo = getSwapTokenPrice(prices, side.tokenAddress);
         const balance = balances[tokenBalanceKey(side.tokenAddress)] ?? 0n;
-        const priceUsd =
-          getSwapTokenPrice(prices, side.tokenAddress)?.priceUsd ?? 0;
+        const priceUsd = priceInfo?.priceUsd ?? 0;
+        const unitPriceLabel = priceUsd > 0 ? formatSwapUsdValue(priceUsd) : "";
+        const change24h = formatSwapTokenChange24h(priceInfo?.change24hPct);
         let usdLabel = "";
         if (priceUsd > 0) {
           usdLabel =
@@ -102,11 +162,18 @@ export function SwapTokenPickerModal({
           side,
           key: rowKey(side),
           balance,
-          usdLabel
+          usdLabel,
+          unitPriceLabel,
+          change24h
         };
       }),
-    [tokens, balances, prices]
+    [filteredTokens, balances, prices]
   );
+
+  const emptyListMessage = useMemo(() => {
+    if (listFilter === "imported") return "No imported tokens";
+    return "No tokens match your search";
+  }, [listFilter]);
 
   if (!open) return null;
 
@@ -145,9 +212,108 @@ export function SwapTokenPickerModal({
           />
         </div>
 
+        {favoriteTokens.length > 0 ? (
+          <div className="swap-picker-favorites">
+            {favoriteTokens.map((side) => (
+              <div
+                key={rowKey(side)}
+                className="swap-picker-favorite-chip-wrap"
+              >
+                <button
+                  type="button"
+                  className="swap-picker-favorite-chip"
+                  onClick={() => {
+                    onSelectSide(side);
+                    onClose();
+                  }}
+                >
+                  <span
+                    className="swap-picker-favorite-chip-avatar"
+                    style={{
+                      background: `hsl(${tokenAvatarHue(side.symbol)} 42% 32%)`
+                    }}
+                    aria-hidden
+                  >
+                    {side.symbol.slice(0, 2).toUpperCase()}
+                  </span>
+                  <span className="swap-picker-favorite-chip-symbol">
+                    {side.symbol}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="swap-picker-favorite-chip-remove"
+                  aria-label={`Remove ${side.symbol} from favorites`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toggleFavoriteTokenAddress(chainId, side.tokenAddress);
+                    onFavoritesChange?.();
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <div className="swap-picker-network">
           <span className="swap-picker-network-label">Network</span>
-          <span className="swap-picker-network-badge">{networkBadge}</span>
+          <div
+            className="swap-picker-network-chains"
+            role="group"
+            aria-label="Swap networks"
+          >
+            {availableChains.map((chain) => {
+              const isActive = chain.chainId === activeChainId;
+              return (
+                <button
+                  key={chain.chainId}
+                  type="button"
+                  className={`swap-picker-network-badge${isActive ? " is-active" : ""}`}
+                  aria-pressed={isActive}
+                  disabled={isSwitchingChain}
+                  onClick={() => {
+                    if (!isActive) onSelectChain?.(chain.chainId);
+                  }}
+                >
+                  <span
+                    className="swap-picker-network-avatar"
+                    style={{ background: chain.chainAvatarColor }}
+                    aria-hidden
+                  >
+                    {chain.chainAvatarBadge}
+                  </span>
+                  {chain.networkBadge}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div
+          className="swap-picker-tabs"
+          role="tablist"
+          aria-label="Token list filter"
+        >
+          <button
+            type="button"
+            role="tab"
+            className={`swap-picker-tab${listFilter === "all" ? " is-active" : ""}`}
+            aria-selected={listFilter === "all"}
+            onClick={() => setListFilter("all")}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            role="tab"
+            className={`swap-picker-tab${listFilter === "imported" ? " is-active" : ""}`}
+            aria-selected={listFilter === "imported"}
+            onClick={() => setListFilter("imported")}
+          >
+            Imported
+          </button>
         </div>
 
         <div className="swap-picker-table-head">
@@ -163,72 +329,132 @@ export function SwapTokenPickerModal({
           )}
 
           {!addressLookupLoading &&
-            rows.map(({ side, key, balance, usdLabel }) => {
-              const selected =
-                selectedTokenAddress != null &&
-                addressesEqual(side.tokenAddress, selectedTokenAddress);
-              const initials = side.symbol.slice(0, 2).toUpperCase();
-              return (
-                <li key={key}>
-                  <button
-                    type="button"
-                    className={`swap-picker-row${selected ? " is-selected" : ""}`}
-                    onClick={() => {
-                      onSelectSide(side);
-                      onClose();
-                    }}
-                  >
-                    <span
-                      className="swap-picker-avatar"
-                      style={{
-                        background: `hsl(${tokenAvatarHue(side.symbol)} 42% 32%)`
-                      }}
+            rows.map(
+              ({ side, key, balance, usdLabel, unitPriceLabel, change24h }) => {
+                const selected =
+                  selectedTokenAddress != null &&
+                  addressesEqual(side.tokenAddress, selectedTokenAddress);
+                const initials = side.symbol.slice(0, 2).toUpperCase();
+                const showUnitMeta = Boolean(unitPriceLabel || change24h);
+                const isFavorite = favoriteAddressKeys.has(
+                  tokenBalanceKey(side.tokenAddress)
+                );
+                return (
+                  <li key={key}>
+                    <div
+                      className={`swap-picker-row${selected ? " is-selected" : ""}`}
                     >
-                      {initials}
-                      <span
-                        className="swap-picker-avatar-chain"
-                        style={{ background: chainAvatarColor }}
-                        aria-hidden
+                      <button
+                        type="button"
+                        className={`swap-picker-favorite${isFavorite ? " is-active" : ""}`}
+                        aria-label={
+                          isFavorite
+                            ? "Remove from favorites"
+                            : "Add to favorites"
+                        }
+                        aria-pressed={isFavorite}
+                        onClick={() => handleToggleFavorite(side)}
                       >
-                        {chainAvatarBadge}
-                      </span>
-                    </span>
-                    <span className="swap-picker-token-info">
-                      <span className="swap-picker-symbol">{side.symbol}</span>
-                      <span className="swap-picker-name">
-                        {getTokenDisplayName(side)}
-                      </span>
-                    </span>
-                    <span className="swap-picker-balance-col">
-                      <span className="swap-picker-value-stack">
-                        {showBalances ? (
-                          <span className="swap-picker-balance">
-                            {formatListBalance(balance, side.decimals)}
+                        ★
+                      </button>
+                      <button
+                        type="button"
+                        className="swap-picker-row-main"
+                        onClick={() => {
+                          onSelectSide(side);
+                          onClose();
+                        }}
+                      >
+                        <span
+                          className="swap-picker-avatar"
+                          style={{
+                            background: `hsl(${tokenAvatarHue(side.symbol)} 42% 32%)`
+                          }}
+                        >
+                          {initials}
+                          <span
+                            className="swap-picker-avatar-chain"
+                            style={{ background: chainAvatarColor }}
+                            aria-hidden
+                          >
+                            {chainAvatarBadge}
                           </span>
-                        ) : usdLabel ? (
-                          <span className="swap-picker-balance">
-                            {usdLabel}
+                        </span>
+                        <span className="swap-picker-token-info">
+                          <span className="swap-picker-symbol">
+                            {side.symbol}
                           </span>
-                        ) : null}
-                        {usdLabel && showBalances ? (
-                          <span className="swap-picker-usd">{usdLabel}</span>
-                        ) : null}
-                      </span>
+                          {showUnitMeta ? (
+                            <span
+                              className={`swap-picker-meta${change24h ? (change24h.isUp ? " up" : " down") : ""}`}
+                            >
+                              {unitPriceLabel ? (
+                                <span className="swap-picker-unit-price">
+                                  {unitPriceLabel}
+                                </span>
+                              ) : null}
+                              {change24h ? (
+                                <span className="swap-picker-change">
+                                  {change24h.text}
+                                </span>
+                              ) : null}
+                            </span>
+                          ) : (
+                            <span className="swap-picker-name">
+                              {getTokenDisplayName(side)}
+                            </span>
+                          )}
+                        </span>
+                        <span className="swap-picker-balance-col">
+                          <span className="swap-picker-value-stack">
+                            {showBalances ? (
+                              <span className="swap-picker-balance">
+                                {formatListBalance(balance, side.decimals)}
+                              </span>
+                            ) : usdLabel ? (
+                              <span className="swap-picker-balance">
+                                {usdLabel}
+                              </span>
+                            ) : null}
+                            {usdLabel && showBalances ? (
+                              <span className="swap-picker-usd">
+                                {usdLabel}
+                              </span>
+                            ) : null}
+                          </span>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className="swap-picker-info"
+                        aria-label={`Market info for ${side.symbol}`}
+                        onClick={() => setMarketInfoSide(side)}
+                      >
+                        i
+                      </button>
                       {selected ? (
-                        <span className="swap-picker-check" aria-hidden>
+                        <span
+                          className="swap-picker-check is-visible"
+                          aria-hidden
+                        >
                           ✓
                         </span>
-                      ) : null}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
+                      ) : (
+                        <span
+                          className="swap-picker-check-spacer"
+                          aria-hidden
+                        />
+                      )}
+                    </div>
+                  </li>
+                );
+              }
+            )}
 
           {!addressLookupLoading &&
             rows.length === 0 &&
             !addressLookupError && (
-              <li className="swap-picker-empty">No tokens match your search</li>
+              <li className="swap-picker-empty">{emptyListMessage}</li>
             )}
 
           {!addressLookupLoading && addressLookupError && rows.length === 0 && (
@@ -237,6 +463,17 @@ export function SwapTokenPickerModal({
             </li>
           )}
         </ul>
+
+        {marketInfoSide ? (
+          <SwapTokenMarketInfoPanel
+            side={marketInfoSide}
+            chainId={chainId}
+            priceInfo={getSwapTokenPrice(prices, marketInfoSide.tokenAddress)}
+            chainAvatarBadge={chainAvatarBadge}
+            chainAvatarColor={chainAvatarColor}
+            onClose={() => setMarketInfoSide(null)}
+          />
+        ) : null}
       </div>
     </div>
   );

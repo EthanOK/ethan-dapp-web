@@ -61,6 +61,15 @@ const getScanTxURL = async (txHash: string): Promise<string> => {
   return `${base}/tx/${txHash}`;
 };
 
+const getScanAddressURL = (chainId: number, address: string): string => {
+  const chainInfo = SupportChains.find(
+    (item) => parseInt(item.id, 10) === chainId
+  );
+  const base = chainInfo?.blockExplorerUrls?.[0];
+  if (!base) return "";
+  return `${base.replace(/\/$/, "")}/address/${address}`;
+};
+
 const getInfuraProvider = async (): Promise<JsonRpcProvider | undefined> => {
   const chainIdStr = localStorage.getItem("chainId");
   const chainId = parseInt(chainIdStr ?? "0", 10);
@@ -275,6 +284,7 @@ export {
   equalityStringIgnoreCase,
   getScanURL,
   getScanTxURL,
+  getScanAddressURL,
   getYunGouAddress,
   getYunGouAddressAndParameters,
   getYunGouAddressAndOrder,

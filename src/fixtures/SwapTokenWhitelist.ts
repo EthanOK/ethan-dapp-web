@@ -26,8 +26,20 @@ export const SWAP_TOKEN_WHITELIST: SwapWhitelistToken[] = [
     decimals: 6
   },
   {
+    symbol: "WETH",
+    underlyingAsset: "Wrapped Ether",
+    tokenAddress: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    decimals: 18
+  },
+  {
+    symbol: "WBTC",
+    underlyingAsset: "Wrapped Bitcoin",
+    tokenAddress: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    decimals: 8
+  },
+  {
     symbol: "BMNRon",
-    underlyingAsset: "BitMine Immersion Technologies",
+    underlyingAsset: "BitMine",
     tokenAddress: "0x33483a58079b4225b10e57958ca28ad7b9cdbaf7",
     decimals: 18
   },
@@ -45,7 +57,7 @@ export const SWAP_TOKEN_WHITELIST: SwapWhitelistToken[] = [
   },
   {
     symbol: "CRCLon",
-    underlyingAsset: "Circle Internet Group",
+    underlyingAsset: "Circle",
     tokenAddress: "0x3632dea96a953c11dac2f00b4a05a32cd1063fae",
     decimals: 18
   },
@@ -63,7 +75,7 @@ export const SWAP_TOKEN_WHITELIST: SwapWhitelistToken[] = [
   },
   {
     symbol: "GOOGLon",
-    underlyingAsset: "Alphabet Class A",
+    underlyingAsset: "Google",
     tokenAddress: "0xba47214edd2bb43099611b208f75e4b42fdcfedc",
     decimals: 18
   },
@@ -75,7 +87,7 @@ export const SWAP_TOKEN_WHITELIST: SwapWhitelistToken[] = [
   },
   {
     symbol: "METAon",
-    underlyingAsset: "Meta Platforms",
+    underlyingAsset: "Meta",
     tokenAddress: "0x59644165402b611b350645555b50afb581c71eb2",
     decimals: 18
   },
@@ -99,7 +111,7 @@ export const SWAP_TOKEN_WHITELIST: SwapWhitelistToken[] = [
   },
   {
     symbol: "SLVon",
-    underlyingAsset: "iShares Silver Trust",
+    underlyingAsset: "Silver Trust",
     tokenAddress: "0xf3e4872e6a4cf365888d93b6146a2baa7348f1a4",
     decimals: 18
   },

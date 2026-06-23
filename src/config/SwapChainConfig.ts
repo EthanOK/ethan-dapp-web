@@ -42,14 +42,14 @@ export const SWAP_CHAIN_ETHEREUM: SwapChainDefinition = {
 export const SWAP_CHAIN_BSC: SwapChainDefinition = {
   chainId: CHAIN_ID_MAPPING.BSC,
   name: "BNB Smart Chain",
-  networkBadge: "BSC",
+  networkBadge: "BNB Chain",
   chainAvatarBadge: "B",
   chainAvatarColor: "#f0b90b",
   nativeSymbol: "BNB",
   tokens: SWAP_TOKEN_WHITELIST_BSC,
   // TODO: add bric swap address
   bricSwapAddress: "0x0000000000000000000000000000000000000000",
-  enabled: false
+  enabled: true
 };
 
 /** True when `bricSwapAddress` is set to a non-zero contract. */
@@ -72,6 +72,11 @@ export const SWAP_CHAINS: SwapChainDefinition[] = [
   SWAP_CHAIN_ETHEREUM,
   SWAP_CHAIN_BSC
 ];
+
+/** All swap chains enabled in the UI. */
+export function getEnabledSwapChains(): SwapChainDefinition[] {
+  return SWAP_CHAINS.filter((c) => c.enabled);
+}
 
 export function getSwapChainConfig(
   chainId: number

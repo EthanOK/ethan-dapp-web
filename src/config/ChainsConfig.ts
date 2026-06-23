@@ -14,7 +14,7 @@ export const SupportChains: ChainConfig[] = [
     chainId: "0x1",
     name: "Ethereum",
     chainName: "Ethereum Mainnet",
-    rpcUrls: ["https://0xrpc.io/eth"],
+    rpcUrls: ["https://gateway.tenderly.co/public/mainnet"],
     nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     blockExplorerUrls: ["https://etherscan.io"]
   },

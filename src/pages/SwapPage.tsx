@@ -10,6 +10,7 @@ import {
 import { initBricSdk } from "@/config/BricConfig";
 import {
   getDefaultSwapChain,
+  getEnabledSwapChains,
   getSwapChainConfig,
   isBricSwapAddressConfigured
 } from "@/config/SwapChainConfig";
@@ -30,7 +31,13 @@ import {
   loadSavedSwapTokens,
   saveSwapToken
 } from "@/lib/swap/savedSwapTokens";
-import { loadLastSwapPair, saveLastSwapPair } from "@/lib/swap/swapLastPair";
+import {
+  loadLastSwapPair,
+  saveLastSwapPair,
+  loadLastSwapPayAmount,
+  saveLastSwapPayAmount
+} from "@/lib/swap/swapLastPair";
+import { loadFavoriteTokenAddresses } from "@/lib/swap/swapFavoriteTokens";
 import {
   calcTokenUsdValue,
   fetchSwapTokenPricesForSides,
@@ -61,8 +68,13 @@ import { truncateHash } from "@/lib/shared/Format";
 import { SwapTokenPickerModal } from "@/components/swap/SwapTokenPickerModal";
 import "./SwapPage.css";
 
+const BRIC_SWAP_TAGLINE =
+  "Swap ETH, stablecoins and RWA tokens via Bric DEX aggregation.";
+
 /** Wait for user to finish typing before calling previewSwapExactInput. */
 const QUOTE_AMOUNT_DEBOUNCE_MS = 1000;
+/** Default "You pay" input when opening swap or resetting after chain change. */
+const DEFAULT_PAY_AMOUNT = "1";
 /** Auto-refresh quote interval while inputs are valid. */
 const QUOTE_AUTO_REFRESH_MS = 15_000;
 
@@ -125,6 +137,27 @@ function formatTokenAmountExact(value: bigint, decimals: number): string {
   return trimmed || "0";
 }
 
+/** Strip non-numeric characters; keep at most one decimal point. */
+function sanitizePayAmountInput(value: string, maxDecimals?: number): string {
+  const cleaned = value.replace(/[^\d.]/g, "");
+  if (!cleaned) return "";
+
+  const dotIndex = cleaned.indexOf(".");
+  if (dotIndex === -1) return cleaned;
+
+  const intPart = cleaned.slice(0, dotIndex);
+  let fracPart = cleaned.slice(dotIndex + 1).replace(/\./g, "");
+  if (maxDecimals != null && maxDecimals >= 0) {
+    fracPart = fracPart.slice(0, maxDecimals);
+  }
+
+  const endsWithDot = value.endsWith(".");
+  if (fracPart.length === 0) {
+    return endsWithDot ? `${intPart}.` : intPart;
+  }
+  return `${intPart}.${fracPart}`;
+}
+
 function showSwapTxToast(title: string, txHash: string, duration = 8000) {
   void getScanTxURL(txHash).then((txUrl) => {
     toast.success(title, {
@@ -181,6 +214,7 @@ const SwapPage = () => {
     }
     return getDefaultSwapChain();
   }, [chainIdNum]);
+  const enabledSwapChains = useMemo(() => getEnabledSwapChains(), []);
   const { defaultPayKey, defaultReceiveKey, xautFallback } = useMemo(
     () => buildDefaultsForChain(swapChain.chainId),
     [swapChain.chainId]
@@ -201,10 +235,12 @@ const SwapPage = () => {
   );
   const pairValidatedRef = useRef(false);
   const quoteRefreshSilentRef = useRef(false);
-  const [savedTokens, setSavedTokens] = useState<TokenSide[]>(() =>
-    loadSavedSwapTokens(swapChain.chainId)
+  const [savedTokensRevision, setSavedTokensRevision] = useState(0);
+  const savedTokens = useMemo(
+    () => loadSavedSwapTokens(swapChain.chainId),
+    [swapChain.chainId, savedTokensRevision]
   );
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(DEFAULT_PAY_AMOUNT);
   const [debouncedAmountIn, setDebouncedAmountIn] = useState<bigint | null>(
     null
   );
@@ -227,6 +263,7 @@ const SwapPage = () => {
     loading: boolean;
     error: string | null;
   }>({ side: null, loading: false, error: null });
+  const [favoriteRevision, setFavoriteRevision] = useState(0);
 
   const isOnSwapChain = chainIdNum != null && chainIdNum === swapChain.chainId;
   const isSwapAvailable = isBricSwapAddressConfigured(swapChain);
@@ -236,24 +273,12 @@ const SwapPage = () => {
   useEffect(() => {
     pairValidatedRef.current = false;
     quoteRefreshSilentRef.current = false;
-    setSavedTokens((prev) => {
-      const next = loadSavedSwapTokens(swapChain.chainId);
-      if (
-        prev.length === next.length &&
-        prev.every((token, index) =>
-          addressesEqual(token.tokenAddress, next[index]?.tokenAddress ?? "")
-        )
-      ) {
-        return prev;
-      }
-      return next;
-    });
     const last = loadLastSwapPair(swapChain.chainId);
     setPaySelectKey(last?.paySelectKey ?? defaultPayKey);
     setReceiveSelectKey(last?.receiveSelectKey ?? defaultReceiveKey);
     setPickerSearch("");
     setAddressLookup({ side: null, loading: false, error: null });
-    setAmount("");
+    setAmount(loadLastSwapPayAmount(swapChain.chainId) ?? DEFAULT_PAY_AMOUNT);
     setDebouncedAmountIn(null);
     setTokenBalances({});
     setTokenPrices({});
@@ -262,6 +287,14 @@ const SwapPage = () => {
     setIsQuoting(false);
     setRateInverted(false);
   }, [swapChain.chainId, defaultPayKey, defaultReceiveKey]);
+
+  useEffect(() => {
+    if (!amount.trim()) return;
+    const timer = window.setTimeout(() => {
+      saveLastSwapPayAmount(swapChain.chainId, amount);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [amount, swapChain.chainId]);
 
   useEffect(() => {
     initBricSdk();
@@ -322,6 +355,11 @@ const SwapPage = () => {
     [receiveSelectKey, tokenCatalog]
   );
 
+  const favoriteAddressKeys = useMemo(
+    () => new Set(loadFavoriteTokenAddresses(swapChain.chainId)),
+    [swapChain.chainId, favoriteRevision]
+  );
+
   const payPickerTokens = useMemo(() => {
     const filtered = filterTokenSidesByQuery(
       tokenCatalog,
@@ -329,8 +367,20 @@ const SwapPage = () => {
       swapChain
     );
     const merged = mergeAddressLookupToken(filtered, addressLookup.side);
-    return sortTokenSidesByBalance(merged, tokenBalances, swapChain);
-  }, [tokenCatalog, pickerSearch, tokenBalances, addressLookup.side]);
+    return sortTokenSidesByBalance(
+      merged,
+      tokenBalances,
+      swapChain,
+      favoriteAddressKeys
+    );
+  }, [
+    tokenCatalog,
+    pickerSearch,
+    tokenBalances,
+    addressLookup.side,
+    swapChain,
+    favoriteAddressKeys
+  ]);
 
   const receivePickerTokens = useMemo(() => {
     if (!paySide) return [];
@@ -339,8 +389,21 @@ const SwapPage = () => {
     if (addressLookup.side && !isSameTokenSide(paySide, addressLookup.side)) {
       options = mergeAddressLookupToken(options, addressLookup.side);
     }
-    return sortTokenSidesByBalance(options, tokenBalances, swapChain);
-  }, [paySide, tokenCatalog, pickerSearch, tokenBalances, addressLookup.side]);
+    return sortTokenSidesByBalance(
+      options,
+      tokenBalances,
+      swapChain,
+      favoriteAddressKeys
+    );
+  }, [
+    paySide,
+    tokenCatalog,
+    pickerSearch,
+    tokenBalances,
+    addressLookup.side,
+    swapChain,
+    favoriteAddressKeys
+  ]);
 
   const slippage = SLIPPAGE_PRESETS[slippageIndex] ?? DEFAULT_SLIPPAGE;
 
@@ -386,17 +449,18 @@ const SwapPage = () => {
   }, [amountIn, debouncedAmountIn]);
 
   const loadAllBalances = useCallback(async () => {
-    if (!address || !isOnSwapChain) {
-      setTokenBalances({});
-      return;
-    }
+    if (!address || !isOnSwapChain) return;
     try {
-      const balances = await fetchTokenBalancesMulticall(address, tokenCatalog);
+      const balances = await fetchTokenBalancesMulticall(
+        address,
+        tokenCatalogRef.current,
+        swapChain.chainId
+      );
       setTokenBalances(balances);
     } catch {
-      setTokenBalances({});
+      // Keep the last known balances when a refresh fails.
     }
-  }, [address, isOnSwapChain, tokenCatalog]);
+  }, [address, isOnSwapChain, swapChain.chainId, tokenCatalogPriceKey]);
 
   useEffect(() => {
     loadAllBalances();
@@ -443,7 +507,8 @@ const SwapPage = () => {
       try {
         const result = await resolveTokenFromAddressMulticall(
           trimmed,
-          address && isOnSwapChain ? address : undefined
+          address && isOnSwapChain ? address : undefined,
+          swapChain.chainId
         );
         if (cancelled) return;
         if (!result) {
@@ -643,13 +708,12 @@ const SwapPage = () => {
     );
     setPaySelectKey(encodeTokenSelectKey(newPay));
     setReceiveSelectKey(encodeTokenSelectKey(newReceive));
-    let nextSaved = savedTokens;
-    if (newPay.kind === "custom")
-      nextSaved = saveSwapToken(swapChain.chainId, newPay);
+    if (newPay.kind === "custom") saveSwapToken(swapChain.chainId, newPay);
     if (newReceive.kind === "custom")
-      nextSaved = saveSwapToken(swapChain.chainId, newReceive);
-    setSavedTokens(nextSaved);
-    setAmount("");
+      saveSwapToken(swapChain.chainId, newReceive);
+    if (newPay.kind === "custom" || newReceive.kind === "custom") {
+      setSavedTokensRevision((revision) => revision + 1);
+    }
     setQuote(null);
   };
 
@@ -668,6 +732,14 @@ const SwapPage = () => {
   const handleSwitchSwapChain = async () => {
     await switchToChainAndWait(swapChain.chainId, {
       onMismatchMessage: `Switch to ${swapChain.name}`
+    });
+  };
+
+  const handleSelectSwapChain = async (chainId: number) => {
+    if (chainId === swapChain.chainId) return;
+    const target = getSwapChainConfig(chainId);
+    await switchToChainAndWait(chainId, {
+      onMismatchMessage: `Failed to switch to ${target?.networkBadge ?? "network"}`
     });
   };
 
@@ -738,7 +810,8 @@ const SwapPage = () => {
       });
 
       showSwapTxToast("Swap successful", result.txHash);
-      setAmount("");
+      setAmount(DEFAULT_PAY_AMOUNT);
+      saveLastSwapPayAmount(swapChain.chainId, DEFAULT_PAY_AMOUNT);
       setQuote(null);
       await loadAllBalances();
     } catch (err) {
@@ -862,11 +935,12 @@ const SwapPage = () => {
     return "Swap";
   })();
 
-  const showTokenBalances = isConnected && isOnSwapChain;
+  const showTokenBalances = isConnected && Boolean(address) && isOnSwapChain;
 
   const rememberCustomToken = (side: TokenSide) => {
     if (side.kind === "custom") {
-      setSavedTokens(saveSwapToken(swapChain.chainId, side));
+      saveSwapToken(swapChain.chainId, side);
+      setSavedTokensRevision((revision) => revision + 1);
     }
   };
 
@@ -891,7 +965,7 @@ const SwapPage = () => {
     <div className="swap-page">
       <div className="swap-hero">
         <h2>BricSwap</h2>
-        <p className="swap-hero-sub">{swapChain.name}</p>
+        <p className="swap-hero-sub">{BRIC_SWAP_TAGLINE}</p>
       </div>
 
       <div className="swap-card">
@@ -1027,7 +1101,11 @@ const SwapPage = () => {
                   type="text"
                   inputMode="decimal"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) =>
+                    setAmount(
+                      sanitizePayAmountInput(e.target.value, paySide?.decimals)
+                    )
+                  }
                   placeholder="0"
                 />
                 {payUsdLabel ? (
@@ -1227,7 +1305,12 @@ const SwapPage = () => {
       <SwapTokenPickerModal
         open={pickerOpen === "pay"}
         title="Select pay token"
-        networkBadge={swapChain.networkBadge}
+        chainId={swapChain.chainId}
+        catalog={tokenCatalog}
+        favoriteAddressKeys={favoriteAddressKeys}
+        availableChains={enabledSwapChains}
+        activeChainId={swapChain.chainId}
+        isSwitchingChain={isSwitching}
         chainAvatarBadge={swapChain.chainAvatarBadge}
         chainAvatarColor={swapChain.chainAvatarColor}
         tokens={payPickerTokens}
@@ -1240,13 +1323,20 @@ const SwapPage = () => {
         addressLookupError={addressLookup.error}
         onSearchChange={setPickerSearch}
         onSelectSide={applyPayToken}
+        onSelectChain={handleSelectSwapChain}
+        onFavoritesChange={() => setFavoriteRevision((value) => value + 1)}
         onClose={() => setPickerOpen(null)}
       />
 
       <SwapTokenPickerModal
         open={pickerOpen === "receive"}
         title="Select receive token"
-        networkBadge={swapChain.networkBadge}
+        chainId={swapChain.chainId}
+        catalog={tokenCatalog}
+        favoriteAddressKeys={favoriteAddressKeys}
+        availableChains={enabledSwapChains}
+        activeChainId={swapChain.chainId}
+        isSwitchingChain={isSwitching}
         chainAvatarBadge={swapChain.chainAvatarBadge}
         chainAvatarColor={swapChain.chainAvatarColor}
         tokens={receivePickerTokens}
@@ -1265,6 +1355,8 @@ const SwapPage = () => {
         }
         onSearchChange={setPickerSearch}
         onSelectSide={applyReceiveToken}
+        onSelectChain={handleSelectSwapChain}
+        onFavoritesChange={() => setFavoriteRevision((value) => value + 1)}
         onClose={() => setPickerOpen(null)}
       />
     </div>
