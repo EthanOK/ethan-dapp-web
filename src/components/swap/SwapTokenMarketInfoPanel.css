@@ -240,36 +240,58 @@
 .swap-market-info-contract-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  min-width: 0;
   max-width: 100%;
-  padding: 5px 8px 5px 10px;
-  border: 1px solid var(--w3-border);
-  border-radius: var(--w3-radius-sm);
-  background: var(--w3-bg-elevated);
-  color: var(--w3-text);
+  flex: 1;
+  justify-content: flex-end;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  cursor: pointer;
-  transition:
-    border-color 0.12s,
-    background 0.12s;
+  line-height: 1.2;
 }
 
-.swap-market-info-contract-chip span:first-child {
+.swap-market-info-contract-link {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--w3-text);
+  text-decoration: none;
+  text-align: right;
 }
 
-.swap-market-info-contract-chip:hover {
-  border-color: var(--w3-border-accent);
-  background: var(--w3-bg-hover);
+.swap-market-info-contract-link:hover {
+  color: var(--w3-accent);
+  text-decoration: underline;
+}
+
+.swap-market-info-contract-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: calc(var(--w3-radius-sm) - 2px);
+  background: color-mix(in srgb, var(--w3-accent) 12%, transparent);
+  color: var(--w3-accent);
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.swap-market-info-contract-copy-btn:hover {
+  color: #fff;
+  background: var(--w3-accent);
 }
 
 .swap-market-info-contract-copy {
-  color: var(--w3-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.88rem;
+  line-height: 1;
   flex-shrink: 0;
 }
 

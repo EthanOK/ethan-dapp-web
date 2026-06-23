@@ -467,6 +467,7 @@ export function SwapTokenPickerModal({
         {marketInfoSide ? (
           <SwapTokenMarketInfoPanel
             side={marketInfoSide}
+            chainId={chainId}
             priceInfo={getSwapTokenPrice(prices, marketInfoSide.tokenAddress)}
             chainAvatarBadge={chainAvatarBadge}
             chainAvatarColor={chainAvatarColor}

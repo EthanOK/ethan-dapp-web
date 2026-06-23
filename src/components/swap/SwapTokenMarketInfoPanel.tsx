@@ -1,6 +1,8 @@
-import { ZeroAddress } from "ethers";
+import { type MouseEvent, useMemo } from "react";
+import { ZeroAddress, getAddress, isAddress } from "ethers";
 import { toast } from "sonner";
 import { truncateHash } from "@/lib/shared/Format";
+import { getScanAddressURL } from "@/lib/shared/Utils";
 import {
   formatMarketInfoLastUpdated,
   formatMarketInfoUsd
@@ -14,6 +16,7 @@ import "./SwapTokenMarketInfoPanel.css";
 
 type SwapTokenMarketInfoPanelProps = {
   side: TokenSide;
+  chainId: number;
   priceInfo?: SwapTokenPriceInfo;
   chainAvatarBadge: string;
   chainAvatarColor: string;
@@ -28,6 +31,11 @@ function tokenAvatarHue(symbol: string): number {
   return Math.abs(hash) % 360;
 }
 
+function formatChecksumAddress(address: string): string {
+  if (!isAddress(address)) return address;
+  return getAddress(address.toLowerCase());
+}
+
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="swap-market-info-stat">
@@ -39,6 +47,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 export function SwapTokenMarketInfoPanel({
   side,
+  chainId,
   priceInfo,
   chainAvatarBadge,
   chainAvatarColor,
@@ -47,15 +56,22 @@ export function SwapTokenMarketInfoPanel({
   const change24h = formatSwapTokenChange24h(priceInfo?.change24hPct);
   const contractAddress = side.tokenAddress;
   const isNative = contractAddress.toLowerCase() === ZeroAddress.toLowerCase();
-  const contractLabel = isNative
-    ? "Native"
-    : truncateHash(contractAddress, 6, 4);
+  const checksumAddress = useMemo(
+    () => (isNative ? "" : formatChecksumAddress(contractAddress)),
+    [contractAddress, isNative]
+  );
+  const contractAddressLabel = truncateHash(checksumAddress, 8, 8);
+  const contractExplorerUrl = isNative
+    ? ""
+    : getScanAddressURL(side.chainId ?? chainId, checksumAddress);
   const initials = side.symbol.slice(0, 2).toUpperCase();
 
-  const handleCopyAddress = async () => {
+  const handleCopyAddress = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (isNative) return;
     try {
-      await navigator.clipboard.writeText(contractAddress);
+      await navigator.clipboard.writeText(checksumAddress);
       toast.success("Contract address copied");
     } catch {
       toast.error("Failed to copy address");
@@ -147,17 +163,32 @@ export function SwapTokenMarketInfoPanel({
           {isNative ? (
             <span className="swap-market-info-meta-value">Native</span>
           ) : (
-            <button
-              type="button"
-              className="swap-market-info-contract-chip"
-              onClick={handleCopyAddress}
-              aria-label="Copy contract address"
-            >
-              <span>{contractLabel}</span>
-              <span className="swap-market-info-contract-copy" aria-hidden>
-                ⧉
-              </span>
-            </button>
+            <div className="swap-market-info-contract-chip">
+              {contractExplorerUrl ? (
+                <a
+                  href={contractExplorerUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="swap-market-info-contract-link"
+                >
+                  {contractAddressLabel}
+                </a>
+              ) : (
+                <span className="swap-market-info-contract-link">
+                  {contractAddressLabel}
+                </span>
+              )}
+              <button
+                type="button"
+                className="swap-market-info-contract-copy-btn"
+                onClick={handleCopyAddress}
+                aria-label="Copy contract address"
+              >
+                <span className="swap-market-info-contract-copy" aria-hidden>
+                  ⧉
+                </span>
+              </button>
+            </div>
           )}
         </div>
 

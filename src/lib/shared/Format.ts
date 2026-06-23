@@ -10,6 +10,11 @@ export function stringifyJson(value: unknown, space?: string | number): string {
 export function truncateHash(hash: string, head = 18, tail = 18): string {
   const s = String(hash ?? "");
   if (!s) return "";
-  if (s.length <= head + tail) return s;
-  return `${s.slice(0, head)}…${s.slice(-tail)}`;
+
+  const hasHexPrefix = s.length >= 2 && s.slice(0, 2).toLowerCase() === "0x";
+  const prefix = hasHexPrefix ? "0x" : "";
+  const body = hasHexPrefix ? s.slice(2) : s;
+
+  if (body.length <= head + tail) return s;
+  return `${prefix}${body.slice(0, head)}…${body.slice(-tail)}`;
 }
