@@ -83,12 +83,12 @@ function App() {
 
   const ethNavItems = [
     { title: "0xEthan DApp", linkTo: "/" },
+    { title: "BricSwap", linkTo: "/bricswap" },
     { title: "Estimate TxFee", linkTo: "/estimateTxFee" },
     { title: "Create Transaction", linkTo: "/createTransaction" },
     { title: "ERC20 Allowance", linkTo: "/erc20Allowance" },
     { title: "OFT Bridge (LayerZero)", linkTo: "/layerzeroOftBridge" },
     { title: "Faucet Token", linkTo: "/faucet" },
-    { title: "BricSwap", linkTo: "/bricswap" },
     { title: "Burn Token", linkTo: "/burn" },
     { title: "ENS Service", linkTo: "/ens" },
     { title: "Mint NFT", linkTo: "/mintnft" },

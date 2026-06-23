@@ -68,6 +68,9 @@ import { truncateHash } from "@/lib/shared/Format";
 import { SwapTokenPickerModal } from "@/components/swap/SwapTokenPickerModal";
 import "./SwapPage.css";
 
+const BRIC_SWAP_TAGLINE =
+  "Swap ETH, stablecoins and RWA tokens via Bric DEX aggregation.";
+
 /** Wait for user to finish typing before calling previewSwapExactInput. */
 const QUOTE_AMOUNT_DEBOUNCE_MS = 1000;
 /** Default "You pay" input when opening swap or resetting after chain change. */
@@ -962,7 +965,7 @@ const SwapPage = () => {
     <div className="swap-page">
       <div className="swap-hero">
         <h2>BricSwap</h2>
-        <p className="swap-hero-sub">{swapChain.name}</p>
+        <p className="swap-hero-sub">{BRIC_SWAP_TAGLINE}</p>
       </div>
 
       <div className="swap-card">
