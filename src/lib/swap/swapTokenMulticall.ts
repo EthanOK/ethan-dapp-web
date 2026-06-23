@@ -1,5 +1,5 @@
-import { Interface, ZeroAddress, Contract } from "ethers";
-import erc20ABI from "@/abis/evm/erc20ABI.json";
+import { ERC20Helper, resolveBricMulticallAddress } from "@bric-labs/bric-sdk";
+import { Interface, ZeroAddress, getAddress, type Provider } from "ethers";
 import {
   decodeMulticallResult,
   MULTICALL3_ADDRESS,
@@ -7,7 +7,8 @@ import {
 } from "@/lib/evm/Multicall3";
 import {
   getDefaultReadonlyProvider,
-  getProvider
+  getProvider,
+  getReadonlyProviderForChain
 } from "@/lib/wallet/GetProvider";
 import { isAddress } from "@/lib/shared/Utils";
 import { tokenBalanceKey, type TokenSide } from "@/lib/swap/swapTokenRules";
@@ -27,109 +28,175 @@ const ERC20_READ_ABI = [
 
 const erc20Iface = new Interface(ERC20_READ_ABI);
 
-async function getReadProvider() {
+/** Accept any valid hex address; ethers rejects mixed-case with wrong checksum. */
+function normalizeEvmAddress(address: string): string {
+  return getAddress(address.toLowerCase());
+}
+
+function toBricBalanceTokenAddress(address: string): string {
+  return address.toLowerCase() === ZeroAddress.toLowerCase()
+    ? ZeroAddress
+    : normalizeEvmAddress(address);
+}
+
+function resolveBricMulticallForBalances(
+  chainId?: number,
+  multicallAddress?: string
+): string {
+  if (multicallAddress) return multicallAddress;
+  if (chainId != null) return resolveBricMulticallAddress(chainId);
+  return MULTICALL3_ADDRESS;
+}
+
+async function resolveReadProvider(chainId?: number): Promise<Provider | null> {
+  if (chainId != null) {
+    const chainProvider = getReadonlyProviderForChain(chainId);
+    if (chainProvider) return chainProvider;
+  }
   return (await getProvider()) ?? getDefaultReadonlyProvider();
 }
 
-async function fetchBalanceDirect(
+async function fetchBalanceViaBricMulticall(
   account: string,
-  side: TokenSide
+  side: TokenSide,
+  provider: Provider,
+  multicallAddress: string
 ): Promise<bigint> {
-  const provider = await getReadProvider();
-  if (!provider) return 0n;
-  if (side.tokenAddress.toLowerCase() === ZeroAddress.toLowerCase()) {
-    return provider.getBalance(account);
-  }
-  const contract = new Contract(side.tokenAddress, erc20ABI, provider);
-  return contract.balanceOf(account);
+  const erc20Helper = new ERC20Helper(provider, multicallAddress, false);
+  return erc20Helper.balanceOf(
+    toBricBalanceTokenAddress(side.tokenAddress),
+    normalizeEvmAddress(account)
+  );
 }
 
-/** Batch ERC20 balanceOf via standard Multicall3; ETH via provider.getBalance. */
-export async function fetchTokenBalancesMulticall(
+const inflightBalanceFetches = new Map<
+  string,
+  Promise<Record<string, bigint>>
+>();
+
+function buildBalanceFetchKey(
+  account: string,
+  chainId: number | undefined,
+  tokens: TokenSide[]
+): string {
+  const addresses = tokens
+    .map((side) => tokenBalanceKey(side.tokenAddress))
+    .sort()
+    .join(",");
+  return `${chainId ?? "unknown"}:${normalizeEvmAddress(account)}:${addresses}`;
+}
+
+async function fetchTokenBalancesMulticallInternal(
   account: string,
   tokens: TokenSide[],
-  multicallAddress: string = MULTICALL3_ADDRESS
+  chainId?: number,
+  multicallAddress?: string
 ): Promise<Record<string, bigint>> {
-  const provider = await getReadProvider();
+  if (tokens.length === 0) return {};
+
+  const provider = await resolveReadProvider(chainId);
   if (!provider) return {};
 
-  const results: Record<string, bigint> = {};
-  const erc20Tokens = tokens.filter(
-    (t) => t.tokenAddress.toLowerCase() !== ZeroAddress.toLowerCase()
+  const normalizedAccount = normalizeEvmAddress(account);
+  const bricMulticall = resolveBricMulticallForBalances(
+    chainId,
+    multicallAddress
   );
-  const needsEth = tokens.some(
-    (t) => t.tokenAddress.toLowerCase() === ZeroAddress.toLowerCase()
+  const tokenAddresses = tokens.map((side) =>
+    toBricBalanceTokenAddress(side.tokenAddress)
   );
-
-  if (needsEth) {
-    results[tokenBalanceKey(ZeroAddress)] = await provider.getBalance(account);
-  }
-
-  if (erc20Tokens.length === 0) return results;
-
-  const calls = erc20Tokens.map((side) => ({
-    target: side.tokenAddress,
-    allowFailure: true,
-    callData: erc20Iface.encodeFunctionData("balanceOf", [account])
-  }));
 
   try {
-    const res = await multicall3Aggregate3StaticCall(
-      provider,
-      calls,
-      multicallAddress
+    const erc20Helper = new ERC20Helper(provider, bricMulticall, false);
+    const rows = await erc20Helper.batchBalances(
+      tokenAddresses,
+      normalizedAccount
     );
-
-    erc20Tokens.forEach((side, i) => {
-      const row = res[i];
-      const bal = row?.success
-        ? decodeMulticallResult<bigint>(erc20Iface, "balanceOf", row)
-        : undefined;
-      results[tokenBalanceKey(side.tokenAddress)] = bal ?? 0n;
+    const results: Record<string, bigint> = {};
+    rows.forEach((row, index) => {
+      const side = tokens[index];
+      results[tokenBalanceKey(side.tokenAddress)] = row.balance ?? 0n;
     });
+    return results;
   } catch {
     const entries = await Promise.all(
-      erc20Tokens.map(async (side) => {
-        const bal = await fetchBalanceDirect(account, side);
+      tokens.map(async (side) => {
+        const bal = await fetchBalanceViaBricMulticall(
+          account,
+          side,
+          provider,
+          bricMulticall
+        );
         return [tokenBalanceKey(side.tokenAddress), bal] as const;
       })
     );
+    const results: Record<string, bigint> = {};
     for (const [key, bal] of entries) {
       results[key] = bal;
     }
+    return results;
   }
+}
 
-  return results;
+/**
+ * Batch token balances via BricMulticall / Multicall3.
+ * Native ETH/BNB uses Multicall3 `getEthBalance` inside the same batch (not `eth_getBalance`).
+ */
+export async function fetchTokenBalancesMulticall(
+  account: string,
+  tokens: TokenSide[],
+  chainId?: number,
+  multicallAddress?: string
+): Promise<Record<string, bigint>> {
+  const key = buildBalanceFetchKey(account, chainId, tokens);
+  const inflight = inflightBalanceFetches.get(key);
+  if (inflight) return inflight;
+
+  const task = fetchTokenBalancesMulticallInternal(
+    account,
+    tokens,
+    chainId,
+    multicallAddress
+  ).finally(() => {
+    if (inflightBalanceFetches.get(key) === task) {
+      inflightBalanceFetches.delete(key);
+    }
+  });
+  inflightBalanceFetches.set(key, task);
+  return task;
 }
 
 /** Read ERC20 symbol / name / decimals in one Multicall3 round-trip. */
 export async function resolveTokenMetaFromChain(
   address: string,
+  chainId?: number,
   multicallAddress: string = MULTICALL3_ADDRESS
 ): Promise<ResolvedTokenMeta | null> {
   const trimmed = address.trim();
   if (!isAddress(trimmed)) return null;
 
-  if (trimmed.toLowerCase() === ZeroAddress.toLowerCase()) {
+  const tokenAddress = normalizeEvmAddress(trimmed);
+
+  if (tokenAddress.toLowerCase() === ZeroAddress.toLowerCase()) {
     return { symbol: "ETH", name: "Ethereum", decimals: 18 };
   }
 
-  const provider = await getReadProvider();
+  const provider = await resolveReadProvider(chainId);
   if (!provider) return null;
 
   const calls = [
     {
-      target: trimmed,
+      target: tokenAddress,
       allowFailure: true,
       callData: erc20Iface.encodeFunctionData("decimals", [])
     },
     {
-      target: trimmed,
+      target: tokenAddress,
       allowFailure: true,
       callData: erc20Iface.encodeFunctionData("symbol", [])
     },
     {
-      target: trimmed,
+      target: tokenAddress,
       allowFailure: true,
       callData: erc20Iface.encodeFunctionData("name", [])
     }
@@ -173,9 +240,10 @@ export async function resolveTokenMetaFromChain(
 export async function resolveTokenFromAddressMulticall(
   address: string,
   account?: string,
-  multicallAddress: string = MULTICALL3_ADDRESS
+  chainId?: number,
+  multicallAddress?: string
 ): Promise<{ meta: ResolvedTokenMeta; balance: bigint } | null> {
-  const meta = await resolveTokenMetaFromChain(address, multicallAddress);
+  const meta = await resolveTokenMetaFromChain(address, chainId);
   if (!meta) return null;
 
   let balance = 0n;
@@ -191,6 +259,7 @@ export async function resolveTokenFromAddressMulticall(
     const balances = await fetchTokenBalancesMulticall(
       account,
       [side],
+      chainId,
       multicallAddress
     );
     balance = balances[tokenBalanceKey(address)] ?? 0n;

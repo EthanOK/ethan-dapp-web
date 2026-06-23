@@ -33,10 +33,25 @@ export const getDefaultReadonlyProvider = (): JsonRpcProvider | null => {
   const stored = localStorage.getItem("chainId");
   const evmChainId = parseEvmChainIdFromStored(stored);
   if (!evmChainId) return null;
-  const chain = SupportChains.find((c) => Number(c.id) === evmChainId);
+  return getReadonlyProviderForChain(evmChainId);
+};
+
+/** Public RPC provider for a specific EVM chain (read-only balance / metadata). */
+const readonlyProviders = new Map<number, JsonRpcProvider>();
+
+export const getReadonlyProviderForChain = (
+  chainId: number
+): JsonRpcProvider | null => {
+  const cached = readonlyProviders.get(chainId);
+  if (cached) return cached;
+
+  const chain = SupportChains.find((c) => Number(c.id) === chainId);
   const rpc = chain?.rpcUrls?.[0];
   if (!rpc) return null;
-  return new JsonRpcProvider(rpc, evmChainId);
+
+  const provider = new JsonRpcProvider(rpc, chainId, { staticNetwork: true });
+  readonlyProviders.set(chainId, provider);
+  return provider;
 };
 
 export const switchChain = async (chainId: string): Promise<boolean> => {

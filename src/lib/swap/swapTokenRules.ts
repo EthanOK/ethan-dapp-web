@@ -55,13 +55,19 @@ function defaultTokenSideRank(
   return 1000;
 }
 
-/** Non-zero balances first (desc), then default catalog order. */
+/** Non-zero balances first (desc), then default catalog order. Favorites pin to top. */
 export function sortTokenSidesByBalance(
   sides: TokenSide[],
   balances: Record<string, bigint>,
-  chain = getDefaultSwapChain()
+  chain = getDefaultSwapChain(),
+  favoriteAddresses?: ReadonlySet<string>
 ): TokenSide[] {
   return [...sides].sort((a, b) => {
+    if (favoriteAddresses && favoriteAddresses.size > 0) {
+      const favA = favoriteAddresses.has(tokenBalanceKey(a.tokenAddress));
+      const favB = favoriteAddresses.has(tokenBalanceKey(b.tokenAddress));
+      if (favA !== favB) return favA ? -1 : 1;
+    }
     const balA = balances[tokenBalanceKey(a.tokenAddress)] ?? 0n;
     const balB = balances[tokenBalanceKey(b.tokenAddress)] ?? 0n;
     const hasA = balA > 0n;

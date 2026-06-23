@@ -28,6 +28,11 @@ const COINGECKO_CHAIN_CONFIG: Record<
 /** USD price (CoinGecko CEX aggregate preferred; Kyber DEX fallback). */
 export type SwapTokenPriceInfo = {
   priceUsd: number;
+  /** 24h change percentage from CoinGecko when available. */
+  change24hPct?: number;
+  marketCapUsd?: number;
+  volume24hUsd?: number;
+  lastUpdatedAt?: number;
   priceBuy?: number;
   priceSell?: number;
 };
@@ -44,8 +49,22 @@ type KyberPriceResponse = {
 
 type CoinGeckoSimplePriceResponse = Record<
   string,
-  { usd?: number; usd_24h_change?: number }
+  {
+    usd?: number;
+    usd_market_cap?: number;
+    usd_24h_vol?: number;
+    usd_24h_change?: number;
+    last_updated_at?: number;
+  }
 >;
+
+/** Shared query flags for CoinGecko `/simple/token_price` endpoints. */
+export const COINGECKO_SIMPLE_TOKEN_PRICE_INCLUDES = {
+  include_market_cap: "true",
+  include_24hr_vol: "true",
+  include_24hr_change: "true",
+  include_last_updated_at: "true"
+} as const;
 
 function isNativeTokenAddress(address: string): boolean {
   return address.toLowerCase() === ZeroAddress.toLowerCase();
@@ -105,10 +124,10 @@ function normalizeKyberResponse(
   return out;
 }
 
-function readCoinGeckoUsdPrice(
+function readCoinGeckoTokenPrice(
   rows: CoinGeckoSimplePriceResponse,
   address: string
-): number | null {
+): SwapTokenPriceInfo | null {
   const row =
     rows[address.toLowerCase()] ??
     rows[address] ??
@@ -116,7 +135,31 @@ function readCoinGeckoUsdPrice(
       ([key]) => key.toLowerCase() === address.toLowerCase()
     )?.[1];
   const price = row?.usd;
-  return price != null && Number.isFinite(price) && price > 0 ? price : null;
+  if (price == null || !Number.isFinite(price) || price <= 0) return null;
+
+  const change24hPct = row?.usd_24h_change;
+  const marketCapUsd = row?.usd_market_cap;
+  const volume24hUsd = row?.usd_24h_vol;
+  const lastUpdatedAt = row?.last_updated_at;
+  return {
+    priceUsd: price,
+    ...(change24hPct != null && Number.isFinite(change24hPct)
+      ? { change24hPct }
+      : {}),
+    ...(marketCapUsd != null &&
+    Number.isFinite(marketCapUsd) &&
+    marketCapUsd > 0
+      ? { marketCapUsd }
+      : {}),
+    ...(volume24hUsd != null &&
+    Number.isFinite(volume24hUsd) &&
+    volume24hUsd > 0
+      ? { volume24hUsd }
+      : {}),
+    ...(lastUpdatedAt != null && Number.isFinite(lastUpdatedAt)
+      ? { lastUpdatedAt }
+      : {})
+  };
 }
 
 async function fetchCoinGeckoTokenPrices(
@@ -144,7 +187,8 @@ async function fetchCoinGeckoTokenPrices(
 
   const params = new URLSearchParams({
     contract_addresses: contractAddresses.join(","),
-    vs_currencies: "usd"
+    vs_currencies: "usd",
+    ...COINGECKO_SIMPLE_TOKEN_PRICE_INCLUDES
   });
   const response = await fetch(
     `${COINGECKO_API_BASE}/simple/token_price/${config.platform}?${params}`,
@@ -159,15 +203,15 @@ async function fetchCoinGeckoTokenPrices(
 
   for (const address of unique) {
     if (isNativeLikeTokenAddress(address)) {
-      const price = readCoinGeckoUsdPrice(data, config.wrappedNativeAddress);
-      if (price == null) continue;
-      out[tokenBalanceKey(ZeroAddress)] = { priceUsd: price };
+      const info = readCoinGeckoTokenPrice(data, config.wrappedNativeAddress);
+      if (!info) continue;
+      out[tokenBalanceKey(ZeroAddress)] = info;
       continue;
     }
 
-    const price = readCoinGeckoUsdPrice(data, address);
-    if (price == null) continue;
-    out[tokenBalanceKey(address)] = { priceUsd: price };
+    const info = readCoinGeckoTokenPrice(data, address);
+    if (!info) continue;
+    out[tokenBalanceKey(address)] = info;
   }
 
   return out;
@@ -307,6 +351,19 @@ export function calcTokenUsdValue(
 }
 
 const SWAP_USD_MIN_DISPLAY = 0.000001;
+
+/** Format CoinGecko 24h change for token picker rows. */
+export function formatSwapTokenChange24h(change24hPct: number | undefined): {
+  text: string;
+  isUp: boolean;
+} | null {
+  if (change24hPct == null || !Number.isFinite(change24hPct)) return null;
+  const isUp = change24hPct >= 0;
+  return {
+    text: `${isUp ? "+" : ""}${change24hPct.toFixed(2)}%`,
+    isUp
+  };
+}
 
 function formatUsdWithSixDecimals(usd: number): string {
   const fixed = usd.toFixed(6).replace(/\.?0+$/, "");
