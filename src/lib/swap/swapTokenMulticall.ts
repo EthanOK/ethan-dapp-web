@@ -11,6 +11,10 @@ import {
   getReadonlyProviderForChain
 } from "@/lib/wallet/GetProvider";
 import { isAddress } from "@/lib/shared/Utils";
+import {
+  readSwapTokenBalanceCache,
+  writeSwapTokenBalanceCache
+} from "@/lib/swap/swapTokenBalanceCache";
 import { tokenBalanceKey, type TokenSide } from "@/lib/swap/swapTokenRules";
 
 export type ResolvedTokenMeta = {
@@ -117,6 +121,9 @@ async function fetchTokenBalancesMulticallInternal(
       const side = tokens[index];
       results[tokenBalanceKey(side.tokenAddress)] = row.balance ?? 0n;
     });
+    if (chainId != null) {
+      writeSwapTokenBalanceCache(chainId, account, results);
+    }
     return results;
   } catch {
     const entries = await Promise.all(
@@ -133,6 +140,9 @@ async function fetchTokenBalancesMulticallInternal(
     const results: Record<string, bigint> = {};
     for (const [key, bal] of entries) {
       results[key] = bal;
+    }
+    if (chainId != null) {
+      writeSwapTokenBalanceCache(chainId, account, results);
     }
     return results;
   }

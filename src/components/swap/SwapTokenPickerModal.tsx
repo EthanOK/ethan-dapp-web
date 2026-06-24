@@ -20,6 +20,7 @@ import {
   type SwapTokenPriceMap
 } from "@/lib/swap/swapTokenPrices";
 import type { SwapChainDefinition } from "@/config/SwapChainConfig";
+import { SwapChainAvatar } from "@/components/swap/SwapChainAvatar";
 import { SwapTokenMarketInfoPanel } from "@/components/swap/SwapTokenMarketInfoPanel";
 import "./SwapTokenPickerModal.css";
 
@@ -277,13 +278,12 @@ export function SwapTokenPickerModal({
                     if (!isActive) onSelectChain?.(chain.chainId);
                   }}
                 >
-                  <span
+                  <SwapChainAvatar
+                    chainId={chain.chainId}
+                    badge={chain.chainAvatarBadge}
+                    color={chain.chainAvatarColor}
                     className="swap-picker-network-avatar"
-                    style={{ background: chain.chainAvatarColor }}
-                    aria-hidden
-                  >
-                    {chain.chainAvatarBadge}
-                  </span>
+                  />
                   {chain.networkBadge}
                 </button>
               );
@@ -372,13 +372,12 @@ export function SwapTokenPickerModal({
                           }}
                         >
                           {initials}
-                          <span
+                          <SwapChainAvatar
+                            chainId={chainId}
+                            badge={chainAvatarBadge}
+                            color={chainAvatarColor}
                             className="swap-picker-avatar-chain"
-                            style={{ background: chainAvatarColor }}
-                            aria-hidden
-                          >
-                            {chainAvatarBadge}
-                          </span>
+                          />
                         </span>
                         <span className="swap-picker-token-info">
                           <span className="swap-picker-symbol">

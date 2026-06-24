@@ -287,6 +287,14 @@
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.swap-picker-network-avatar svg,
+.swap-picker-network-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .swap-picker-table-head {
@@ -437,6 +445,14 @@
   font-size: 0.45rem;
   font-weight: 700;
   color: #fff;
+  overflow: hidden;
+}
+
+.swap-picker-avatar-chain svg,
+.swap-picker-avatar-chain img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .swap-picker-token-info {

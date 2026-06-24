@@ -12,6 +12,7 @@ import {
   type SwapTokenPriceInfo
 } from "@/lib/swap/swapTokenPrices";
 import { getTokenDisplayName, type TokenSide } from "@/lib/swap/swapTokenRules";
+import { SwapChainAvatar } from "@/components/swap/SwapChainAvatar";
 import "./SwapTokenMarketInfoPanel.css";
 
 type SwapTokenMarketInfoPanelProps = {
@@ -109,12 +110,12 @@ export function SwapTokenMarketInfoPanel({
           aria-hidden
         >
           {initials}
-          <span
+          <SwapChainAvatar
+            chainId={side.chainId ?? chainId}
+            badge={chainAvatarBadge}
+            color={chainAvatarColor}
             className="swap-market-info-avatar-chain"
-            style={{ background: chainAvatarColor }}
-          >
-            {chainAvatarBadge}
-          </span>
+          />
         </span>
 
         <div className="swap-market-info-hero-copy">

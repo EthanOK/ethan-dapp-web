@@ -25,6 +25,7 @@ import {
   fetchTokenBalancesMulticall,
   resolveTokenFromAddressMulticall
 } from "@/lib/swap/swapTokenMulticall";
+import { readSwapTokenBalanceCache } from "@/lib/swap/swapTokenBalanceCache";
 import {
   buildSwapTokenCatalog,
   findTokenByAddress,
@@ -43,6 +44,7 @@ import {
   fetchSwapTokenPricesForSides,
   formatSwapUsdValue,
   getSwapTokenPrice,
+  readSwapTokenPriceCache,
   type SwapTokenPriceMap
 } from "@/lib/swap/swapTokenPrices";
 import {
@@ -77,6 +79,8 @@ const QUOTE_AMOUNT_DEBOUNCE_MS = 1000;
 const DEFAULT_PAY_AMOUNT = "1";
 /** Auto-refresh quote interval while inputs are valid. */
 const QUOTE_AUTO_REFRESH_MS = 15_000;
+/** Auto-refresh token prices on the swap page. */
+const TOKEN_PRICE_AUTO_REFRESH_MS = 30_000;
 
 function buildDefaultsForChain(chainId: number) {
   const swapChain = getSwapChainConfig(chainId) ?? getDefaultSwapChain();
@@ -280,13 +284,15 @@ const SwapPage = () => {
     setAddressLookup({ side: null, loading: false, error: null });
     setAmount(loadLastSwapPayAmount(swapChain.chainId) ?? DEFAULT_PAY_AMOUNT);
     setDebouncedAmountIn(null);
-    setTokenBalances({});
-    setTokenPrices({});
+    setTokenBalances(
+      address ? readSwapTokenBalanceCache(swapChain.chainId, address) : {}
+    );
+    setTokenPrices(readSwapTokenPriceCache(swapChain.chainId));
     setQuote(null);
     setQuoteError(null);
     setIsQuoting(false);
     setRateInverted(false);
-  }, [swapChain.chainId, defaultPayKey, defaultReceiveKey]);
+  }, [swapChain.chainId, defaultPayKey, defaultReceiveKey, address]);
 
   useEffect(() => {
     if (!amount.trim()) return;
@@ -450,6 +456,10 @@ const SwapPage = () => {
 
   const loadAllBalances = useCallback(async () => {
     if (!address || !isOnSwapChain) return;
+    const cached = readSwapTokenBalanceCache(swapChain.chainId, address);
+    if (Object.keys(cached).length > 0) {
+      setTokenBalances(cached);
+    }
     try {
       const balances = await fetchTokenBalancesMulticall(
         address,
@@ -467,6 +477,10 @@ const SwapPage = () => {
   }, [loadAllBalances]);
 
   const loadTokenPrices = useCallback(async () => {
+    const cached = readSwapTokenPriceCache(swapChain.chainId);
+    if (Object.keys(cached).length > 0) {
+      setTokenPrices(cached);
+    }
     try {
       const prices = await fetchSwapTokenPricesForSides(
         swapChain.chainId,
@@ -478,12 +492,17 @@ const SwapPage = () => {
         "[BricSwap] token price fetch failed:",
         error instanceof Error ? error.message : error
       );
-      setTokenPrices({});
+      setTokenPrices(readSwapTokenPriceCache(swapChain.chainId));
     }
   }, [swapChain.chainId, tokenCatalogPriceKey]);
 
   useEffect(() => {
     loadTokenPrices();
+    const timer = window.setInterval(
+      loadTokenPrices,
+      TOKEN_PRICE_AUTO_REFRESH_MS
+    );
+    return () => window.clearInterval(timer);
   }, [loadTokenPrices]);
 
   useEffect(() => {
