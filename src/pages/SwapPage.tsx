@@ -64,10 +64,10 @@ import {
   whitelistTokenSide,
   type TokenSide
 } from "@/lib/swap/swapTokenRules";
-import { getScanTxURL, isAddress } from "@/lib/shared/Utils";
+import { isAddress } from "@/lib/shared/Utils";
 import { getProvider, getSigner } from "@/lib/wallet/GetProvider";
-import { truncateHash } from "@/lib/shared/Format";
 import { SwapTokenPickerModal } from "@/components/swap/SwapTokenPickerModal";
+import { showSwapTxToast } from "@/components/swap/SwapTxToast";
 import "./SwapPage.css";
 
 const BRIC_SWAP_TAGLINE =
@@ -160,19 +160,6 @@ function sanitizePayAmountInput(value: string, maxDecimals?: number): string {
     return endsWithDot ? `${intPart}.` : intPart;
   }
   return `${intPart}.${fracPart}`;
-}
-
-function showSwapTxToast(title: string, txHash: string, duration = 8000) {
-  void getScanTxURL(txHash).then((txUrl) => {
-    toast.success(title, {
-      description: truncateHash(txHash, 10, 8),
-      action: {
-        label: "View tx",
-        onClick: () => window.open(txUrl, "_blank", "noopener,noreferrer")
-      },
-      duration
-    });
-  });
 }
 
 function formatRateNumber(rate: number): string {
@@ -725,6 +712,35 @@ const SwapPage = () => {
       xautFallback,
       tokenCatalog
     );
+
+    let nextAmount = amount;
+    let nextDebouncedAmountIn: bigint | null = null;
+    const hasSyncedQuote =
+      quote?.amountOut != null &&
+      amountIn != null &&
+      amountIn === debouncedAmountIn &&
+      !isQuoting;
+    if (hasSyncedQuote) {
+      try {
+        const flippedIn = BigInt(quote.amountOut);
+        if (flippedIn > 0n) {
+          nextAmount = formatTokenAmountExact(flippedIn, receiveSide.decimals);
+          nextDebouncedAmountIn = flippedIn;
+        }
+      } catch {
+        // Keep the current pay amount when quote output is invalid.
+      }
+    }
+
+    if (nextDebouncedAmountIn == null && nextAmount.trim()) {
+      try {
+        const parsed = parseUnits(nextAmount.trim(), newPay.decimals);
+        nextDebouncedAmountIn = parsed > 0n ? parsed : null;
+      } catch {
+        nextDebouncedAmountIn = null;
+      }
+    }
+
     setPaySelectKey(encodeTokenSelectKey(newPay));
     setReceiveSelectKey(encodeTokenSelectKey(newReceive));
     if (newPay.kind === "custom") saveSwapToken(swapChain.chainId, newPay);
@@ -733,7 +749,12 @@ const SwapPage = () => {
     if (newPay.kind === "custom" || newReceive.kind === "custom") {
       setSavedTokensRevision((revision) => revision + 1);
     }
+    setAmount(nextAmount);
+    setDebouncedAmountIn(nextDebouncedAmountIn);
+    saveLastSwapPayAmount(swapChain.chainId, nextAmount);
     setQuote(null);
+    setQuoteError(null);
+    setIsQuoting(false);
   };
 
   const handleMax = () => {
@@ -807,14 +828,30 @@ const SwapPage = () => {
         showSwapTxToast(
           "Allowance reset confirmed",
           allowanceResult.reset.txHash,
-          5000
+          { detail: `Reset ${paySide.symbol} allowance`, duration: 5000 }
         );
       }
       if (allowanceResult?.approve.txHash) {
-        showSwapTxToast(
-          "Approve confirmed",
-          allowanceResult.approve.txHash,
-          5000
+        showSwapTxToast("Approve confirmed", allowanceResult.approve.txHash, {
+          detail: `Approved ${paySide.symbol}`,
+          duration: 5000
+        });
+      }
+
+      // Quote swapData goes stale while waiting for approve confirmation.
+      const freshQuote = await fetchSwapQuote({
+        chain: swapChain,
+        signer,
+        tokenIn: paySide.tokenAddress,
+        tokenOut: receiveSide.tokenAddress,
+        amountIn,
+        slippageDecimal: slippage.decimal,
+        from: address,
+        checkBalance: true
+      });
+      if (!isExecutableSwapQuote(freshQuote)) {
+        throw new Error(
+          freshQuote.error ?? "Quote expired after approval, please try again"
         );
       }
 
@@ -824,11 +861,34 @@ const SwapPage = () => {
         tokenIn: paySide.tokenAddress,
         amountIn,
         tokenOut: receiveSide.tokenAddress,
-        quote,
+        quote: freshQuote,
         receiver: address
       });
 
-      showSwapTxToast("Swap successful", result.txHash);
+      const swapToast =
+        freshQuote.amountOut != null
+          ? {
+              from: {
+                amount: amountIn,
+                symbol: paySide.symbol,
+                decimals: paySide.decimals
+              },
+              to: {
+                amount: BigInt(freshQuote.amountOut),
+                symbol: receiveSide.symbol,
+                decimals: receiveSide.decimals
+              }
+            }
+          : {
+              from: {
+                amount: amountIn,
+                symbol: paySide.symbol,
+                decimals: paySide.decimals
+              },
+              to: { amount: "—", symbol: receiveSide.symbol }
+            };
+
+      showSwapTxToast("Swap successful", result.txHash, { swap: swapToast });
       setAmount(DEFAULT_PAY_AMOUNT);
       saveLastSwapPayAmount(swapChain.chainId, DEFAULT_PAY_AMOUNT);
       setQuote(null);
