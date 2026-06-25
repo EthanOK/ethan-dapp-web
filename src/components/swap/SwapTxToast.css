@@ -1,0 +1,285 @@
+/* Swap transaction success toast — matches SwapPage card aesthetic */
+
+.swap-tx-toast {
+  --swap-tx-success: #34d399;
+  --swap-tx-success-dim: #059669;
+  --swap-tx-success-glow: rgba(52, 211, 153, 0.16);
+
+  position: relative;
+  display: flex;
+  width: min(380px, calc(100vw - 32px));
+  border-radius: calc(var(--w3-radius) + 4px);
+  border: 1px solid
+    color-mix(in srgb, var(--swap-tx-success) 22%, var(--w3-border));
+  background:
+    radial-gradient(
+      120% 80% at 100% 0%,
+      color-mix(in srgb, var(--swap-tx-success) 10%, transparent),
+      transparent 55%
+    ),
+    var(--w3-bg-card);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--w3-text) 5%, transparent) inset,
+    0 16px 44px rgba(0, 0, 0, 0.32),
+    0 0 24px var(--swap-tx-success-glow);
+  overflow: hidden;
+  animation: swap-tx-toast-in 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes swap-tx-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.swap-tx-toast-accent {
+  flex-shrink: 0;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    var(--swap-tx-success) 0%,
+    var(--swap-tx-success-dim) 100%
+  );
+}
+
+.swap-tx-toast-body {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 14px 13px;
+}
+
+.swap-tx-toast-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.swap-tx-toast-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--swap-tx-success) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--swap-tx-success) 32%, transparent);
+  color: var(--swap-tx-success);
+  box-shadow: 0 0 18px
+    color-mix(in srgb, var(--swap-tx-success) 24%, transparent);
+}
+
+.swap-tx-toast-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.swap-tx-toast-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.swap-tx-toast-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--w3-text);
+  line-height: 1.25;
+}
+
+.swap-tx-toast-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  color: var(--w3-text-dim);
+  line-height: 1.3;
+}
+
+.swap-tx-toast-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--w3-text-dim);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.swap-tx-toast-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.swap-tx-toast-close:hover {
+  color: var(--w3-text-muted);
+  background: color-mix(in srgb, var(--w3-text) 6%, transparent);
+}
+
+.swap-tx-toast-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  background: color-mix(in srgb, var(--w3-text) 2.5%, var(--w3-bg-elevated));
+}
+
+.swap-tx-toast-leg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.swap-tx-toast-leg-avatar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--w3-accent) 12%, var(--w3-bg-card));
+  border: 1px solid color-mix(in srgb, var(--w3-accent) 24%, var(--w3-border));
+  color: var(--w3-accent);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.swap-tx-toast-leg-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.swap-tx-toast-leg-amount {
+  font-family: var(--w3-font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--w3-text);
+  line-height: 1.2;
+  word-break: break-all;
+}
+
+.swap-tx-toast-leg-symbol {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--w3-text-muted);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.swap-tx-toast-arrow {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--swap-tx-success) 10%, transparent);
+  color: var(--swap-tx-success);
+}
+
+.swap-tx-toast-arrow svg {
+  width: 14px;
+  height: 14px;
+}
+
+.swap-tx-toast-detail {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  background: color-mix(in srgb, var(--w3-text) 2.5%, var(--w3-bg-elevated));
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--w3-text-muted);
+  line-height: 1.45;
+}
+
+.swap-tx-toast-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid
+    color-mix(in srgb, var(--swap-tx-success) 34%, var(--w3-border));
+  background: color-mix(in srgb, var(--swap-tx-success) 8%, transparent);
+  color: var(--swap-tx-success);
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-family: var(--w3-font-sans);
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.swap-tx-toast-action svg {
+  width: 13px;
+  height: 13px;
+}
+
+.swap-tx-toast-action:hover {
+  background: color-mix(in srgb, var(--swap-tx-success) 16%, transparent);
+  border-color: color-mix(
+    in srgb,
+    var(--swap-tx-success) 50%,
+    var(--w3-border)
+  );
+  box-shadow: 0 4px 14px
+    color-mix(in srgb, var(--swap-tx-success) 16%, transparent);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .swap-tx-toast {
+  --swap-tx-success: #059669;
+  --swap-tx-success-dim: #047857;
+  --swap-tx-success-glow: rgba(5, 150, 105, 0.1);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--w3-text) 4%, transparent) inset,
+    0 10px 30px rgba(15, 23, 42, 0.08),
+    0 0 0 1px color-mix(in srgb, var(--swap-tx-success) 6%, transparent);
+}
+
+@media (max-width: 400px) {
+  .swap-tx-toast-route {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .swap-tx-toast-arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+}
