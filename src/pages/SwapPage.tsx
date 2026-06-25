@@ -838,18 +838,35 @@ const SwapPage = () => {
         });
       }
 
+      // Quote swapData goes stale while waiting for approve confirmation.
+      const freshQuote = await fetchSwapQuote({
+        chain: swapChain,
+        signer,
+        tokenIn: paySide.tokenAddress,
+        tokenOut: receiveSide.tokenAddress,
+        amountIn,
+        slippageDecimal: slippage.decimal,
+        from: address,
+        checkBalance: true
+      });
+      if (!isExecutableSwapQuote(freshQuote)) {
+        throw new Error(
+          freshQuote.error ?? "Quote expired after approval, please try again"
+        );
+      }
+
       const result = await executeSwapExactInput({
         chain: swapChain,
         signer,
         tokenIn: paySide.tokenAddress,
         amountIn,
         tokenOut: receiveSide.tokenAddress,
-        quote,
+        quote: freshQuote,
         receiver: address
       });
 
       const swapToast =
-        quote?.amountOut != null
+        freshQuote.amountOut != null
           ? {
               from: {
                 amount: amountIn,
@@ -857,7 +874,7 @@ const SwapPage = () => {
                 decimals: paySide.decimals
               },
               to: {
-                amount: BigInt(quote.amountOut),
+                amount: BigInt(freshQuote.amountOut),
                 symbol: receiveSide.symbol,
                 decimals: receiveSide.decimals
               }
