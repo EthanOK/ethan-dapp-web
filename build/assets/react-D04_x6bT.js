@@ -1,1 +1,0 @@
-import{j as e,pt as t}from"./index-CSwdL-tX.js";function n(){return{connection:e(t.state).connection}}export{n as t};

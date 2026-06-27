@@ -1,12 +1,7 @@
 const SEQUENCER_URL = "https://testnet.seq.snapshot.org";
 
-type SnapshotClient = {
-  alias: (
-    web3: unknown,
-    address: string,
-    payload: { alias: string }
-  ) => Promise<unknown>;
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SnapshotClient = { alias: (...args: any[]) => Promise<unknown> };
 
 let signClientPromise: Promise<SnapshotClient | null> | null = null;
 
@@ -14,7 +9,9 @@ async function getSignClient(): Promise<SnapshotClient | null> {
   if (!signClientPromise) {
     signClientPromise = import("@snapshot-labs/snapshot.js").then(
       (snapshot) => {
-        const Client712 = snapshot.default?.Client712 ?? snapshot.Client712;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+        const Client712 =
+          (snapshot.default as any)?.Client712 ?? (snapshot as any).Client712;
         return Client712 ? new Client712(SEQUENCER_URL) : null;
       }
     );
