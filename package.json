@@ -59,6 +59,9 @@
     "docker:publish": "bash scripts/docker-publish.sh",
     "release": "bunx standard-version --release-as patch"
   },
+  "standard-version": {
+    "commitAll": true
+  },
   "browserslist": {
     "production": [
       ">0.2%",

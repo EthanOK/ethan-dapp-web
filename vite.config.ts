@@ -14,6 +14,15 @@ const valibotCjs = path.resolve(
   "node_modules/valibot/dist/index.cjs"
 );
 
+// Read the version straight from package.json so the build always reflects the
+// real version. Relying on $npm_package_version is unsafe: `bun run` keeps an
+// inherited npm_package_version (e.g. standard-version sets the pre-bump value),
+// which would otherwise stamp the build with the old version during `release`.
+const pkgVersion = JSON.parse(
+  readFileSync(path.resolve(__dirname, "package.json"), "utf-8")
+).version;
+process.env.REACT_APP_VERSION = pkgVersion;
+
 export default defineConfig({
   plugins: [
     react(),
