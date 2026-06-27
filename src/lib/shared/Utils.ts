@@ -10,7 +10,9 @@ import {
   ALCHEMY_KEY_V3,
   YunGou2_0_sepolia,
   YunGouAggregators_sepolia,
-  DISCORD_WEBHOOK_URL
+  DISCORD_WEBHOOK_URL,
+  main_rpc,
+  sepolia_rpc
 } from "@/config/SystemConfiguration";
 import { order_data, order_data_tbsc } from "@/fixtures/OrderDataYungou";
 import {
@@ -74,10 +76,10 @@ const getInfuraProvider = async (): Promise<JsonRpcProvider | undefined> => {
   const chainIdStr = localStorage.getItem("chainId");
   const chainId = parseInt(chainIdStr ?? "0", 10);
   if (chainId === 1) {
-    return new JsonRpcProvider(process.env.REACT_APP_MAINNET_RPC);
+    return new JsonRpcProvider(main_rpc);
   }
   if (chainId === 11155111) {
-    return new JsonRpcProvider(process.env.REACT_APP_SEPOLIA_RPC);
+    return new JsonRpcProvider(sepolia_rpc);
   }
   return undefined;
 };

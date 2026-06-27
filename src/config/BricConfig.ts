@@ -4,10 +4,7 @@ import {
   setSwapConfig,
   SupportedAggregator
 } from "@bric-labs/bric-sdk";
-
-export const BRIC_DEX_PROXY_BASE_URL =
-  process.env.REACT_APP_BRIC_DEX_PROXY_BASE_URL ??
-  "https://new-test.bric.one/bric-api";
+import { BRIC_DEX_PROXY_BASE_URL } from "./SystemConfiguration";
 
 /** Per-aggregator quote/swap HTTP timeout passed to bric-sdk orchestration. */
 export const BRIC_AGGREGATOR_TIMEOUT_MS = 6000;

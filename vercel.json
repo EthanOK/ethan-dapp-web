@@ -1,11 +1,12 @@
 {
-    "version": 2,
-    "outputDirectory": "build",
-    "rewrites": [
-      {
-        "source": "/(.*)",
-        "destination": "/index.html"
-      }
-    ]
-  }
-  
+  "version": 2,
+  "outputDirectory": "build",
+  "installCommand": "echo skip install",
+  "buildCommand": "echo using prebuilt build directory",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

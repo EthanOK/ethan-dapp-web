@@ -1,69 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // @ts-nocheck — TODO: add types incrementally
 import { useEffect, useState } from "react";
-import { Web3Auth } from "@web3auth/modal";
-import { CHAIN_NAMESPACES, IProvider, WEB3AUTH_NETWORK } from "@web3auth/base";
-import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
-import {
-  SolanaPrivateKeyProvider,
-  SolanaWallet
-} from "@web3auth/solana-provider";
 import { stringifyJson } from "@/lib/shared/Format";
-import { formatEther } from "ethers";
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
-
-const clientId =
-  "BGaYve_5NaFEkrmlHuvoCcTA9Lj0DJV2JoOOyJyGA2Ch3q6KjPV7olKu1CU03zOmTJ0eLrr0ErEvZbGRlXs6Ju4"; // get from https://dashboard.web3auth.io
-
-const chainConfig = {
-  chainNamespace: CHAIN_NAMESPACES.EIP155,
-  chainId: "0xaa36a7",
-  rpcTarget: "https://rpc.ankr.com/eth_sepolia",
-  // Avoid using public rpcTarget in production.
-  // Use services like Infura, Quicknode etc
-  displayName: "Ethereum Sepolia Testnet",
-  blockExplorerUrl: "https://sepolia.etherscan.io",
-  ticker: "ETH",
-  tickerName: "Ethereum",
-  logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png"
-};
-
-const chainConfig_solana = {
-  chainNamespace: CHAIN_NAMESPACES.SOLANA,
-  chainId: "0x3", // Please use 0x1 for Mainnet, 0x2 for Testnet, 0x3 for Devnet
-  rpcTarget: "https://api.devnet.solana.com",
-  displayName: "Solana Testnet",
-  blockExplorerUrl: "https://explorer.solana.com",
-  ticker: "SOL",
-  tickerName: "Solana",
-  logo: "https://images.toruswallet.io/solana.svg"
-};
-
-const privateKeyProvider = new EthereumPrivateKeyProvider({
-  config: { chainConfig: chainConfig }
-});
-const privateKeyProvider_solana = new SolanaPrivateKeyProvider({
-  config: { chainConfig: chainConfig_solana }
-});
-
-// const web3auth = new Web3Auth({
-//   clientId,
-//   web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
-//   privateKeyProvider: privateKeyProvider,
-// });
-
-const web3auth = new Web3Auth({
-  clientId,
-  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
-  privateKeyProvider: privateKeyProvider_solana
-});
-
-let web3authInitPromise: Promise<void> | null = null;
-const initWeb3AuthModal = async () => {
-  if (!web3authInitPromise) web3authInitPromise = web3auth.initModal();
-  return web3authInitPromise;
-};
+import {
+  createSolanaWallet,
+  initSolanaWeb3Auth
+} from "@/lib/web3auth/solanaWeb3Auth";
 
 const Web3AuthSolanaPage = () => {
   const [provider, setProvider] = useState(null);
@@ -73,22 +17,33 @@ const Web3AuthSolanaPage = () => {
   const [isReady, setIsReady] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
+  const [consoleOutput, setConsoleOutput] = useState("");
+  function uiConsole(...args) {
+    const str = stringifyJson(args?.length ? args : {}, 2);
+    setConsoleOutput(str);
+    console.log(...args);
+  }
+
+  const getConnnection = async (wallet) => {
+    const connectionConfig = await wallet.request({
+      method: "solana_provider_config",
+      params: []
+    });
+    return new Connection(connectionConfig.rpcTarget);
+  };
+
   useEffect(() => {
     const init = async () => {
       try {
-        // IMP START - SDK Initialization
-        await initWeb3AuthModal();
-        // IMP END - SDK Initialization
-        // Page is ready once initModal completes (provider may be null when disconnected)
+        const web3auth = await initSolanaWeb3Auth();
         setIsReady(true);
 
         const p = web3auth.provider;
         setProvider(p);
 
-        // Full Solana RPC methods are only available when connected (otherwise "Method not found")
         if (web3auth.connected && p) {
           setLoggedIn(true);
-          const sw = new SolanaWallet(p);
+          const sw = await createSolanaWallet(p);
           setSolanaWallet(sw);
           try {
             const conn = await getConnnection(sw);
@@ -108,7 +63,6 @@ const Web3AuthSolanaPage = () => {
       } catch (error) {
         console.error(error);
         uiConsole({ error: "Web3Auth initModal failed", detail: error });
-        // Even if init fails, allow click to retry connect (avoid a dead UI)
         setIsReady(true);
       }
     };
@@ -120,12 +74,10 @@ const Web3AuthSolanaPage = () => {
     if (isConnecting) return;
     setIsConnecting(true);
     try {
-      if (!isReady) await initWeb3AuthModal();
-      // IMP START - Login
+      const web3auth = await initSolanaWeb3Auth();
       const web3authProvider = await web3auth.connect();
-      // IMP END - Login
       setProvider(web3authProvider);
-      const sw = new SolanaWallet(web3authProvider);
+      const sw = await createSolanaWallet(web3authProvider);
       setSolanaWallet(sw);
       const conn = await getConnnection(sw);
       setConnection(conn);
@@ -161,49 +113,28 @@ const Web3AuthSolanaPage = () => {
     </button>
   );
 
-  const getConnnection = async (solanaWallet) => {
-    const connectionConfig = await solanaWallet.request({
-      method: "solana_provider_config",
-      params: []
-    });
-    const connection = new Connection(connectionConfig.rpcTarget);
-    return connection;
-  };
-
   const getUserInfo = async () => {
-    // IMP START - Get User Information
+    const web3auth = await initSolanaWeb3Auth();
     const user = await web3auth.getUserInfo();
-    // IMP END - Get User Information
     uiConsole(user);
   };
 
-  const getSigner = async () => {
-    // IMP START - Get Signer
-    const ethersProvider = new ethers.BrowserProvider(provider);
-    return ethersProvider.getSigner();
-  };
-
   const logout = async () => {
-    // IMP START - Logout
+    const web3auth = await initSolanaWeb3Auth();
     await web3auth.logout();
-    // IMP END - Logout
     setProvider(null);
     setLoggedIn(false);
+    setSolanaWallet(null);
+    setConnection(null);
     uiConsole("logged out");
   };
 
-  // IMP START - Blockchain Calls
   const getAccounts = async () => {
     if (!provider) {
       uiConsole("provider not initialized yet");
       return;
     }
 
-    // Get user's Ethereum public address
-    // const signer = await getSigner();
-    // const accounts = await signer.getAddress();
-
-    // Get user's Solana public address
     const accounts = await solanaWallet.requestAccounts();
     uiConsole(accounts);
     return accounts;
@@ -214,18 +145,9 @@ const Web3AuthSolanaPage = () => {
       uiConsole("provider not initialized yet");
       return;
     }
-    // const signer = await getSigner();
-    // // Get user's Ethereum public address
-    // const address = await signer.getAddress();
-    // // Get user's balance in ether
-    // const balance = formatEther(
-    //   await signer.provider.getBalance(address)
-    // );
 
     const accounts = await getAccounts();
     const balance = await connection.getBalance(new PublicKey(accounts[0]));
-
-    // solana  format balance
     const balance_sol = balance / LAMPORTS_PER_SOL;
 
     uiConsole(balance_sol + " SOL");
@@ -237,18 +159,11 @@ const Web3AuthSolanaPage = () => {
       return;
     }
     const originalMessage = "This is Web3Auth";
-
-    // const signer = await getSigner();
-
-    // Sign the message
-    // const signedMessage = await signer.signMessage(originalMessage);
-
     const signedMessage = await solanaWallet.signMessage(
       Buffer.from(originalMessage, "utf8")
     );
     uiConsole(bs58.encode(signedMessage));
   };
-  // IMP END - Blockchain Calls
 
   const getPrivateKey = async () => {
     if (!provider) {
@@ -256,26 +171,16 @@ const Web3AuthSolanaPage = () => {
       return;
     }
 
-    // const privateKey = await provider.request({
-    //   method: "eth_private_key",
-    // });
+    const web3auth = await initSolanaWeb3Auth();
     const privateKey = await web3auth.provider.request({
       method: "solanaPrivateKey"
     });
 
     const buffer = Buffer.from(privateKey, "hex");
-
     const privateKey_base58 = bs58.encode(buffer);
 
     uiConsole(privateKey_base58);
   };
-
-  const [consoleOutput, setConsoleOutput] = useState("");
-  function uiConsole(...args) {
-    const str = stringifyJson(args?.length ? args : {}, 2);
-    setConsoleOutput(str);
-    console.log(...args);
-  }
 
   const loggedInView = (
     <>

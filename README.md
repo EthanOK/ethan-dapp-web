@@ -2,24 +2,24 @@
 
 Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + TypeScript**. Wallet connection via [Reown AppKit](https://docs.reown.com/) and Web3Auth. Deployed on Vercel and Docker.
 
-**Node:** v22 recommended
+**Bun:** latest recommended
 
 ## Quick start
 
 ```bash
 cp .env.example .env   # fill in RPC / WalletConnect keys
-npm install
-npm start              # http://localhost:3000
+bun install
+bun start              # http://localhost:3000
 ```
 
 | Command | Description |
 |---------|-------------|
-| `npm start` | Dev server (CRACO) |
-| `npm run build` | Production build → `build/` |
-| `npm run preview` | Serve `build/` locally |
-| `npm run typecheck` | TypeScript check |
-| `npm run prettier` | Format source |
-| `npm run release` | Patch version bump (standard-version) |
+| `bun start` | Dev server (Vite) at localhost:3000 |
+| `bun run build` | Production build → `build/` |
+| `bun run preview` | Serve `build/` locally |
+| `bun run typecheck` | TypeScript check |
+| `bun run prettier` | Format source |
+| `bun run release` | Patch version bump (standard-version) |
 
 `start` / `build` inject `REACT_APP_VERSION` from `package.json` automatically.
 
@@ -79,17 +79,27 @@ docker run -p 8888:3000 --name ethan-dapp-web --env-file .env 0xethan/ethan-dapp
 
 ### Build image
 
-Local (single platform):
+Local (single platform). Enable BuildKit and pass `.npmrc` as a secret (token is **not** in the final image). **`--secret id=npmrc,src=.npmrc` is required** for `@bric-labs/bric-sdk`.
 
 ```shell
-docker buildx build -t 0xethan/ethan-dapp-web:latest . --platform linux/arm64 --load
+DOCKER_BUILDKIT=1 docker buildx build -t 0xethan/ethan-dapp-web:latest . \
+  --platform linux/arm64 \
+  --secret id=npmrc,src=.npmrc \
+  --load
 ```
 
 Push multi-platform:
 
 ```shell
-docker buildx build -t 0xethan/ethan-dapp-web:latest . --platform linux/amd64,linux/arm64 --push
+DOCKER_BUILDKIT=1 docker buildx build -t 0xethan/ethan-dapp-web:latest . \
+  --platform linux/amd64,linux/arm64 \
+  --secret id=npmrc,src=.npmrc \
+  --push
 ```
+
+If `bun install` fails with exit code 1: ensure `.npmrc` exists with a valid GitLab token; scroll up in the log for 401/404 (registry) or husky errors (Dockerfile sets `HUSKY=0` to skip git hooks).
+
+If you see `auth.docker.io ... i/o timeout`, configure a Docker Hub mirror or VPN, then retry.
 
 ### docker-compose
 
@@ -99,6 +109,6 @@ docker-compose up -d
 
 ## Notes
 
-- Pre-commit runs Prettier on staged files and `npm run build`; `build/` is committed.
+- Pre-commit runs Prettier on staged files and `bun run build`; `build/` is committed.
 - EVM code uses **ethers v6** only (`ethers` package).
 - NFTGO / Blur aggregator integration has been removed (service discontinued).

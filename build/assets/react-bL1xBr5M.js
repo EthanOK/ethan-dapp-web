@@ -1,0 +1,1 @@
+import{j as e,pt as t}from"./index-DzYPJ78R.js";function n(){return{connection:e(t.state).connection}}export{n as t};

@@ -1,42 +1,7 @@
 import { useEffect, useState } from "react";
-import { Web3Auth } from "@web3auth/modal";
-import { WEB3AUTH_NETWORK } from "@web3auth/base";
-import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import { stringifyJson } from "@/lib/shared/Format";
 import { BrowserProvider, formatEther } from "ethers";
-import { signSetAlias } from "@/lib/signing/SignsnapsShot";
-import { Wallet } from "@ethersproject/wallet";
-import { Web3Provider } from "@ethersproject/providers";
-
-const clientId =
-  "BGaYve_5NaFEkrmlHuvoCcTA9Lj0DJV2JoOOyJyGA2Ch3q6KjPV7olKu1CU03zOmTJ0eLrr0ErEvZbGRlXs6Ju4";
-
-const chainConfig = {
-  chainNamespace: "eip155" as const,
-  chainId: "0xaa36a7",
-  rpcTarget: "https://0xrpc.io/sep",
-  displayName: "Ethereum Sepolia Testnet",
-  blockExplorerUrl: "https://sepolia.etherscan.io",
-  ticker: "ETH",
-  tickerName: "Ethereum",
-  logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png"
-};
-
-const privateKeyProvider = new EthereumPrivateKeyProvider({
-  config: { chainConfig }
-});
-
-const web3auth = new Web3Auth({
-  clientId,
-  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
-  privateKeyProvider
-});
-
-let web3authInitPromise: Promise<void> | null = null;
-const initWeb3AuthModal = async () => {
-  if (!web3authInitPromise) web3authInitPromise = web3auth.initModal();
-  return web3authInitPromise;
-};
+import { initEthereumWeb3Auth } from "@/lib/web3auth/ethereumWeb3Auth";
 
 const Web3AuthPage = () => {
   const [provider, setProvider] = useState<unknown>(null);
@@ -53,7 +18,7 @@ const Web3AuthPage = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        await initWeb3AuthModal();
+        const web3auth = await initEthereumWeb3Auth();
         setProvider(web3auth.provider);
         if (web3auth.connected) setLoggedIn(true);
         setIsReady(true);
@@ -69,7 +34,7 @@ const Web3AuthPage = () => {
     if (isConnecting) return;
     setIsConnecting(true);
     try {
-      if (!isReady) await initWeb3AuthModal();
+      const web3auth = await initEthereumWeb3Auth();
       const web3authProvider = await web3auth.connect();
       setProvider(web3authProvider);
       if (web3auth.connected) setLoggedIn(true);
@@ -87,6 +52,7 @@ const Web3AuthPage = () => {
   };
 
   const logout = async () => {
+    const web3auth = await initEthereumWeb3Auth();
     await web3auth.logout();
     setProvider(null);
     setLoggedIn(false);
@@ -94,6 +60,7 @@ const Web3AuthPage = () => {
   };
 
   const getUserInfo = async () => {
+    const web3auth = await initEthereumWeb3Auth();
     const user = await web3auth.getUserInfo();
     uiConsole(user);
   };
@@ -146,6 +113,11 @@ const Web3AuthPage = () => {
       uiConsole("web3auth not initialized yet");
       return;
     }
+    const [{ Wallet }, { Web3Provider }, { signSetAlias }] = await Promise.all([
+      import("@ethersproject/wallet"),
+      import("@ethersproject/providers"),
+      import("@/lib/signing/SignsnapsShot")
+    ]);
     const web3Provider = new Web3Provider(
       provider as import("@ethersproject/providers").ExternalProvider
     );

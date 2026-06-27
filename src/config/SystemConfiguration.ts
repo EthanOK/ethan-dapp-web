@@ -6,8 +6,8 @@ const chainName_G = "goerli";
 const chainName_S = "sepolia";
 const chainName_TBSC = "bsctestnet";
 
-const OPENSEA_MAIN_API = process.env.REACT_APP_OPENSEA_MAIN_API;
-const PRIVATEKEY_VERIFYER = process.env.REACT_APP_PRIVATEKEY_VERIFYER;
+const OPENSEA_MAIN_API = import.meta.env.REACT_APP_OPENSEA_MAIN_API;
+const PRIVATEKEY_VERIFYER = import.meta.env.REACT_APP_PRIVATEKEY_VERIFYER;
 const YUNGOU = "yungou.io";
 const hashYUNGOU = id(YUNGOU);
 const YUNGOU_END = hashYUNGOU.slice(0, 10);
@@ -15,13 +15,21 @@ const suffixOfYunGou = "0xba6d2ab1";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-const main_rpc = process.env.REACT_APP_MAINNET_RPC;
-const goerli_rpc = process.env.REACT_APP_GOERLI_RPC;
+const main_rpc = import.meta.env.REACT_APP_MAINNET_RPC;
+const goerli_rpc = import.meta.env.REACT_APP_GOERLI_RPC;
+const sepolia_rpc = import.meta.env.REACT_APP_SEPOLIA_RPC;
 
 const bsc_rpc = "https://rpc.ankr.com/bsc";
-const projectId_walletconnect = process.env.REACT_APP_WALLETCONNECT_PROJECTID;
+const projectId_walletconnect = import.meta.env
+  .REACT_APP_WALLETCONNECT_PROJECTID;
 
-const ALCHEMY_KEY_V3 = process.env.REACT_APP_ALCHEMY_KEY_V3;
+const ALCHEMY_KEY_V3 = import.meta.env.REACT_APP_ALCHEMY_KEY_V3;
+
+export const APP_VERSION = import.meta.env.REACT_APP_VERSION ?? "dev";
+export const IS_DEVELOPMENT = import.meta.env.MODE === "development";
+export const BRIC_DEX_PROXY_BASE_URL =
+  import.meta.env.REACT_APP_BRIC_DEX_PROXY_BASE_URL ??
+  "https://new-test.bric.one/bric-api";
 
 const YunGou2_0_main = "0x0000006c517ed32ff128b33f137bb4ac31b0c6dd";
 const YunGou2_0_goerli = "0xb0E3773e3E02d0A1653F90345Bc8889fC820E230";
@@ -55,7 +63,8 @@ const SOLANA_DEV_RPC = "https://rpc.ankr.com/solana_devnet";
 export const EIP7702Delegator_Metamask =
   "0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B";
 
-export const DISCORD_WEBHOOK_URL = process.env.REACT_APP_DISCORD_WEBHOOK_URL;
+export const DISCORD_WEBHOOK_URL = import.meta.env
+  .REACT_APP_DISCORD_WEBHOOK_URL;
 
 export {
   PancakeRouter,
@@ -68,6 +77,7 @@ export {
   suffixOfYunGou,
   main_rpc,
   goerli_rpc,
+  sepolia_rpc,
   bsc_rpc,
   chainName_TBSC,
   projectId_walletconnect,

@@ -6,13 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Command | Description |
 |---------|-------------|
-| `npm start` | Dev server (CRACO) at localhost:3000 |
-| `npm run build` | Production build → `build/` |
-| `npm run typecheck` | TypeScript check (no emit) |
-| `npm run prettier` | Format source files |
-| `npm run release` | Patch version bump (standard-version) |
+| `bun start` | Dev server (Vite) at localhost:3000 |
+| `bun run build` | Production build → `build/` |
+| `bun run typecheck` | TypeScript check (no emit) |
+| `bun run prettier` | Format source files |
+| `bun run release` | Patch version bump (standard-version) |
 
-Pre-commit hook runs Prettier on staged files and `npm run build`.
+Pre-commit hook runs Prettier on staged files and `bun run build`.
 
 ## Architecture
 
