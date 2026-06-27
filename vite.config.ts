@@ -92,47 +92,9 @@ export default defineConfig({
     // SwapPage / Web3AuthPage are lazy routes (~1.4 MB each on demand only)
     chunkSizeWarningLimit: 1600,
     rolldownOptions: {
-      output: {
-        codeSplitting: {
-          groups: [
-            {
-              name: "react-vendor",
-              test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/,
-              priority: 30,
-            },
-            {
-              name: "reown",
-              test: /node_modules[\\/]@reown[\\/]/,
-              priority: 25,
-              maxSize: 500_000,
-            },
-            {
-              name: "solana",
-              test: /node_modules[\\/]@solana[\\/]/,
-              priority: 20,
-              maxSize: 400_000,
-            },
-            {
-              name: "ethers",
-              test: /node_modules[\\/]ethers[\\/]/,
-              priority: 20,
-              maxSize: 400_000,
-            },
-            {
-              name: "bric-sdk",
-              test: /node_modules[\\/]@bric-labs[\\/]/,
-              priority: 18,
-              maxSize: 400_000,
-            },
-            {
-              name: "web3auth",
-              test: /node_modules[\\/]@web3auth[\\/]/,
-              priority: 15,
-              maxSize: 400_000,
-            },
-          ],
-        },
-      },
+      // Rely on rolldown's automatic code splitting. Manual vendor groups
+      // (splitting @reown / @solana apart) broke cross-chunk references
+      // ("PublicKey is not defined" at runtime), so we let rolldown decide.
       // ox (via @base-org/account / @coinbase/wallet-sdk) misplaces @__PURE__ on object literals
       onLog(level, log, defaultHandler) {
         if (log.code === "INVALID_ANNOTATION") return;
