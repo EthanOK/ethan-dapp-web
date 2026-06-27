@@ -2,24 +2,24 @@
 
 Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + TypeScript**. Wallet connection via [Reown AppKit](https://docs.reown.com/) and Web3Auth. Deployed on Vercel and Docker.
 
-**Node:** v22 recommended
+**Bun:** latest recommended
 
 ## Quick start
 
 ```bash
 cp .env.example .env   # fill in RPC / WalletConnect keys
-npm install
-npm start              # http://localhost:3000
+bun install
+bun start              # http://localhost:3000
 ```
 
 | Command | Description |
 |---------|-------------|
-| `npm start` | Dev server (CRACO) |
-| `npm run build` | Production build → `build/` |
-| `npm run preview` | Serve `build/` locally |
-| `npm run typecheck` | TypeScript check |
-| `npm run prettier` | Format source |
-| `npm run release` | Patch version bump (standard-version) |
+| `bun start` | Dev server (Vite) at localhost:3000 |
+| `bun run build` | Production build → `build/` |
+| `bun run preview` | Serve `build/` locally |
+| `bun run typecheck` | TypeScript check |
+| `bun run prettier` | Format source |
+| `bun run release` | Patch version bump (standard-version) |
 
 `start` / `build` inject `REACT_APP_VERSION` from `package.json` automatically.
 
@@ -99,6 +99,6 @@ docker-compose up -d
 
 ## Notes
 
-- Pre-commit runs Prettier on staged files and `npm run build`; `build/` is committed.
+- Pre-commit runs Prettier on staged files and `bun run build`; `build/` is committed.
 - EVM code uses **ethers v6** only (`ethers` package).
 - NFTGO / Blur aggregator integration has been removed (service discontinued).

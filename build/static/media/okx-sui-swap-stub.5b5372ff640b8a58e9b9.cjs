@@ -1,1 +1,0 @@
-"use strict";class SuiSwapExecutor{constructor(){throw new Error("Sui swap is not supported in this application")}async executeSwap(){throw new Error("Sui swap is not supported in this application")}}module.exports={SuiSwapExecutor:SuiSwapExecutor};
