@@ -92,7 +92,12 @@ export default defineConfig({
     // SwapPage / Web3AuthPage are lazy routes (~1.4 MB each on demand only)
     chunkSizeWarningLimit: 1600,
     rolldownOptions: {
+      // Rely on rolldown's automatic code splitting. Manual size-based groups
+      // can reorder side-effectful modules (e.g. @reown) and break execution
+      // ("n is not a function" at runtime), so we only keep package grouping
+      // without maxSize and enforce execution order.
       output: {
+        strictExecutionOrder: true,
         codeSplitting: {
           groups: [
             {
@@ -104,31 +109,26 @@ export default defineConfig({
               name: "reown",
               test: /node_modules[\\/]@reown[\\/]/,
               priority: 25,
-              maxSize: 500_000,
             },
             {
               name: "solana",
               test: /node_modules[\\/]@solana[\\/]/,
               priority: 20,
-              maxSize: 400_000,
             },
             {
               name: "ethers",
               test: /node_modules[\\/]ethers[\\/]/,
               priority: 20,
-              maxSize: 400_000,
             },
             {
               name: "bric-sdk",
               test: /node_modules[\\/]@bric-labs[\\/]/,
               priority: 18,
-              maxSize: 400_000,
             },
             {
               name: "web3auth",
               test: /node_modules[\\/]@web3auth[\\/]/,
               priority: 15,
-              maxSize: 400_000,
             },
           ],
         },
