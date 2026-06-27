@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.12...v3.0.0) (2026-06-27)
+
+
+### Features
+
+* **bricswap:** cache swap data, refresh prices, and add chain icons. ([c76aa6f](https://github.com/EthanOK/ethan-bric-web/commit/c76aa6f5aa28120e1a9b2035a52f6d5b28d0218b))
+* **bricswap:** enhance token picker, balances, and swap defaults. ([d90dd5b](https://github.com/EthanOK/ethan-bric-web/commit/d90dd5b7e81fdb49eb38447657c4c1344e4c2b8d))
+* **bricswap:** improve market info contract address row. ([f88ee36](https://github.com/EthanOK/ethan-bric-web/commit/f88ee36bb4e44d7900f3758b8148df9500e22e91))
+* **bricswap:** polish swap success toast and flip amount swap. ([59cc755](https://github.com/EthanOK/ethan-bric-web/commit/59cc7555373e3c36f1bc11809a5cfc393330150b))
+* migrate from CRACO/Webpack to Bun + Vite ([c513032](https://github.com/EthanOK/ethan-bric-web/commit/c513032a683f5e0242d38542d21ae487934a5937))
+
+
+### Bug Fixes
+
+* **bricswap:** refresh quote after approve before executing swap. ([dae252d](https://github.com/EthanOK/ethan-bric-web/commit/dae252d3ed9741b040d1f0bd6671e8df3e1ef9a7))
+* **build:** keep vendor chunks whole + strict order to fix reown runtime crash ([3f2706a](https://github.com/EthanOK/ethan-bric-web/commit/3f2706a3fd052044f348c278925d10b913860f56))
+* **build:** use rolldown auto code-splitting to fix 'PublicKey is not defined' crash ([ae2e605](https://github.com/EthanOK/ethan-bric-web/commit/ae2e605c6bed39455466bdd82ed93a8410125f04))
+* **build:** use rolldown auto code-splitting to fix 'PublicKey is not defined' crash ([fa6e0d6](https://github.com/EthanOK/ethan-bric-web/commit/fa6e0d6178f2493ca450f37f88771a8208d10392))
+* **release:** stamp version from package.json + commitAll so release includes build ([69672e1](https://github.com/EthanOK/ethan-bric-web/commit/69672e1ac44edf478a10aed736c71f7ebc9e37a8))
+* update Dockerfile, git hooks, and cleanup for Bun + Vite ([2f12df0](https://github.com/EthanOK/ethan-bric-web/commit/2f12df0c77e4d29f76419721614c94f0ea5f5a02))
+
 ### [2.2.12](https://github.com/EthanOK/ethan-dapp-web/compare/v2.2.11...v2.2.12) (2026-06-22)
 
 
