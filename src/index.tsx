@@ -11,8 +11,20 @@ try {
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+
+async function bootstrap() {
+  if (
+    typeof window !== "undefined" &&
+    window.location.pathname.replace(/\/$/, "") === "/bricswap"
+  ) {
+    await import("@/pages/SwapPage");
+  }
+
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}
+
+void bootstrap();

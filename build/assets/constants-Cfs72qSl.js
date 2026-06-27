@@ -1,0 +1,1 @@
+var e=`BGaYve_5NaFEkrmlHuvoCcTA9Lj0DJV2JoOOyJyGA2Ch3q6KjPV7olKu1CU03zOmTJ0eLrr0ErEvZbGRlXs6Ju4`,t={chainNamespace:`eip155`,chainId:`0xaa36a7`,rpcTarget:`https://0xrpc.io/sep`,displayName:`Ethereum Sepolia Testnet`,blockExplorerUrl:`https://sepolia.etherscan.io`,ticker:`ETH`,tickerName:`Ethereum`,logo:`https://cryptologos.cc/logos/ethereum-eth-logo.png`};export{t as n,e as t};

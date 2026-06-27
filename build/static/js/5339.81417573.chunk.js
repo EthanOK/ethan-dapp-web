@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkethan_dapp_web=self.webpackChunkethan_dapp_web||[]).push([[5339],{55339(a,e,p){p.d(e,{Transaction:()=>n.Z});var n=p(26835)}}]);

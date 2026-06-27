@@ -1,6 +1,7 @@
 import { parseUnits } from "ethers";
 import { toast } from "sonner";
 import { getScanTxURL } from "@/lib/shared/Utils";
+import { IS_DEVELOPMENT } from "@/config/SystemConfiguration";
 import "./SwapTxToast.css";
 
 const TOAST_AMOUNT_MAX_FRAC = 6;
@@ -229,7 +230,7 @@ declare global {
   }
 }
 
-if (process.env.NODE_ENV === "development") {
+if (IS_DEVELOPMENT) {
   window.__previewSwapToast = (variant = "swap") => {
     const previews = {
       swap: {

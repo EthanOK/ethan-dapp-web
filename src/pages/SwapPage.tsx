@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ZeroAddress, formatUnits, parseUnits } from "ethers";
+import { formatUnits, parseUnits } from "ethers";
 import { toast } from "sonner";
 import {
   useEvmWallet,
@@ -759,13 +759,6 @@ const SwapPage = () => {
 
   const handleMax = () => {
     if (!paySide || payBalance === 0n) return;
-    if (paySide.tokenAddress === ZeroAddress && payBalance > 0n) {
-      const gasReserve = parseUnits("0.001", 18);
-      const max =
-        payBalance > gasReserve ? payBalance - gasReserve : payBalance;
-      setAmount(formatTokenAmountExact(max, paySide.decimals));
-      return;
-    }
     setAmount(formatTokenAmountExact(payBalance, paySide.decimals));
   };
 
@@ -1167,8 +1160,10 @@ const SwapPage = () => {
             <div className="swap-field-top">
               <span className="swap-field-label">You pay</span>
               <span className="swap-field-balance">
-                {paySide && address && isOnSwapChain
-                  ? `${formatTokenAmount(payBalance, paySide.decimals)} ${paySide.symbol}`
+                {paySide
+                  ? showTokenBalances
+                    ? `${formatTokenAmount(payBalance, paySide.decimals)} ${paySide.symbol}`
+                    : `-- ${paySide.symbol}`
                   : "—"}
               </span>
             </div>
@@ -1235,11 +1230,11 @@ const SwapPage = () => {
             <div className="swap-field-top">
               <span className="swap-field-label">You receive</span>
               <span className="swap-field-balance">
-                {receiveSide && address && isOnSwapChain
-                  ? `${formatTokenAmount(receiveBalance, receiveSide.decimals)} ${receiveSide.symbol}`
-                  : receiveSide
-                    ? receiveSide.symbol
-                    : "—"}
+                {receiveSide
+                  ? showTokenBalances
+                    ? `${formatTokenAmount(receiveBalance, receiveSide.decimals)} ${receiveSide.symbol}`
+                    : `-- ${receiveSide.symbol}`
+                  : "—"}
               </span>
             </div>
             <div className="swap-field-main">

@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getChainIdAndBalanceETHAndTransactionCount } from "@/lib/wallet/GetProvider";
-import { DefaultChainId } from "@/config/SystemConfiguration";
+import { DefaultChainId, APP_VERSION } from "@/config/SystemConfiguration";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { useEvmWallet } from "@/hooks";
 import { bitcoinTestnet } from "@reown/appkit/networks";
@@ -868,7 +868,7 @@ const HomePage = () => {
             <button
               type="button"
               className="home-footer-link home-footer-version"
-              data-tooltip={`v${process.env.REACT_APP_VERSION ?? "dev"}`}
+              data-tooltip={`v${APP_VERSION}`}
               aria-label="Version"
             >
               <svg
