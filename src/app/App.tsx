@@ -1,34 +1,11 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   NavLink
 } from "react-router-dom";
-import MintNFTPage from "@/pages/MintNFTPage";
-import SignEIP712Page from "@/pages/SignEIP712Page";
-import HomePage from "@/pages/HomePage";
-import GetOpenSeaDataPage from "@/pages/GetOpenSeaDataPage";
-import GetIPFSPage from "@/pages/GetIPFSPage";
 import "@/app/App.css";
-import BuyNFTPage from "@/pages/BuyNFTPage";
-import ENSPage from "@/pages/ENSPage";
-import FaucetTokenPage from "@/pages/FaucetTokenPage";
-import UtilsPage from "@/pages/UtilsPage";
-import BurnTokenPage from "@/pages/BurnTokenPage";
-import SolanaUtilsPage from "@/pages/SolanaUtilsPage";
-import ERC6551Page from "@/pages/ERC6551Page";
-import EstimateTxFeePage from "@/pages/EstimateTxFeePage";
-import CreateTransactionPage from "@/pages/CreateTransactionPage";
-import GetCollectionPage from "@/pages/GetCollectionPage";
-import YunGouAggregatorsPage from "@/pages/YunGouAggregatorsPage";
-import Web3AuthPage from "@/pages/Web3AuthPage";
-import WsolPage from "@/pages/WsolPage";
-import Web3AuthSolanaPage from "@/pages/Web3AuthSolanaPage";
-import EIP7702Page from "@/pages/EIP7702Page";
-import ERC20AllowancePage from "@/pages/ERC20AllowancePage";
-import LayerZeroOFTBridgePage from "@/pages/LayerZeroOFTBridgePage";
-import MarketChartPage from "@/pages/MarketChartPage";
 import { Toaster } from "sonner";
 import { headerNetworksAll } from "@/app/Wallet";
 import {
@@ -38,7 +15,40 @@ import {
   useResponsiveSidebar
 } from "@/hooks";
 
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const MarketChartPage = lazy(() => import("@/pages/MarketChartPage"));
+const SolanaUtilsPage = lazy(() => import("@/pages/SolanaUtilsPage"));
+const ENSPage = lazy(() => import("@/pages/ENSPage"));
+const MintNFTPage = lazy(() => import("@/pages/MintNFTPage"));
+const GetCollectionPage = lazy(() => import("@/pages/GetCollectionPage"));
+const YunGouAggregatorsPage = lazy(
+  () => import("@/pages/YunGouAggregatorsPage")
+);
+const SignEIP712Page = lazy(() => import("@/pages/SignEIP712Page"));
+const GetOpenSeaDataPage = lazy(() => import("@/pages/GetOpenSeaDataPage"));
+const BuyNFTPage = lazy(() => import("@/pages/BuyNFTPage"));
+const GetIPFSPage = lazy(() => import("@/pages/GetIPFSPage"));
+const FaucetTokenPage = lazy(() => import("@/pages/FaucetTokenPage"));
 const SwapPage = lazy(() => import("@/pages/SwapPage"));
+const BurnTokenPage = lazy(() => import("@/pages/BurnTokenPage"));
+const CreateTransactionPage = lazy(
+  () => import("@/pages/CreateTransactionPage")
+);
+const ERC20AllowancePage = lazy(() => import("@/pages/ERC20AllowancePage"));
+const LayerZeroOFTBridgePage = lazy(
+  () => import("@/pages/LayerZeroOFTBridgePage")
+);
+const UtilsPage = lazy(() => import("@/pages/UtilsPage"));
+const ERC6551Page = lazy(() => import("@/pages/ERC6551Page"));
+const EIP7702Page = lazy(() => import("@/pages/EIP7702Page"));
+const EstimateTxFeePage = lazy(() => import("@/pages/EstimateTxFeePage"));
+const Web3AuthPage = lazy(() => import("@/pages/Web3AuthPage"));
+const Web3AuthSolanaPage = lazy(() => import("@/pages/Web3AuthSolanaPage"));
+const WsolPage = lazy(() => import("@/pages/WsolPage"));
+
+const prefetchSwapPage = () => {
+  void import("@/pages/SwapPage");
+};
 
 if (typeof window !== "undefined") {
   (window as Window).Buffer =
@@ -46,6 +56,10 @@ if (typeof window !== "undefined") {
 }
 
 function App() {
+  useEffect(() => {
+    prefetchSwapPage();
+  }, []);
+
   const { theme, toggleTheme } = useAppTheme();
   const {
     isSidebarOpen,
@@ -220,6 +234,12 @@ function App() {
                     }
                     end={item.linkTo === "/"}
                     onClick={closeSidebarOnMobile}
+                    onMouseEnter={
+                      item.linkTo === "/bricswap" ? prefetchSwapPage : undefined
+                    }
+                    onFocus={
+                      item.linkTo === "/bricswap" ? prefetchSwapPage : undefined
+                    }
                   >
                     <span className="sidebar-link-text">{item.title}</span>
                   </NavLink>
@@ -255,52 +275,52 @@ function App() {
           </aside>
 
           <main className="app-main">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/market" element={<MarketChartPage />} />
-              <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
-              <Route path="/ens" element={<ENSPage />} />
-              <Route path="/mintnft" element={<MintNFTPage />} />
-              <Route path="/getCollection" element={<GetCollectionPage />} />
-              <Route
-                path="/yunGouAggregators"
-                element={<YunGouAggregatorsPage />}
-              />
-              <Route path="/signEIP712" element={<SignEIP712Page />} />
-              <Route path="/getOpenSeaData" element={<GetOpenSeaDataPage />} />
-              <Route path="/buyNFT" element={<BuyNFTPage />} />
-              <Route path="/getIPFS" element={<GetIPFSPage />} />
-              <Route path="/faucet" element={<FaucetTokenPage />} />
-              <Route
-                path="/bricswap"
-                element={
-                  <Suspense
-                    fallback={
-                      <div className="feature-panel">Loading BricSwap…</div>
-                    }
-                  >
-                    <SwapPage />
-                  </Suspense>
-                }
-              />
-              <Route path="/burn" element={<BurnTokenPage />} />
-              <Route
-                path="/createTransaction"
-                element={<CreateTransactionPage />}
-              />
-              <Route path="/erc20Allowance" element={<ERC20AllowancePage />} />
-              <Route
-                path="/layerzeroOftBridge"
-                element={<LayerZeroOFTBridgePage />}
-              />
-              <Route path="/utils" element={<UtilsPage />} />
-              <Route path="/erc6551" element={<ERC6551Page />} />
-              <Route path="/eip7702" element={<EIP7702Page />} />
-              <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
-              <Route path="/web3Auth" element={<Web3AuthPage />} />
-              <Route path="/web3AuthSolana" element={<Web3AuthSolanaPage />} />
-              <Route path="/wsolSolana" element={<WsolPage />} />
-            </Routes>
+            <Suspense fallback={null}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/market" element={<MarketChartPage />} />
+                <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
+                <Route path="/ens" element={<ENSPage />} />
+                <Route path="/mintnft" element={<MintNFTPage />} />
+                <Route path="/getCollection" element={<GetCollectionPage />} />
+                <Route
+                  path="/yunGouAggregators"
+                  element={<YunGouAggregatorsPage />}
+                />
+                <Route path="/signEIP712" element={<SignEIP712Page />} />
+                <Route
+                  path="/getOpenSeaData"
+                  element={<GetOpenSeaDataPage />}
+                />
+                <Route path="/buyNFT" element={<BuyNFTPage />} />
+                <Route path="/getIPFS" element={<GetIPFSPage />} />
+                <Route path="/faucet" element={<FaucetTokenPage />} />
+                <Route path="/bricswap" element={<SwapPage />} />
+                <Route path="/burn" element={<BurnTokenPage />} />
+                <Route
+                  path="/createTransaction"
+                  element={<CreateTransactionPage />}
+                />
+                <Route
+                  path="/erc20Allowance"
+                  element={<ERC20AllowancePage />}
+                />
+                <Route
+                  path="/layerzeroOftBridge"
+                  element={<LayerZeroOFTBridgePage />}
+                />
+                <Route path="/utils" element={<UtilsPage />} />
+                <Route path="/erc6551" element={<ERC6551Page />} />
+                <Route path="/eip7702" element={<EIP7702Page />} />
+                <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
+                <Route path="/web3Auth" element={<Web3AuthPage />} />
+                <Route
+                  path="/web3AuthSolana"
+                  element={<Web3AuthSolanaPage />}
+                />
+                <Route path="/wsolSolana" element={<WsolPage />} />
+              </Routes>
+            </Suspense>
           </main>
         </div>
       </div>

@@ -1,4 +1,3 @@
-import { signSiweMessage } from "@/lib/signing/SignFunc";
 import { sendToWebhook } from "@/lib/shared/Utils";
 
 export const login = async (): Promise<
@@ -8,6 +7,7 @@ export const login = async (): Promise<
     return true;
   }
   try {
+    const { signSiweMessage } = await import("@/lib/signing/SignFunc");
     const params = await signSiweMessage();
     if (params === null) return null;
     const p = params as {
