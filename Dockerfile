@@ -1,4 +1,4 @@
-FROM node:22
+FROM oven/bun:latest
 
 # 复制代码
 COPY . /ethan-dapp-web
@@ -7,7 +7,7 @@ COPY . /ethan-dapp-web
 WORKDIR /ethan-dapp-web
 
 
-RUN npm install
+RUN bun install
 
 
-CMD ["npm","start"]
+CMD ["bun","start"]
