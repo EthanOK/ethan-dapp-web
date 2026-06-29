@@ -1,0 +1,1 @@
+function e(e,t){return JSON.stringify(e,(e,t)=>typeof t==`bigint`?t.toString():t,t)}function t(e,t=18,n=18){let r=String(e??``);if(!r)return``;let i=r.length>=2&&r.slice(0,2).toLowerCase()===`0x`,a=i?`0x`:``,o=i?r.slice(2):r;return o.length<=t+n?r:`${a}${o.slice(0,t)}…${o.slice(-n)}`}export{t as n,e as t};

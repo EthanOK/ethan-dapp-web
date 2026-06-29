@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,13 +7,11 @@ import {
 } from "react-router-dom";
 import "@/app/App.css";
 import { Toaster } from "sonner";
-import { headerNetworksAll } from "@/app/Wallet";
-import {
-  useAppTheme,
-  useHeaderChainId,
-  useReownWalletSync,
-  useResponsiveSidebar
-} from "@/hooks";
+// Import the light hooks directly (not via the `@/hooks` barrel) so the eager
+// App graph never reaches the wallet hooks → `@/app/Wallet` → `createAppKit`.
+// The wallet stack is loaded lazily through `<WalletControls />` below.
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { useResponsiveSidebar } from "@/hooks/useResponsiveSidebar";
 
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const MarketChartPage = lazy(() => import("@/pages/MarketChartPage"));
@@ -46,6 +44,8 @@ const Web3AuthPage = lazy(() => import("@/pages/Web3AuthPage"));
 const Web3AuthSolanaPage = lazy(() => import("@/pages/Web3AuthSolanaPage"));
 const WsolPage = lazy(() => import("@/pages/WsolPage"));
 
+const WalletControls = lazy(() => import("@/app/WalletControls"));
+
 const prefetchSwapPage = () => {
   void import("@/pages/SwapPage");
 };
@@ -67,33 +67,6 @@ function App() {
     closeSidebarOnMobile,
     setIsSidebarOpen
   } = useResponsiveSidebar();
-  const { address, isConnected, currentChainId } = useReownWalletSync();
-  const { chainId, handleHeaderNetworkChange } = useHeaderChainId({
-    isConnected,
-    address,
-    currentChainId
-  });
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    try {
-      localStorage.setItem("LoginType", "reown");
-    } catch (error) {
-      console.error("Reown连接失败:", error);
-      localStorage.removeItem("LoginType");
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const connectReownButton = () => (
-    <appkit-button
-      label={isConnecting ? "Connecting..." : "Connect Wallet"}
-      style={{ display: "block", marginLeft: "auto" }}
-      onClick={handleConnect}
-    />
-  );
 
   const ethNavItems = [
     { title: "0xEthan DApp", linkTo: "/" },
@@ -170,29 +143,15 @@ function App() {
                 {theme === "dark" ? "☀️" : "🌙"}
               </span>
             </button>
-            <label htmlFor="app-network" className="app-header-network-label">
-              Network
-            </label>
-            <select
-              id="app-network"
-              className="app-header-network-select"
-              value={String(chainId ?? "")}
-              onChange={handleHeaderNetworkChange}
-              aria-label="当前网络"
+            <Suspense
+              fallback={
+                <div className="w3-connect-wrap">
+                  <span className="app-header-network-label">Network</span>
+                </div>
+              }
             >
-              {headerNetworksAll.map((network) => {
-                const value = String(
-                  (network as { caipNetworkId?: string; id?: string | number })
-                    .caipNetworkId ?? (network as { id?: string | number }).id
-                );
-                return (
-                  <option key={value} value={value}>
-                    {network.name}
-                  </option>
-                );
-              })}
-            </select>
-            <div className="w3-connect-wrap">{connectReownButton()}</div>
+              <WalletControls />
+            </Suspense>
           </div>
         </header>
 
