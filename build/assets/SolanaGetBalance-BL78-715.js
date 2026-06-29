@@ -1,1 +1,0 @@
-import{Et as e,ht as t,vt as n,wt as r}from"./index-CSwdL-tX.js";e();var i=()=>new t(r(`devnet`),`confirmed`);e();var a=async(e,t)=>{let r=null;try{return r=await e.getBalance(new n(t)),r}catch(e){return console.log(e),r}};export{i as n,a as t};

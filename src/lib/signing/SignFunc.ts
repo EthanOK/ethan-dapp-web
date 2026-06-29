@@ -471,7 +471,7 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
 
 // TODO: OpenSea bulk order signing
 const signBulkOrderOpenSeaMessage = async (signer: Signer, chainId: number) => {
-  const seaport = new Seaport(signer);
+  const seaport = new Seaport(signer as any);
   const domainData = await getSeaportDomainData(seaport, chainId);
 
   console.log(domainData);
@@ -540,7 +540,7 @@ const signBulkOrderOpenSeaMessage = async (signer: Signer, chainId: number) => {
 
 // TODO: Custom Bulk Order Signature
 const signCustomBulkOrderMessage = async (signer: Signer, chainId: number) => {
-  const seaport = new Seaport(signer);
+  const seaport = new Seaport(signer as any);
   const domainData = await getSeaportDomainData(seaport, chainId);
 
   const eip712BulkOrderType = {

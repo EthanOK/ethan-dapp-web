@@ -1,9 +1,11 @@
-import { defineConfig } from "vite";
+import { defineConfig, type UserConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import envCompatible from "vite-plugin-env-compatible";
 import path from "path";
 import { readFileSync } from "fs";
+
+const analyze = process.env.ANALYZE === "true";
 
 const okxSuiSwapStub = path.resolve(
   __dirname,
@@ -23,7 +25,7 @@ const pkgVersion = JSON.parse(
 ).version;
 process.env.REACT_APP_VERSION = pkgVersion;
 
-export default defineConfig({
+export default defineConfig(async (): Promise<UserConfig> => ({
   plugins: [
     react(),
     envCompatible({
@@ -70,6 +72,17 @@ export default defineConfig({
         }
       },
     },
+    ...(analyze
+      ? [
+          (await import("rollup-plugin-visualizer")).visualizer({
+            filename: "build/stats.html",
+            template: "treemap",
+            gzipSize: true,
+            brotliSize: true,
+            emitFile: false,
+          }),
+        ]
+      : []),
   ],
   resolve: {
     alias: {
@@ -111,4 +124,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
