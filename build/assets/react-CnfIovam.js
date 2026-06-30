@@ -1,1 +1,0 @@
-import{T as e,Y as t}from"./Utils-QI7x1ne_.js";function n(){return{connection:e(t.state).connection}}export{n as t};

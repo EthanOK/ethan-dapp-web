@@ -128,6 +128,7 @@ const getWalletConnectProvider = async () => {
   await provider.enable();
   provider.on("disconnect", () => {
     localStorage.removeItem("userAddress");
+    localStorage.removeItem("token");
   });
   return provider;
 };

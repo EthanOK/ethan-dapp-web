@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly REACT_APP_ALCHEMY_KEY_V3: string;
   readonly REACT_APP_MAINNET_RPC: string;
   readonly REACT_APP_SEPOLIA_RPC: string;
+  readonly REACT_APP_API_URL: string;
 }
 
 interface ImportMeta {

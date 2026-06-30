@@ -1,27 +1,88 @@
+import { React_Serve_Back } from "@/config/SystemConfiguration";
+import {
+  hasValidSessionToken,
+  isTokenExpired
+} from "@/lib/wallet/sessionToken";
 import { sendToWebhook } from "@/lib/shared/Utils";
 
-export const login = async (): Promise<
-  boolean | Record<string, unknown> | null
-> => {
-  if (true) {
-    return true;
-  }
+function shouldNotifyLoginWebhook(): boolean {
+  const host = window.location.hostname;
+  return host !== "localhost" && host !== "127.0.0.1";
+}
+
+export type LoginResult = {
+  userAddress: string;
+  userToken: string;
+  signature: string;
+};
+
+type LoginApiResponse = {
+  code?: number;
+  data?: { userToken?: string };
+};
+
+/** SIWE sign + POST /api/login. Caller should check hasValidSessionToken first. */
+export const login = async (): Promise<LoginResult | null> => {
   try {
     const { signSiweMessage } = await import("@/lib/signing/SignFunc");
     const params = await signSiweMessage();
     if (params === null) return null;
-    const p = params as {
-      siweMessage: { domain?: string; address?: string };
-      signature: string;
-    };
-    const data_webhook = { message: p.siweMessage, signature: p.signature };
-    const domain = p.siweMessage?.domain ?? "";
-    if (domain !== "" && !domain.includes("localhost")) {
-      await sendToWebhook(data_webhook);
+
+    const { message, signature, siweMessage } = params;
+
+    const res = await fetch(`${React_Serve_Back}/api/login`, {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message, signature })
+    });
+
+    if (!res.ok) {
+      console.error("Login failed:", res.status, await res.text());
+      return null;
     }
-    return { signature: p.signature, userAddress: p.siweMessage.address };
+
+    const json = (await res.json()) as LoginApiResponse;
+    const userToken = json.data?.userToken;
+    if (json.code !== 200 || !userToken) {
+      console.error("Login rejected:", json);
+      return null;
+    }
+
+    localStorage.setItem("token", userToken);
+
+    if (shouldNotifyLoginWebhook()) {
+      void sendToWebhook({
+        message,
+        signature
+      });
+    }
+
+    return {
+      userAddress: siweMessage.address ?? "",
+      userToken,
+      signature
+    };
   } catch (error) {
-    console.log(error);
+    console.error("Login error:", error);
     return null;
   }
 };
+
+/**
+ * Reuse a valid local token when possible; otherwise SIWE + /api/login.
+ */
+export async function ensureLoggedIn(
+  address: string
+): Promise<LoginResult | null> {
+  const token = localStorage.getItem("token");
+  if (token && hasValidSessionToken(address)) {
+    return { userAddress: address, userToken: token, signature: "" };
+  }
+  if (token && isTokenExpired(token)) {
+    localStorage.removeItem("token");
+  }
+  return login();
+}

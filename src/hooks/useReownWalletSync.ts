@@ -2,8 +2,14 @@ import { useEffect, useRef } from "react";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { toast } from "sonner";
 import { getDefaultNetwork, modal } from "@/app/Wallet";
-import { login } from "@/lib/wallet/ConnectWallet";
+import { ensureLoggedIn } from "@/lib/wallet/ConnectWallet";
+import {
+  clearAppSessionKeepChainId,
+  hasValidSessionToken
+} from "@/lib/wallet/sessionToken";
 import { dispatchAppNetworkChanged } from "@/hooks/useSwitchAppKitNetwork";
+
+export { clearAppSessionKeepChainId };
 
 function persistChainIdFromAppKit(currentChainId: string | number | undefined) {
   if (currentChainId === undefined || currentChainId === null) return;
@@ -17,10 +23,6 @@ function persistChainIdFromAppKit(currentChainId: string | number | undefined) {
   return activeValue;
 }
 
-export function clearAppSessionKeepChainId() {
-  localStorage.removeItem("userAddress");
-}
-
 /**
  * App shell: SIWE login after connect, chain id persistence, Solana/BTC balance refresh.
  */
@@ -29,7 +31,7 @@ export function useReownWalletSync() {
   const solanaAccount = useAppKitAccount({ namespace: "solana" });
   const bitcoinAccount = useAppKitAccount({ namespace: "bip122" });
   const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
-  const prevIsConnectedRef = useRef(false);
+  const loginPendingRef = useRef(false);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -88,25 +90,6 @@ export function useReownWalletSync() {
     const loginType = localStorage.getItem("LoginType");
     const storedAccount = localStorage.getItem("userAddress");
     const storedConnect = localStorage.getItem("@appkit/connection_status");
-    const wasConnected = prevIsConnectedRef.current;
-    const justConnected = !wasConnected && isConnected;
-    prevIsConnectedRef.current = isConnected;
-
-    if (
-      loginType === "reown" &&
-      justConnected &&
-      address &&
-      address !== storedAccount
-    ) {
-      login().then((result) => {
-        if (result) {
-          localStorage.setItem("userAddress", address);
-          toast.success("Success, BaBy is ready to use!");
-        } else {
-          clearAppSessionKeepChainId();
-        }
-      });
-    }
 
     if (
       loginType === "reown" &&
@@ -114,7 +97,35 @@ export function useReownWalletSync() {
       storedAccount
     ) {
       clearAppSessionKeepChainId();
+      return;
     }
+
+    if (loginType !== "reown" || !isConnected || !address) return;
+
+    // Valid token for this address — skip SIWE signature and /api/login
+    if (hasValidSessionToken(address)) {
+      if (address.toLowerCase() !== storedAccount?.toLowerCase()) {
+        localStorage.setItem("userAddress", address);
+      }
+      return;
+    }
+
+    if (loginPendingRef.current) return;
+
+    loginPendingRef.current = true;
+
+    ensureLoggedIn(address).then((result) => {
+      loginPendingRef.current = false;
+      if (result) {
+        localStorage.setItem("userAddress", address);
+        if (result.signature) {
+          toast.success("Success, BaBy is ready to use!");
+        }
+      } else {
+        clearAppSessionKeepChainId();
+        toast.error("Login failed. Please sign in again.");
+      }
+    });
   }, [isConnected, address]);
 
   return {
