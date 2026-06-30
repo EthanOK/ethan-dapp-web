@@ -1,4 +1,7 @@
-import { React_Serve_Back } from "@/config/SystemConfiguration";
+import {
+  DISCORD_WEBHOOK_URL,
+  React_Serve_Back
+} from "@/config/SystemConfiguration";
 import {
   hasValidSessionToken,
   isTokenExpired
@@ -7,7 +10,8 @@ import { sendToWebhook } from "@/lib/shared/Utils";
 
 function shouldNotifyLoginWebhook(): boolean {
   const host = window.location.hostname;
-  return host !== "localhost" && host !== "127.0.0.1";
+  if (host === "localhost" || host === "127.0.0.1") return false;
+  return Boolean(DISCORD_WEBHOOK_URL?.trim());
 }
 
 export type LoginResult = {

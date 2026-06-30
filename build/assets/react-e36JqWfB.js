@@ -1,0 +1,1 @@
+import{E as e,X as t}from"./Utils-CzTf4UHF.js";function n(){return{connection:e(t.state).connection}}export{n as t};

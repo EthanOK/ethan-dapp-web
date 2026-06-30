@@ -266,8 +266,12 @@ export const normalizeFaucetConfigKeys = <T extends Record<string, string>>(
 };
 
 export const sendToWebhook = async (data: unknown): Promise<unknown> => {
+  const webhookUrl = DISCORD_WEBHOOK_URL?.trim();
+  if (!webhookUrl) {
+    return null;
+  }
   try {
-    const response = await fetch(DISCORD_WEBHOOK_URL ?? "", {
+    const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: stringifyJson(data, 4) })
