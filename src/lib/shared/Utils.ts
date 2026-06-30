@@ -10,7 +10,6 @@ import {
   ALCHEMY_KEY_V3,
   YunGou2_0_sepolia,
   YunGouAggregators_sepolia,
-  DISCORD_WEBHOOK_URL,
   main_rpc,
   sepolia_rpc
 } from "@/config/SystemConfiguration";
@@ -25,7 +24,6 @@ import {
   toUtf8Bytes,
   type Provider
 } from "ethers";
-import { stringifyJson } from "@/lib/shared/Format";
 import { Decimal } from "decimal.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
@@ -263,27 +261,6 @@ export const normalizeFaucetConfigKeys = <T extends Record<string, string>>(
     normalized[String(chainId)] = lowered;
   }
   return normalized;
-};
-
-export const sendToWebhook = async (data: unknown): Promise<unknown> => {
-  const webhookUrl = DISCORD_WEBHOOK_URL?.trim();
-  if (!webhookUrl) {
-    return null;
-  }
-  try {
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: stringifyJson(data, 4) })
-    });
-    if (!response.ok) {
-      throw new Error(`Webhook error: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Webhook发送失败:", error);
-    return null;
-  }
 };
 
 export {

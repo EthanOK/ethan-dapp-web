@@ -34,7 +34,7 @@ Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + T
 - `src/lib/signing/` — EIP-712, bulk orders
 - `src/config/` — `SystemConfiguration.ts` (env vars, API URLs), `ChainsConfig.ts`, `FaucetConfig.ts`
 - `src/abis/` — Contract ABIs (evm/, solana/)
-- `src/services/` — Backend API fetch helpers
+- `src/services/` — Backend API fetch helpers (`GetData.ts`, `AuthApi.ts` login/health, `WebhookApi.ts` webhook relay)
 
 ### Wallet integration
 

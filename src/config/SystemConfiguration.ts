@@ -24,7 +24,6 @@ const projectId_walletconnect = import.meta.env
   .REACT_APP_WALLETCONNECT_PROJECTID;
 
 const ALCHEMY_KEY_V3 = import.meta.env.REACT_APP_ALCHEMY_KEY_V3;
-const DISCORD_WEBHOOK_URL = import.meta.env.REACT_APP_DISCORD_WEBHOOK_URL;
 
 export const APP_VERSION = import.meta.env.REACT_APP_VERSION ?? "dev";
 export const IS_DEVELOPMENT = import.meta.env.MODE === "development";
@@ -103,6 +102,5 @@ export {
   LOGIN_SOLANA_MESSAGE,
   SOLANA_DEV_RPC,
   batchTransferToken_sepolia,
-  ALCHEMY_KEY_V3,
-  DISCORD_WEBHOOK_URL
+  ALCHEMY_KEY_V3
 };

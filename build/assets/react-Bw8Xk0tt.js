@@ -1,1 +1,0 @@
-import{E as e,Z as t}from"./Utils-D98FJj4s.js";function n(){return{connection:e(t.state).connection}}export{n as t};

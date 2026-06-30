@@ -8,7 +8,6 @@ interface ImportMetaEnv {
   readonly REACT_APP_MAINNET_RPC: string;
   readonly REACT_APP_SEPOLIA_RPC: string;
   readonly REACT_APP_API_URL: string;
-  readonly REACT_APP_DISCORD_WEBHOOK_URL: string;
 }
 
 interface ImportMeta {
