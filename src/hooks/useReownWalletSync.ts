@@ -116,15 +116,16 @@ export function useReownWalletSync() {
 
     ensureLoggedIn(address).then((result) => {
       loginPendingRef.current = false;
-      if (result) {
-        localStorage.setItem("userAddress", address);
-        if (result.signature) {
-          toast.success("Success, BaBy is ready to use!");
-        }
-      } else {
+      // Backend offline: keep the wallet connected, no error, no signing.
+      if (result === "backend_down") return;
+      if (!result) {
         clearAppSessionKeepChainId();
         toast.error("Login failed. Please sign in again.");
+        return;
       }
+      localStorage.setItem("userAddress", address);
+      // signature is empty when an existing token was reused.
+      if (result.signature) toast.success("Success, BaBy is ready to use!");
     });
   }, [isConnected, address]);
 

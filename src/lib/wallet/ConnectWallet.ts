@@ -19,10 +19,31 @@ export type LoginResult = {
   signature: string;
 };
 
+/** Logged-in token, `"backend_down"` when health check fails, or `null` on failure. */
+export type EnsureLoginResult = LoginResult | "backend_down" | null;
+
 type LoginApiResponse = {
   code?: number;
   data?: { userToken?: string };
 };
+
+/** Healthy = 2xx with `{ "status": "ok" }`; anything else (incl. errors) is false. */
+export async function isBackendHealthy(timeoutMs = 8000): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${React_Serve_Back}/api/health`, {
+      headers: { accept: "application/json" },
+      signal: controller.signal
+    });
+    const json = res.ok ? ((await res.json()) as { status?: string }) : null;
+    return json?.status === "ok";
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /** SIWE sign + POST /api/login. Caller should check hasValidSessionToken first. */
 export const login = async (): Promise<LoginResult | null> => {
@@ -73,17 +94,18 @@ export const login = async (): Promise<LoginResult | null> => {
 };
 
 /**
- * Reuse a valid local token when possible; otherwise SIWE + /api/login.
+ * Reuse a valid local token; otherwise only sign in when the backend is healthy
+ * (a down backend returns `"backend_down"` and must not break the frontend).
  */
 export async function ensureLoggedIn(
   address: string
-): Promise<LoginResult | null> {
+): Promise<EnsureLoginResult> {
   const token = localStorage.getItem("token");
   if (token && hasValidSessionToken(address)) {
     return { userAddress: address, userToken: token, signature: "" };
   }
-  if (token && isTokenExpired(token)) {
-    localStorage.removeItem("token");
-  }
+  if (token && isTokenExpired(token)) localStorage.removeItem("token");
+
+  if (!(await isBackendHealthy())) return "backend_down";
   return login();
 }
