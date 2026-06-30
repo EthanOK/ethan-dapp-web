@@ -51,7 +51,8 @@ const crossChain_tbsc = "0x6AAf3B8a8E42BeDc226e2d1F166Dfdc22d4b5182";
 const PancakeRouter = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
 const UniswapRouter = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 
-const React_Serve_Back = "http://localhost:3001";
+const React_Serve_Back =
+  import.meta.env.REACT_APP_API_URL ?? "https://ethan-dapp-server.onrender.com";
 const DefaultChainId = "11155111";
 
 const EXPIRES_TIME = "7d";

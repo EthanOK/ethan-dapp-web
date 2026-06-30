@@ -41,26 +41,25 @@ async function getSeaportDomainData(seaport: Seaport, chainId: number) {
   };
 }
 
+function siweDomainAndUri(): { domain: string; uri: string } {
+  return { domain: window.location.host, uri: window.location.origin };
+}
+
 export const signSiweMessage = async () => {
   try {
     const [signer_, chainId_] = await getSignerAndChainId();
     if (!signer_ || !chainId_) return null;
     const signerAddress = await signer_.getAddress();
-    const domain = window.location.host;
-    const origin = window.location.origin;
-
+    const { domain, uri } = siweDomainAndUri();
     const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    const datePart = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
-    const randomPart = Math.floor(Math.random() * 1e16).toString();
-    const nonce = datePart + randomPart;
+    const nonce = hexlify(randomBytes(32)).slice(2);
 
-    // Build ERC-4361: Sign-In with Ethereum
+    // ERC-4361 SIWE — domain/uri are the frontend origin (where the user signs in)
     const msg = new SiweMessage({
-      domain: domain,
+      domain,
       address: signerAddress,
-      statement: "Welcome To Ethan DApp",
-      uri: origin,
+      statement: "Sign in to Ethan DApp",
+      uri,
       version: "1",
       chainId: chainId_,
       nonce,
