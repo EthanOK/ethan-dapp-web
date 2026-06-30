@@ -24,6 +24,7 @@ const projectId_walletconnect = import.meta.env
   .REACT_APP_WALLETCONNECT_PROJECTID;
 
 const ALCHEMY_KEY_V3 = import.meta.env.REACT_APP_ALCHEMY_KEY_V3;
+const DISCORD_WEBHOOK_URL = import.meta.env.REACT_APP_DISCORD_WEBHOOK_URL;
 
 export const APP_VERSION = import.meta.env.REACT_APP_VERSION ?? "dev";
 export const IS_DEVELOPMENT = import.meta.env.MODE === "development";
@@ -64,9 +65,6 @@ const SOLANA_DEV_RPC = "https://rpc.ankr.com/solana_devnet";
 export const EIP7702Delegator_Metamask =
   "0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B";
 
-export const DISCORD_WEBHOOK_URL = import.meta.env
-  .REACT_APP_DISCORD_WEBHOOK_URL;
-
 export {
   PancakeRouter,
   UniswapRouter,
@@ -105,5 +103,6 @@ export {
   LOGIN_SOLANA_MESSAGE,
   SOLANA_DEV_RPC,
   batchTransferToken_sepolia,
-  ALCHEMY_KEY_V3
+  ALCHEMY_KEY_V3,
+  DISCORD_WEBHOOK_URL
 };

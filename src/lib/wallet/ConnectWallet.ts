@@ -8,10 +8,9 @@ import {
 } from "@/lib/wallet/sessionToken";
 import { sendToWebhook } from "@/lib/shared/Utils";
 
-function shouldNotifyLoginWebhook(): boolean {
-  const host = window.location.hostname;
-  if (host === "localhost" || host === "127.0.0.1") return false;
-  return Boolean(DISCORD_WEBHOOK_URL?.trim());
+function shouldNotifyLoginWebhook(siweDomain: string): boolean {
+  if (!DISCORD_WEBHOOK_URL?.trim()) return false;
+  return siweDomain !== "" && !siweDomain.includes("localhost");
 }
 
 export type LoginResult = {
@@ -57,11 +56,9 @@ export const login = async (): Promise<LoginResult | null> => {
 
     localStorage.setItem("token", userToken);
 
-    if (shouldNotifyLoginWebhook()) {
-      void sendToWebhook({
-        message,
-        signature
-      });
+    const domain = siweMessage.domain ?? "";
+    if (shouldNotifyLoginWebhook(domain)) {
+      void sendToWebhook({ siweMessage, signature });
     }
 
     return {
