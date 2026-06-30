@@ -1,13 +1,16 @@
-import { React_Serve_Back } from "@/config/SystemConfiguration";
+import {
+  DISCORD_WEBHOOK_URL,
+  React_Serve_Back
+} from "@/config/SystemConfiguration";
 import {
   hasValidSessionToken,
   isTokenExpired
 } from "@/lib/wallet/sessionToken";
 import { sendToWebhook } from "@/lib/shared/Utils";
 
-function shouldNotifyLoginWebhook(): boolean {
-  const host = window.location.hostname;
-  return host !== "localhost" && host !== "127.0.0.1";
+function shouldNotifyLoginWebhook(siweDomain: string): boolean {
+  if (!DISCORD_WEBHOOK_URL?.trim()) return false;
+  return siweDomain !== "" && !siweDomain.includes("localhost");
 }
 
 export type LoginResult = {
@@ -53,11 +56,9 @@ export const login = async (): Promise<LoginResult | null> => {
 
     localStorage.setItem("token", userToken);
 
-    if (shouldNotifyLoginWebhook()) {
-      void sendToWebhook({
-        message,
-        signature
-      });
+    const domain = siweMessage.domain ?? "";
+    if (shouldNotifyLoginWebhook(domain)) {
+      void sendToWebhook({ siweMessage, signature });
     }
 
     return {
