@@ -40,7 +40,7 @@ src/
 │   ├── price/     CoinGecko, LP price
 │   └── shared/    Utils, format helpers
 ├── config/        Chains, faucet, system constants
-├── services/      Backend API fetch helpers (GetData.ts)
+├── services/      Backend API fetch helpers (GetData, AuthApi, WebhookApi)
 ├── abis/          Contract ABIs (evm/, solana/)
 ├── fixtures/      Sample order data for signing demos
 └── types/         Ambient type declarations
