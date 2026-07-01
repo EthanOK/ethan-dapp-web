@@ -1,2 +1,0 @@
-import{L as e,T as t,f as n,i as r}from"./lib.esm-D9Kmq2lF.js";var i=`Ethereum Signed Message:
-`;function a(r){return typeof r==`string`&&(r=t(r)),n(e([t(i),t(String(r.length)),r]))}function o(e,t){return r(a(e),t)}export{o as n,a as t};

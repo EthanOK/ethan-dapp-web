@@ -54,7 +54,6 @@ EVM code uses **ethers v6** (`ethers` package). Amounts on-chain use native `big
 Copy `.env.example` to `.env`. Required variables:
 
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown/WalletConnect project ID
-- `REACT_APP_ALCHEMY_MAINNET_URL`, `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC
-- `REACT_APP_MAINNET_RPC`, `REACT_APP_SEPOLIA_RPC` — Fallback RPCs
+- `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
 
 Backend API base URL is in `src/config/SystemConfiguration.ts` (`React_Serve_Back`). The backend is not in this repo.

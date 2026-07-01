@@ -7,17 +7,12 @@ const chainName_S = "sepolia";
 const chainName_TBSC = "bsctestnet";
 
 const OPENSEA_MAIN_API = import.meta.env.REACT_APP_OPENSEA_MAIN_API;
-const PRIVATEKEY_VERIFYER = import.meta.env.REACT_APP_PRIVATEKEY_VERIFYER;
 const YUNGOU = "yungou.io";
 const hashYUNGOU = id(YUNGOU);
 const YUNGOU_END = hashYUNGOU.slice(0, 10);
 const suffixOfYunGou = "0xba6d2ab1";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-const main_rpc = import.meta.env.REACT_APP_MAINNET_RPC;
-const goerli_rpc = import.meta.env.REACT_APP_GOERLI_RPC;
-const sepolia_rpc = import.meta.env.REACT_APP_SEPOLIA_RPC;
 
 const bsc_rpc = "https://rpc.ankr.com/bsc";
 const projectId_walletconnect = import.meta.env
@@ -73,9 +68,6 @@ export {
   hashYUNGOU,
   OPENSEA_MAIN_API,
   suffixOfYunGou,
-  main_rpc,
-  goerli_rpc,
-  sepolia_rpc,
   bsc_rpc,
   chainName_TBSC,
   projectId_walletconnect,
@@ -84,7 +76,6 @@ export {
   YunGou2_0_sepolia,
   YunGou2_0_tbsc,
   YunGou2_0_bsc,
-  PRIVATEKEY_VERIFYER,
   nftMint_goerli,
   React_Serve_Back,
   YunGouAggregatorsAddress_G,

@@ -1,5 +1,5 @@
 import { AbiCoder, dnsEncode, getAddress, Interface } from "ethers";
-import { React_Serve_Back, main_rpc } from "@/config/SystemConfiguration";
+import { React_Serve_Back, ALCHEMY_KEY_V3 } from "@/config/SystemConfiguration";
 
 const url = React_Serve_Back;
 
@@ -120,7 +120,10 @@ export const getENSUniversalResolver = async (
     jsonrpc: "2.0"
   };
   try {
-    const result = await fetch(main_rpc ?? "", {
+    const rpc = ALCHEMY_KEY_V3
+      ? `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY_V3}`
+      : "";
+    const result = await fetch(rpc, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestParameters)

@@ -1,5 +1,5 @@
 import { Contract, type TransactionResponse } from "ethers";
-import { OpenSeaSDK, Chain } from "@opensea/sdk";
+import { Chain } from "@opensea/sdk";
 import seaportAbi from "@/abis/evm/seaport1_5.json";
 import Orders from "@/lib/nft/GetOrder";
 import OrdersTest from "@/lib/nft/GetOrdersTestnet";
@@ -8,11 +8,11 @@ import { addSuffixOfTxData, getNewTx } from "@/lib/evm/HandleTxData";
 import {
   suffixOfYunGou,
   chainName_TBSC,
-  OPENSEA_MAIN_API,
   chainName_S
 } from "@/config/SystemConfiguration";
 import { getProvider } from "@/lib/wallet/GetProvider";
 import { getScanURL } from "@/lib/shared/Utils";
+import { createOpenSeaSDK } from "@/lib/nft/CreateOpenSeaSdk";
 
 type TxMessageResult = [string | null, TransactionResponse | null];
 
@@ -143,10 +143,7 @@ const fulfillBasicOrder = async (
   }
 
   if (chainId === 1) {
-    const openseaSDK = new OpenSeaSDK(providerWeb3 as any, {
-      chain: Chain.Mainnet,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(providerWeb3, Chain.Mainnet);
 
     transactionData = await Orders.getFulfillment_transaction(
       openseaSDK,
@@ -155,10 +152,7 @@ const fulfillBasicOrder = async (
       tokenId_
     );
   } else if (chainId === 56) {
-    const openseaSDK = new OpenSeaSDK(providerWeb3 as any, {
-      chain: "bsc" as Chain,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(providerWeb3, "bsc" as Chain);
 
     transactionData = await Orders.getFulfillment_transaction(
       openseaSDK,
@@ -246,10 +240,7 @@ const fulfillOrder = async (
   let orderdata: unknown;
 
   if (chainId === 1) {
-    const openseaSDK = new OpenSeaSDK(providerWeb3 as any, {
-      chain: Chain.Mainnet,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(providerWeb3, Chain.Mainnet);
     orderdata = await Orders.getFulfillment_order(
       openseaSDK,
       currentAccount,
@@ -257,10 +248,7 @@ const fulfillOrder = async (
       tokenId_
     );
   } else if (chainId === 56) {
-    const openseaSDK = new OpenSeaSDK(providerWeb3 as any, {
-      chain: "bsc" as Chain,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(providerWeb3, "bsc" as Chain);
     orderdata = await Orders.getFulfillment_order(
       openseaSDK,
       currentAccount,
@@ -330,10 +318,7 @@ const fulfillBasicOrder_efficient = async (
   let transactionData: FulfillmentTransaction | null | undefined;
 
   if (chainId === 1) {
-    const openseaSDK = new OpenSeaSDK(providerWeb3 as any, {
-      chain: Chain.Mainnet,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(providerWeb3, Chain.Mainnet);
     transactionData = await Orders.getFulfillment_transaction(
       openseaSDK,
       currentAccount,
@@ -341,10 +326,7 @@ const fulfillBasicOrder_efficient = async (
       tokenId_
     );
   } else if (chainId === 56) {
-    const openseaSDK = new OpenSeaSDK(providerWeb3 as any, {
-      chain: "bsc" as Chain,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(providerWeb3, "bsc" as Chain);
     transactionData = await Orders.getFulfillment_transaction(
       openseaSDK,
       currentAccount,
@@ -422,10 +404,7 @@ const fulfillAvailableOrders = async (
   let maximumFulfilled: number;
 
   if (chainId === 1) {
-    const openseaSDK = new OpenSeaSDK(providerWeb3 as any, {
-      chain: Chain.Mainnet,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(providerWeb3, Chain.Mainnet);
     [
       protocolAddress,
       currentPriceSum,
@@ -441,10 +420,7 @@ const fulfillAvailableOrders = async (
       tokenIds_
     );
   } else if (chainId === 56) {
-    const openseaSDK = new OpenSeaSDK(providerWeb3 as any, {
-      chain: "bsc" as Chain,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(providerWeb3, "bsc" as Chain);
     [
       protocolAddress,
       currentPriceSum,
@@ -566,10 +542,7 @@ const fulfillAvailableAdvancedOrders = async (
   }
 
   if (chainId === 1) {
-    const openseaSDK = new OpenSeaSDK(provider as any, {
-      chain: Chain.Mainnet,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(provider, Chain.Mainnet);
     [
       protocolAddress,
       currentPriceSum,
@@ -586,10 +559,7 @@ const fulfillAvailableAdvancedOrders = async (
       tokenIds_
     );
   } else if (chainId === 56) {
-    const openseaSDK = new OpenSeaSDK(provider as any, {
-      chain: "bsc" as Chain,
-      apiKey: OPENSEA_MAIN_API
-    });
+    const openseaSDK = createOpenSeaSDK(provider, "bsc" as Chain);
     [
       protocolAddress,
       currentPriceSum,

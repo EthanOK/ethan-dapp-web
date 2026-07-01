@@ -63,8 +63,7 @@ Additional routes (not in sidebar): `/market`, OpenSea buy/data, YunGou aggregat
 Copy `.env.example` to `.env`. Common variables:
 
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown / WalletConnect project id
-- `REACT_APP_ALCHEMY_MAINNET_URL`, `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC
-- `REACT_APP_MAINNET_RPC`, `REACT_APP_SEPOLIA_RPC` — fallback RPCs
+- `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
 
 Backend API base URL is configured in `src/config/SystemConfiguration.ts` (`React_Serve_Back`). The backend service is not in this repo.
 

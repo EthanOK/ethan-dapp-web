@@ -17,7 +17,7 @@ import {
   Wallet,
   type TransactionResponse
 } from "ethers";
-import { OpenSeaSDK, Chain } from "@opensea/sdk";
+import { Chain } from "@opensea/sdk";
 
 import { getSigner, getProvider } from "@/lib/wallet/GetProvider";
 import {
@@ -29,11 +29,8 @@ import {
 } from "@/lib/shared/Utils";
 import Orders from "@/lib/nft/GetOrder";
 import OrdersTest from "@/lib/nft/GetOrdersTestnet";
-import {
-  OPENSEA_MAIN_API,
-  YUNGOU_END,
-  chainName_S
-} from "@/config/SystemConfiguration";
+import { createOpenSeaSDK } from "@/lib/nft/CreateOpenSeaSdk";
+import { YUNGOU_END, chainName_S } from "@/config/SystemConfiguration";
 import { useEvmWallet, useWalletChain } from "@/hooks";
 import "./YunGouAggregatorsPage.css";
 
@@ -89,10 +86,7 @@ const YunGouAggregatorsPage = () => {
       let valueEth = BigInt("0");
 
       if (chainIdStorage === "1") {
-        const openseaSDK = new OpenSeaSDK(provider, {
-          chain: Chain.Mainnet,
-          apiKey: OPENSEA_MAIN_API
-        });
+        const openseaSDK = createOpenSeaSDK(provider, Chain.Mainnet);
         [
           protocolAddress,
           currentPriceSum,
@@ -109,10 +103,7 @@ const YunGouAggregatorsPage = () => {
           tokenIdsValue
         );
       } else if (chainIdStorage === "56") {
-        const openseaSDK = new OpenSeaSDK(provider, {
-          chain: Chain.BNB,
-          apiKey: OPENSEA_MAIN_API
-        });
+        const openseaSDK = createOpenSeaSDK(provider, Chain.BNB);
         [
           protocolAddress,
           currentPriceSum,
