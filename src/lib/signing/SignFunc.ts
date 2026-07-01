@@ -11,7 +11,6 @@ import {
   type Signer
 } from "ethers";
 import { getYunGouAddressAndParameters } from "@/lib/shared/Utils";
-import { PRIVATEKEY_VERIFYER } from "@/config/SystemConfiguration";
 import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import { order_data } from "@/fixtures/OrderDataYungou";
 import { Seaport } from "@opensea/seaport-js";
@@ -236,8 +235,7 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
     console.log("orderSignature:" + orderSignature);
     let data = order_data;
 
-    let systemSignature = await getSystemSignature(orderSignature, data);
-    console.log("systemSignature:" + systemSignature);
+    const system = await getSystemSignature(orderSignature, data);
 
     // _hashTypedDataV4(keccak256(abi.encode(TYPE_HASH, parameters)))
     // let hash_ = TypedDataEncoder.hash(domainData, types, message);
@@ -251,7 +249,8 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
     let result = {
       orderHash: orderHash,
       orderSignature: orderSignature,
-      systemSignature: systemSignature
+      systemSignature: system ? system.signature : false,
+      systemPrivateKey: system ? system.privateKey : false
     };
     return result;
   } catch (error: unknown) {
@@ -638,13 +637,9 @@ const signCustomBulkOrderMessage = async (signer: Signer, chainId: number) => {
 const getSystemSignature = async (
   orderSignature: string,
   data: YunGouOrderData
-): Promise<string | false> => {
+): Promise<{ signature: string; privateKey: string } | false> => {
   try {
-    const privateKey = PRIVATEKEY_VERIFYER;
-    if (!privateKey) {
-      throw new Error("REACT_APP_PRIVATEKEY_VERIFYER is not configured");
-    }
-    const signer = new Wallet(privateKey);
+    const signer = Wallet.createRandom();
 
     const type = [
       "bytes",
@@ -671,7 +666,7 @@ const getSystemSignature = async (
     let binaryData_ = getBytes(hashData);
     console.log("systemMassageHash:" + hashData);
     let signPromise_ = await signer.signMessage(binaryData_);
-    return signPromise_;
+    return { signature: signPromise_, privateKey: signer.privateKey };
   } catch (error: unknown) {
     console.log(error);
     if (isUserRejected(error)) {

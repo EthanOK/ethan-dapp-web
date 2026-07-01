@@ -9,9 +9,7 @@ import {
   YunGouAggregators_goerli,
   ALCHEMY_KEY_V3,
   YunGou2_0_sepolia,
-  YunGouAggregators_sepolia,
-  main_rpc,
-  sepolia_rpc
+  YunGouAggregators_sepolia
 } from "@/config/SystemConfiguration";
 import { order_data, order_data_tbsc } from "@/fixtures/OrderDataYungou";
 import {
@@ -29,6 +27,7 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { Alchemy, Network } from "alchemy-sdk";
 import { SupportChains } from "@/config/ChainsConfig";
+import { AlchemyProvider } from "ethers";
 
 const equalityStringIgnoreCase = (
   string1: string,
@@ -70,16 +69,14 @@ const getScanAddressURL = (chainId: number, address: string): string => {
   return `${base.replace(/\/$/, "")}/address/${address}`;
 };
 
-const getInfuraProvider = async (): Promise<JsonRpcProvider | undefined> => {
+const getAlchemyProvider = async (): Promise<JsonRpcProvider | undefined> => {
+  const apiKey = ALCHEMY_KEY_V3?.trim();
+  if (!apiKey) return undefined;
+
   const chainIdStr = localStorage.getItem("chainId");
   const chainId = parseInt(chainIdStr ?? "0", 10);
-  if (chainId === 1) {
-    return new JsonRpcProvider(main_rpc);
-  }
-  if (chainId === 11155111) {
-    return new JsonRpcProvider(sepolia_rpc);
-  }
-  return undefined;
+  const provider = new AlchemyProvider(chainId, apiKey);
+  return provider;
 };
 
 const getYunGouAddress = async (): Promise<string | undefined> => {
@@ -284,5 +281,5 @@ export {
   isContract,
   getAlchemyURL,
   getAlchemy,
-  getInfuraProvider
+  getAlchemyProvider
 };

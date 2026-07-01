@@ -7,11 +7,7 @@ import {
   DefaultChainId,
   batchTransferToken_sepolia
 } from "@/config/SystemConfiguration";
-import {
-  getScanURL,
-  equalityStringIgnoreCase,
-  getInfuraProvider
-} from "@/lib/shared/Utils";
+import { getScanURL, equalityStringIgnoreCase } from "@/lib/shared/Utils";
 import { faucetConfig } from "@/config/FaucetConfig";
 
 function getSwapCallData(account: string, amount: string): string {
@@ -27,7 +23,6 @@ export const mintNFT = async (
   mintAmount: string
 ): Promise<[string | null, TransactionResponse | null]> => {
   const etherscanURL = await getScanURL();
-  await getInfuraProvider();
   const [signer, chainId] = await getSignerAndChainId();
   if (!signer || chainId == null) return [null, null];
 
