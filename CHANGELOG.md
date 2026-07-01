@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/EthanOK/ethan-dapp-web/compare/v3.0.0...v3.0.1) (2026-07-01)
+
+
+### Features
+
+* add email link to footer + fix TS errors in signing modules ([e22364d](https://github.com/EthanOK/ethan-dapp-web/commit/e22364d35d8b4397ae712569421e0a2455e63ccb))
+* gate wallet login on backend /api/health check ([82d8856](https://github.com/EthanOK/ethan-dapp-web/commit/82d8856734b7dc8a95f0ea8b8f1f6d4f709916ba))
+* restore SIWE login with JWT session reuse against backend API ([37e2c07](https://github.com/EthanOK/ethan-dapp-web/commit/37e2c07ae6b22fc86ad85d978efdaec052741764))
+
+
+### Bug Fixes
+
+* correct login Discord webhook gating and env export ([7c44acc](https://github.com/EthanOK/ethan-dapp-web/commit/7c44acc40b6a34b8094395e328bd1521bf16fc9d))
+* gate login Discord webhook on SIWE domain and fix env export ([2446b48](https://github.com/EthanOK/ethan-dapp-web/commit/2446b488badbce755b9fe59b6f53d79542560c96))
+* skip Discord webhook when URL is unset to avoid POST to site origin ([1a01069](https://github.com/EthanOK/ethan-dapp-web/commit/1a010691acf6931f459d5e8ca02055f2437f4e08))
+
 ## [3.0.0](https://github.com/EthanOK/ethan-bric-web/compare/v2.2.12...v3.0.0) (2026-06-27)
 
 
