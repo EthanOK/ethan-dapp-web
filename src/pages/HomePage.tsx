@@ -1,5 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  type CSSProperties
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getChainIdAndBalanceETHAndTransactionCount } from "@/lib/wallet/GetProvider";
 import { DefaultChainId, APP_VERSION } from "@/config/SystemConfiguration";
@@ -21,6 +27,7 @@ import {
   fallbackMarketList,
   fetchMarketTickerList,
   getCachedMarketData,
+  getMarketMarqueeDurationSec,
   setCachedMarketData,
   toCoinRouteState,
   type MarketCoinItem
@@ -250,9 +257,15 @@ const HomePage = () => {
     // Pre-warm QR instance to avoid flash/blank on first modal open
     prewarmAddressStyledQr();
     loadTicker();
-    const interval = setInterval(loadTicker, 30000);
+    const interval = setInterval(loadTicker, 60000);
     return () => clearInterval(interval);
   }, [loadTicker]);
+
+  const marketMarqueeStyle = useMemo((): CSSProperties => {
+    return {
+      "--market-marquee-duration": `${getMarketMarqueeDurationSec(tickerList.length)}s`
+    } as CSSProperties;
+  }, [tickerList.length]);
 
   const marketUpdatedLabel = marketUpdatedAt
     ? new Date(marketUpdatedAt).toLocaleString(dateLocale, {
@@ -526,7 +539,7 @@ const HomePage = () => {
         ) : (
           <>
             <div className="home-market-scroll-row">
-              <div className="home-market-track">
+              <div className="home-market-track" style={marketMarqueeStyle}>
                 {(() => {
                   const row1 = tickerList.slice(
                     0,
@@ -550,7 +563,10 @@ const HomePage = () => {
               </div>
             </div>
             <div className="home-market-scroll-row">
-              <div className="home-market-track home-market-track-reverse">
+              <div
+                className="home-market-track home-market-track-reverse"
+                style={marketMarqueeStyle}
+              >
                 {(() => {
                   const row2 = tickerList.slice(
                     Math.ceil(tickerList.length / 2)

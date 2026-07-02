@@ -30,9 +30,12 @@
 
 .marketchart-hero {
   margin-bottom: 16px;
-  border-radius: var(--w3-radius);
+  border-radius: var(--w3-radius-lg);
   border: 1px solid var(--w3-border);
-  background: var(--w3-bg-card);
+  background: var(--w3-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--w3-shadow-panel);
   overflow: hidden;
 }
 
@@ -77,10 +80,12 @@
 
 .marketchart-hero-name {
   margin: 0;
+  font-family: var(--w3-font-display);
   font-size: 1.2rem;
   font-weight: 700;
   color: var(--w3-text);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   line-height: 1.2;
 }
 
@@ -142,13 +147,13 @@
 }
 
 .marketchart-hero-change.up {
-  background: color-mix(in srgb, #22c55e 14%, transparent);
-  color: #22c55e;
+  background: var(--w3-success-soft);
+  color: var(--w3-success);
 }
 
 .marketchart-hero-change.down {
-  background: color-mix(in srgb, #ef4444 14%, transparent);
-  color: #ef4444;
+  background: var(--w3-danger-soft);
+  color: var(--w3-danger);
 }
 
 .marketchart-hero-change-period {
@@ -206,22 +211,26 @@
 }
 
 .marketchart-stats-section {
-  border-radius: var(--w3-radius);
+  border-radius: var(--w3-radius-lg);
   border: 1px solid var(--w3-border);
-  background: var(--w3-bg-card);
+  background: var(--w3-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--w3-shadow-panel);
   overflow: hidden;
 }
 
 .marketchart-stats-section-title {
   margin: 0;
   padding: 10px 16px;
-  font-size: 0.7rem;
+  font-family: var(--w3-font-display);
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.12em;
   color: var(--w3-text-dim);
   border-bottom: 1px solid var(--w3-border);
-  background: var(--w3-bg-elevated);
+  background: rgba(0, 229, 255, 0.03);
 }
 
 .marketchart-stats-grid {

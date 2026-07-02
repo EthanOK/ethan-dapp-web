@@ -7,28 +7,62 @@
 }
 
 .home-hero {
+  position: relative;
   text-align: center;
-  padding: 48px 24px 40px;
-  margin-bottom: 32px;
+  padding: 56px 24px 44px;
+  margin-bottom: 36px;
+}
+
+.home-hero::before,
+.home-hero::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--w3-border-accent);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.home-hero::before {
+  top: 28px;
+  left: max(16px, calc(50% - 320px));
+  border-right: none;
+  border-bottom: none;
+}
+
+.home-hero::after {
+  bottom: 20px;
+  right: max(16px, calc(50% - 320px));
+  border-left: none;
+  border-top: none;
 }
 
 .home-hero h1 {
-  font-family: var(--w3-font-sans);
+  font-family: var(--w3-font-display);
   font-weight: 700;
-  font-size: clamp(1.75rem, 4vw, 2.25rem);
-  letter-spacing: 0.02em;
+  font-size: clamp(1.85rem, 4.5vw, 2.65rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--w3-text);
-  margin: 0 0 8px;
+  margin: 0 0 12px;
+  line-height: 1.15;
 }
 
 .home-hero .hero-accent {
-  color: var(--w3-accent);
+  background: var(--w3-gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .home-hero p {
   color: var(--w3-text-muted);
-  font-size: 1rem;
+  font-size: 1.02rem;
   margin: 0;
+  max-width: 520px;
+  margin-inline: auto;
+  letter-spacing: 0.02em;
 }
 
 /* Info card grid */
@@ -70,21 +104,43 @@
 }
 
 .home-spot-card {
-  background: var(--w3-bg-elevated);
+  position: relative;
+  background: var(--w3-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--w3-border);
   border-radius: var(--w3-radius-lg);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  overflow: hidden;
   transition:
     border-color 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+.home-spot-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--w3-gradient-accent);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .home-spot-card:hover {
   border-color: var(--w3-border-accent);
-  box-shadow: 0 0 16px var(--w3-accent-glow);
+  box-shadow: var(--w3-shadow-glow);
+  transform: translateY(-2px);
+}
+
+.home-spot-card:hover::before {
+  opacity: 1;
 }
 
 .home-spot-card-top {
@@ -111,13 +167,13 @@
 }
 
 .home-spot-card-badge.up {
-  color: #4ade80;
-  background: rgba(34, 197, 94, 0.15);
+  color: var(--w3-success);
+  background: var(--w3-success-soft);
 }
 
 .home-spot-card-badge.down {
-  color: #f87171;
-  background: rgba(248, 113, 113, 0.15);
+  color: var(--w3-danger);
+  background: var(--w3-danger-soft);
 }
 
 .home-spot-card-price {
@@ -163,18 +219,24 @@
 }
 
 .home-card {
-  background: var(--w3-bg-card);
+  position: relative;
+  background: var(--w3-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--w3-border);
-  border-radius: var(--w3-radius);
+  border-radius: var(--w3-radius-lg);
   padding: 16px 20px;
+  box-shadow: var(--w3-shadow-panel);
   transition:
     border-color 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    transform 0.2s;
 }
 
 .home-card:hover {
   border-color: var(--w3-border-accent);
-  box-shadow: 0 0 20px var(--w3-accent-glow);
+  box-shadow: var(--w3-shadow-glow);
+  transform: translateY(-2px);
 }
 
 .home-card-head {
@@ -194,9 +256,10 @@
 }
 
 .home-card-label {
-  font-size: 0.75rem;
+  font-family: var(--w3-font-display);
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
   color: var(--w3-text-dim);
   margin-bottom: 6px;
 }
@@ -220,11 +283,11 @@
 }
 
 .home-card-change.up {
-  color: #22c55e;
+  color: var(--w3-success);
 }
 
 .home-card-change.down {
-  color: #ef4444;
+  color: var(--w3-danger);
 }
 
 /* Section headings */
@@ -233,8 +296,11 @@
 }
 
 .home-section-title {
-  font-size: 1rem;
+  font-family: var(--w3-font-display);
+  font-size: 0.85rem;
   font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--w3-text-muted);
   margin-bottom: 12px;
   padding-bottom: 8px;
@@ -395,11 +461,13 @@
 }
 
 .home-market-title {
-  font-size: 1.1rem;
+  font-family: var(--w3-font-display);
+  font-size: 1rem;
   font-weight: 600;
   color: var(--w3-text);
   margin: 0;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .home-market-toolbar {
@@ -504,7 +572,8 @@
   gap: 12px;
   width: max-content;
   padding: 4px 0;
-  animation: home-market-scroll 120s linear infinite;
+  animation: home-market-scroll var(--market-marquee-duration, 300s) linear
+    infinite;
 }
 
 .home-market-track-reverse {
@@ -525,9 +594,11 @@
 }
 
 .home-coin-card {
-  background: var(--w3-bg-card);
+  background: var(--w3-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--w3-border);
-  border-radius: var(--w3-radius);
+  border-radius: var(--w3-radius-lg);
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
@@ -535,14 +606,17 @@
   min-width: 160px;
   flex-shrink: 0;
   cursor: pointer;
+  box-shadow: var(--w3-shadow-panel);
   transition:
     border-color 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    transform 0.2s;
 }
 
 .home-coin-card:hover {
   border-color: var(--w3-border-accent);
-  box-shadow: 0 0 20px var(--w3-accent-glow);
+  box-shadow: var(--w3-shadow-glow);
+  transform: translateY(-2px);
 }
 
 .home-coin-card-head {
@@ -582,13 +656,13 @@
 }
 
 .home-coin-card-change.up {
-  color: #4ade80;
-  background: rgba(34, 197, 94, 0.15);
+  color: var(--w3-success);
+  background: var(--w3-success-soft);
 }
 
 .home-coin-card-change.down {
-  color: #f87171;
-  background: rgba(248, 113, 113, 0.15);
+  color: var(--w3-danger);
+  background: var(--w3-danger-soft);
 }
 
 .home-coin-card-price {

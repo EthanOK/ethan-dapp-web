@@ -1,20 +1,31 @@
-export const COINGECKO_MARKETS_URL =
-  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h";
+export const MARKET_FETCH_PER_PAGE = 250;
+export const MARKET_LIST_PAGE_SIZE = 50;
+
+/** Keeps home marquee scroll speed stable as fetch size grows (≈2.4s per card in half-row). */
+export function getMarketMarqueeDurationSec(coinCount: number): number {
+  const rowLen = Math.ceil(Math.max(coinCount, 1) / 2);
+  return Math.max(120, rowLen * 2.4);
+}
+
+export const COINGECKO_MARKETS_URL = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${MARKET_FETCH_PER_PAGE}&page=1&sparkline=true&price_change_percentage=1h,24h,7d`;
 
 export const CG_HEADERS = {
   "x-cg-demo-api-key": "CG-3DZELwY5HdLhsJjNpyN6hFy6"
 };
 
-export const MARKET_CACHE_KEY = "home_market_cache";
+export const MARKET_CACHE_KEY = "home_market_cache_v3";
 
 export interface MarketCoinItem {
   id: string;
   name: string;
   symbol: string;
+  marketCapRank: number | null;
   price: string;
   priceNum: number | null;
   change: string;
   changePct: number | null;
+  change1hPct: number | null;
+  change7dPct: number | null;
   isUp: boolean;
   image: string | null;
   marketCap: string;
@@ -23,16 +34,20 @@ export interface MarketCoinItem {
   volume24hNum: number | null;
   high24h: string;
   low24h: string;
+  sparkline: number[] | null;
 }
 
 const emptyCoin = (symbol: string): MarketCoinItem => ({
   id: "",
   name: "",
   symbol,
+  marketCapRank: null,
   price: "—",
   priceNum: null,
   change: "—",
   changePct: null,
+  change1hPct: null,
+  change7dPct: null,
   isUp: true,
   image: null,
   marketCap: "—",
@@ -40,7 +55,8 @@ const emptyCoin = (symbol: string): MarketCoinItem => ({
   volume24h: "—",
   volume24hNum: null,
   high24h: "—",
-  low24h: "—"
+  low24h: "—",
+  sparkline: null
 });
 
 export const fallbackMarketList: MarketCoinItem[] = [
@@ -60,7 +76,11 @@ export const fallbackMarketList: MarketCoinItem[] = [
   { id: "leo-token", symbol: "LEO" },
   { id: "bitcoin-cash", symbol: "BCH" },
   { id: "cosmos", symbol: "ATOM" }
-].map(({ id, symbol }) => ({ ...emptyCoin(symbol), id }));
+].map(({ id, symbol }, index) => ({
+  ...emptyCoin(symbol),
+  id,
+  marketCapRank: index + 1
+}));
 
 export function formatPrice(num: number | null | undefined): string {
   if (num == null || Number.isNaN(num)) return "—";
@@ -161,6 +181,33 @@ export function setCachedMarketData(
   }
 }
 
+export type MarketChangeTimeframe = "1h" | "24h" | "7d";
+
+export const MARKET_CHANGE_TIMEFRAMES: MarketChangeTimeframe[] = [
+  "1h",
+  "24h",
+  "7d"
+];
+
+export function getMarketChangePct(
+  item: MarketCoinItem,
+  timeframe: MarketChangeTimeframe
+): number | null {
+  switch (timeframe) {
+    case "1h":
+      return item.change1hPct;
+    case "24h":
+      return item.changePct;
+    case "7d":
+      return item.change7dPct;
+  }
+}
+
+/** Sparkline color always follows 7d change, independent of the selected timeframe. */
+export function isMarketSparklineUp(item: MarketCoinItem): boolean {
+  return formatChange(getMarketChangePct(item, "7d")).isUp;
+}
+
 export async function fetchMarketTickerList(): Promise<MarketCoinItem[]> {
   const res = await fetch(COINGECKO_MARKETS_URL, { headers: CG_HEADERS });
   if (!res.ok) throw new Error("CoinGecko request failed");
@@ -169,28 +216,40 @@ export async function fetchMarketTickerList(): Promise<MarketCoinItem[]> {
     name?: string;
     symbol?: string;
     current_price?: number;
+    price_change_percentage_1h_in_currency?: number;
     price_change_percentage_24h_in_currency?: number;
     price_change_percentage_24h?: number;
+    price_change_percentage_7d_in_currency?: number;
     image?: string;
     market_cap?: number;
+    market_cap_rank?: number;
     total_volume?: number;
     high_24h?: number;
     low_24h?: number;
+    sparkline_in_7d?: { price?: number[] };
   }>;
   return data.map((item) => {
+    const change1hPct = item.price_change_percentage_1h_in_currency ?? null;
     const changePct =
       item.price_change_percentage_24h_in_currency ??
       item.price_change_percentage_24h ??
       null;
+    const change7dPct = item.price_change_percentage_7d_in_currency ?? null;
     const { text, isUp } = formatChangeWithLabel(changePct);
+    const sparkline = item.sparkline_in_7d?.price?.length
+      ? item.sparkline_in_7d.price
+      : null;
     return {
       id: item.id ?? "",
       name: item.name ?? "",
       symbol: (item.symbol ?? "").toUpperCase(),
+      marketCapRank: item.market_cap_rank ?? null,
       price: formatPrice(item.current_price),
       priceNum: item.current_price ?? null,
       change: text,
       changePct,
+      change1hPct,
+      change7dPct,
       isUp,
       image: item.image ?? null,
       marketCap: formatCompactUsd(item.market_cap),
@@ -198,7 +257,8 @@ export async function fetchMarketTickerList(): Promise<MarketCoinItem[]> {
       volume24h: formatCompactUsd(item.total_volume),
       volume24hNum: item.total_volume ?? null,
       high24h: formatPrice(item.high_24h),
-      low24h: formatPrice(item.low_24h)
+      low24h: formatPrice(item.low_24h),
+      sparkline
     };
   });
 }
