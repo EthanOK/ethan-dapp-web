@@ -15,6 +15,7 @@ import { useResponsiveSidebar } from "@/hooks/useResponsiveSidebar";
 
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const MarketChartPage = lazy(() => import("@/pages/MarketChartPage"));
+const MarketListPage = lazy(() => import("@/pages/MarketListPage"));
 const SolanaUtilsPage = lazy(() => import("@/pages/SolanaUtilsPage"));
 const ENSPage = lazy(() => import("@/pages/ENSPage"));
 const MintNFTPage = lazy(() => import("@/pages/MintNFTPage"));
@@ -237,6 +238,7 @@ function App() {
             <Suspense fallback={null}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/markets" element={<MarketListPage />} />
                 <Route path="/market" element={<MarketChartPage />} />
                 <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
                 <Route path="/ens" element={<ENSPage />} />

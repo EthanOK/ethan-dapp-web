@@ -376,6 +376,24 @@
   margin-bottom: 14px;
 }
 
+.home-market-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-market-more {
+  font-size: 0.85rem;
+  color: var(--w3-accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.home-market-more:hover {
+  opacity: 0.85;
+}
+
 .home-market-title {
   font-size: 1.1rem;
   font-weight: 600;
@@ -416,6 +434,42 @@
   font-size: 0.8rem;
   color: var(--w3-text-dim);
   font-family: var(--w3-font-mono);
+}
+
+@media (max-width: 640px) {
+  .home-market-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .home-market-title-row {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .home-market-toolbar {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .home-market-search {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .home-market-updated {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+
+  .home-market-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
 }
 
 .home-market-grid-wrap {
