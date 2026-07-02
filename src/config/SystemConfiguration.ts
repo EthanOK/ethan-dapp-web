@@ -47,7 +47,7 @@ const PancakeRouter = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
 const UniswapRouter = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 
 const React_Serve_Back =
-  import.meta.env.REACT_APP_API_URL ?? "https://ethan-dapp-server.onrender.com";
+  import.meta.env.REACT_APP_API_URL ?? "https://ethan-dapp.onrender.com";
 const DefaultChainId = "11155111";
 
 const EXPIRES_TIME = "7d";
