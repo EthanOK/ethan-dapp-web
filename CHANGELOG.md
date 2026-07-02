@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.2](https://github.com/EthanOK/ethan-dapp-web/compare/v3.0.1...v3.0.2) (2026-07-02)
+
+
+### Features
+
+* add i18n with EN, zh-CN, and zh-TW locale menu ([ca540bc](https://github.com/EthanOK/ethan-dapp-web/commit/ca540bc6824437578be8f95722f9412f3e091b4f))
+* add market list page and polish coin detail loading UX ([7f7d185](https://github.com/EthanOK/ethan-dapp-web/commit/7f7d1857654e19de2f9763fa226ee7f2bd6f9771))
+
 ### [3.0.1](https://github.com/EthanOK/ethan-dapp-web/compare/v3.0.0...v3.0.1) (2026-07-01)
 
 
