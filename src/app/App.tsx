@@ -3,7 +3,8 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  NavLink
+  NavLink,
+  useLocation
 } from "react-router-dom";
 import "@/app/App.css";
 import { Toaster } from "sonner";
@@ -19,6 +20,25 @@ import {
   type AppLocale,
   type TranslationKey
 } from "@/i18n";
+
+function LogoMarkIcon() {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 2L4 7v10l8 5 8-5V7l-8-5z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 12l8-5M12 12v10M12 12L4 7"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function ThemeSunIcon() {
   return (
@@ -162,6 +182,21 @@ if (typeof window !== "undefined") {
     (window as Window).Buffer ?? require("buffer").Buffer;
 }
 
+function DocumentSurface() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const isMarketsSurface = pathname === "/markets" || pathname === "/market";
+    if (isMarketsSurface) {
+      document.documentElement.dataset.surface = "markets";
+      return;
+    }
+    delete document.documentElement.dataset.surface;
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
   useEffect(() => {
     prefetchSwapPage();
@@ -202,6 +237,7 @@ function App() {
 
   return (
     <Router>
+      <DocumentSurface />
       <Toaster
         position="top-center"
         toastOptions={{
@@ -236,7 +272,12 @@ function App() {
               </span>
             </button>
             <NavLink to="/" className="app-logo">
-              <span className="app-logo-accent">0x</span>Ethan DApp
+              <span className="app-logo-mark">
+                <LogoMarkIcon />
+              </span>
+              <span className="app-logo-text">
+                <span className="app-logo-accent">0x</span>Ethan DApp
+              </span>
             </NavLink>
           </div>
           <div className="app-header-right">
