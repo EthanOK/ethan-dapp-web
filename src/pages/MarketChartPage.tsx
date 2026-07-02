@@ -1,4 +1,10 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  type ReactNode
+} from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import {
   createChart,
@@ -12,13 +18,15 @@ import {
 } from "lightweight-charts";
 import type { CandlestickData, LineData, Time } from "lightweight-charts";
 import {
+  fetchCoinMarket,
   fetchMarketChart,
-  fetchCoinSpot,
   fetchOHLC,
+  type CoinMarketData,
   type PricePoint,
   type OHLCPoint,
   type CoinRouteState
 } from "@/lib/price/CoinGeckoApi";
+import { useI18n, type TranslationKey } from "@/i18n";
 import "./MarketChartPage.css";
 
 const SPOT_POLL_MS = 30000;
@@ -126,12 +134,24 @@ function formatChange(val: number | null | undefined): {
   text: string;
   isUp: boolean;
 } {
-  if (val == null || Number.isNaN(val)) return { text: "— (24h)", isUp: true };
+  if (val == null || Number.isNaN(val)) return { text: "—", isUp: true };
   const isUp = val >= 0;
   return {
-    text: (isUp ? "+" : "") + val.toFixed(2) + "% (24h)",
+    text: (isUp ? "+" : "") + val.toFixed(2) + "%",
     isUp
   };
+}
+
+function formatSignedUsd(num: number | null | undefined): string {
+  if (num == null || Number.isNaN(num)) return "—";
+  const abs = Math.abs(num);
+  const formatted =
+    abs >= 1
+      ? "$" + abs.toFixed(2)
+      : abs >= 0.01
+        ? "$" + abs.toFixed(4)
+        : "$" + abs.toFixed(6);
+  return (num >= 0 ? "+" : "-") + formatted;
 }
 
 function formatMarketCap(num: number | null | undefined): string {
@@ -152,6 +172,434 @@ function formatVolume(num: number | null | undefined): string {
     return "$" + num.toLocaleString("en-US", { maximumFractionDigits: 0 });
   return "$" + num.toFixed(0);
 }
+
+function formatPct(num: number | null | undefined): string {
+  if (num == null || Number.isNaN(num)) return "—";
+  return (num >= 0 ? "+" : "") + num.toFixed(2) + "%";
+}
+
+function formatTokenSupply(num: number | null | undefined): string {
+  if (num == null || Number.isNaN(num)) return "—";
+  if (num >= 1e9) return (num / 1e9).toFixed(2) + "B";
+  if (num >= 1e6) return (num / 1e6).toFixed(2) + "M";
+  if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
+  return num.toLocaleString("en-US", { maximumFractionDigits: 2 });
+}
+
+function formatDateTime(
+  iso: string | null | undefined,
+  dateLocale: string
+): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleString(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  } catch {
+    return iso;
+  }
+}
+
+type TranslateFn = (
+  key: TranslationKey,
+  params?: Record<string, string>
+) => string;
+
+type MarketStatItem = {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "up" | "down";
+};
+
+type MarketStatSection = {
+  title: string;
+  columns: 2 | 3;
+  items: MarketStatItem[];
+};
+
+function buildMarketStatSections(
+  data: CoinMarketData,
+  symbol: string,
+  t: TranslateFn,
+  dateLocale: string
+): MarketStatSection[] {
+  return [
+    {
+      title: t("marketChart.valuationSupply"),
+      columns: 3,
+      items: [
+        {
+          label: t("marketChart.fullyDilated"),
+          value: formatMarketCap(data.fullyDilutedValuation)
+        },
+        {
+          label: t("marketChart.circulating"),
+          value:
+            data.circulatingSupply != null
+              ? `${formatTokenSupply(data.circulatingSupply)} ${symbol}`
+              : "—"
+        },
+        {
+          label: t("marketChart.totalMax"),
+          value:
+            data.totalSupply != null && data.maxSupply != null
+              ? `${formatTokenSupply(data.totalSupply)} / ${formatTokenSupply(data.maxSupply)}`
+              : data.totalSupply != null
+                ? formatTokenSupply(data.totalSupply) + " " + symbol
+                : "—"
+        }
+      ]
+    },
+    {
+      title: t("marketChart.priceHistory"),
+      columns: 2,
+      items: [
+        {
+          label: t("marketChart.ath"),
+          value: formatPrice(data.ath),
+          sub: [
+            formatPct(data.athChangePercentage),
+            formatDateTime(data.athDate, dateLocale)
+          ]
+            .filter((s) => s !== "—")
+            .join(" · "),
+          tone: "down"
+        },
+        {
+          label: t("marketChart.atl"),
+          value: formatPrice(data.atl),
+          sub: [
+            formatPct(data.atlChangePercentage),
+            formatDateTime(data.atlDate, dateLocale)
+          ]
+            .filter((s) => s !== "—")
+            .join(" · "),
+          tone: "up"
+        }
+      ]
+    }
+  ];
+}
+
+function getHeroStripMetrics(t: TranslateFn): string[] {
+  return [
+    t("marketChart.marketCap"),
+    t("marketChart.volume24h"),
+    t("marketChart.high24h"),
+    t("marketChart.low24h")
+  ];
+}
+
+function getMarketStatLayout(t: TranslateFn) {
+  return [
+    {
+      title: t("marketChart.valuationSupply"),
+      columns: 3 as const,
+      labels: [
+        t("marketChart.fullyDilated"),
+        t("marketChart.circulating"),
+        t("marketChart.totalMax")
+      ]
+    },
+    {
+      title: t("marketChart.priceHistory"),
+      columns: 2 as const,
+      labels: [t("marketChart.ath"), t("marketChart.atl")]
+    }
+  ];
+}
+
+const Skeleton = ({ className = "" }: { className?: string }) => (
+  <span
+    className={`marketchart-sk${className ? ` ${className}` : ""}`}
+    aria-hidden
+  />
+);
+
+const FadeValue = ({
+  ready,
+  skeletonClass,
+  inline,
+  block,
+  children
+}: {
+  ready: boolean;
+  skeletonClass: string;
+  inline?: boolean;
+  block?: boolean;
+  children: ReactNode;
+}) => {
+  const className = [
+    "marketchart-fade-value",
+    inline && "marketchart-fade-value--inline",
+    block && "marketchart-fade-value--block"
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const Wrapper = block ? "div" : "span";
+
+  return (
+    <Wrapper className={className}>
+      <Skeleton
+        className={`${skeletonClass} marketchart-fade-value-sk${ready ? " is-hidden" : ""}`}
+      />
+      <span
+        className={`marketchart-fade-value-content${ready ? " is-visible" : ""}`}
+      >
+        {children}
+      </span>
+    </Wrapper>
+  );
+};
+
+const MarketHero = ({
+  coinId,
+  quote,
+  marketData,
+  loading
+}: {
+  coinId: string;
+  quote: CoinRouteState | null;
+  marketData: CoinMarketData | null;
+  loading: boolean;
+}) => {
+  const { t } = useI18n();
+  const heroStripMetrics = getHeroStripMetrics(t);
+  const name = quote?.name ?? marketData?.name ?? coinId;
+  const symbol = (quote?.symbol ?? marketData?.symbol ?? coinId).toUpperCase();
+  const image = quote?.image ?? marketData?.image;
+  const price =
+    quote?.price ?? (marketData ? formatPrice(marketData.currentPrice) : null);
+  const change = quote?.change;
+  const changeAbs =
+    marketData?.priceChange24h != null
+      ? formatSignedUsd(marketData.priceChange24h)
+      : null;
+  const isUp = quote?.isUp ?? (marketData?.priceChangePercentage24h ?? 0) >= 0;
+  const stripReady = marketData != null;
+  const rankReady = marketData?.marketCapRank != null;
+  const priceReady = price != null;
+  const changeReady = change != null;
+  const changeAbsReady = marketData?.priceChange24h != null;
+
+  return (
+    <section
+      className="marketchart-hero"
+      aria-label={t("marketChart.overview")}
+      aria-busy={loading && !stripReady}
+    >
+      <div className="marketchart-hero-main">
+        <div className="marketchart-hero-identity">
+          {image ? (
+            <img
+              src={image}
+              alt=""
+              className="marketchart-hero-icon"
+              width={44}
+              height={44}
+            />
+          ) : (
+            loading && <Skeleton className="marketchart-sk-icon" />
+          )}
+          <div className="marketchart-hero-info">
+            <div className="marketchart-hero-title-row">
+              <FadeValue
+                ready={Boolean(quote?.name || marketData?.name)}
+                skeletonClass="marketchart-sk-name"
+                block
+              >
+                <h1 className="marketchart-hero-name">{name}</h1>
+              </FadeValue>
+              {(loading || rankReady) && (
+                <FadeValue
+                  ready={rankReady}
+                  skeletonClass="marketchart-sk-rank"
+                >
+                  {marketData?.marketCapRank != null && (
+                    <span className="marketchart-hero-rank">
+                      #{marketData.marketCapRank}
+                    </span>
+                  )}
+                </FadeValue>
+              )}
+            </div>
+            <FadeValue
+              ready={Boolean(quote?.symbol || marketData?.symbol)}
+              skeletonClass="marketchart-sk-symbol"
+            >
+              <span className="marketchart-hero-symbol">{symbol}</span>
+            </FadeValue>
+          </div>
+        </div>
+        {(loading || priceReady || changeReady) && (
+          <div className="marketchart-hero-quote">
+            <FadeValue ready={priceReady} skeletonClass="marketchart-sk-price">
+              {price && <span className="marketchart-hero-price">{price}</span>}
+            </FadeValue>
+            {(loading || changeReady) && (
+              <FadeValue
+                ready={changeReady}
+                skeletonClass="marketchart-sk-change"
+              >
+                {change && (
+                  <span
+                    className={`marketchart-hero-change ${isUp ? "up" : "down"}`}
+                  >
+                    {(loading || changeAbsReady) && (
+                      <FadeValue
+                        ready={changeAbsReady}
+                        skeletonClass="marketchart-sk-change-abs"
+                        inline
+                      >
+                        {changeAbs && (
+                          <span className="marketchart-hero-change-abs">
+                            {changeAbs}
+                          </span>
+                        )}
+                      </FadeValue>
+                    )}
+                    {changeAbs && (
+                      <span className="marketchart-hero-change-sep" aria-hidden>
+                        ·
+                      </span>
+                    )}
+                    <span className="marketchart-hero-change-pct">
+                      {change}
+                    </span>
+                    <span className="marketchart-hero-change-period">
+                      {t("marketChart.change24h")}
+                    </span>
+                  </span>
+                )}
+              </FadeValue>
+            )}
+          </div>
+        )}
+      </div>
+      {(loading || stripReady) && (
+        <div className="marketchart-hero-strip">
+          {heroStripMetrics.map((label, index) => (
+            <div key={label} className="marketchart-hero-metric">
+              <span className="marketchart-hero-metric-label">{label}</span>
+              <FadeValue
+                ready={stripReady}
+                skeletonClass="marketchart-sk-value"
+              >
+                {marketData && (
+                  <span className="marketchart-hero-metric-value">
+                    {index === 0
+                      ? formatMarketCap(marketData.marketCap)
+                      : index === 1
+                        ? formatVolume(marketData.totalVolume)
+                        : index === 2
+                          ? formatPrice(marketData.high24h)
+                          : formatPrice(marketData.low24h)}
+                  </span>
+                )}
+              </FadeValue>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
+const MarketStatsGrid = ({
+  data,
+  symbol,
+  loading
+}: {
+  data: CoinMarketData | null;
+  symbol: string;
+  loading: boolean;
+}) => {
+  const { t, dateLocale } = useI18n();
+  const ready = data != null;
+  const sections = ready
+    ? buildMarketStatSections(data, symbol, t, dateLocale)
+    : null;
+  const layout = getMarketStatLayout(t);
+
+  if (!loading && !ready) return null;
+
+  return (
+    <div
+      className="marketchart-stats"
+      aria-label={t("marketChart.statistics")}
+      aria-busy={loading && !ready}
+    >
+      {layout.map((sectionLayout, sectionIndex) => {
+        const section = sections?.[sectionIndex];
+        return (
+          <section
+            key={sectionLayout.title}
+            className="marketchart-stats-section"
+          >
+            <h2 className="marketchart-stats-section-title">
+              {sectionLayout.title}
+            </h2>
+            <div
+              className={`marketchart-stats-grid marketchart-stats-grid--cols-${sectionLayout.columns}`}
+            >
+              {sectionLayout.labels.map((label, itemIndex) => {
+                const item = section?.items[itemIndex];
+                return (
+                  <div key={label} className="marketchart-stat">
+                    <span className="marketchart-stat-label">{label}</span>
+                    <div className="marketchart-stat-value-row">
+                      <FadeValue
+                        ready={ready}
+                        skeletonClass="marketchart-sk-value"
+                      >
+                        {item && (
+                          <span
+                            className={`marketchart-stat-value${item.tone ? ` ${item.tone}` : ""}`}
+                          >
+                            {item.value}
+                          </span>
+                        )}
+                      </FadeValue>
+                      {sectionLayout.columns === 2 && (
+                        <FadeValue
+                          ready={ready && Boolean(item?.sub)}
+                          skeletonClass="marketchart-sk-badge"
+                        >
+                          {item?.sub && (
+                            <span
+                              className={`marketchart-stat-badge${item.tone ? ` ${item.tone}` : ""}`}
+                            >
+                              {item.sub}
+                            </span>
+                          )}
+                        </FadeValue>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+      <p className="marketchart-stats-updated">
+        {t("common.dataLastUpdated")}{" "}
+        <FadeValue
+          ready={ready && Boolean(data?.lastUpdated)}
+          skeletonClass="marketchart-sk-updated-inline"
+          inline
+        >
+          {data?.lastUpdated && formatDateTime(data.lastUpdated, dateLocale)}
+        </FadeValue>
+      </p>
+    </div>
+  );
+};
 
 function formatCrosshairTime(time: Time): string {
   let date: Date;
@@ -220,15 +668,18 @@ interface CachedOHLC {
 }
 
 const MarketChartPage = () => {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const coinId = searchParams.get("coinId") ?? "";
   const routeState = (location.state as CoinRouteState | null) ?? null;
   const [quote, setQuote] = useState<CoinRouteState | null>(routeState);
+  const [marketData, setMarketData] = useState<CoinMarketData | null>(null);
+  const [marketLoading, setMarketLoading] = useState(true);
   const symbol = quote?.symbol?.toUpperCase() ?? coinId;
 
-  const [activeRange, setActiveRange] = useState<number>(30);
+  const [activeRange, setActiveRange] = useState<number>(365);
   const [chartType, setChartType] = useState<ChartType>("area");
   const [chartTypeOpen, setChartTypeOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -259,6 +710,7 @@ const MarketChartPage = () => {
   const quoteRef = useRef<CoinRouteState | null>(quote);
   quoteRef.current = quote;
   const spotAbortRef = useRef<AbortController | null>(null);
+  const marketDataRef = useRef<CoinMarketData | null>(null);
   const chartWidthRef = useRef(0);
 
   const parsePrice = (priceStr: string): number | null => {
@@ -930,12 +1382,12 @@ const MarketChartPage = () => {
         }
       } catch (e: unknown) {
         if (e instanceof DOMException && e.name === "AbortError") return;
-        setError(e instanceof Error ? e.message : "Failed to load data");
+        setError(e instanceof Error ? e.message : t("marketChart.loadFailed"));
       } finally {
         setIsLoading(false);
       }
     },
-    [coinId, chartType, applySeriesData, applyOHLCData]
+    [coinId, chartType, applySeriesData, applyOHLCData, t]
   );
 
   const refreshSpotPrice = useCallback(async () => {
@@ -945,21 +1397,29 @@ const MarketChartPage = () => {
     }
     const controller = new AbortController();
     spotAbortRef.current = controller;
+    const isInitialLoad = marketDataRef.current === null;
+    if (isInitialLoad) {
+      setMarketLoading(true);
+    }
     try {
-      const spot = await fetchCoinSpot(coinId, controller.signal);
-      if (!spot) return;
-      const { text: change, isUp } = formatChange(spot.changePct);
+      const market = await fetchCoinMarket(coinId, controller.signal);
+      if (!market) return;
+      const { text: change, isUp } = formatChange(
+        market.priceChangePercentage24h
+      );
       const next: CoinRouteState = {
-        name: quoteRef.current?.name ?? spot.name,
-        symbol: spot.symbol,
-        image: quoteRef.current?.image ?? spot.image,
-        price: formatPrice(spot.currentPrice),
-        marketCap: formatMarketCap(spot.marketCap),
+        name: quoteRef.current?.name ?? market.name,
+        symbol: market.symbol,
+        image: quoteRef.current?.image ?? market.image,
+        price: formatPrice(market.currentPrice),
+        marketCap: formatMarketCap(market.marketCap),
         change,
         isUp
       };
       quoteRef.current = next;
       setQuote(next);
+      setMarketData(market);
+      marketDataRef.current = market;
       if (chartType === "candlestick") {
         const cacheKey = `${coinId}-${activeRange}-ohlc`;
         const cached = ohlcCacheRef.current[cacheKey];
@@ -976,8 +1436,22 @@ const MarketChartPage = () => {
     } catch (e: unknown) {
       if (e instanceof DOMException && e.name === "AbortError") return;
       console.warn("CoinGecko spot price refresh failed:", e);
+    } finally {
+      if (!controller.signal.aborted && isInitialLoad) {
+        setMarketLoading(false);
+      }
     }
   }, [coinId, activeRange, chartType, applySeriesData, applyOHLCData]);
+
+  useEffect(() => {
+    marketDataRef.current = marketData;
+  }, [marketData]);
+
+  useEffect(() => {
+    setMarketData(null);
+    marketDataRef.current = null;
+    setMarketLoading(true);
+  }, [coinId]);
 
   useEffect(() => {
     const cleanup = buildChart();
@@ -1171,64 +1645,36 @@ const MarketChartPage = () => {
   if (!coinId) {
     return (
       <div className="marketchart-page main-app">
-        <div className="marketchart-error">Invalid coin ID</div>
+        <div className="marketchart-error">{t("marketChart.invalidCoin")}</div>
       </div>
     );
   }
+
+  const chartTypeLabel =
+    chartType === "area" ? t("marketChart.area") : t("marketChart.candlestick");
 
   return (
     <div className="marketchart-page main-app">
       <button
         type="button"
         className="marketchart-back"
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/markets")}
       >
-        &larr; Market
+        {t("marketChart.back")}
       </button>
 
-      <div className="marketchart-header">
-        {quote?.image && (
-          <img
-            src={quote.image}
-            alt=""
-            className="marketchart-header-icon"
-            width={40}
-            height={40}
-          />
-        )}
-        <div className="marketchart-header-info">
-          <span className="marketchart-header-name">
-            {quote?.name ?? coinId}
-          </span>
-          <span className="marketchart-header-symbol">{symbol || coinId}</span>
-        </div>
-        {(quote?.marketCap || quote?.price) && (
-          <div className="marketchart-header-right">
-            {quote?.marketCap && (
-              <div className="marketchart-header-mcap">
-                <span className="marketchart-header-mcap-label">
-                  Market Cap
-                </span>
-                <span className="marketchart-header-mcap-value">
-                  {quote.marketCap}
-                </span>
-              </div>
-            )}
-            {quote?.price && (
-              <div className="marketchart-header-price-block">
-                <span className="marketchart-header-price">{quote.price}</span>
-                {quote.change && (
-                  <span
-                    className={`marketchart-header-change ${quote.isUp ? "up" : "down"}`}
-                  >
-                    {quote.change}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <MarketHero
+        coinId={coinId}
+        quote={quote}
+        marketData={marketData}
+        loading={marketLoading}
+      />
+
+      <MarketStatsGrid
+        data={marketData}
+        symbol={symbol || coinId}
+        loading={marketLoading}
+      />
 
       <div
         className={`marketchart-tabs ${landscapeOpen ? "marketchart-tabs--hidden" : ""}`}
@@ -1250,7 +1696,7 @@ const MarketChartPage = () => {
             className="marketchart-tab marketchart-type-btn"
             onClick={() => setChartTypeOpen((v) => !v)}
           >
-            {chartType === "area" ? "Area" : "K-Line"}
+            {chartTypeLabel}
             <svg
               className={`marketchart-type-arrow ${chartTypeOpen ? "open" : ""}`}
               width={10}
@@ -1278,7 +1724,7 @@ const MarketChartPage = () => {
                   setChartTypeOpen(false);
                 }}
               >
-                Area
+                {t("marketChart.area")}
               </button>
               <button
                 type="button"
@@ -1288,7 +1734,7 @@ const MarketChartPage = () => {
                   setChartTypeOpen(false);
                 }}
               >
-                K-Line
+                {t("marketChart.candlestick")}
               </button>
             </div>
           )}
@@ -1329,7 +1775,7 @@ const MarketChartPage = () => {
                   className="marketchart-tab marketchart-tab--compact marketchart-type-btn"
                   onClick={() => setChartTypeOpen((v) => !v)}
                 >
-                  {chartType === "area" ? "Area" : "K-Line"}
+                  {chartTypeLabel}
                   <svg
                     className={`marketchart-type-arrow ${chartTypeOpen ? "open" : ""}`}
                     width={10}
@@ -1357,7 +1803,7 @@ const MarketChartPage = () => {
                         setChartTypeOpen(false);
                       }}
                     >
-                      Area
+                      {t("marketChart.area")}
                     </button>
                     <button
                       type="button"
@@ -1367,7 +1813,7 @@ const MarketChartPage = () => {
                         setChartTypeOpen(false);
                       }}
                     >
-                      K-Line
+                      {t("marketChart.candlestick")}
                     </button>
                   </div>
                 )}
@@ -1377,7 +1823,7 @@ const MarketChartPage = () => {
               type="button"
               className="marketchart-landscape-exit"
               onClick={closeLandscape}
-              aria-label="缩小退出横屏"
+              aria-label={t("marketChart.landscapeExit")}
             >
               <ChartShrinkIcon />
             </button>
@@ -1388,7 +1834,7 @@ const MarketChartPage = () => {
             type="button"
             className="marketchart-landscape-enter"
             onClick={() => void openLandscape()}
-            aria-label="放大横屏查看"
+            aria-label={t("marketChart.landscapeEnter")}
           >
             <ChartExpandIcon />
           </button>
@@ -1459,7 +1905,7 @@ const MarketChartPage = () => {
               className="marketchart-error-retry"
               onClick={() => loadData(activeRange)}
             >
-              Retry
+              {t("marketChart.retry")}
             </button>
           </div>
         )}

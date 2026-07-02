@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getChainIdAndBalanceETHAndTransactionCount } from "@/lib/wallet/GetProvider";
 import { DefaultChainId, APP_VERSION } from "@/config/SystemConfiguration";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
@@ -17,24 +17,15 @@ import AddressStyledQR, {
 import { getBitCoinBalance } from "@/lib/shared/BitcoinBalance";
 import "./HomePage.css";
 
-const COINGECKO_MARKETS_URL =
-  "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h";
-const CG_HEADERS = { "x-cg-demo-api-key": "CG-3DZELwY5HdLhsJjNpyN6hFy6" };
-
-const MARKET_CACHE_KEY = "home_market_cache";
-
-interface CoinItem {
-  id: string;
-  name: string;
-  symbol: string;
-  price: string;
-  change: string;
-  isUp: boolean;
-  image: string | null;
-  marketCap: string;
-  high24h: string;
-  low24h: string;
-}
+import {
+  fallbackMarketList,
+  fetchMarketTickerList,
+  getCachedMarketData,
+  setCachedMarketData,
+  toCoinRouteState,
+  type MarketCoinItem
+} from "@/lib/price/marketTicker";
+import { useI18n } from "@/i18n";
 
 function middleEllipsis(
   input: string,
@@ -50,113 +41,7 @@ function middleEllipsis(
   return s.slice(0, head) + ellipsis + s.slice(-tail);
 }
 
-function getCachedMarketData(): {
-  tickerList: CoinItem[];
-  spotPrices: Record<string, string | null>;
-  updatedAt: number;
-} | null {
-  try {
-    const raw = localStorage.getItem(MARKET_CACHE_KEY);
-    if (!raw) return null;
-    const data = JSON.parse(raw) as {
-      tickerList?: CoinItem[];
-      spotPrices?: Record<string, string | null>;
-      updatedAt?: number;
-    };
-    if (!data?.tickerList?.length || !data?.updatedAt) return null;
-    return {
-      tickerList: data.tickerList,
-      spotPrices: data.spotPrices ?? {},
-      updatedAt: data.updatedAt
-    };
-  } catch {
-    return null;
-  }
-}
-
-function setCachedMarketData(
-  tickerList: CoinItem[],
-  spotPrices: Record<string, string | null>
-): void {
-  try {
-    localStorage.setItem(
-      MARKET_CACHE_KEY,
-      JSON.stringify({ tickerList, spotPrices, updatedAt: Date.now() })
-    );
-  } catch (e) {
-    console.warn("Market cache write failed:", e);
-  }
-}
-
-const emptyCoin = (symbol: string): CoinItem => ({
-  id: "",
-  name: "",
-  symbol,
-  price: "—",
-  change: "—",
-  isUp: true,
-  image: null,
-  marketCap: "—",
-  high24h: "—",
-  low24h: "—"
-});
-
-const fallbackTickerList: CoinItem[] = [
-  { id: "bitcoin", symbol: "BTC" },
-  { id: "ethereum", symbol: "ETH" },
-  { id: "solana", symbol: "SOL" },
-  { id: "dogecoin", symbol: "DOGE" },
-  { id: "binancecoin", symbol: "BNB" },
-  { id: "ripple", symbol: "XRP" },
-  { id: "cardano", symbol: "ADA" },
-  { id: "hyperliquid", symbol: "HYPE" },
-  { id: "chainlink", symbol: "LINK" },
-  { id: "avalanche-2", symbol: "AVAX" },
-  { id: "polkadot", symbol: "DOT" },
-  { id: "matic-network", symbol: "MATIC" },
-  { id: "tron", symbol: "TRX" },
-  { id: "leo-token", symbol: "LEO" },
-  { id: "bitcoin-cash", symbol: "BCH" },
-  { id: "cosmos", symbol: "ATOM" }
-].map(({ id, symbol }) => ({ ...emptyCoin(symbol), id }));
-
-function formatPrice(num: number | null | undefined): string {
-  if (num == null || Number.isNaN(num)) return "—";
-  if (num >= 1000)
-    return "$" + num.toLocaleString("en-US", { maximumFractionDigits: 2 });
-  if (num >= 1)
-    return (
-      "$" +
-      num.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 4
-      })
-    );
-  if (num >= 0.01) return "$" + num.toFixed(4);
-  if (num > 0) return "$" + num.toFixed(6);
-  return "$0";
-}
-
-function formatChange(val: number | null | undefined): {
-  text: string;
-  isUp: boolean;
-} {
-  if (val == null || Number.isNaN(val)) return { text: "— (24h)", isUp: true };
-  const isUp = val >= 0;
-  return {
-    text: (isUp ? "+" : "") + val.toFixed(2) + "% (24h)",
-    isUp
-  };
-}
-
-function formatMarketCap(num: number | null | undefined): string {
-  if (num == null || Number.isNaN(num)) return "—";
-  if (num >= 1e12) return "$" + (num / 1e12).toFixed(2) + "T";
-  if (num >= 1e9) return "$" + (num / 1e9).toFixed(2) + "B";
-  if (num >= 1e6) return "$" + (num / 1e6).toFixed(2) + "M";
-  if (num >= 1e3) return "$" + (num / 1e3).toFixed(2) + "K";
-  return "$" + num.toFixed(0);
-}
+type CoinItem = MarketCoinItem;
 
 function parsePositiveChainId(
   v: number | string | undefined | null
@@ -195,38 +80,7 @@ function walletPaymentUriForQr(
 }
 
 async function fetchTickerFromCoinGecko(): Promise<CoinItem[]> {
-  const res = await fetch(COINGECKO_MARKETS_URL, { headers: CG_HEADERS });
-  if (!res.ok) throw new Error("CoinGecko request failed");
-  const data = (await res.json()) as Array<{
-    id?: string;
-    name?: string;
-    symbol?: string;
-    current_price?: number;
-    price_change_percentage_24h_in_currency?: number;
-    price_change_percentage_24h?: number;
-    image?: string;
-    market_cap?: number;
-    high_24h?: number;
-    low_24h?: number;
-  }>;
-  return data.map((item) => {
-    const { text, isUp } = formatChange(
-      item.price_change_percentage_24h_in_currency ??
-        item.price_change_percentage_24h
-    );
-    return {
-      id: item.id ?? "",
-      name: item.name ?? "",
-      symbol: (item.symbol ?? "").toUpperCase(),
-      price: formatPrice(item.current_price),
-      change: text,
-      isUp,
-      image: item.image ?? null,
-      marketCap: formatMarketCap(item.market_cap),
-      high24h: formatPrice(item.high_24h),
-      low24h: formatPrice(item.low_24h)
-    };
-  });
+  return fetchMarketTickerList();
 }
 
 const CoinCard = ({
@@ -235,56 +89,64 @@ const CoinCard = ({
 }: {
   item: CoinItem;
   onClick?: () => void;
-}) => (
-  <div
-    className="home-coin-card"
-    onClick={onClick}
-    role="button"
-    tabIndex={0}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onClick?.();
-      }
-    }}
-  >
-    <div className="home-coin-card-head">
-      {item.image && (
-        <img
-          src={item.image}
-          alt=""
-          className="home-coin-card-icon"
-          width={28}
-          height={28}
-        />
-      )}
-      <div className="home-coin-card-title">
-        <span className="home-coin-card-symbol">{item.symbol}</span>
-        <span className={`home-coin-card-change ${item.isUp ? "up" : "down"}`}>
-          {item.change}
-        </span>
+}) => {
+  const { t } = useI18n();
+  return (
+    <div
+      className="home-coin-card"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+    >
+      <div className="home-coin-card-head">
+        {item.image && (
+          <img
+            src={item.image}
+            alt=""
+            className="home-coin-card-icon"
+            width={28}
+            height={28}
+          />
+        )}
+        <div className="home-coin-card-title">
+          <span className="home-coin-card-symbol">{item.symbol}</span>
+          <span
+            className={`home-coin-card-change ${item.isUp ? "up" : "down"}`}
+          >
+            {item.change}
+          </span>
+        </div>
+      </div>
+      <div className="home-coin-card-price">{item.price}</div>
+      <div className="home-coin-card-meta">
+        <div className="home-coin-card-meta-row">
+          <span className="home-coin-card-meta-label">
+            {t("home.marketCap")}
+          </span>
+          <span className="home-coin-card-meta-value">{item.marketCap}</span>
+        </div>
+        <div className="home-coin-card-meta-row">
+          <span className="home-coin-card-meta-label">{t("home.high24h")}</span>
+          <span className="home-coin-card-meta-value">{item.high24h}</span>
+        </div>
+        <div className="home-coin-card-meta-row">
+          <span className="home-coin-card-meta-label">{t("home.low24h")}</span>
+          <span className="home-coin-card-meta-value">{item.low24h}</span>
+        </div>
       </div>
     </div>
-    <div className="home-coin-card-price">{item.price}</div>
-    <div className="home-coin-card-meta">
-      <div className="home-coin-card-meta-row">
-        <span className="home-coin-card-meta-label">Market Cap</span>
-        <span className="home-coin-card-meta-value">{item.marketCap}</span>
-      </div>
-      <div className="home-coin-card-meta-row">
-        <span className="home-coin-card-meta-label">24h High</span>
-        <span className="home-coin-card-meta-value">{item.high24h}</span>
-      </div>
-      <div className="home-coin-card-meta-row">
-        <span className="home-coin-card-meta-label">24h Low</span>
-        <span className="home-coin-card-meta-value">{item.low24h}</span>
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { t, dateLocale } = useI18n();
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [currentAccountBalance, setCurrentAccountBalance] = useState<
     string | null
@@ -295,7 +157,7 @@ const HomePage = () => {
   const [chainId, setChainId] = useState(
     localStorage.getItem("chainId") || DefaultChainId
   );
-  const [tickerList, setTickerList] = useState<CoinItem[]>(fallbackTickerList);
+  const [tickerList, setTickerList] = useState<CoinItem[]>(fallbackMarketList);
   const [spotPrices, setSpotPrices] = useState<Record<string, string | null>>({
     btc: null,
     eth: null,
@@ -393,7 +255,7 @@ const HomePage = () => {
   }, [loadTicker]);
 
   const marketUpdatedLabel = marketUpdatedAt
-    ? new Date(marketUpdatedAt).toLocaleString("en-US", {
+    ? new Date(marketUpdatedAt).toLocaleString(dateLocale, {
         year: "numeric",
         month: "numeric",
         day: "numeric",
@@ -540,22 +402,22 @@ const HomePage = () => {
     <div className="home-page main-app">
       <section className="home-hero">
         <h1>
-          Welcome to <span className="hero-accent">0xEthan DApp</span>
+          {t("home.welcome")} <span className="hero-accent">0xEthan DApp</span>
         </h1>
-        <p>Connect wallet · Multi-chain · NFT & DeFi tools</p>
+        <p>{t("home.tagline")}</p>
       </section>
       <div className="home-cards home-cards-stats">
         <div className="home-card">
-          <div className="home-card-label">Chain ID</div>
+          <div className="home-card-label">{t("home.chainId")}</div>
           <div className="home-card-value accent">{chainId || "—"}</div>
         </div>
         <div className="home-card">
-          <div className="home-card-label">Account</div>
+          <div className="home-card-label">{t("home.account")}</div>
           {currentAccount ? (
             <button
               type="button"
               className="home-card-value home-card-address-trigger"
-              title={`${currentAccount} — click for QR`}
+              title={t("home.accountQrTitle", { address: currentAccount })}
               onClick={() => setAddressQrOpen(true)}
             >
               {`${currentAccount.slice(0, 6)}…${currentAccount.slice(-4)}`}
@@ -565,7 +427,7 @@ const HomePage = () => {
           )}
         </div>
         <div className="home-card">
-          <div className="home-card-label">Balance</div>
+          <div className="home-card-label">{t("home.balance")}</div>
           <div className="home-card-value">
             {currentAccountBalance != null
               ? `${Number(currentAccountBalance).toFixed(8)} ${balanceSymbol}`
@@ -573,7 +435,7 @@ const HomePage = () => {
           </div>
         </div>
         <div className="home-card">
-          <div className="home-card-label">Nonce</div>
+          <div className="home-card-label">{t("home.nonce")}</div>
           <div className="home-card-value">{currentAccountNonce ?? "—"}</div>
         </div>
       </div>
@@ -613,19 +475,27 @@ const HomePage = () => {
       </div>
       <section className="home-market-wrap">
         <div className="home-market-header">
-          <h2 className="home-market-title">Market</h2>
+          <div className="home-market-title-row">
+            <h2 className="home-market-title">{t("home.market")}</h2>
+            <Link to="/markets" className="home-market-more">
+              {t("home.marketMore")}
+            </Link>
+          </div>
           <div className="home-market-toolbar">
             <input
               type="text"
               className="home-market-search"
-              placeholder="Symbol (e.g. BTC, ETH)"
+              placeholder={t("home.searchPlaceholder")}
               value={marketSearch}
               onChange={(e) => setMarketSearch(e.target.value)}
-              aria-label="Search coins"
+              aria-label={t("home.searchCoins")}
             />
             {marketUpdatedLabel && (
-              <span className="home-market-updated" title="Data last updated">
-                Updated at {marketUpdatedLabel}
+              <span
+                className="home-market-updated"
+                title={t("common.dataLastUpdated")}
+              >
+                {t("common.updatedAt", { time: marketUpdatedLabel })}
               </span>
             )}
           </div>
@@ -642,15 +512,7 @@ const HomePage = () => {
                       item.id
                         ? () =>
                             navigate(`/market?coinId=${item.id}`, {
-                              state: {
-                                name: item.name,
-                                symbol: item.symbol,
-                                image: item.image,
-                                price: item.price,
-                                marketCap: item.marketCap,
-                                change: item.change,
-                                isUp: item.isUp
-                              }
+                              state: toCoinRouteState(item)
                             })
                         : undefined
                     }
@@ -658,7 +520,7 @@ const HomePage = () => {
                 ))}
               </div>
             ) : (
-              <p className="home-market-empty">在 100 条数据中未找到匹配币种</p>
+              <p className="home-market-empty">{t("home.noMatchingCoins")}</p>
             )}
           </div>
         ) : (
@@ -678,15 +540,7 @@ const HomePage = () => {
                         item.id
                           ? () =>
                               navigate(`/market?coinId=${item.id}`, {
-                                state: {
-                                  name: item.name,
-                                  symbol: item.symbol,
-                                  image: item.image,
-                                  price: item.price,
-                                  marketCap: item.marketCap,
-                                  change: item.change,
-                                  isUp: item.isUp
-                                }
+                                state: toCoinRouteState(item)
                               })
                           : undefined
                       }
@@ -709,15 +563,7 @@ const HomePage = () => {
                         item.id
                           ? () =>
                               navigate(`/market?coinId=${item.id}`, {
-                                state: {
-                                  name: item.name,
-                                  symbol: item.symbol,
-                                  image: item.image,
-                                  price: item.price,
-                                  marketCap: item.marketCap,
-                                  change: item.change,
-                                  isUp: item.isUp
-                                }
+                                state: toCoinRouteState(item)
                               })
                           : undefined
                       }
@@ -747,7 +593,7 @@ const HomePage = () => {
               type="button"
               className="home-qr-close"
               onClick={() => setAddressQrOpen(false)}
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               ×
             </button>
@@ -758,7 +604,7 @@ const HomePage = () => {
               />
             </div>
             <p id="home-qr-heading" className="home-qr-hint">
-              Copy your address or scan this QR code
+              {t("home.addressQrHint")}
             </p>
             <div className="home-qr-address" title={currentAccount}>
               <span className="home-qr-address-text">
@@ -770,8 +616,8 @@ const HomePage = () => {
               className="home-qr-copy"
               onClick={() => {
                 navigator.clipboard.writeText(currentAccount).then(
-                  () => toast.success("Address copied"),
-                  () => toast.error("Copy failed")
+                  () => toast.success(t("common.addressCopied")),
+                  () => toast.error(t("common.copyFailed"))
                 );
               }}
             >
@@ -790,7 +636,7 @@ const HomePage = () => {
                 <rect x="9" y="9" width="13" height="13" rx="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
-              Copy address
+              {t("common.copyAddress")}
             </button>
           </div>
         </div>
@@ -813,7 +659,7 @@ const HomePage = () => {
               type="button"
               className="home-qr-close"
               onClick={() => setDonateQrOpen(false)}
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               ×
             </button>
@@ -824,7 +670,7 @@ const HomePage = () => {
               />
             </div>
             <p id="home-donate-qr-heading" className="home-qr-hint">
-              Copy your donate address or scan this QR code
+              {t("home.donateQrHint")}
             </p>
             <div className="home-qr-address" title={donateAddress}>
               <span className="home-qr-address-text">
@@ -836,8 +682,8 @@ const HomePage = () => {
               className="home-qr-copy"
               onClick={() => {
                 navigator.clipboard.writeText(donateAddress).then(
-                  () => toast.success("Address copied"),
-                  () => toast.error("Copy failed")
+                  () => toast.success(t("common.addressCopied")),
+                  () => toast.error(t("common.copyFailed"))
                 );
               }}
             >
@@ -856,20 +702,23 @@ const HomePage = () => {
                 <rect x="9" y="9" width="13" height="13" rx="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
-              Copy address
+              {t("common.copyAddress")}
             </button>
           </div>
         </div>
       )}
 
-      <footer className="home-footer" aria-label="Site links">
+      <footer className="home-footer" aria-label={t("home.footerSiteLinks")}>
         <div className="home-footer-inner">
-          <nav className="home-footer-links" aria-label="External links">
+          <nav
+            className="home-footer-links"
+            aria-label={t("home.footerExternalLinks")}
+          >
             <button
               type="button"
               className="home-footer-link home-footer-version"
               data-tooltip={`v${APP_VERSION}`}
-              aria-label="Version"
+              aria-label={t("home.footerVersion")}
             >
               <svg
                 className="home-footer-icon"
@@ -884,7 +733,7 @@ const HomePage = () => {
                 />
               </svg>
               <span className="home-footer-link-text home-footer-version-text">
-                Version
+                {t("home.footerVersion")}
               </span>
             </button>
             <a
@@ -983,7 +832,8 @@ const HomePage = () => {
                 />
               </svg>
               <span className="home-footer-link-text">
-                Donate <span className="home-footer-address">{scheme}</span>
+                {t("home.footerDonate")}{" "}
+                <span className="home-footer-address">{scheme}</span>
               </span>
             </button>
           </nav>

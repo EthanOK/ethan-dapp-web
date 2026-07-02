@@ -3,9 +3,11 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "@/app/App";
 import { getStoredAppTheme } from "@/hooks/useAppTheme";
+import { getStoredAppLocale, getDocumentLang, I18nProvider } from "@/i18n";
 
 try {
   document.documentElement.setAttribute("data-theme", getStoredAppTheme());
+  document.documentElement.lang = getDocumentLang(getStoredAppLocale());
 } catch (_) {}
 
 const root = ReactDOM.createRoot(
@@ -22,7 +24,9 @@ async function bootstrap() {
 
   root.render(
     <React.StrictMode>
-      <App />
+      <I18nProvider>
+        <App />
+      </I18nProvider>
     </React.StrictMode>
   );
 }
