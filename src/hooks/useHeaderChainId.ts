@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { tGlobal } from "@/i18n";
 import { DefaultChainId } from "@/config/SystemConfiguration";
 import { getDefaultNetwork } from "@/app/Wallet";
 import {
@@ -46,7 +47,7 @@ export function useHeaderChainId(wallet: HeaderChainSync) {
         await switchNetwork(nextId);
       } catch (err) {
         console.error("Switch network failed:", err);
-        toast.error("切换网络失败，请重试");
+        toast.error(tGlobal("error.switchNetwork"));
       }
     },
     [switchNetwork]

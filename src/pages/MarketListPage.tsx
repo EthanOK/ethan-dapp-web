@@ -9,6 +9,7 @@ import {
   toCoinRouteState,
   type MarketCoinItem
 } from "@/lib/price/marketTicker";
+import { useI18n, type TranslationKey } from "@/i18n";
 import "./MarketListPage.css";
 
 const ChartIcon = () => (
@@ -75,6 +76,7 @@ const SortIcon = ({ active, dir }: { active: boolean; dir: SortDir }) => (
 
 const MarketListPage = () => {
   const navigate = useNavigate();
+  const { t, dateLocale } = useI18n();
   const [list, setList] = useState<MarketCoinItem[]>(fallbackMarketList);
   const [search, setSearch] = useState("");
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
@@ -135,7 +137,7 @@ const MarketListPage = () => {
   }, [list, search, sortKey, sortDir]);
 
   const updatedLabel = updatedAt
-    ? new Date(updatedAt).toLocaleString("en-US", {
+    ? new Date(updatedAt).toLocaleString(dateLocale, {
         year: "numeric",
         month: "numeric",
         day: "numeric",
@@ -150,12 +152,12 @@ const MarketListPage = () => {
     navigate(`/market?coinId=${item.id}`, { state: toCoinRouteState(item) });
   };
 
-  const sortOptions: { key: SortKey; label: string }[] = [
-    { key: "cap", label: "Cap" },
-    { key: "price", label: "Price" },
-    { key: "change", label: "24h" },
-    { key: "volume", label: "Vol" },
-    { key: "name", label: "Name" }
+  const sortOptions: { key: SortKey; labelKey: TranslationKey }[] = [
+    { key: "cap", labelKey: "market.sortCap" },
+    { key: "price", labelKey: "market.sortPrice" },
+    { key: "change", labelKey: "market.sortChange" },
+    { key: "volume", labelKey: "market.sortVolume" },
+    { key: "name", labelKey: "market.sortName" }
   ];
 
   const renderRowActions = (item: MarketCoinItem) => (
@@ -163,8 +165,8 @@ const MarketListPage = () => {
       <button
         type="button"
         className="market-list-action-btn"
-        title="Chart"
-        aria-label={`Chart ${item.symbol}`}
+        title={t("market.chart")}
+        aria-label={t("market.chartFor", { symbol: item.symbol })}
         onClick={() => openChart(item)}
       >
         <ChartIcon />
@@ -178,23 +180,23 @@ const MarketListPage = () => {
         <div className="market-list-hero-top">
           <div>
             <Link to="/" className="market-list-back">
-              ← Home
+              {t("market.backHome")}
             </Link>
-            <h1>Market</h1>
-            <p>Top 100 coins by market cap · CoinGecko</p>
+            <h1>{t("market.title")}</h1>
+            <p>{t("market.subtitle")}</p>
           </div>
           <div className="market-list-toolbar">
             <input
               type="text"
               className="market-list-search"
-              placeholder="Symbol (e.g. BTC, ETH)"
+              placeholder={t("home.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              aria-label="Search coins"
+              aria-label={t("home.searchCoins")}
             />
             {updatedLabel && (
               <span className="market-list-updated">
-                Updated at {updatedLabel}
+                {t("common.updatedAt", { time: updatedLabel })}
               </span>
             )}
           </div>
@@ -205,16 +207,16 @@ const MarketListPage = () => {
         <div
           className="market-list-sort-pills"
           role="toolbar"
-          aria-label="Sort by"
+          aria-label={t("market.sortBy")}
         >
-          {sortOptions.map(({ key, label }) => (
+          {sortOptions.map(({ key, labelKey }) => (
             <button
               key={key}
               type="button"
               className={`market-list-sort-pill ${sortKey === key ? "active" : ""}`}
               onClick={() => toggleSort(key)}
             >
-              {label}
+              {t(labelKey)}
               {sortKey === key && (
                 <span className="market-list-sort-pill-dir" aria-hidden>
                   {sortDir === "asc" ? "↑" : "↓"}
@@ -226,7 +228,7 @@ const MarketListPage = () => {
 
         {rows.length === 0 ? (
           <p className="market-list-empty market-list-empty-mobile">
-            No matching coins found
+            {t("market.noResults")}
           </p>
         ) : (
           <ul className="market-list-cards">
@@ -267,20 +269,24 @@ const MarketListPage = () => {
                   </div>
                   <div className="market-list-card-stats">
                     <div className="market-list-card-stat">
-                      <span className="market-list-card-stat-label">Price</span>
+                      <span className="market-list-card-stat-label">
+                        {t("market.sortPrice")}
+                      </span>
                       <span className="market-list-card-stat-value">
                         {item.price}
                       </span>
                     </div>
                     <div className="market-list-card-stat">
-                      <span className="market-list-card-stat-label">M.Cap</span>
+                      <span className="market-list-card-stat-label">
+                        {t("market.mcapShort")}
+                      </span>
                       <span className="market-list-card-stat-value">
                         {item.marketCap}
                       </span>
                     </div>
                     <div className="market-list-card-stat">
                       <span className="market-list-card-stat-label">
-                        24h Vol
+                        {t("market.volShort")}
                       </span>
                       <span className="market-list-card-stat-value">
                         {item.volume24h}
@@ -307,7 +313,7 @@ const MarketListPage = () => {
                     className="market-list-sort-btn"
                     onClick={() => toggleSort("name")}
                   >
-                    Name
+                    {t("market.colName")}
                     <SortIcon active={sortKey === "name"} dir={sortDir} />
                   </button>
                 </th>
@@ -317,7 +323,7 @@ const MarketListPage = () => {
                     className="market-list-sort-btn"
                     onClick={() => toggleSort("price")}
                   >
-                    Price
+                    {t("market.colPrice")}
                     <SortIcon active={sortKey === "price"} dir={sortDir} />
                   </button>
                 </th>
@@ -327,7 +333,7 @@ const MarketListPage = () => {
                     className="market-list-sort-btn"
                     onClick={() => toggleSort("change")}
                   >
-                    Change
+                    {t("market.colChange")}
                     <SortIcon active={sortKey === "change"} dir={sortDir} />
                   </button>
                 </th>
@@ -337,7 +343,7 @@ const MarketListPage = () => {
                     className="market-list-sort-btn"
                     onClick={() => toggleSort("volume")}
                   >
-                    24h Volume
+                    {t("market.colVolume")}
                     <SortIcon active={sortKey === "volume"} dir={sortDir} />
                   </button>
                 </th>
@@ -347,18 +353,18 @@ const MarketListPage = () => {
                     className="market-list-sort-btn"
                     onClick={() => toggleSort("cap")}
                   >
-                    Market Cap
+                    {t("market.colCap")}
                     <SortIcon active={sortKey === "cap"} dir={sortDir} />
                   </button>
                 </th>
-                <th className="col-actions">Actions</th>
+                <th className="col-actions">{t("market.colActions")}</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="market-list-empty">
-                    No matching coins found
+                    {t("market.noResults")}
                   </td>
                 </tr>
               ) : (

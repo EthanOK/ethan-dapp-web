@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,6 +12,112 @@ import { Toaster } from "sonner";
 // The wallet stack is loaded lazily through `<WalletControls />` below.
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useResponsiveSidebar } from "@/hooks/useResponsiveSidebar";
+import {
+  useI18n,
+  APP_LOCALES,
+  getLocaleLabelKey,
+  type AppLocale,
+  type TranslationKey
+} from "@/i18n";
+
+function ThemeSunIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4l1.4-1.4M17 7l1.4-1.4"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ThemeMoonIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 3a9 9 0 1 0 9 9 7.2 7.2 0 0 1-9-9z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function LocaleGlobeIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M2 12h20" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+    </svg>
+  );
+}
+
+function HeaderLocaleMenu() {
+  const { locale, setLocale, t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
+
+  const selectLocale = (next: AppLocale) => {
+    setLocale(next);
+    setOpen(false);
+  };
+
+  return (
+    <div className="app-header-locale-wrap" ref={menuRef}>
+      <button
+        type="button"
+        className="app-header-locale-toggle"
+        onClick={() => setOpen((value) => !value)}
+        title={t("locale.language")}
+        aria-label={t("locale.language")}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className="app-header-locale-icon" aria-hidden>
+          <LocaleGlobeIcon />
+        </span>
+      </button>
+      {open && (
+        <div
+          className="app-header-locale-menu"
+          role="listbox"
+          aria-label={t("locale.language")}
+        >
+          {APP_LOCALES.map((code) => (
+            <button
+              key={code}
+              type="button"
+              role="option"
+              aria-selected={locale === code}
+              className={
+                "app-header-locale-option" +
+                (locale === code ? " is-active" : "")
+              }
+              onClick={() => selectLocale(code)}
+            >
+              {t(getLocaleLabelKey(code))}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const MarketChartPage = lazy(() => import("@/pages/MarketChartPage"));
@@ -62,6 +168,7 @@ function App() {
   }, []);
 
   const { theme, toggleTheme } = useAppTheme();
+  const { t } = useI18n();
   const {
     isSidebarOpen,
     toggleSidebar,
@@ -69,28 +176,28 @@ function App() {
     setIsSidebarOpen
   } = useResponsiveSidebar();
 
-  const ethNavItems = [
-    { title: "0xEthan DApp", linkTo: "/" },
-    { title: "BricSwap", linkTo: "/bricswap" },
-    { title: "Estimate TxFee", linkTo: "/estimateTxFee" },
-    { title: "Create Transaction", linkTo: "/createTransaction" },
-    { title: "ERC20 Allowance", linkTo: "/erc20Allowance" },
-    { title: "OFT Bridge (LayerZero)", linkTo: "/layerzeroOftBridge" },
-    { title: "Faucet Token", linkTo: "/faucet" },
-    { title: "Burn Token", linkTo: "/burn" },
-    { title: "ENS Service", linkTo: "/ens" },
-    { title: "Mint NFT", linkTo: "/mintnft" },
-    { title: "Sign EIP712", linkTo: "/signEIP712" },
-    { title: "EIP7702", linkTo: "/eip7702" },
-    { title: "Utils", linkTo: "/utils" },
-    { title: "ERC6551", linkTo: "/erc6551" },
-    { title: "Web3Auth", linkTo: "/web3Auth" },
-    { title: "Web3Auth Solana", linkTo: "/web3AuthSolana" }
+  const ethNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
+    { titleKey: "nav.home", linkTo: "/" },
+    { titleKey: "nav.bricswap", linkTo: "/bricswap" },
+    { titleKey: "nav.estimateTxFee", linkTo: "/estimateTxFee" },
+    { titleKey: "nav.createTransaction", linkTo: "/createTransaction" },
+    { titleKey: "nav.erc20Allowance", linkTo: "/erc20Allowance" },
+    { titleKey: "nav.oftBridge", linkTo: "/layerzeroOftBridge" },
+    { titleKey: "nav.faucet", linkTo: "/faucet" },
+    { titleKey: "nav.burn", linkTo: "/burn" },
+    { titleKey: "nav.ens", linkTo: "/ens" },
+    { titleKey: "nav.mintNft", linkTo: "/mintnft" },
+    { titleKey: "nav.signEip712", linkTo: "/signEIP712" },
+    { titleKey: "nav.eip7702", linkTo: "/eip7702" },
+    { titleKey: "nav.utils", linkTo: "/utils" },
+    { titleKey: "nav.erc6551", linkTo: "/erc6551" },
+    { titleKey: "nav.web3Auth", linkTo: "/web3Auth" },
+    { titleKey: "nav.web3AuthSolana", linkTo: "/web3AuthSolana" }
   ];
 
-  const solanaNavItems = [
-    { title: "Solana Utils", linkTo: "/solanaUtils" },
-    { title: "WSOL Solana", linkTo: "/wsolSolana" }
+  const solanaNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
+    { titleKey: "nav.solanaUtils", linkTo: "/solanaUtils" },
+    { titleKey: "nav.wsol", linkTo: "/wsolSolana" }
   ];
 
   return (
@@ -115,10 +222,12 @@ function App() {
                 "app-header-menu-btn" + (isSidebarOpen ? " is-open" : "")
               }
               onClick={toggleSidebar}
-              aria-label={isSidebarOpen ? "关闭菜单" : "打开菜单"}
+              aria-label={
+                isSidebarOpen ? t("nav.closeMenu") : t("nav.openMenu")
+              }
               aria-expanded={isSidebarOpen}
               aria-controls="app-sidebar"
-              title={isSidebarOpen ? "关闭菜单" : "打开菜单"}
+              title={isSidebarOpen ? t("nav.closeMenu") : t("nav.openMenu")}
             >
               <span className="app-header-menu-icon" aria-hidden>
                 <span className="app-header-menu-bar" />
@@ -131,23 +240,32 @@ function App() {
             </NavLink>
           </div>
           <div className="app-header-right">
+            <HeaderLocaleMenu />
             <button
               type="button"
               className="app-header-theme-toggle"
               onClick={toggleTheme}
-              title={theme === "dark" ? "切换到浅色" : "切换到深色"}
+              title={
+                theme === "dark"
+                  ? t("theme.switchToLight")
+                  : t("theme.switchToDark")
+              }
               aria-label={
-                theme === "dark" ? "切换到浅色模式" : "切换到深色模式"
+                theme === "dark"
+                  ? t("theme.switchToLight")
+                  : t("theme.switchToDark")
               }
             >
               <span className="app-header-theme-icon" aria-hidden>
-                {theme === "dark" ? "☀️" : "🌙"}
+                {theme === "dark" ? <ThemeSunIcon /> : <ThemeMoonIcon />}
               </span>
             </button>
             <Suspense
               fallback={
                 <div className="w3-connect-wrap">
-                  <span className="app-header-network-label">Network</span>
+                  <span className="app-header-network-label">
+                    {t("common.network")}
+                  </span>
                 </div>
               }
             >
@@ -172,19 +290,19 @@ function App() {
             className={`app-sidebar ${isSidebarOpen ? "open" : "collapsed"}`}
           >
             <div className="sidebar-mobile-head">
-              <span className="sidebar-mobile-title">Menu</span>
+              <span className="sidebar-mobile-title">{t("nav.menu")}</span>
               <button
                 type="button"
                 className="sidebar-mobile-close"
                 onClick={() => setIsSidebarOpen(false)}
-                aria-label="关闭菜单"
+                aria-label={t("nav.closeMenu")}
               >
                 ✕
               </button>
             </div>
             <nav className="sidebar-nav">
               <div className="sidebar-section">
-                <div className="sidebar-section-title">Ethereum</div>
+                <div className="sidebar-section-title">{t("nav.ethereum")}</div>
                 {ethNavItems.map((item) => (
                   <NavLink
                     key={item.linkTo}
@@ -201,12 +319,14 @@ function App() {
                       item.linkTo === "/bricswap" ? prefetchSwapPage : undefined
                     }
                   >
-                    <span className="sidebar-link-text">{item.title}</span>
+                    <span className="sidebar-link-text">
+                      {t(item.titleKey)}
+                    </span>
                   </NavLink>
                 ))}
               </div>
               <div className="sidebar-section">
-                <div className="sidebar-section-title">Solana</div>
+                <div className="sidebar-section-title">{t("nav.solana")}</div>
                 {solanaNavItems.map((item) => (
                   <NavLink
                     key={item.linkTo}
@@ -216,7 +336,9 @@ function App() {
                     }
                     onClick={closeSidebarOnMobile}
                   >
-                    <span className="sidebar-link-text">{item.title}</span>
+                    <span className="sidebar-link-text">
+                      {t(item.titleKey)}
+                    </span>
                   </NavLink>
                 ))}
               </div>
@@ -225,8 +347,12 @@ function App() {
               type="button"
               className="sidebar-collapse-tab"
               onClick={toggleSidebar}
-              aria-label={isSidebarOpen ? "收起菜单" : "展开菜单"}
-              title={isSidebarOpen ? "收起菜单" : "展开菜单"}
+              aria-label={
+                isSidebarOpen ? t("nav.collapseMenu") : t("nav.expandMenu")
+              }
+              title={
+                isSidebarOpen ? t("nav.collapseMenu") : t("nav.expandMenu")
+              }
             >
               <span className="sidebar-collapse-icon" aria-hidden>
                 {isSidebarOpen ? "◀" : "▶"}

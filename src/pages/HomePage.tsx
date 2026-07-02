@@ -25,6 +25,7 @@ import {
   toCoinRouteState,
   type MarketCoinItem
 } from "@/lib/price/marketTicker";
+import { useI18n } from "@/i18n";
 
 function middleEllipsis(
   input: string,
@@ -88,56 +89,64 @@ const CoinCard = ({
 }: {
   item: CoinItem;
   onClick?: () => void;
-}) => (
-  <div
-    className="home-coin-card"
-    onClick={onClick}
-    role="button"
-    tabIndex={0}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onClick?.();
-      }
-    }}
-  >
-    <div className="home-coin-card-head">
-      {item.image && (
-        <img
-          src={item.image}
-          alt=""
-          className="home-coin-card-icon"
-          width={28}
-          height={28}
-        />
-      )}
-      <div className="home-coin-card-title">
-        <span className="home-coin-card-symbol">{item.symbol}</span>
-        <span className={`home-coin-card-change ${item.isUp ? "up" : "down"}`}>
-          {item.change}
-        </span>
+}) => {
+  const { t } = useI18n();
+  return (
+    <div
+      className="home-coin-card"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+    >
+      <div className="home-coin-card-head">
+        {item.image && (
+          <img
+            src={item.image}
+            alt=""
+            className="home-coin-card-icon"
+            width={28}
+            height={28}
+          />
+        )}
+        <div className="home-coin-card-title">
+          <span className="home-coin-card-symbol">{item.symbol}</span>
+          <span
+            className={`home-coin-card-change ${item.isUp ? "up" : "down"}`}
+          >
+            {item.change}
+          </span>
+        </div>
+      </div>
+      <div className="home-coin-card-price">{item.price}</div>
+      <div className="home-coin-card-meta">
+        <div className="home-coin-card-meta-row">
+          <span className="home-coin-card-meta-label">
+            {t("home.marketCap")}
+          </span>
+          <span className="home-coin-card-meta-value">{item.marketCap}</span>
+        </div>
+        <div className="home-coin-card-meta-row">
+          <span className="home-coin-card-meta-label">{t("home.high24h")}</span>
+          <span className="home-coin-card-meta-value">{item.high24h}</span>
+        </div>
+        <div className="home-coin-card-meta-row">
+          <span className="home-coin-card-meta-label">{t("home.low24h")}</span>
+          <span className="home-coin-card-meta-value">{item.low24h}</span>
+        </div>
       </div>
     </div>
-    <div className="home-coin-card-price">{item.price}</div>
-    <div className="home-coin-card-meta">
-      <div className="home-coin-card-meta-row">
-        <span className="home-coin-card-meta-label">Market Cap</span>
-        <span className="home-coin-card-meta-value">{item.marketCap}</span>
-      </div>
-      <div className="home-coin-card-meta-row">
-        <span className="home-coin-card-meta-label">24h High</span>
-        <span className="home-coin-card-meta-value">{item.high24h}</span>
-      </div>
-      <div className="home-coin-card-meta-row">
-        <span className="home-coin-card-meta-label">24h Low</span>
-        <span className="home-coin-card-meta-value">{item.low24h}</span>
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { t, dateLocale } = useI18n();
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [currentAccountBalance, setCurrentAccountBalance] = useState<
     string | null
@@ -246,7 +255,7 @@ const HomePage = () => {
   }, [loadTicker]);
 
   const marketUpdatedLabel = marketUpdatedAt
-    ? new Date(marketUpdatedAt).toLocaleString("en-US", {
+    ? new Date(marketUpdatedAt).toLocaleString(dateLocale, {
         year: "numeric",
         month: "numeric",
         day: "numeric",
@@ -393,22 +402,22 @@ const HomePage = () => {
     <div className="home-page main-app">
       <section className="home-hero">
         <h1>
-          Welcome to <span className="hero-accent">0xEthan DApp</span>
+          {t("home.welcome")} <span className="hero-accent">0xEthan DApp</span>
         </h1>
-        <p>Connect wallet · Multi-chain · NFT & DeFi tools</p>
+        <p>{t("home.tagline")}</p>
       </section>
       <div className="home-cards home-cards-stats">
         <div className="home-card">
-          <div className="home-card-label">Chain ID</div>
+          <div className="home-card-label">{t("home.chainId")}</div>
           <div className="home-card-value accent">{chainId || "—"}</div>
         </div>
         <div className="home-card">
-          <div className="home-card-label">Account</div>
+          <div className="home-card-label">{t("home.account")}</div>
           {currentAccount ? (
             <button
               type="button"
               className="home-card-value home-card-address-trigger"
-              title={`${currentAccount} — click for QR`}
+              title={t("home.accountQrTitle", { address: currentAccount })}
               onClick={() => setAddressQrOpen(true)}
             >
               {`${currentAccount.slice(0, 6)}…${currentAccount.slice(-4)}`}
@@ -418,7 +427,7 @@ const HomePage = () => {
           )}
         </div>
         <div className="home-card">
-          <div className="home-card-label">Balance</div>
+          <div className="home-card-label">{t("home.balance")}</div>
           <div className="home-card-value">
             {currentAccountBalance != null
               ? `${Number(currentAccountBalance).toFixed(8)} ${balanceSymbol}`
@@ -426,7 +435,7 @@ const HomePage = () => {
           </div>
         </div>
         <div className="home-card">
-          <div className="home-card-label">Nonce</div>
+          <div className="home-card-label">{t("home.nonce")}</div>
           <div className="home-card-value">{currentAccountNonce ?? "—"}</div>
         </div>
       </div>
@@ -467,23 +476,26 @@ const HomePage = () => {
       <section className="home-market-wrap">
         <div className="home-market-header">
           <div className="home-market-title-row">
-            <h2 className="home-market-title">Market</h2>
+            <h2 className="home-market-title">{t("home.market")}</h2>
             <Link to="/markets" className="home-market-more">
-              More →
+              {t("home.marketMore")}
             </Link>
           </div>
           <div className="home-market-toolbar">
             <input
               type="text"
               className="home-market-search"
-              placeholder="Symbol (e.g. BTC, ETH)"
+              placeholder={t("home.searchPlaceholder")}
               value={marketSearch}
               onChange={(e) => setMarketSearch(e.target.value)}
-              aria-label="Search coins"
+              aria-label={t("home.searchCoins")}
             />
             {marketUpdatedLabel && (
-              <span className="home-market-updated" title="Data last updated">
-                Updated at {marketUpdatedLabel}
+              <span
+                className="home-market-updated"
+                title={t("common.dataLastUpdated")}
+              >
+                {t("common.updatedAt", { time: marketUpdatedLabel })}
               </span>
             )}
           </div>
@@ -508,7 +520,7 @@ const HomePage = () => {
                 ))}
               </div>
             ) : (
-              <p className="home-market-empty">No matching coins in top 100</p>
+              <p className="home-market-empty">{t("home.noMatchingCoins")}</p>
             )}
           </div>
         ) : (
@@ -581,7 +593,7 @@ const HomePage = () => {
               type="button"
               className="home-qr-close"
               onClick={() => setAddressQrOpen(false)}
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               ×
             </button>
@@ -592,7 +604,7 @@ const HomePage = () => {
               />
             </div>
             <p id="home-qr-heading" className="home-qr-hint">
-              Copy your address or scan this QR code
+              {t("home.addressQrHint")}
             </p>
             <div className="home-qr-address" title={currentAccount}>
               <span className="home-qr-address-text">
@@ -604,8 +616,8 @@ const HomePage = () => {
               className="home-qr-copy"
               onClick={() => {
                 navigator.clipboard.writeText(currentAccount).then(
-                  () => toast.success("Address copied"),
-                  () => toast.error("Copy failed")
+                  () => toast.success(t("common.addressCopied")),
+                  () => toast.error(t("common.copyFailed"))
                 );
               }}
             >
@@ -624,7 +636,7 @@ const HomePage = () => {
                 <rect x="9" y="9" width="13" height="13" rx="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
-              Copy address
+              {t("common.copyAddress")}
             </button>
           </div>
         </div>
@@ -647,7 +659,7 @@ const HomePage = () => {
               type="button"
               className="home-qr-close"
               onClick={() => setDonateQrOpen(false)}
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               ×
             </button>
@@ -658,7 +670,7 @@ const HomePage = () => {
               />
             </div>
             <p id="home-donate-qr-heading" className="home-qr-hint">
-              Copy your donate address or scan this QR code
+              {t("home.donateQrHint")}
             </p>
             <div className="home-qr-address" title={donateAddress}>
               <span className="home-qr-address-text">
@@ -670,8 +682,8 @@ const HomePage = () => {
               className="home-qr-copy"
               onClick={() => {
                 navigator.clipboard.writeText(donateAddress).then(
-                  () => toast.success("Address copied"),
-                  () => toast.error("Copy failed")
+                  () => toast.success(t("common.addressCopied")),
+                  () => toast.error(t("common.copyFailed"))
                 );
               }}
             >
@@ -690,20 +702,23 @@ const HomePage = () => {
                 <rect x="9" y="9" width="13" height="13" rx="2" />
                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
               </svg>
-              Copy address
+              {t("common.copyAddress")}
             </button>
           </div>
         </div>
       )}
 
-      <footer className="home-footer" aria-label="Site links">
+      <footer className="home-footer" aria-label={t("home.footerSiteLinks")}>
         <div className="home-footer-inner">
-          <nav className="home-footer-links" aria-label="External links">
+          <nav
+            className="home-footer-links"
+            aria-label={t("home.footerExternalLinks")}
+          >
             <button
               type="button"
               className="home-footer-link home-footer-version"
               data-tooltip={`v${APP_VERSION}`}
-              aria-label="Version"
+              aria-label={t("home.footerVersion")}
             >
               <svg
                 className="home-footer-icon"
@@ -718,7 +733,7 @@ const HomePage = () => {
                 />
               </svg>
               <span className="home-footer-link-text home-footer-version-text">
-                Version
+                {t("home.footerVersion")}
               </span>
             </button>
             <a
@@ -817,7 +832,8 @@ const HomePage = () => {
                 />
               </svg>
               <span className="home-footer-link-text">
-                Donate <span className="home-footer-address">{scheme}</span>
+                {t("home.footerDonate")}{" "}
+                <span className="home-footer-address">{scheme}</span>
               </span>
             </button>
           </nav>

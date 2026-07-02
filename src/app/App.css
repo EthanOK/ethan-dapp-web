@@ -155,6 +155,88 @@
   display: block;
 }
 
+/* Header locale menu */
+.app-header-locale-wrap {
+  position: relative;
+  margin-right: 6px;
+}
+
+.app-header-locale-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  background: var(--w3-bg-card);
+  color: var(--w3-text);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    color 0.2s,
+    background 0.2s;
+}
+
+.app-header-locale-toggle:hover {
+  border-color: var(--w3-border-accent);
+  color: var(--w3-accent);
+  background: var(--w3-bg-hover);
+}
+
+.app-header-locale-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.app-header-locale-icon svg {
+  display: block;
+}
+
+.app-header-locale-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 1200;
+  min-width: 148px;
+  padding: 4px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  background: var(--w3-bg-elevated);
+  box-shadow: var(--w3-shadow-md, 0 8px 24px rgba(0, 0, 0, 0.18));
+}
+
+.app-header-locale-option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: calc(var(--w3-radius-sm) - 2px);
+  background: transparent;
+  color: var(--w3-text);
+  font-family: var(--w3-font-sans);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.app-header-locale-option:hover {
+  background: var(--w3-bg-hover);
+  color: var(--w3-accent);
+}
+
+.app-header-locale-option.is-active {
+  background: var(--w3-bg-hover);
+  color: var(--w3-accent);
+  font-weight: 600;
+}
+
 /* Header theme toggle */
 .app-header-theme-toggle {
   display: flex;
@@ -177,11 +259,19 @@
 .app-header-theme-toggle:hover {
   border-color: var(--w3-border-accent);
   background: var(--w3-bg-hover);
+  color: var(--w3-accent);
 }
 
 .app-header-theme-icon {
-  font-size: 1.1rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--w3-text-muted);
+  transition: color 0.2s;
+}
+
+.app-header-theme-toggle:hover .app-header-theme-icon {
+  color: var(--w3-accent);
 }
 
 .app-header-network-label {
@@ -944,14 +1034,29 @@ body.app-menu-open {
     flex-wrap: nowrap;
   }
 
+  .app-header-locale-wrap {
+    margin-right: 4px;
+  }
+
+  .app-header-locale-toggle {
+    width: 32px;
+    height: 32px;
+  }
+
+  .app-header-locale-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
   .app-header-theme-toggle {
     width: 32px;
     height: 32px;
     margin-right: 0;
   }
 
-  .app-header-theme-icon {
-    font-size: 1rem;
+  .app-header-theme-icon svg {
+    width: 16px;
+    height: 16px;
   }
 
   .app-header-network-label {

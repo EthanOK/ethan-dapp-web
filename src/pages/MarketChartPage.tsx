@@ -26,6 +26,7 @@ import {
   type OHLCPoint,
   type CoinRouteState
 } from "@/lib/price/CoinGeckoApi";
+import { useI18n, type TranslationKey } from "@/i18n";
 import "./MarketChartPage.css";
 
 const SPOT_POLL_MS = 30000;
@@ -185,10 +186,13 @@ function formatTokenSupply(num: number | null | undefined): string {
   return num.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
 
-function formatDateTime(iso: string | null | undefined): string {
+function formatDateTime(
+  iso: string | null | undefined,
+  dateLocale: string
+): string {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString("en-US", {
+    return new Date(iso).toLocaleString(dateLocale, {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -199,6 +203,11 @@ function formatDateTime(iso: string | null | undefined): string {
     return iso;
   }
 }
+
+type TranslateFn = (
+  key: TranslationKey,
+  params?: Record<string, string>
+) => string;
 
 type MarketStatItem = {
   label: string;
@@ -215,26 +224,28 @@ type MarketStatSection = {
 
 function buildMarketStatSections(
   data: CoinMarketData,
-  symbol: string
+  symbol: string,
+  t: TranslateFn,
+  dateLocale: string
 ): MarketStatSection[] {
   return [
     {
-      title: "Valuation & Supply",
+      title: t("marketChart.valuationSupply"),
       columns: 3,
       items: [
         {
-          label: "Fully Diluted",
+          label: t("marketChart.fullyDilated"),
           value: formatMarketCap(data.fullyDilutedValuation)
         },
         {
-          label: "Circulating",
+          label: t("marketChart.circulating"),
           value:
             data.circulatingSupply != null
               ? `${formatTokenSupply(data.circulatingSupply)} ${symbol}`
               : "—"
         },
         {
-          label: "Total / Max",
+          label: t("marketChart.totalMax"),
           value:
             data.totalSupply != null && data.maxSupply != null
               ? `${formatTokenSupply(data.totalSupply)} / ${formatTokenSupply(data.maxSupply)}`
@@ -245,26 +256,26 @@ function buildMarketStatSections(
       ]
     },
     {
-      title: "Price History",
+      title: t("marketChart.priceHistory"),
       columns: 2,
       items: [
         {
-          label: "All-Time High",
+          label: t("marketChart.ath"),
           value: formatPrice(data.ath),
           sub: [
             formatPct(data.athChangePercentage),
-            formatDateTime(data.athDate)
+            formatDateTime(data.athDate, dateLocale)
           ]
             .filter((s) => s !== "—")
             .join(" · "),
           tone: "down"
         },
         {
-          label: "All-Time Low",
+          label: t("marketChart.atl"),
           value: formatPrice(data.atl),
           sub: [
             formatPct(data.atlChangePercentage),
-            formatDateTime(data.atlDate)
+            formatDateTime(data.atlDate, dateLocale)
           ]
             .filter((s) => s !== "—")
             .join(" · "),
@@ -275,25 +286,33 @@ function buildMarketStatSections(
   ];
 }
 
-const HERO_STRIP_METRICS = [
-  "Market Cap",
-  "24h Volume",
-  "24h High",
-  "24h Low"
-] as const;
+function getHeroStripMetrics(t: TranslateFn): string[] {
+  return [
+    t("marketChart.marketCap"),
+    t("marketChart.volume24h"),
+    t("marketChart.high24h"),
+    t("marketChart.low24h")
+  ];
+}
 
-const MARKET_STAT_LAYOUT = [
-  {
-    title: "Valuation & Supply",
-    columns: 3 as const,
-    labels: ["Fully Diluted", "Circulating", "Total / Max"]
-  },
-  {
-    title: "Price History",
-    columns: 2 as const,
-    labels: ["All-Time High", "All-Time Low"]
-  }
-];
+function getMarketStatLayout(t: TranslateFn) {
+  return [
+    {
+      title: t("marketChart.valuationSupply"),
+      columns: 3 as const,
+      labels: [
+        t("marketChart.fullyDilated"),
+        t("marketChart.circulating"),
+        t("marketChart.totalMax")
+      ]
+    },
+    {
+      title: t("marketChart.priceHistory"),
+      columns: 2 as const,
+      labels: [t("marketChart.ath"), t("marketChart.atl")]
+    }
+  ];
+}
 
 const Skeleton = ({ className = "" }: { className?: string }) => (
   <span
@@ -349,6 +368,8 @@ const MarketHero = ({
   marketData: CoinMarketData | null;
   loading: boolean;
 }) => {
+  const { t } = useI18n();
+  const heroStripMetrics = getHeroStripMetrics(t);
   const name = quote?.name ?? marketData?.name ?? coinId;
   const symbol = (quote?.symbol ?? marketData?.symbol ?? coinId).toUpperCase();
   const image = quote?.image ?? marketData?.image;
@@ -369,7 +390,7 @@ const MarketHero = ({
   return (
     <section
       className="marketchart-hero"
-      aria-label="Market overview"
+      aria-label={t("marketChart.overview")}
       aria-busy={loading && !stripReady}
     >
       <div className="marketchart-hero-main">
@@ -450,7 +471,9 @@ const MarketHero = ({
                     <span className="marketchart-hero-change-pct">
                       {change}
                     </span>
-                    <span className="marketchart-hero-change-period">24h</span>
+                    <span className="marketchart-hero-change-period">
+                      {t("marketChart.change24h")}
+                    </span>
                   </span>
                 )}
               </FadeValue>
@@ -460,7 +483,7 @@ const MarketHero = ({
       </div>
       {(loading || stripReady) && (
         <div className="marketchart-hero-strip">
-          {HERO_STRIP_METRICS.map((label, index) => (
+          {heroStripMetrics.map((label, index) => (
             <div key={label} className="marketchart-hero-metric">
               <span className="marketchart-hero-metric-label">{label}</span>
               <FadeValue
@@ -496,26 +519,35 @@ const MarketStatsGrid = ({
   symbol: string;
   loading: boolean;
 }) => {
+  const { t, dateLocale } = useI18n();
   const ready = data != null;
-  const sections = ready ? buildMarketStatSections(data, symbol) : null;
+  const sections = ready
+    ? buildMarketStatSections(data, symbol, t, dateLocale)
+    : null;
+  const layout = getMarketStatLayout(t);
 
   if (!loading && !ready) return null;
 
   return (
     <div
       className="marketchart-stats"
-      aria-label="Market statistics"
+      aria-label={t("marketChart.statistics")}
       aria-busy={loading && !ready}
     >
-      {MARKET_STAT_LAYOUT.map((layout, sectionIndex) => {
+      {layout.map((sectionLayout, sectionIndex) => {
         const section = sections?.[sectionIndex];
         return (
-          <section key={layout.title} className="marketchart-stats-section">
-            <h2 className="marketchart-stats-section-title">{layout.title}</h2>
+          <section
+            key={sectionLayout.title}
+            className="marketchart-stats-section"
+          >
+            <h2 className="marketchart-stats-section-title">
+              {sectionLayout.title}
+            </h2>
             <div
-              className={`marketchart-stats-grid marketchart-stats-grid--cols-${layout.columns}`}
+              className={`marketchart-stats-grid marketchart-stats-grid--cols-${sectionLayout.columns}`}
             >
-              {layout.labels.map((label, itemIndex) => {
+              {sectionLayout.labels.map((label, itemIndex) => {
                 const item = section?.items[itemIndex];
                 return (
                   <div key={label} className="marketchart-stat">
@@ -533,7 +565,7 @@ const MarketStatsGrid = ({
                           </span>
                         )}
                       </FadeValue>
-                      {layout.columns === 2 && (
+                      {sectionLayout.columns === 2 && (
                         <FadeValue
                           ready={ready && Boolean(item?.sub)}
                           skeletonClass="marketchart-sk-badge"
@@ -556,13 +588,13 @@ const MarketStatsGrid = ({
         );
       })}
       <p className="marketchart-stats-updated">
-        Last updated{" "}
+        {t("common.dataLastUpdated")}{" "}
         <FadeValue
           ready={ready && Boolean(data?.lastUpdated)}
           skeletonClass="marketchart-sk-updated-inline"
           inline
         >
-          {data?.lastUpdated && formatDateTime(data.lastUpdated)}
+          {data?.lastUpdated && formatDateTime(data.lastUpdated, dateLocale)}
         </FadeValue>
       </p>
     </div>
@@ -636,6 +668,7 @@ interface CachedOHLC {
 }
 
 const MarketChartPage = () => {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1349,12 +1382,12 @@ const MarketChartPage = () => {
         }
       } catch (e: unknown) {
         if (e instanceof DOMException && e.name === "AbortError") return;
-        setError(e instanceof Error ? e.message : "Failed to load data");
+        setError(e instanceof Error ? e.message : t("marketChart.loadFailed"));
       } finally {
         setIsLoading(false);
       }
     },
-    [coinId, chartType, applySeriesData, applyOHLCData]
+    [coinId, chartType, applySeriesData, applyOHLCData, t]
   );
 
   const refreshSpotPrice = useCallback(async () => {
@@ -1612,10 +1645,13 @@ const MarketChartPage = () => {
   if (!coinId) {
     return (
       <div className="marketchart-page main-app">
-        <div className="marketchart-error">Invalid coin ID</div>
+        <div className="marketchart-error">{t("marketChart.invalidCoin")}</div>
       </div>
     );
   }
+
+  const chartTypeLabel =
+    chartType === "area" ? t("marketChart.area") : t("marketChart.candlestick");
 
   return (
     <div className="marketchart-page main-app">
@@ -1624,7 +1660,7 @@ const MarketChartPage = () => {
         className="marketchart-back"
         onClick={() => navigate("/markets")}
       >
-        &larr; Market
+        {t("marketChart.back")}
       </button>
 
       <MarketHero
@@ -1660,7 +1696,7 @@ const MarketChartPage = () => {
             className="marketchart-tab marketchart-type-btn"
             onClick={() => setChartTypeOpen((v) => !v)}
           >
-            {chartType === "area" ? "Area" : "K-Line"}
+            {chartTypeLabel}
             <svg
               className={`marketchart-type-arrow ${chartTypeOpen ? "open" : ""}`}
               width={10}
@@ -1688,7 +1724,7 @@ const MarketChartPage = () => {
                   setChartTypeOpen(false);
                 }}
               >
-                Area
+                {t("marketChart.area")}
               </button>
               <button
                 type="button"
@@ -1698,7 +1734,7 @@ const MarketChartPage = () => {
                   setChartTypeOpen(false);
                 }}
               >
-                K-Line
+                {t("marketChart.candlestick")}
               </button>
             </div>
           )}
@@ -1739,7 +1775,7 @@ const MarketChartPage = () => {
                   className="marketchart-tab marketchart-tab--compact marketchart-type-btn"
                   onClick={() => setChartTypeOpen((v) => !v)}
                 >
-                  {chartType === "area" ? "Area" : "K-Line"}
+                  {chartTypeLabel}
                   <svg
                     className={`marketchart-type-arrow ${chartTypeOpen ? "open" : ""}`}
                     width={10}
@@ -1767,7 +1803,7 @@ const MarketChartPage = () => {
                         setChartTypeOpen(false);
                       }}
                     >
-                      Area
+                      {t("marketChart.area")}
                     </button>
                     <button
                       type="button"
@@ -1777,7 +1813,7 @@ const MarketChartPage = () => {
                         setChartTypeOpen(false);
                       }}
                     >
-                      K-Line
+                      {t("marketChart.candlestick")}
                     </button>
                   </div>
                 )}
@@ -1787,7 +1823,7 @@ const MarketChartPage = () => {
               type="button"
               className="marketchart-landscape-exit"
               onClick={closeLandscape}
-              aria-label="缩小退出横屏"
+              aria-label={t("marketChart.landscapeExit")}
             >
               <ChartShrinkIcon />
             </button>
@@ -1798,7 +1834,7 @@ const MarketChartPage = () => {
             type="button"
             className="marketchart-landscape-enter"
             onClick={() => void openLandscape()}
-            aria-label="放大横屏查看"
+            aria-label={t("marketChart.landscapeEnter")}
           >
             <ChartExpandIcon />
           </button>
@@ -1869,7 +1905,7 @@ const MarketChartPage = () => {
               className="marketchart-error-retry"
               onClick={() => loadData(activeRange)}
             >
-              Retry
+              {t("marketChart.retry")}
             </button>
           </div>
         )}

@@ -68,6 +68,7 @@ import { isAddress } from "@/lib/shared/Utils";
 import { getProvider, getSigner } from "@/lib/wallet/GetProvider";
 import { SwapTokenPickerModal } from "@/components/swap/SwapTokenPickerModal";
 import { showSwapTxToast } from "@/components/swap/SwapTxToast";
+import { useI18n } from "@/i18n";
 import "./SwapPage.css";
 
 const BRIC_SWAP_TAGLINE =
@@ -193,6 +194,7 @@ function formatExchangeRate(
 }
 
 const SwapPage = () => {
+  const { t } = useI18n();
   const { address, isConnected } = useEvmWallet();
   const { chainIdCurrent } = useWalletChain();
   const { openConnectModal, isConnecting } = useOpenAppKitModal();
@@ -806,7 +808,7 @@ const SwapPage = () => {
     try {
       const signer = await getSigner();
       if (!signer) {
-        toast.error("请先连接钱包");
+        toast.error(t("error.connectWallet"));
         return;
       }
 

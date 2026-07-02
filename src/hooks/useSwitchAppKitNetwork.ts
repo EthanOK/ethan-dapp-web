@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { tGlobal } from "@/i18n";
 import { getDefaultNetwork, modal } from "@/app/Wallet";
 
 export function dispatchAppNetworkChanged(chainId: number | string) {
@@ -52,7 +53,7 @@ export function useSwitchAppKitNetwork() {
         return false;
       } catch (error) {
         console.error("Failed to switch chain:", error);
-        toast.error("切换链失败，请手动切换");
+        toast.error(tGlobal("error.switchChain"));
         return false;
       } finally {
         setIsSwitching(false);
