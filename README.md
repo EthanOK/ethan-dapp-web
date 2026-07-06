@@ -70,7 +70,7 @@ Copy `.env.example` to `.env`. Common variables:
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown / WalletConnect project id
 - `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
 
-Backend API base URL is configured in `src/config/SystemConfiguration.ts` (`React_Serve_Back`, default `https://ethan-dapp.onrender.com/`). The backend service is not in this repo.
+Backend API base URL is configured in `src/config/SystemConfiguration.ts` (`React_Serve_Back`, default `https://ethan-dapp.onrender.com`). The backend service is not in this repo.
 
 ## Docker
 
