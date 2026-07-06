@@ -13,6 +13,7 @@ declare global {
       "appkit-button": React.DetailedHTMLProps<
         React.HTMLAttributes<HTMLElement> & {
           label?: string;
+          balance?: "show" | "hide";
           onClick?: () => void;
         },
         HTMLElement

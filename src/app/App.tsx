@@ -88,8 +88,13 @@ function HeaderLocaleMenu() {
         setOpen(false);
       }
     };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
+    const timerId = window.setTimeout(() => {
+      document.addEventListener("pointerdown", onPointerDown);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [open]);
 
   const selectLocale = (next: AppLocale) => {
@@ -304,7 +309,7 @@ function App() {
             </button>
             <Suspense
               fallback={
-                <div className="w3-connect-wrap">
+                <div className="app-header-wallet-controls">
                   <span className="app-header-network-label">Network</span>
                 </div>
               }

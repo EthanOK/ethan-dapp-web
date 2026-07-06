@@ -1,0 +1,1 @@
+import{i as e,z as t}from"./react-CNhvjCoW.js";function n(){return{connection:e(t.state).connection}}export{n as t};
