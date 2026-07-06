@@ -9,6 +9,7 @@ import {
 } from "@/config/SystemConfiguration";
 import { getScanURL, equalityStringIgnoreCase } from "@/lib/shared/Utils";
 import { faucetConfig } from "@/config/FaucetConfig";
+import { tGlobal } from "@/i18n";
 
 function getSwapCallData(account: string, amount: string): string {
   const YGMEInterface = new Interface(YGMEABI);
@@ -28,7 +29,7 @@ export const mintNFT = async (
 
   const defaultIdNum = DefaultChainId != null ? Number(DefaultChainId) : 0;
   if (chainId == null || Number(chainId) !== defaultIdNum) {
-    alert("only sepolia");
+    alert(tGlobal("mintNft.sepoliaOnly"));
     return [null, null];
   }
 
@@ -60,7 +61,7 @@ export const mintNFT = async (
     console.log(error);
     const e = error as { code?: string; message?: string };
     if (equalityStringIgnoreCase(String(e?.code ?? ""), "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+      alert(tGlobal("common.txRejected"));
     }
     if (Number(e?.code) === -32000) {
       alert(e?.message);
@@ -110,7 +111,7 @@ export const signEIP712MessageMintNft = async (
     console.log(error);
     const e = error as { code?: string; message?: string };
     if (equalityStringIgnoreCase(String(e?.code ?? ""), "ACTION_REJECTED")) {
-      alert("User Rejected Transaction");
+      alert(tGlobal("common.txRejected"));
     }
     if (Number(e?.code) === -32000) {
       alert(e?.message);

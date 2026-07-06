@@ -2,6 +2,7 @@ import { parseUnits } from "ethers";
 import { toast } from "sonner";
 import { getScanTxURL } from "@/lib/shared/Utils";
 import { IS_DEVELOPMENT } from "@/config/SystemConfiguration";
+import { useI18n } from "@/i18n";
 import "./SwapTxToast.css";
 
 const TOAST_AMOUNT_MAX_FRAC = 6;
@@ -95,6 +96,7 @@ function SwapTxToast({
   txUrl,
   onDismiss
 }: SwapTxToastProps) {
+  const { t } = useI18n();
   return (
     <div className="swap-tx-toast" role="status" aria-live="polite">
       <div className="swap-tx-toast-accent" aria-hidden />
@@ -112,13 +114,13 @@ function SwapTxToast({
           </div>
           <div className="swap-tx-toast-heading">
             <p className="swap-tx-toast-title">{title}</p>
-            <p className="swap-tx-toast-subtitle">Transaction confirmed</p>
+            <p className="swap-tx-toast-subtitle">{t("swap.txConfirmed")}</p>
           </div>
           <button
             type="button"
             className="swap-tx-toast-close"
             onClick={onDismiss}
-            aria-label="Dismiss"
+            aria-label={t("common.close")}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path
@@ -165,7 +167,7 @@ function SwapTxToast({
           rel="noopener noreferrer"
           onClick={onDismiss}
         >
-          View transaction
+          {t("swap.viewTransaction")}
           <svg
             viewBox="0 0 24 24"
             fill="none"

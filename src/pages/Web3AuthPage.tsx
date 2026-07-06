@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { stringifyJson } from "@/lib/shared/Format";
 import { BrowserProvider, formatEther } from "ethers";
 import { initEthereumWeb3Auth } from "@/lib/web3auth/ethereumWeb3Auth";
+import { useI18n } from "@/i18n";
 
 const Web3AuthPage = () => {
+  const { t } = useI18n();
   const [provider, setProvider] = useState<unknown>(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -24,11 +26,11 @@ const Web3AuthPage = () => {
         setIsReady(true);
       } catch (error) {
         console.error(error);
-        uiConsole({ error: "Web3Auth initModal failed", detail: error });
+        uiConsole({ error: t("web3auth.initFailed"), detail: error });
       }
     };
     init();
-  }, []);
+  }, [t]);
 
   const loginHandler = async () => {
     if (isConnecting) return;
@@ -40,7 +42,7 @@ const Web3AuthPage = () => {
       if (web3auth.connected) setLoggedIn(true);
     } catch (error) {
       console.error(error);
-      uiConsole({ error: "Web3Auth connect failed", detail: error });
+      uiConsole({ error: t("web3auth.connectFailed"), detail: error });
     } finally {
       setIsConnecting(false);
     }
@@ -56,7 +58,7 @@ const Web3AuthPage = () => {
     await web3auth.logout();
     setProvider(null);
     setLoggedIn(false);
-    uiConsole("logged out");
+    uiConsole(t("common.loggedOut"));
   };
 
   const getUserInfo = async () => {
@@ -67,7 +69,7 @@ const Web3AuthPage = () => {
 
   const getAccounts = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      uiConsole(t("common.providerNotReady"));
       return;
     }
     const signer = await getSigner();
@@ -77,7 +79,7 @@ const Web3AuthPage = () => {
 
   const getBalance = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      uiConsole(t("common.providerNotReady"));
       return;
     }
     const signer = await getSigner();
@@ -88,7 +90,7 @@ const Web3AuthPage = () => {
 
   const signMessage = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      uiConsole(t("common.providerNotReady"));
       return;
     }
     const signer = await getSigner();
@@ -98,7 +100,7 @@ const Web3AuthPage = () => {
 
   const getPrivateKey = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      uiConsole(t("common.providerNotReady"));
       return;
     }
     const pkProvider = provider as {
@@ -110,7 +112,7 @@ const Web3AuthPage = () => {
 
   const signSnapShot = async () => {
     if (!provider) {
-      uiConsole("web3auth not initialized yet");
+      uiConsole(t("common.web3authNotReady"));
       return;
     }
     const [{ Wallet }, { Web3Provider }, { signSetAlias }] = await Promise.all([
@@ -137,13 +139,13 @@ const Web3AuthPage = () => {
             rel="noreferrer"
             style={{ color: "inherit" }}
           >
-            Web3Auth
+            {t("web3auth.title")}
           </a>
         </h1>
-        <p>Social / email login for Ethereum</p>
+        <p>{t("web3auth.subtitleEth")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Actions</h3>
+        <h3>{t("common.actions")}</h3>
         <div
           className="feature-actions"
           style={{ flexDirection: "column", alignItems: "flex-start" }}
@@ -155,49 +157,49 @@ const Web3AuthPage = () => {
                 onClick={getUserInfo}
                 className="cta-button mint-nft-button"
               >
-                Get User Info
+                {t("web3auth.getUserInfo")}
               </button>
               <button
                 type="button"
                 onClick={getAccounts}
                 className="cta-button mint-nft-button"
               >
-                Get Accounts
+                {t("web3auth.getAccounts")}
               </button>
               <button
                 type="button"
                 onClick={getBalance}
                 className="cta-button mint-nft-button"
               >
-                Get Balance
+                {t("web3auth.getBalance")}
               </button>
               <button
                 type="button"
                 onClick={signMessage}
                 className="cta-button mint-nft-button"
               >
-                Sign Message
+                {t("web3auth.signMessage")}
               </button>
               <button
                 type="button"
                 onClick={getPrivateKey}
                 className="cta-button mint-nft-button"
               >
-                Get PrivateKey
+                {t("web3auth.getPrivateKey")}
               </button>
               <button
                 type="button"
                 onClick={signSnapShot}
                 className="cta-button mint-nft-button"
               >
-                Sign SnapShot
+                {t("web3auth.signSnapshot")}
               </button>
               <button
                 type="button"
                 onClick={logout}
                 className="cta-button mint-nft-button"
               >
-                Log Out
+                {t("common.logout")}
               </button>
             </>
           ) : (
@@ -209,23 +211,23 @@ const Web3AuthPage = () => {
               aria-disabled={!isReady || isConnecting}
               title={
                 !isReady
-                  ? "Web3Auth 正在初始化…"
+                  ? t("web3auth.initTitle")
                   : isConnecting
-                    ? "正在打开登录…"
-                    : "Login"
+                    ? t("web3auth.openingLogin")
+                    : t("common.login")
               }
             >
               {!isReady
-                ? "Initializing..."
+                ? t("common.initializing")
                 : isConnecting
-                  ? "Connecting..."
-                  : "Login"}
+                  ? t("common.connecting")
+                  : t("common.login")}
             </button>
           )}
         </div>
         {consoleOutput && (
           <div className="feature-field" style={{ marginTop: 16 }}>
-            <label>Output</label>
+            <label>{t("common.output")}</label>
             <pre
               style={{
                 margin: 0,

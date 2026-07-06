@@ -4,11 +4,13 @@ import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import { TBVersion, TokenboundClient } from "@tokenbound/sdk";
 import { Contract, Signer } from "ethers";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 const url_iframe = "https://iframe-tokenbound.vercel.app";
 
 const ERC6551Page = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [contract, setContract] = useState("");
   const [tokenId, setTokenId] = useState("");
@@ -61,13 +63,13 @@ const ERC6551Page = () => {
 
   const getTBAHandler = async () => {
     const c = contract.trim();
-    const t = tokenId.trim();
+    const tokenIdTrimmed = tokenId.trim();
     if (!isAddress(c)) {
-      toast.error("Contract is not a valid address");
+      toast.error(t("erc6551.invalidContract"));
       return;
     }
-    if (t === "") {
-      toast.error("Token ID is required");
+    if (tokenIdTrimmed === "") {
+      toast.error(t("erc6551.tokenIdRequired"));
       return;
     }
     try {
@@ -76,7 +78,7 @@ const ERC6551Page = () => {
       const tokenboundClient = await getTokenboundClient(signer, chainId);
       const account = tokenboundClient.getAccount({
         tokenContract: c as `0x${string}`,
-        tokenId: t
+        tokenId: tokenIdTrimmed
       });
       setTbAccount(account);
       const isCreate = await tokenboundClient.checkAccountDeployment({
@@ -84,24 +86,24 @@ const ERC6551Page = () => {
       });
       setCreated(String(isCreate));
       if (isCreate) {
-        setSrcIframe(`${url_iframe}/${c}/${t}/${chainId}`);
+        setSrcIframe(`${url_iframe}/${c}/${tokenIdTrimmed}/${chainId}`);
       } else {
         setSrcIframe(null);
       }
     } catch (error) {
-      toast.error((error as Error)?.message ?? "Failed");
+      toast.error((error as Error)?.message ?? t("common.failedGeneric"));
     }
   };
 
   const createHandler = async () => {
     const c = contractCreate.trim();
-    const t = tokenIdCreate.trim();
+    const tId = tokenIdCreate.trim();
     if (!isAddress(c)) {
-      toast.error("Contract is not a valid address");
+      toast.error(t("erc6551.invalidContract"));
       return;
     }
-    if (t === "") {
-      toast.error("Token ID is required");
+    if (tId === "") {
+      toast.error(t("erc6551.tokenIdRequired"));
       return;
     }
     try {
@@ -110,21 +112,21 @@ const ERC6551Page = () => {
       const tokenboundClient = await getTokenboundClient(signer, chainId);
       const account = tokenboundClient.getAccount({
         tokenContract: c as `0x${string}`,
-        tokenId: t
+        tokenId: tId
       });
       setTbAccount(account);
       const isCreate = await tokenboundClient.checkAccountDeployment({
         accountAddress: account
       });
       if (isCreate) {
-        toast("Account already created");
-        setSrcIframe(`${url_iframe}/${c}/${t}/${chainId}`);
+        toast(t("erc6551.accountAlreadyCreated"));
+        setSrcIframe(`${url_iframe}/${c}/${tId}/${chainId}`);
         return;
       }
       setSrcIframe(null);
       const multiCallTx_data = await tokenboundClient.prepareCreateAccount({
         tokenContract: c as `0x${string}`,
-        tokenId: t
+        tokenId: tId
       });
       const tx = await signer.sendTransaction(
         multiCallTx_data as Parameters<Signer["sendTransaction"]>[0]
@@ -134,18 +136,18 @@ const ERC6551Page = () => {
         const etherscanURL = await getScanURL();
         setHashURL(`${etherscanURL}/tx/${tx.hash}`);
         const result = await tx.wait();
-        if (result?.status === 1) toast.success("Success");
-        else toast.error("Failed");
+        if (result?.status === 1) toast.success(t("common.success"));
+        else toast.error(t("common.failed"));
       }
     } catch (error) {
-      toast.error((error as Error)?.message ?? "Failed");
+      toast.error((error as Error)?.message ?? t("common.failedGeneric"));
     }
   };
 
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>ERC-6551</h1>
+        <h1>{t("erc6551.title")}</h1>
         <p>
           <a
             href="https://docs.tokenbound.org/contracts/deployments"
@@ -153,14 +155,14 @@ const ERC6551Page = () => {
             rel="noreferrer"
             style={{ color: "var(--w3-accent)" }}
           >
-            Tokenbound v0.3.1
+            {t("erc6551.tokenboundVersion")}
           </a>
         </p>
       </section>
       <section className="feature-panel">
-        <h3>Get TBA</h3>
+        <h3>{t("erc6551.getTba")}</h3>
         <div className="feature-field">
-          <label htmlFor="erc6551-contract">Contract</label>
+          <label htmlFor="erc6551-contract">{t("common.contract")}</label>
           <input
             id="erc6551-contract"
             type="text"
@@ -173,7 +175,7 @@ const ERC6551Page = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="erc6551-tokenid">Token ID</label>
+          <label htmlFor="erc6551-tokenid">{t("common.tokenId")}</label>
           <input
             id="erc6551-tokenid"
             type="text"
@@ -191,12 +193,14 @@ const ERC6551Page = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Get TBA
+            {t("erc6551.getTba")}
           </button>
         </div>
         {tbAccount != null && (
           <div className="feature-field" style={{ marginTop: 12 }}>
-            <span className="feature-field-hint">TB Account: </span>
+            <span className="feature-field-hint">
+              {t("erc6551.tbAccount")}{" "}
+            </span>
             <span style={{ fontFamily: "var(--w3-font-mono)" }}>
               {tbAccount}
             </span>
@@ -204,15 +208,17 @@ const ERC6551Page = () => {
         )}
         {created != null && (
           <div className="feature-field">
-            <span className="feature-field-hint">Created: </span>
+            <span className="feature-field-hint">{t("erc6551.created")} </span>
             <span>{created}</span>
           </div>
         )}
       </section>
       <section className="feature-panel">
-        <h3>Create TBA</h3>
+        <h3>{t("erc6551.createTba")}</h3>
         <div className="feature-field">
-          <label htmlFor="erc6551-contract-create">Contract</label>
+          <label htmlFor="erc6551-contract-create">
+            {t("common.contract")}
+          </label>
           <input
             id="erc6551-contract-create"
             type="text"
@@ -225,7 +231,7 @@ const ERC6551Page = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="erc6551-tokenid-create">Token ID</label>
+          <label htmlFor="erc6551-tokenid-create">{t("common.tokenId")}</label>
           <input
             id="erc6551-tokenid-create"
             type="text"
@@ -243,12 +249,14 @@ const ERC6551Page = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Create TBA
+            {t("erc6551.createTba")}
           </button>
         </div>
         {tbAccount != null && (
           <div className="feature-field" style={{ marginTop: 12 }}>
-            <span className="feature-field-hint">TB Account: </span>
+            <span className="feature-field-hint">
+              {t("erc6551.tbAccount")}{" "}
+            </span>
             <span style={{ fontFamily: "var(--w3-font-mono)" }}>
               {tbAccount}
             </span>
@@ -256,13 +264,13 @@ const ERC6551Page = () => {
         )}
         {created != null && (
           <div className="feature-field">
-            <span className="feature-field-hint">Created: </span>
+            <span className="feature-field-hint">{t("erc6551.created")} </span>
             <span>{created}</span>
           </div>
         )}
         {txHash && hashURL && (
           <div className="feature-tx-link" style={{ marginTop: 12 }}>
-            <p>Tx</p>
+            <p>{t("common.tx")}</p>
             <a href={hashURL} target="_blank" rel="noopener noreferrer">
               {txHash}
             </a>
@@ -271,7 +279,7 @@ const ERC6551Page = () => {
       </section>
       {srcIframe != null && (
         <section className="feature-panel">
-          <h3>Tokenbound</h3>
+          <h3>{t("erc6551.tokenbound")}</h3>
           <iframe
             style={{
               width: "100%",
@@ -281,7 +289,7 @@ const ERC6551Page = () => {
               borderRadius: "var(--w3-radius-sm)"
             }}
             src={srcIframe}
-            title="Tokenbound"
+            title={t("erc6551.tokenbound")}
           />
         </section>
       )}

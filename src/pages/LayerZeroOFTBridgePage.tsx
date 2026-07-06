@@ -37,15 +37,17 @@ import {
   evmChainIdToLzV2SrcEndpointId,
   getLayerZeroScanLink
 } from "@/lib/evm/LayerZero";
+import { tGlobal, useI18n } from "@/i18n";
+import type { TranslationKey } from "@/i18n/locales/en";
 import "./LayerZeroOFTBridgePage.css";
 
 /** LayerZero V2 testnet dstEid presets (official EIDs) */
-const LZ_DST_EID_PRESETS: { label: string; eid: number }[] = [
-  { label: "Sepolia Testnet", eid: 40161 },
-  { label: "Hoodi Testnet", eid: 40449 },
-  { label: "Base Sepolia", eid: 40245 },
-  { label: "Arbitrum Sepolia", eid: 40231 },
-  { label: "BSC Testnet", eid: 40102 }
+const LZ_DST_EID_PRESETS: { key: TranslationKey; eid: number }[] = [
+  { key: "lz.preset.sepolia", eid: 40161 },
+  { key: "lz.preset.hoodi", eid: 40449 },
+  { key: "lz.preset.baseSepolia", eid: 40245 },
+  { key: "lz.preset.arbSepolia", eid: 40231 },
+  { key: "lz.preset.bscTestnet", eid: 40102 }
 ];
 
 /** Short line for toasts: source → destination, plus amount + token when known */
@@ -63,7 +65,7 @@ function formatLzBridgeRouteSummary(
     (srcChainId != null ? `chain ${srcChainId}` : "unknown chain");
 
   const dstPreset = LZ_DST_EID_PRESETS.find((p) => p.eid === dstEid);
-  const dstStr = dstPreset?.label ?? `dstEid ${dstEid}`;
+  const dstStr = dstPreset ? tGlobal(dstPreset.key) : `dstEid ${dstEid}`;
 
   let line = `${srcName} → ${dstStr}`;
   const sym = opts?.tokenSymbol?.trim();
@@ -180,7 +182,7 @@ const formatAllowanceForDisplay = (
   tokenDecimals: number
 ): string => {
   if (raw === MaxUint256) {
-    return "Unlimited (MaxUint256)";
+    return tGlobal("common.unlimitedAllowance");
   }
   try {
     return formatUnits(raw, tokenDecimals);
@@ -293,7 +295,7 @@ const formatBridgeContractError = (
 ): string => {
   const msg = err instanceof Error ? err.message : String(err);
   if (/user rejected|denied transaction|User denied/i.test(msg)) {
-    return "User rejected the signature";
+    return tGlobal("lz.userRejected");
   }
   const data = extractRevertHexData(err);
   const decoded = data ? decodeLayerZeroOftRevert(data, tokenDecimals) : null;
@@ -301,7 +303,7 @@ const formatBridgeContractError = (
   if (/cannot estimate gas|UNPREDICTABLE_GAS_LIMIT/i.test(msg)) {
     return `Cannot estimate gas (simulation may fail): ${msg}. Common causes: NoPeer, insufficient allowance, msg.value too low for nativeFee, or amount/decimals mismatch. Check peer and network, then retry; set Gas limit under Advanced if needed.`;
   }
-  return msg || "Operation failed";
+  return msg || tGlobal("lz.operationFailed");
 };
 
 type SendParamTuple = [number, string, bigint, bigint, string, string, string];
@@ -325,6 +327,7 @@ const buildSendParam = (
 ];
 
 const LayerZeroOFTBridgePage = () => {
+  const { t } = useI18n();
   const { address, isConnected } = useEvmWallet();
   const { chainIdNum: walletChainNum, chainIdCurrent } = useWalletChain();
   const { isConnecting: isConnectingWallet, openConnectModal } =
@@ -512,7 +515,7 @@ const LayerZeroOFTBridgePage = () => {
         await switchNetwork(cid);
       } catch (error) {
         console.error("Failed to switch chain:", error);
-        toast.error("切换链失败，请手动切换");
+        toast.error(t("error.switchChain"));
       }
     }
   };
@@ -520,7 +523,7 @@ const LayerZeroOFTBridgePage = () => {
   const switchToMetaChain = async (targetChainId: number): Promise<boolean> => {
     const targetName = metaChainLabel(targetChainId);
     const ok = await switchToChainAndWait(targetChainId, {
-      onMismatchMessage: `切换超时或未在 ${targetName}，请手动切换后重试`
+      onMismatchMessage: t("lz.switchTimeout", { chain: targetName })
     });
     if (ok) persistMetaChainId(targetChainId);
     return ok;
@@ -536,11 +539,11 @@ const LayerZeroOFTBridgePage = () => {
   const loadTokenMeta = async (options?: { silent?: boolean }) => {
     const silent = Boolean(options?.silent);
     if (!canReadMeta) {
-      toast.error("Enter a valid OFT / OFTAdapter contract address");
+      toast.error(t("lz.invalidOftAddress"));
       return;
     }
     if (!silent && !isConnected) {
-      toast.error("Connect a wallet first");
+      toast.error(t("lz.connectFirst"));
       return;
     }
     if (
@@ -550,7 +553,9 @@ const LayerZeroOFTBridgePage = () => {
       walletChainNum !== selectedSourceChainId
     ) {
       toast.error(
-        `Switch to ${getChainName(selectedSourceChainId)} before loading metadata`
+        t("lz.switchBeforeLoad", {
+          chain: getChainName(selectedSourceChainId)
+        })
       );
       return;
     }
@@ -565,9 +570,7 @@ const LayerZeroOFTBridgePage = () => {
     try {
       const provider = (await getProvider()) ?? getDefaultReadonlyProvider();
       if (!provider) {
-        toast.error(
-          "Cannot connect to RPC. Check the network or connect a wallet."
-        );
+        toast.error(t("lz.rpcFailed"));
         return;
       }
       const net = await provider.getNetwork();
@@ -626,18 +629,20 @@ const LayerZeroOFTBridgePage = () => {
           try {
             const req: boolean = await detect.approvalRequired();
             approvalHint = req
-              ? "(approve underlying token for the Adapter)"
-              : "(approvalRequired=false; still verify project documentation)";
+              ? t("lz.approveUnderlying")
+              : t("lz.approvalNotRequired");
           } catch {
-            approvalHint =
-              "(Adapter typically requires underlying token approval)";
+            approvalHint = t("lz.adapterApprovalHint");
           }
         }
         if (!silent) {
           toast.success(
             adapter
-              ? `Detected OFTAdapter; underlying token ${String(sym)}${approvalHint}`
-              : "Detected OFT (this contract is the bridged token)"
+              ? t("lz.detectedAdapter", {
+                  symbol: String(sym),
+                  hint: approvalHint
+                })
+              : t("lz.detectedOft")
           );
         }
       };
@@ -770,31 +775,29 @@ const LayerZeroOFTBridgePage = () => {
             resA[1]
           );
           if (req === true) {
-            approvalHint = "(approve underlying token for the Adapter)";
+            approvalHint = t("lz.approveUnderlying");
           } else if (req === false) {
-            approvalHint =
-              "(approvalRequired=false; still verify project documentation)";
+            approvalHint = t("lz.approvalNotRequired");
           } else {
-            approvalHint =
-              "(Adapter typically requires underlying token approval)";
+            approvalHint = t("lz.adapterApprovalHint");
           }
         }
 
         if (!silent) {
           toast.success(
             adapter
-              ? `Detected OFTAdapter; underlying token ${symLabel}`
-              : "Detected OFT (this contract is the bridged token)"
+              ? t("lz.detectedAdapter", {
+                  symbol: symLabel,
+                  hint: approvalHint
+                })
+              : t("lz.detectedOft")
           );
         }
       } catch {
         await runSequential();
       }
     } catch (e: unknown) {
-      toast.error(
-        formatBridgeContractError(e) ||
-          "Contract read failed (confirm this OFT exists on the current chain)"
-      );
+      toast.error(formatBridgeContractError(e) || t("lz.contractReadFailed"));
     } finally {
       setIsLoadingMeta(false);
     }
@@ -802,24 +805,24 @@ const LayerZeroOFTBridgePage = () => {
 
   const approveAdapter = async () => {
     if (!isAdapterMode || !underlyingAddress || !isAddress(underlyingAddress)) {
-      toast.error("Load OFTAdapter metadata first");
+      toast.error(t("lz.loadAdapterFirst"));
       return;
     }
     const signer = await getSigner();
     if (!signer) {
-      toast.error("Connect a wallet first");
+      toast.error(t("lz.connectFirst"));
       return;
     }
     setIsApproving(true);
     try {
       const erc20 = new Contract(underlyingAddress, ERC20_ABI, signer);
       const tx = await erc20.approve(oftTrimmed, MaxUint256);
-      toast.message("Submitting approval…");
+      toast.message(t("lz.submittingApproval"));
       await tx.wait();
-      toast.success("Approval confirmed");
+      toast.success(t("lz.approvalConfirmed"));
       await loadTokenMeta();
     } catch (e: unknown) {
-      toast.error(formatBridgeContractError(e) || "Approval failed");
+      toast.error(formatBridgeContractError(e) || t("lz.approvalFailed"));
     } finally {
       setIsApproving(false);
     }
@@ -830,12 +833,12 @@ const LayerZeroOFTBridgePage = () => {
    */
   const bridgeQuoteApproveSend = async () => {
     if (!canQuoteOrSend || decimals == null) {
-      toast.error("Complete the form and load token metadata first");
+      toast.error(t("lz.completeForm"));
       return;
     }
     const signer = await getSigner();
     if (!signer) {
-      toast.error("Connect a wallet first");
+      toast.error(t("lz.connectFirst"));
       return;
     }
 
@@ -844,11 +847,11 @@ const LayerZeroOFTBridgePage = () => {
     try {
       amountLD = getDecimalBigNumber(amt, decimals);
     } catch {
-      toast.error("Invalid amount format");
+      toast.error(t("lz.invalidAmount"));
       return;
     }
     if (amountLD <= 0n) {
-      toast.error("Amount must be greater than 0");
+      toast.error(t("lz.amountMustBePositive"));
       return;
     }
     if (tokenBalanceLD != null && amountLD > tokenBalanceLD) {
@@ -856,7 +859,7 @@ const LayerZeroOFTBridgePage = () => {
         balanceFormatted != null && symbol
           ? ` (${balanceFormatted} ${symbol})`
           : "";
-      toast.error(`Amount exceeds balance${balHint}`);
+      toast.error(t("lz.amountExceedsBalanceToast", { hint: balHint }));
       return;
     }
 
@@ -873,7 +876,7 @@ const LayerZeroOFTBridgePage = () => {
 
     const provider = (await getProvider()) ?? getDefaultReadonlyProvider();
     if (!provider) {
-      toast.error("Cannot connect to RPC");
+      toast.error(t("lz.cannotConnectRpc"));
       return;
     }
 
@@ -905,7 +908,7 @@ const LayerZeroOFTBridgePage = () => {
           );
           const approveTx = await erc20Signer.approve(oftTrimmed, amountLD);
           await approveTx.wait();
-          toast.success("Allowance confirmed");
+          toast.success(t("lz.allowanceConfirmed"));
         }
       }
 
@@ -951,14 +954,12 @@ const LayerZeroOFTBridgePage = () => {
         sendParam[0],
         { tokenSymbol: symbol, amount: amountStr.trim() }
       );
-      toast.message(`Submitting cross-chain transaction (${routeSummary})`);
+      toast.message(t("lz.submittingTx", { route: routeSummary }));
       const tx = await c.send(sendParam, feeTuple, refundAddress, {
         value: sendValue,
         gasLimit
       });
-      toast.message(
-        `Transaction submitted (${routeSummary}), waiting for confirmation…`
-      );
+      toast.message(t("lz.txSubmitted", { route: routeSummary }));
       const receipt = await tx.wait();
 
       const txHash = receipt.transactionHash;
@@ -968,9 +969,9 @@ const LayerZeroOFTBridgePage = () => {
       );
       toast.success(
         <span>
-          Bridge submitted:{" "}
+          {t("lz.bridgeSubmitted")}{" "}
           <a href={scanLink} target="_blank" rel="noreferrer">
-            View on LayerZero Scan
+            {t("lz.viewOnScan")}
           </a>
         </span>
       );
@@ -981,7 +982,9 @@ const LayerZeroOFTBridgePage = () => {
     } catch (e: unknown) {
       setLastBridgeScanLink(null);
       setLastBridgeTxHash(null);
-      toast.error(formatBridgeContractError(e, decimals) || "Bridge failed");
+      toast.error(
+        formatBridgeContractError(e, decimals) || t("lz.bridgeFailed")
+      );
     } finally {
       setIsBridgeOneClick(false);
     }
@@ -990,31 +993,31 @@ const LayerZeroOFTBridgePage = () => {
   return (
     <div className="feature-page main-app lz-bridge">
       <section className="feature-hero">
-        <h1>LayerZero OFT Bridge</h1>
+        <h1>{t("lz.title")}</h1>
 
         <p className="lz-bridge-hero-note">
-          Documentation:{" "}
+          {t("lz.docsLabel")}{" "}
           <a
             href="https://docs.layerzero.network/v2/developers/evm/oft/quickstart"
             target="_blank"
             rel="noreferrer"
           >
-            LayerZero V2 OFT Quickstart
+            {t("lz.docsLink")}
           </a>
         </p>
       </section>
 
       <section className="feature-panel">
-        <h3>Select Chain</h3>
+        <h3>{t("common.selectChain")}</h3>
         <div className="feature-field">
-          <label htmlFor="lz-source-chain">Chain</label>
+          <label htmlFor="lz-source-chain">{t("common.chain")}</label>
           <select
             id="lz-source-chain"
             className="app-header-network-select"
             style={{ width: "100%", maxWidth: "100%" }}
             value={selectedSourceChainId}
             onChange={(e) => void handleSourceChainSelectChange(e)}
-            aria-label="Select chain"
+            aria-label={t("common.selectChain")}
           >
             {faucetChainIdList.map((cid) => (
               <option key={cid} value={cid}>
@@ -1024,7 +1027,7 @@ const LayerZeroOFTBridgePage = () => {
           </select>
         </div>
         <p className="feature-field" style={{ marginBottom: 0 }}>
-          Current:{" "}
+          {t("common.current")}:{" "}
           <strong>
             {walletChainNum != null ? getChainName(walletChainNum) : "—"}
           </strong>
@@ -1032,10 +1035,10 @@ const LayerZeroOFTBridgePage = () => {
       </section>
 
       <section className="feature-panel">
-        <h3>OFT / OFTAdapter </h3>
+        <h3>{t("lz.oftSection")}</h3>
 
         <div className="feature-field">
-          <label htmlFor="lz-oft-addr">OFT or OFTAdapter address</label>
+          <label htmlFor="lz-oft-addr">{t("lz.oftAddress")}</label>
           <input
             id="lz-oft-addr"
             type="text"
@@ -1055,7 +1058,9 @@ const LayerZeroOFTBridgePage = () => {
               onClick={() => void openConnectModal()}
               disabled={isConnectingWallet}
             >
-              {isConnectingWallet ? "Connecting..." : "Connect Wallet"}
+              {isConnectingWallet
+                ? t("common.connecting")
+                : t("common.connectWallet")}
             </button>
           ) : needsMetaChainSwitch ? (
             <button
@@ -1079,10 +1084,12 @@ const LayerZeroOFTBridgePage = () => {
                       verticalAlign: "middle"
                     }}
                   />
-                  Switching...
+                  {t("common.switchingEllipsis")}
                 </>
               ) : (
-                `Switch to ${getChainName(selectedSourceChainId)}`
+                t("common.switchToChain", {
+                  chain: getChainName(selectedSourceChainId)
+                })
               )}
             </button>
           ) : (
@@ -1092,7 +1099,7 @@ const LayerZeroOFTBridgePage = () => {
               onClick={() => void loadTokenMeta()}
               disabled={!canReadMeta || isLoadingMeta}
             >
-              {isLoadingMeta ? "Loading…" : "Load OFT Metadata"}
+              {isLoadingMeta ? t("common.loading") : t("lz.loadMetadata")}
             </button>
           )}
         </div>
@@ -1100,11 +1107,12 @@ const LayerZeroOFTBridgePage = () => {
         {symbol != null && decimals != null && (
           <div className="feature-result" style={{ marginTop: 14 }}>
             <div>
-              Mode: <b>{isAdapterMode ? "OFTAdapter" : "OFT"}</b>
+              {t("lz.mode")}{" "}
+              <b>{isAdapterMode ? t("lz.oftAdapter") : t("lz.oft")}</b>
               {isAdapterMode && underlyingAddress && (
                 <>
                   <br />
-                  Underlying :{" "}
+                  {t("lz.underlying")}{" "}
                   <span
                     style={{
                       fontFamily: "var(--w3-font-mono)",
@@ -1117,24 +1125,22 @@ const LayerZeroOFTBridgePage = () => {
               )}
             </div>
             <div style={{ marginTop: 6 }}>
-              Name: <b>{symbol}</b>, decimals <b>{decimals}</b>
+              {t("lz.nameDecimals", { symbol, decimals: String(decimals) })}
               {balanceFormatted != null && (
-                <>
-                  , balance <b>{balanceFormatted}</b>
-                </>
+                <>{t("lz.balance", { balance: balanceFormatted })}</>
               )}
             </div>
             {isAdapterMode && allowance != null && address && (
               <div style={{ marginTop: 6, opacity: 0.9 }}>
-                Allowance to adapter:{" "}
+                {t("lz.allowanceToAdapter")}{" "}
                 <b>{formatAllowanceForDisplay(allowance, decimals)}</b>
                 <span> {symbol}</span>
                 {parsedAmountLD != null &&
                   allowance >= parsedAmountLD &&
-                  "(covers this amount)"}
+                  t("lz.coversAmount")}
                 {allowanceInsufficient && parsedAmountLD != null && (
                   <span style={{ color: "var(--lz-amber)", marginLeft: 8 }}>
-                    Insufficient for this bridge amount
+                    {t("lz.insufficientAllowance")}
                   </span>
                 )}
               </div>
@@ -1142,16 +1148,18 @@ const LayerZeroOFTBridgePage = () => {
           </div>
         )}
 
-        <h3 style={{ marginTop: 28 }}>Bridge parameters</h3>
+        <h3 style={{ marginTop: 28 }}>{t("lz.bridgeParams")}</h3>
 
         <div className="feature-field lz-bridge-param-main">
-          <label htmlFor="lz-amount">Amount</label>
+          <label htmlFor="lz-amount">{t("common.amount")}</label>
           <input
             id="lz-amount"
             type="text"
             value={amountStr}
             onChange={(e) => setAmountStr(e.target.value)}
-            placeholder={decimals != null ? "e.g. 1" : "Load decimals first"}
+            placeholder={
+              decimals != null ? "e.g. 1" : t("lz.loadDecimalsFirst")
+            }
             spellCheck={false}
             autoComplete="off"
             aria-invalid={amountExceedsBalance}
@@ -1165,7 +1173,7 @@ const LayerZeroOFTBridgePage = () => {
                 color: "var(--lz-amber)"
               }}
             >
-              Amount cannot exceed your balance
+              {t("lz.amountExceedsBalance")}
               {balanceFormatted != null && symbol != null && (
                 <>
                   {" "}
@@ -1178,12 +1186,9 @@ const LayerZeroOFTBridgePage = () => {
         </div>
 
         <div className="lz-bridge-rail" style={{ marginTop: 12 }}>
-          <div className="lz-bridge-rail-label">
-            Destination (LayerZero dstEid) · source is the connected wallet
-            network
-          </div>
+          <div className="lz-bridge-rail-label">{t("lz.destinationLabel")}</div>
           <div className="feature-field" style={{ marginBottom: 8 }}>
-            <label htmlFor="lz-dst-preset">Common EIDs</label>
+            <label htmlFor="lz-dst-preset">{t("lz.commonEids")}</label>
             <select
               id="lz-dst-preset"
               className="app-header-network-select"
@@ -1204,16 +1209,16 @@ const LayerZeroOFTBridgePage = () => {
                 }
               }}
             >
-              <option value="">Pick a preset (optional)</option>
+              <option value="">{t("lz.pickPreset")}</option>
               {dstPresetChoices.map((p) => (
                 <option key={p.eid} value={String(p.eid)}>
-                  {p.label}
+                  {t(p.key)}
                 </option>
               ))}
             </select>
           </div>
           <div className="feature-field" style={{ marginBottom: 0 }}>
-            <label htmlFor="lz-dst-eid">dstEid (uint32)</label>
+            <label htmlFor="lz-dst-eid">{t("lz.dstEid")}</label>
             <input
               id="lz-dst-eid"
               type="text"
@@ -1232,15 +1237,13 @@ const LayerZeroOFTBridgePage = () => {
               className="feature-field-hint"
               style={{ marginTop: 8, marginBottom: 0 }}
             >
-              {
-                "dstEid cannot match Select Chain’s LayerZero endpoint; pick another destination."
-              }
+              {t("lz.dstEidConflict")}
             </p>
           )}
         </div>
 
         <div className="feature-field">
-          <label htmlFor="lz-recipient">Recipient on destination (EVM)</label>
+          <label htmlFor="lz-recipient">{t("lz.recipient")}</label>
           <input
             id="lz-recipient"
             type="text"
@@ -1253,7 +1256,7 @@ const LayerZeroOFTBridgePage = () => {
         </div>
 
         <div className="feature-field">
-          <label htmlFor="lz-slippage">Slippage (basis points, 100 = 1%)</label>
+          <label htmlFor="lz-slippage">{t("lz.slippage")}</label>
           <input
             id="lz-slippage"
             type="text"
@@ -1265,11 +1268,11 @@ const LayerZeroOFTBridgePage = () => {
 
         <details className="lz-bridge-advanced">
           <summary className="lz-bridge-advanced-summary">
-            Advanced (optional)
+            {t("lz.advanced")}
           </summary>
 
           <div className="feature-field">
-            <label htmlFor="lz-extra">extraOptions (hex)</label>
+            <label htmlFor="lz-extra">{t("lz.extraOptions")}</label>
             <input
               id="lz-extra"
               type="text"
@@ -1279,7 +1282,7 @@ const LayerZeroOFTBridgePage = () => {
             />
           </div>
           <div className="feature-field">
-            <label htmlFor="lz-compose">composeMsg (hex)</label>
+            <label htmlFor="lz-compose">{t("lz.composeMsg")}</label>
             <input
               id="lz-compose"
               type="text"
@@ -1289,7 +1292,7 @@ const LayerZeroOFTBridgePage = () => {
             />
           </div>
           <div className="feature-field">
-            <label htmlFor="lz-oftcmd">oftCmd (hex)</label>
+            <label htmlFor="lz-oftcmd">{t("lz.oftCmd")}</label>
             <input
               id="lz-oftcmd"
               type="text"
@@ -1299,14 +1302,14 @@ const LayerZeroOFTBridgePage = () => {
             />
           </div>
           <div className="feature-field">
-            <label htmlFor="lz-send-gas">Gas limit (optional)</label>
+            <label htmlFor="lz-send-gas">{t("lz.gasLimit")}</label>
             <input
               id="lz-send-gas"
               type="text"
               inputMode="numeric"
               value={sendGasLimitInput}
               onChange={(e) => setSendGasLimitInput(e.target.value)}
-              placeholder="Empty: auto-estimate +30%"
+              placeholder={t("lz.gasLimitPlaceholder")}
               spellCheck={false}
             />
           </div>
@@ -1314,15 +1317,15 @@ const LayerZeroOFTBridgePage = () => {
 
         <div className="lz-fee-card">
           <div className="lz-fee-row">
-            <span className="lz-fee-label">nativeFee (wei)</span>
+            <span className="lz-fee-label">{t("lz.nativeFee")}</span>
             <span className="lz-fee-value">{nativeFee.toString()}</span>
           </div>
           <div className="lz-fee-row">
-            <span className="lz-fee-label">lzTokenFee</span>
+            <span className="lz-fee-label">{t("lz.lzTokenFee")}</span>
             <span className="lz-fee-value">{lzTokenFee.toString()}</span>
           </div>
           <div className="lz-fee-row">
-            <span className="lz-fee-label">send msg.value (= nativeFee)</span>
+            <span className="lz-fee-label">{t("lz.sendMsgValue")}</span>
             <span className="lz-fee-value lz-fee-value--warn">
               {nativeFee.toString()}
             </span>
@@ -1337,9 +1340,7 @@ const LayerZeroOFTBridgePage = () => {
                 lineHeight: 1.45
               }}
             >
-              Non-zero lzTokenFee: paying LayerZero fees in the native token may
-              require extra steps per your deployment (e.g. ZRO allowance or
-              payInLzToken). Confirm against your project docs.
+              {t("lz.lzTokenFeeHint")}
             </p>
           )}
         </div>
@@ -1355,9 +1356,9 @@ const LayerZeroOFTBridgePage = () => {
               isBridgeOneClick ||
               amountExceedsBalance
             }
-            title="OFTAdapter: approves exact allowance if needed, then quoteSend and send"
+            title={t("lz.bridgeTitle")}
           >
-            {isBridgeOneClick ? "Processing…" : "Bridge OFT Now"}
+            {isBridgeOneClick ? t("common.processing") : t("lz.bridgeNow")}
           </button>
           {lastBridgeScanLink != null && (
             <>
@@ -1369,18 +1370,16 @@ const LayerZeroOFTBridgePage = () => {
                   rel="noreferrer"
                   title={lastBridgeTxHash}
                 >
-                  LayerZero Scan: {truncateHash(lastBridgeTxHash)}
+                  {t("lz.scanLink", {
+                    hash: truncateHash(lastBridgeTxHash)
+                  })}
                 </a>
               )}
             </>
           )}
         </div>
 
-        <p className="lz-bridge-disclaimer">
-          Generic OFT / OFTAdapter (LayerZero V2 OFTCore) UI. Adapters interact
-          with the underlying ERC20 via <code>token()</code>. Delivery time
-          depends on DVNs and destination configuration.
-        </p>
+        <p className="lz-bridge-disclaimer">{t("lz.disclaimer")}</p>
       </section>
     </div>
   );

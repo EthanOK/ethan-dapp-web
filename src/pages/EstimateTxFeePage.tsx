@@ -4,10 +4,12 @@ import { getProvider } from "@/lib/wallet/GetProvider";
 import { estimateTxFee } from "@/lib/evm/EstimateTxFee";
 import { toast } from "sonner";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 
 const PLACEHOLDER_ADDRESS = "0xe698a7917eEE4fDf03296add549eE4A7167DD406";
 
 const EstimateTxFeePage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [from, setFrom] = useState(
@@ -39,16 +41,16 @@ const EstimateTxFeePage = () => {
 
   const estimateTxFeeHandler = async () => {
     if (!isAddress(from)) {
-      toast.error("from address is not valid");
+      toast.error(t("estimateTxFee.invalidFrom"));
       return;
     }
     if (to.length !== 0 && !isAddress(to)) {
-      toast.error("to address is not valid");
+      toast.error(t("estimateTxFee.invalidTo"));
       return;
     }
     const dataTrimmed = data.trim();
     if (dataTrimmed.length > 0 && !dataTrimmed.startsWith("0x")) {
-      toast.error("data must be hex (0x...) or empty");
+      toast.error(t("estimateTxFee.invalidData"));
       return;
     }
 
@@ -60,7 +62,7 @@ const EstimateTxFeePage = () => {
     try {
       const provider = await getProvider();
       if (!provider) {
-        toast.error("Provider not available");
+        toast.error(t("common.providerUnavailable"));
         return;
       }
       const res = await estimateTxFee(
@@ -73,7 +75,7 @@ const EstimateTxFeePage = () => {
       setResult(JSON.stringify(res, null, 2));
     } catch (err: unknown) {
       const e = err as { code?: string | number };
-      toast.error(String(e?.code ?? "Error"));
+      toast.error(String(e?.code ?? t("common.failed")));
     } finally {
       setIsLoading(false);
     }
@@ -82,14 +84,14 @@ const EstimateTxFeePage = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>Estimate TxFee</h1>
-        <p>Estimate gas and fee for a transaction before sending</p>
+        <h1>{t("estimateTxFee.title")}</h1>
+        <p>{t("estimateTxFee.subtitle")}</p>
       </section>
 
       <section className="feature-panel">
-        <h3>Transaction parameters</h3>
+        <h3>{t("estimateTxFee.params")}</h3>
         <div className="feature-field">
-          <label htmlFor="estimate-from">From (sender address)</label>
+          <label htmlFor="estimate-from">{t("estimateTxFee.from")}</label>
           <input
             id="estimate-from"
             type="text"
@@ -102,7 +104,7 @@ const EstimateTxFeePage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="estimate-to">To (receiver address, optional)</label>
+          <label htmlFor="estimate-to">{t("estimateTxFee.to")}</label>
           <input
             id="estimate-to"
             type="text"
@@ -115,7 +117,7 @@ const EstimateTxFeePage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="estimate-value">Value (ETH)</label>
+          <label htmlFor="estimate-value">{t("estimateTxFee.value")}</label>
           <input
             id="estimate-value"
             type="text"
@@ -127,7 +129,7 @@ const EstimateTxFeePage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="estimate-data">Data (hex, e.g. 0x)</label>
+          <label htmlFor="estimate-data">{t("estimateTxFee.data")}</label>
           <textarea
             id="estimate-data"
             value={data}
@@ -144,14 +146,16 @@ const EstimateTxFeePage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount || isLoading}
           >
-            {isLoading ? "Estimating…" : "Estimate tx fee"}
+            {isLoading
+              ? t("estimateTxFee.estimating")
+              : t("estimateTxFee.button")}
           </button>
         </div>
       </section>
 
       {result !== null && (
         <section className="feature-panel estimate-result-panel">
-          <h3>Result</h3>
+          <h3>{t("common.result")}</h3>
           <pre className="estimate-result-json">{result}</pre>
         </section>
       )}

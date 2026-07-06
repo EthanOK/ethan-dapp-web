@@ -21,6 +21,14 @@ import "./MarketListPage.css";
 type SortKey = "rank" | "name" | "price" | "change" | "volume" | "cap";
 type SortDir = "asc" | "desc";
 
+/** Keep symbol + full name on one row; cap long names with "...". */
+function formatTokenFullName(name: string, symbol: string): string {
+  const maxNameLen = Math.max(14, 36 - symbol.length);
+  const trimmed = name.trim();
+  if (trimmed.length <= maxNameLen) return trimmed;
+  return `${trimmed.slice(0, maxNameLen).trimEnd()}...`;
+}
+
 function compareNullableNum(
   a: number | null,
   b: number | null,
@@ -540,7 +548,9 @@ const MarketListPage = () => {
                     )}
                     <div className="market-list-name-text">
                       <span className="market-list-symbol">{item.symbol}</span>
-                      <span className="market-list-fullname">{item.name}</span>
+                      <span className="market-list-fullname" title={item.name}>
+                        {formatTokenFullName(item.name, item.symbol)}
+                      </span>
                     </div>
                     <MarketChangeValue
                       item={item}
@@ -695,7 +705,9 @@ const MarketListPage = () => {
                     )}
                     <div className="market-list-name-text">
                       <span className="market-list-symbol">{item.symbol}</span>
-                      <span className="market-list-fullname">{item.name}</span>
+                      <span className="market-list-fullname" title={item.name}>
+                        {formatTokenFullName(item.name, item.symbol)}
+                      </span>
                     </div>
                   </div>
                 </div>

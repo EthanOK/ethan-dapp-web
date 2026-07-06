@@ -1,6 +1,7 @@
 import { type MouseEvent, useMemo } from "react";
 import { ZeroAddress, getAddress, isAddress } from "ethers";
 import { toast } from "sonner";
+import { useI18n } from "@/i18n";
 import { truncateHash } from "@/lib/shared/Format";
 import { getScanAddressURL } from "@/lib/shared/Utils";
 import {
@@ -54,6 +55,7 @@ export function SwapTokenMarketInfoPanel({
   chainAvatarColor,
   onClose
 }: SwapTokenMarketInfoPanelProps) {
+  const { t } = useI18n();
   const change24h = formatSwapTokenChange24h(priceInfo?.change24hPct);
   const contractAddress = side.tokenAddress;
   const isNative = contractAddress.toLowerCase() === ZeroAddress.toLowerCase();
@@ -73,9 +75,9 @@ export function SwapTokenMarketInfoPanel({
     if (isNative) return;
     try {
       await navigator.clipboard.writeText(checksumAddress);
-      toast.success("Contract address copied");
+      toast.success(t("swap.market.contractCopied"));
     } catch {
-      toast.error("Failed to copy address");
+      toast.error(t("swap.market.copyContractFailed"));
     }
   };
 
@@ -86,16 +88,16 @@ export function SwapTokenMarketInfoPanel({
           type="button"
           className="swap-market-info-back"
           onClick={onClose}
-          aria-label="Back to token list"
+          aria-label={t("swap.market.backToList")}
         >
           ←
         </button>
-        <h4>Market Info</h4>
+        <h4>{t("swap.market.title")}</h4>
         <button
           type="button"
           className="swap-market-info-close"
           onClick={onClose}
-          aria-label="Close market info"
+          aria-label={t("swap.market.closeAria")}
         >
           ×
         </button>
@@ -142,27 +144,33 @@ export function SwapTokenMarketInfoPanel({
 
       <div className="swap-market-info-stats">
         <StatCard
-          label="24H Volume"
+          label={t("swap.market.volume24h")}
           value={formatMarketInfoUsd(priceInfo?.volume24hUsd)}
         />
         <StatCard
-          label="Market Cap"
+          label={t("swap.market.marketCap")}
           value={formatMarketInfoUsd(priceInfo?.marketCapUsd)}
         />
       </div>
 
       <footer className="swap-market-info-footer">
         <div className="swap-market-info-meta-row">
-          <span className="swap-market-info-meta-label">Last Updated</span>
+          <span className="swap-market-info-meta-label">
+            {t("swap.market.lastUpdated")}
+          </span>
           <span className="swap-market-info-meta-value">
             {formatMarketInfoLastUpdated(priceInfo?.lastUpdatedAt)}
           </span>
         </div>
 
         <div className="swap-market-info-meta-row">
-          <span className="swap-market-info-meta-label">Contract</span>
+          <span className="swap-market-info-meta-label">
+            {t("swap.market.contract")}
+          </span>
           {isNative ? (
-            <span className="swap-market-info-meta-value">Native</span>
+            <span className="swap-market-info-meta-value">
+              {t("swap.market.native")}
+            </span>
           ) : (
             <div className="swap-market-info-contract-chip">
               {contractExplorerUrl ? (
@@ -183,7 +191,7 @@ export function SwapTokenMarketInfoPanel({
                 type="button"
                 className="swap-market-info-contract-copy-btn"
                 onClick={handleCopyAddress}
-                aria-label="Copy contract address"
+                aria-label={t("swap.market.copyContract")}
               >
                 <span className="swap-market-info-contract-copy" aria-hidden>
                   ⧉
@@ -194,7 +202,7 @@ export function SwapTokenMarketInfoPanel({
         </div>
 
         <p className="swap-market-info-powered">
-          Powered by <strong>CoinGecko</strong>
+          {t("swap.market.poweredBy", { provider: "CoinGecko" })}
         </p>
       </footer>
     </div>

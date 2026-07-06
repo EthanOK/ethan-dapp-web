@@ -9,6 +9,7 @@ import { EthereumProvider } from "@walletconnect/ethereum-provider";
 import { projectId_walletconnect } from "@/config/SystemConfiguration";
 import { SupportChains } from "@/config/ChainsConfig";
 import { store } from "@/lib/wallet/Suscribers";
+import { tGlobal } from "@/i18n";
 
 const parseEvmChainIdFromStored = (stored: string | null): number | null => {
   if (!stored) return null;
@@ -57,7 +58,7 @@ export const getReadonlyProviderForChain = (
 export const switchChain = async (chainId: string): Promise<boolean> => {
   const chain = SupportChains.find((c) => c.id === chainId);
   if (!chain || !window.ethereum) {
-    alert("Unsupported chain");
+    alert(tGlobal("common.unsupportedChain"));
     return false;
   }
   type EthRequest = (args: {

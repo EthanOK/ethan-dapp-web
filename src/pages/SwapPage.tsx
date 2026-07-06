@@ -69,10 +69,8 @@ import { getProvider, getSigner } from "@/lib/wallet/GetProvider";
 import { SwapTokenPickerModal } from "@/components/swap/SwapTokenPickerModal";
 import { showSwapTxToast } from "@/components/swap/SwapTxToast";
 import { useI18n } from "@/i18n";
+import type { TranslationKey } from "@/i18n/locales/en";
 import "./SwapPage.css";
-
-const BRIC_SWAP_TAGLINE =
-  "Swap ETH, stablecoins and RWA tokens via Bric DEX aggregation.";
 
 /** Wait for user to finish typing before calling previewSwapExactInput. */
 const QUOTE_AMOUNT_DEBOUNCE_MS = 1000;
@@ -177,6 +175,7 @@ function formatExchangeRate(
   receiveDecimals: number,
   paySymbol: string,
   receiveSymbol: string,
+  t: (key: TranslationKey, params?: Record<string, string>) => string,
   inverted = false
 ): string | null {
   if (amountIn === 0n || amountOut === 0n) return null;
@@ -187,10 +186,18 @@ function formatExchangeRate(
   }
   if (inverted) {
     const rate = inNum / outNum;
-    return `1 ${receiveSymbol} ≈ ${formatRateNumber(rate)} ${paySymbol}`;
+    return t("swap.rateFormatInverted", {
+      toSymbol: receiveSymbol,
+      rate: formatRateNumber(rate),
+      fromSymbol: paySymbol
+    });
   }
   const rate = outNum / inNum;
-  return `1 ${paySymbol} ≈ ${formatRateNumber(rate)} ${receiveSymbol}`;
+  return t("swap.rateFormat", {
+    fromSymbol: paySymbol,
+    rate: formatRateNumber(rate),
+    toSymbol: receiveSymbol
+  });
 }
 
 const SwapPage = () => {
@@ -523,7 +530,7 @@ const SwapPage = () => {
           setAddressLookup({
             side: null,
             loading: false,
-            error: "Token not found at this address"
+            error: t("swap.tokenNotFound")
           });
           return;
         }
@@ -546,7 +553,7 @@ const SwapPage = () => {
           setAddressLookup({
             side: null,
             loading: false,
-            error: "Failed to load token from chain"
+            error: t("swap.tokenLoadFailed")
           });
         }
       }
@@ -556,7 +563,7 @@ const SwapPage = () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [pickerOpen, pickerSearch, address, isOnSwapChain, tokenCatalog]);
+  }, [pickerOpen, pickerSearch, address, isOnSwapChain, tokenCatalog, t]);
 
   useEffect(() => {
     if (pairValidatedRef.current) return;
@@ -663,7 +670,7 @@ const SwapPage = () => {
         if (!cancelled) {
           setQuote(null);
           setQuoteError(
-            err instanceof Error ? err.message : "Failed to fetch quote"
+            err instanceof Error ? err.message : t("swap.quoteUnavailable")
           );
         }
       } finally {
@@ -683,7 +690,8 @@ const SwapPage = () => {
     debouncedAmountIn,
     slippage.decimal,
     sameToken,
-    quoteRefreshKey
+    quoteRefreshKey,
+    t
   ]);
 
   useEffect(() => {
@@ -766,7 +774,7 @@ const SwapPage = () => {
 
   const handleSwitchSwapChain = async () => {
     await switchToChainAndWait(swapChain.chainId, {
-      onMismatchMessage: `Switch to ${swapChain.name}`
+      onMismatchMessage: t("swap.switchTo", { chain: swapChain.name })
     });
   };
 
@@ -774,7 +782,9 @@ const SwapPage = () => {
     if (chainId === swapChain.chainId) return;
     const target = getSwapChainConfig(chainId);
     await switchToChainAndWait(chainId, {
-      onMismatchMessage: `Failed to switch to ${target?.networkBadge ?? "network"}`
+      onMismatchMessage: t("swap.switchTo", {
+        chain: target?.networkBadge ?? t("common.unknownNetwork")
+      })
     });
   };
 
@@ -786,9 +796,7 @@ const SwapPage = () => {
 
   const handleSwap = async () => {
     if (!isBricSwapAddressConfigured(swapChain)) {
-      toast.error(
-        `BricSwap is not configured on ${swapChain.networkBadge} yet`
-      );
+      toast.error(t("swap.notConfigured", { network: swapChain.networkBadge }));
       return;
     }
 
@@ -821,16 +829,23 @@ const SwapPage = () => {
       });
       if (allowanceResult?.reset?.txHash) {
         showSwapTxToast(
-          "Allowance reset confirmed",
+          t("swap.allowanceReset"),
           allowanceResult.reset.txHash,
-          { detail: `Reset ${paySide.symbol} allowance`, duration: 5000 }
+          {
+            detail: t("swap.resetAllowance", { symbol: paySide.symbol }),
+            duration: 5000
+          }
         );
       }
       if (allowanceResult?.approve.txHash) {
-        showSwapTxToast("Approve confirmed", allowanceResult.approve.txHash, {
-          detail: `Approved ${paySide.symbol}`,
-          duration: 5000
-        });
+        showSwapTxToast(
+          t("swap.approveConfirmed"),
+          allowanceResult.approve.txHash,
+          {
+            detail: t("swap.approvedSymbol", { symbol: paySide.symbol }),
+            duration: 5000
+          }
+        );
       }
 
       // Quote swapData goes stale while waiting for approve confirmation.
@@ -845,9 +860,7 @@ const SwapPage = () => {
         checkBalance: true
       });
       if (!isExecutableSwapQuote(freshQuote)) {
-        throw new Error(
-          freshQuote.error ?? "Quote expired after approval, please try again"
-        );
+        throw new Error(t("swap.quoteExpired"));
       }
 
       const result = await executeSwapExactInput({
@@ -883,15 +896,17 @@ const SwapPage = () => {
               to: { amount: "—", symbol: receiveSide.symbol }
             };
 
-      showSwapTxToast("Swap successful", result.txHash, { swap: swapToast });
+      showSwapTxToast(t("swap.swapSuccessful"), result.txHash, {
+        swap: swapToast
+      });
       setAmount(DEFAULT_PAY_AMOUNT);
       saveLastSwapPayAmount(swapChain.chainId, DEFAULT_PAY_AMOUNT);
       setQuote(null);
       await loadAllBalances();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Swap failed";
+      const msg = err instanceof Error ? err.message : t("swap.swapFailed");
       if (msg.toLowerCase().includes("user rejected") || msg.includes("4001")) {
-        toast.error("Transaction cancelled");
+        toast.error(t("common.txCancelled"));
       } else {
         toast.error(msg);
       }
@@ -968,6 +983,7 @@ const SwapPage = () => {
           receiveSide.decimals,
           paySide.symbol,
           receiveSide.symbol,
+          t,
           rateInverted
         )
       : null;
@@ -991,22 +1007,22 @@ const SwapPage = () => {
     !!amountIn && !!paySide && !!receiveSide && !sameToken;
 
   const primaryButtonLabel = (() => {
-    if (!isConnected) return "Connect Wallet";
+    if (!isConnected) return t("common.connectWallet");
     if (isConnected && isOnSwapChain && !isSwapAvailable) {
-      return "Swap unavailable";
+      return t("swap.unavailable");
     }
-    if (isSwapping) return "Swapping…";
-    if (isQuoting) return "Fetching quote…";
+    if (isSwapping) return t("swap.swapping");
+    if (isQuoting) return t("swap.fetchingQuote");
     if (amountIn != null && amountIn !== debouncedAmountIn) {
-      return "Enter amount";
+      return t("swap.enterAmount");
     }
     if (quote && !isExecutableSwapQuote(quote)) {
-      return quote.error ?? "Insufficient balance";
+      return quote.error ?? t("swap.insufficientBalance");
     }
-    if (sameToken) return "Tokens must differ";
-    if (!amountIn) return "Enter amount";
-    if (quoteError) return "Quote unavailable";
-    return "Swap";
+    if (sameToken) return t("swap.tokensMustDiffer");
+    if (!amountIn) return t("swap.enterAmount");
+    if (quoteError) return t("swap.quoteUnavailable");
+    return t("swap.swap");
   })();
 
   const showTokenBalances = isConnected && Boolean(address) && isOnSwapChain;
@@ -1025,34 +1041,38 @@ const SwapPage = () => {
 
   const applyReceiveToken = (side: TokenSide) => {
     if (paySide && isSameTokenSide(paySide, side)) {
-      toast.error("Pay and receive must be different tokens");
+      toast.error(t("swap.payReceiveDifferent"));
       return;
     }
     rememberCustomToken(side);
     setReceiveSelectKey(encodeTokenSelectKey(side));
   };
 
-  const paySymbolLabel = paySide?.symbol ?? "Token";
-  const receiveSymbolLabel = receiveSide?.symbol ?? "Token";
+  const paySymbolLabel = paySide?.symbol ?? t("common.token");
+  const receiveSymbolLabel = receiveSide?.symbol ?? t("common.token");
 
   return (
     <div className="swap-page">
       <div className="swap-hero">
         <h2>BricSwap</h2>
-        <p className="swap-hero-sub">{BRIC_SWAP_TAGLINE}</p>
+        <p className="swap-hero-sub">{t("swap.tagline")}</p>
       </div>
 
       <div className="swap-card">
         {!isOnSwapChain && isConnected && (
           <div className="swap-chain-banner">
-            <p className="swap-chain-banner-text">Switch to {swapChain.name}</p>
+            <p className="swap-chain-banner-text">
+              {t("swap.switchTo", { chain: swapChain.name })}
+            </p>
             <button
               type="button"
               className="swap-chain-banner-btn"
               onClick={handleSwitchSwapChain}
               disabled={isSwitching}
             >
-              {isSwitching ? "Switching…" : "Switch network"}
+              {isSwitching
+                ? t("common.switchingEllipsis")
+                : t("swap.switchNetwork")}
             </button>
           </div>
         )}
@@ -1060,8 +1080,9 @@ const SwapPage = () => {
         {isOnSwapChain && !isSwapAvailable && (
           <div className="swap-chain-banner swap-chain-banner--unavailable">
             <p className="swap-chain-banner-text">
-              BricSwap contract is not configured on {swapChain.networkBadge}{" "}
-              yet. Swaps are unavailable.
+              {t("swap.unavailableBanner", {
+                network: swapChain.networkBadge
+              })}
             </p>
           </div>
         )}
@@ -1074,7 +1095,7 @@ const SwapPage = () => {
               onClick={() => setSettingsOpen((open) => !open)}
               aria-expanded={settingsOpen}
               aria-controls="swap-settings-panel"
-              aria-label={`Slippage ${slippage.label}, open settings`}
+              aria-label={t("swap.slippageAria", { slippage: slippage.label })}
             >
               <span className="swap-slippage-trigger-icon" aria-hidden>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -1094,7 +1115,7 @@ const SwapPage = () => {
                 <button
                   type="button"
                   className="swap-settings-backdrop"
-                  aria-label="Close settings"
+                  aria-label={t("swap.closeSettings")}
                   onClick={() => setSettingsOpen(false)}
                 />
                 <div
@@ -1109,23 +1130,23 @@ const SwapPage = () => {
                       type="button"
                       className="swap-settings-back"
                       onClick={() => setSettingsOpen(false)}
-                      aria-label="Close settings"
+                      aria-label={t("swap.closeSettings")}
                     >
                       ←
                     </button>
-                    <h4 id="swap-settings-title">Settings</h4>
+                    <h4 id="swap-settings-title">{t("swap.settings")}</h4>
                     <span className="swap-settings-head-spacer" aria-hidden />
                   </div>
 
                   <div className="swap-settings-panel-body">
                     <section className="swap-settings-section">
                       <h5 className="swap-settings-section-title">
-                        Advanced Settings
+                        {t("swap.advancedSettings")}
                       </h5>
 
                       <div className="swap-settings-row">
                         <span className="swap-settings-label">
-                          Max Slippage
+                          {t("swap.maxSlippage")}
                         </span>
                         <span className="swap-settings-current">
                           {slippage.label}
@@ -1146,8 +1167,7 @@ const SwapPage = () => {
                       </div>
 
                       <p className="swap-settings-hint">
-                        Your transaction will revert if the price changes more
-                        than the slippage tolerance.
+                        {t("swap.slippageHint")}
                       </p>
                     </section>
                   </div>
@@ -1160,7 +1180,7 @@ const SwapPage = () => {
         <div className="swap-fields">
           <div className="swap-field">
             <div className="swap-field-top">
-              <span className="swap-field-label">You pay</span>
+              <span className="swap-field-label">{t("swap.youPay")}</span>
               <span className="swap-field-balance">
                 {paySide
                   ? showTokenBalances
@@ -1211,7 +1231,7 @@ const SwapPage = () => {
                 onClick={handleMax}
                 disabled={!paySide || payBalance === 0n || !isOnSwapChain}
               >
-                MAX
+                {t("swap.max")}
               </button>
             </div>
           </div>
@@ -1221,8 +1241,8 @@ const SwapPage = () => {
               type="button"
               className="swap-flip-btn"
               onClick={handleFlip}
-              title="Flip direction"
-              aria-label="Flip pay and receive tokens"
+              title={t("swap.flipTitle")}
+              aria-label={t("swap.flipAria")}
             >
               ↕
             </button>
@@ -1230,7 +1250,7 @@ const SwapPage = () => {
 
           <div className="swap-field">
             <div className="swap-field-top">
-              <span className="swap-field-label">You receive</span>
+              <span className="swap-field-label">{t("swap.youReceive")}</span>
               <span className="swap-field-balance">
                 {receiveSide
                   ? showTokenBalances
@@ -1246,7 +1266,7 @@ const SwapPage = () => {
                   aria-live="polite"
                 >
                   {isQuoting
-                    ? "Fetching quote…"
+                    ? t("swap.fetchingQuote")
                     : amountIn != null && amountIn !== debouncedAmountIn
                       ? "—"
                       : (estimatedOut ?? (amountIn ? "—" : "0"))}
@@ -1283,16 +1303,16 @@ const SwapPage = () => {
             className="swap-quote-row swap-rate-toggle highlight"
             onClick={() => setRateInverted((v) => !v)}
             disabled={!exchangeRate || isQuoting}
-            title="Toggle rate direction"
-            aria-label="Toggle exchange rate direction"
+            title={t("swap.toggleRate")}
+            aria-label={t("swap.toggleRateAria")}
           >
-            <span>Rate</span>
+            <span>{t("swap.rate")}</span>
             <span className="swap-rate-value">
               {quoteDetailValue(exchangeRate)}
             </span>
           </button>
           <div className="swap-quote-row">
-            <span>Min received ({slippage.label})</span>
+            <span>{t("swap.minReceived", { slippage: slippage.label })}</span>
             <span>
               {quoteDetailValue(
                 minReceived && receiveSide
@@ -1303,7 +1323,7 @@ const SwapPage = () => {
           </div>
           {maxPayDisplay && (
             <div className="swap-quote-row">
-              <span>Max pay</span>
+              <span>{t("swap.maxPay")}</span>
               <span>
                 {quoteDetailValue(
                   paySide ? `${maxPayDisplay} ${paySide.symbol}` : null
@@ -1312,28 +1332,28 @@ const SwapPage = () => {
             </div>
           )}
           <div className="swap-quote-row">
-            <span>Price impact</span>
+            <span>{t("swap.priceImpact")}</span>
             <span>{quoteDetailValue(quote?.priceImpact ?? null)}</span>
           </div>
           {swapFeeDisplay && (
             <div className="swap-quote-row">
-              <span>Swap fee</span>
+              <span>{t("swap.swapFee")}</span>
               <span>{quoteDetailValue(swapFeeDisplay)}</span>
             </div>
           )}
           <div className="swap-quote-row">
-            <span>Route</span>
+            <span>{t("swap.route")}</span>
             <span>{quoteDetailValue(quote?.name ?? null)}</span>
           </div>
           <div className="swap-quote-row">
-            <span>Quote</span>
+            <span>{t("swap.quote")}</span>
             <button
               type="button"
               className="swap-refresh-btn"
               onClick={handleRefreshQuote}
               disabled={!canRefreshQuote || isQuoting || isSwapping}
             >
-              ↻ Refresh
+              {t("swap.refresh")}
             </button>
           </div>
         </div>
@@ -1348,7 +1368,7 @@ const SwapPage = () => {
           <p className="swap-inline-error">{quoteError}</p>
         )}
         {sameToken && (
-          <p className="swap-inline-error">Pay and receive token must differ</p>
+          <p className="swap-inline-error">{t("swap.tokensMustDiffer")}</p>
         )}
 
         <div className="swap-actions">
@@ -1359,7 +1379,9 @@ const SwapPage = () => {
               onClick={openConnectModal}
               disabled={isConnecting}
             >
-              {isConnecting ? "Connecting…" : primaryButtonLabel}
+              {isConnecting
+                ? t("common.connectingEllipsis")
+                : primaryButtonLabel}
             </button>
           ) : (
             <button
@@ -1373,14 +1395,12 @@ const SwapPage = () => {
           )}
         </div>
 
-        <p className="swap-hint">
-          Quote updates 1s after typing · auto refresh every 15s
-        </p>
+        <p className="swap-hint">{t("swap.hint")}</p>
       </div>
 
       <SwapTokenPickerModal
         open={pickerOpen === "pay"}
-        title="Select pay token"
+        title={t("swap.selectPayToken")}
         chainId={swapChain.chainId}
         catalog={tokenCatalog}
         favoriteAddressKeys={favoriteAddressKeys}
@@ -1406,7 +1426,7 @@ const SwapPage = () => {
 
       <SwapTokenPickerModal
         open={pickerOpen === "receive"}
-        title="Select receive token"
+        title={t("swap.selectReceiveToken")}
         chainId={swapChain.chainId}
         catalog={tokenCatalog}
         favoriteAddressKeys={favoriteAddressKeys}
@@ -1426,7 +1446,7 @@ const SwapPage = () => {
           addressLookup.side &&
           paySide &&
           isSameTokenSide(paySide, addressLookup.side)
-            ? "Cannot receive the same token as pay"
+            ? t("swap.cannotReceiveSame")
             : addressLookup.error
         }
         onSearchChange={setPickerSearch}

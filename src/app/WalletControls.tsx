@@ -2,6 +2,7 @@ import { useState } from "react";
 import { headerNetworksAll } from "@/app/Wallet";
 import { useReownWalletSync } from "@/hooks/useReownWalletSync";
 import { useHeaderChainId } from "@/hooks/useHeaderChainId";
+import { useI18n } from "@/i18n";
 
 /**
  * Wallet-dependent header cluster (network selector + connect button).
@@ -12,6 +13,7 @@ import { useHeaderChainId } from "@/hooks/useHeaderChainId";
  * so first paint no longer ships the wallet SDK bundle.
  */
 function WalletControls() {
+  const { t } = useI18n();
   const { address, isConnected, currentChainId } = useReownWalletSync();
   const { chainId, handleHeaderNetworkChange } = useHeaderChainId({
     isConnected,
@@ -42,7 +44,7 @@ function WalletControls() {
         className="app-header-network-select"
         value={String(chainId ?? "")}
         onChange={handleHeaderNetworkChange}
-        aria-label="当前网络"
+        aria-label="Network"
       >
         {headerNetworksAll.map((network) => {
           const value = String(
@@ -58,7 +60,9 @@ function WalletControls() {
       </select>
       <div className="w3-connect-wrap">
         <appkit-button
-          label={isConnecting ? "Connecting..." : "Connect Wallet"}
+          label={
+            isConnecting ? t("common.connecting") : t("common.connectWallet")
+          }
           style={{ display: "block", marginLeft: "auto" }}
           onClick={handleConnect}
         />

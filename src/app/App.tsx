@@ -213,6 +213,7 @@ function App() {
 
   const ethNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
     { titleKey: "nav.home", linkTo: "/" },
+    { titleKey: "nav.markets", linkTo: "/markets" },
     { titleKey: "nav.bricswap", linkTo: "/bricswap" },
     { titleKey: "nav.estimateTxFee", linkTo: "/estimateTxFee" },
     { titleKey: "nav.createTransaction", linkTo: "/createTransaction" },
@@ -304,9 +305,7 @@ function App() {
             <Suspense
               fallback={
                 <div className="w3-connect-wrap">
-                  <span className="app-header-network-label">
-                    {t("common.network")}
-                  </span>
+                  <span className="app-header-network-label">Network</span>
                 </div>
               }
             >

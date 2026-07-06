@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [Unreleased]
+
+### Features
+
+* extend i18n to all pages, swap components, and lib toast messages (EN / zh-CN / zh-TW)
+* add Markets (`/markets`) to sidebar navigation
+* truncate long token names on market list with ellipsis
+
+### Bug Fixes
+
+* keep header Network label in English regardless of locale
+
 ### [3.0.2](https://github.com/EthanOK/ethan-dapp-web/compare/v3.0.1...v3.0.2) (2026-07-02)
 
 

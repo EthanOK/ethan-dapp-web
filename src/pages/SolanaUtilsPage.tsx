@@ -23,8 +23,10 @@ import type { Provider } from "@reown/appkit-adapter-solana/react";
 import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 import { useAppKitConnection } from "@reown/appkit-adapter-solana/react";
 import { truncateHash } from "@/lib/shared/Format";
+import { useI18n } from "@/i18n";
 
 const SolanaUtilsContent = () => {
+  const { t } = useI18n();
   type TxStatus = "pending" | "success" | "failed" | "rejected";
   type TxResult = { link?: string; status: TxStatus };
 
@@ -135,7 +137,9 @@ const SolanaUtilsContent = () => {
 
   const PleaseLogin = () => {
     return (
-      <button className="cta-button unlogin-nft-button">PleaseLogin</button>
+      <button className="cta-button unlogin-nft-button">
+        {t("common.pleaseLogin")}
+      </button>
     );
   };
 
@@ -150,14 +154,13 @@ const SolanaUtilsContent = () => {
 
     localStorage.setItem("currentSolanaAccount", account_Address);
 
-    // console.log(provider);
     const loginTime = new Date().toLocaleString();
 
     const message =
-      `Welcome to ${origin} !` +
-      "\nAccount: " +
+      t("solana.signWelcome", { origin }) +
+      t("solana.signAccountPrefix") +
       account_Address +
-      "\nLoginTime: " +
+      t("solana.signLoginTimePrefix") +
       loginTime;
     const message_Uint8Array = new TextEncoder().encode(message);
     let signature_string = null;
@@ -166,13 +169,13 @@ const SolanaUtilsContent = () => {
       const signResult = await signMessage(message_Uint8Array);
       signature_string = base58.encode(signResult);
     } catch (error) {
-      toast.error("User rejected the signature.");
+      toast.error(t("solana.rejectedSignature"));
       return;
     }
 
     if (signature_string === null) {
       setMessage("");
-      toast.error("User rejected the signature.");
+      toast.error(t("solana.rejectedSignature"));
     } else {
       setMessage(signature_string);
 
@@ -198,7 +201,7 @@ const SolanaUtilsContent = () => {
 
   const disConnectHandler = async () => {
     if (!connected) {
-      toast.error("Please connect your wallet");
+      toast.error(t("solana.connectWallet"));
       return;
     }
 
@@ -210,7 +213,7 @@ const SolanaUtilsContent = () => {
 
   const airDropHandler = async () => {
     if (!connected) {
-      toast.error("Please connect your wallet");
+      toast.error(t("solana.connectWallet"));
       return;
     }
     if (currentSolanaAccount === "" || currentSolanaAccount === null) {
@@ -225,7 +228,7 @@ const SolanaUtilsContent = () => {
         2 * LAMPORTS_PER_SOL
       );
       console.log(signature);
-      toast.success("AIRDROP Success!");
+      toast.success(t("solana.airdropSuccess"));
       updateShowData();
       setShowAlert(true);
       setTimeout(() => {
@@ -233,7 +236,7 @@ const SolanaUtilsContent = () => {
       }, 2000);
     } catch (error) {
       console.log(error);
-      toast.error("AIRDROP Failure!");
+      toast.error(t("solana.airdropFailure"));
       setShowAlert(true);
       setTimeout(() => {
         setShowAlert(false);
@@ -255,11 +258,11 @@ const SolanaUtilsContent = () => {
   const transferSOLHandler = async () => {
     if (isTransferProcessing) return;
     if (!connected) {
-      toast.error("Please connect your wallet");
+      toast.error(t("solana.connectWallet"));
       return;
     }
     if (currentSolanaAccount === "" || currentSolanaAccount === null) {
-      toast.error("Solana account not connected");
+      toast.error(t("solana.accountNotConnected"));
       return;
     }
     setTransferTx(null);
@@ -268,7 +271,7 @@ const SolanaUtilsContent = () => {
     ) as HTMLTextAreaElement | null;
     const raw = toSolAddressInput?.value?.trim() ?? "";
     if (!raw) {
-      toast.error("Please enter at least one recipient address");
+      toast.error(t("solana.enterRecipient"));
       return;
     }
     let addressArray: string[];
@@ -279,9 +282,7 @@ const SolanaUtilsContent = () => {
       try {
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed) || parsed.length === 0) {
-          toast.error(
-            'Input must be a Solana address or a non-empty JSON array of addresses, e.g. ["addr1","addr2"]'
-          );
+          toast.error(t("solana.invalidArray"));
           setTransferTx(null);
           return;
         }
@@ -291,9 +292,7 @@ const SolanaUtilsContent = () => {
       } catch {
         addressArray = stringToArray(raw);
         if (addressArray.length === 0) {
-          toast.error(
-            'Invalid format. Use a Solana address or JSON array of addresses, e.g. ["addr1","addr2"]'
-          );
+          toast.error(t("solana.invalidFormat"));
           setTransferTx(null);
           return;
         }
@@ -301,7 +300,7 @@ const SolanaUtilsContent = () => {
     }
     const invalid = addressArray.find((a) => !a || !isValidSolanaAddress(a));
     if (invalid !== undefined) {
-      toast.error(`Invalid Solana address: ${invalid.slice(0, 12)}...`);
+      toast.error(t("solana.invalidAddress", { addr: invalid.slice(0, 12) }));
       setTransferTx(null);
       return;
     }
@@ -333,7 +332,7 @@ const SolanaUtilsContent = () => {
 
       console.log(signature);
       if (signature === null) {
-        toast.error("send Sol Failure!");
+        toast.error(t("solana.sendFailure"));
         setTransferTx({ status: "failed" });
       } else {
         const sig =
@@ -344,8 +343,8 @@ const SolanaUtilsContent = () => {
         const confirm = await connection.confirmTransaction(sig, "confirmed");
         const ok = !confirm?.value?.err;
         setTransferTx({ link, status: ok ? "success" : "failed" });
-        if (ok) toast.success("Transaction successful");
-        else toast.error("Transaction failed");
+        if (ok) toast.success(t("common.txSuccessful"));
+        else toast.error(t("common.txFailed"));
         updateShowData();
       }
 
@@ -357,12 +356,12 @@ const SolanaUtilsContent = () => {
       console.log(error);
       const rejected = isUserRejected(error);
       if (rejected) {
-        toast("Transaction rejected");
+        toast(t("common.txRejected"));
         setTransferTx((prev) =>
           prev ? { ...prev, status: "rejected" } : { status: "rejected" }
         );
       } else {
-        toast.error("send Sol Failure!");
+        toast.error(t("solana.sendFailure"));
         setTransferTx((prev) =>
           prev ? { ...prev, status: "failed" } : { status: "failed" }
         );
@@ -386,15 +385,15 @@ const SolanaUtilsContent = () => {
     const ownerAddress = ownerEl?.value?.trim() ?? "";
     const mintAddress = mintEl?.value?.trim() ?? "";
     if (!ownerAddress || !mintAddress) {
-      toast.error("Please fill in both owner and mint address");
+      toast.error(t("solana.fillOwnerMint"));
       return;
     }
     if (!isValidSolanaAddress(ownerAddress)) {
-      toast.error("Invalid owner address");
+      toast.error(t("solana.invalidOwner"));
       return;
     }
     if (!isValidSolanaAddress(mintAddress)) {
-      toast.error("Invalid mint address");
+      toast.error(t("solana.invalidMint"));
       return;
     }
     try {
@@ -404,9 +403,7 @@ const SolanaUtilsContent = () => {
       );
       setAssociatedAddress(associatedAddress);
     } catch (err) {
-      toast.error(
-        (err as Error)?.message ?? "Failed to get associated address"
-      );
+      toast.error((err as Error)?.message ?? t("solana.associatedFailed"));
     }
   };
 
@@ -414,16 +411,14 @@ const SolanaUtilsContent = () => {
     const el = document.getElementById("keypair") as HTMLTextAreaElement | null;
     const keypair = el?.value?.trim() ?? "";
     if (!keypair) {
-      toast.error("Please paste a keypair JSON array (64 numbers)");
+      toast.error(t("solana.pasteKeypair"));
       return;
     }
     let pair: number[];
     try {
       const parsed = JSON.parse(keypair);
       if (!Array.isArray(parsed) || parsed.length !== 64) {
-        toast.error(
-          "Keypair must be a JSON array of exactly 64 numbers (0–255)"
-        );
+        toast.error(t("solana.keypairMustBe64"));
         return;
       }
       pair = parsed;
@@ -433,11 +428,11 @@ const SolanaUtilsContent = () => {
             typeof n !== "number" || n < 0 || n > 255 || !Number.isInteger(n)
         )
       ) {
-        toast.error("Each keypair element must be an integer 0–255");
+        toast.error(t("solana.keypairElementRange"));
         return;
       }
     } catch {
-      toast.error("Invalid JSON. Paste keypair as array, e.g. [38,109,...]");
+      toast.error(t("solana.invalidKeypairJson"));
       return;
     }
     try {
@@ -446,7 +441,7 @@ const SolanaUtilsContent = () => {
         Keypair.fromSecretKey(new Uint8Array(pair)).publicKey.toString()
       );
     } catch (err) {
-      toast.error((err as Error)?.message ?? "Invalid keypair");
+      toast.error((err as Error)?.message ?? t("solana.invalidKeypair"));
     }
   };
 
@@ -456,18 +451,18 @@ const SolanaUtilsContent = () => {
     ) as HTMLTextAreaElement | null;
     const privateKey = (el?.value?.trim() ?? "").replace(/\s/g, "");
     if (!privateKey) {
-      toast.error("Please paste a base58 private key");
+      toast.error(t("solana.pastePrivateKey"));
       return;
     }
     let decoded: Uint8Array;
     try {
       decoded = base58.decode(privateKey);
     } catch {
-      toast.error("Invalid base58 private key");
+      toast.error(t("solana.invalidBase58"));
       return;
     }
     if (decoded.length !== 64) {
-      toast.error("Private key must decode to 64 bytes");
+      toast.error(t("solana.privateKey64Bytes"));
       return;
     }
     try {
@@ -475,7 +470,7 @@ const SolanaUtilsContent = () => {
       setSolKeypair("[" + keypair.secretKey.toString() + "]");
       setSolKeypairPublicKey(keypair.publicKey.toString());
     } catch (err) {
-      toast.error((err as Error)?.message ?? "Invalid private key");
+      toast.error((err as Error)?.message ?? t("solana.invalidPrivateKey"));
     }
   };
 
@@ -485,7 +480,7 @@ const SolanaUtilsContent = () => {
         onClick={signSolanaMessageHandler}
         className="cta-button mint-nft-button"
       >
-        Sign Solana Message
+        {t("solana.signMessage")}
       </button>
     );
   };
@@ -496,7 +491,7 @@ const SolanaUtilsContent = () => {
         onClick={disConnectHandler}
         className="cta-button mint-nft-button"
       >
-        DisConnect
+        {t("common.disConnect")}
       </button>
     );
   };
@@ -522,10 +517,10 @@ const SolanaUtilsContent = () => {
                 marginRight: "8px"
               }}
             ></span>
-            Processing...
+            {t("common.processingDots")}
           </>
         ) : (
-          "Everyone transfer 0.5 SOL"
+          t("solana.transferButton")
         )}
       </button>
     );
@@ -537,7 +532,7 @@ const SolanaUtilsContent = () => {
         onClick={getAssociatedAddressHandler}
         className="cta-button mint-nft-button"
       >
-        getAssociatedAddress
+        {t("solana.getAssociatedAddress")}
       </button>
     );
   };
@@ -548,7 +543,7 @@ const SolanaUtilsContent = () => {
         onClick={getSOLPrivatekeyHandler}
         className="cta-button mint-nft-button"
       >
-        getSolPrivatekey
+        {t("solana.getSolPrivatekey")}
       </button>
     );
   };
@@ -559,7 +554,7 @@ const SolanaUtilsContent = () => {
         onClick={getSOLKeypairHandler}
         className="cta-button mint-nft-button"
       >
-        getSOLKeypair
+        {t("solana.getSolKeypair")}
       </button>
     );
   };
@@ -567,7 +562,7 @@ const SolanaUtilsContent = () => {
   const airDropButton = () => {
     return (
       <button onClick={airDropHandler} className="cta-button mint-nft-button">
-        AirDrop 2 SOL
+        {t("solana.airdropButton")}
       </button>
     );
   };
@@ -576,11 +571,11 @@ const SolanaUtilsContent = () => {
     <div className="feature-page main-app">
       {showAlert && <div className="feature-alert" />}
       <section className="feature-hero">
-        <h1>Solana Utils</h1>
-        <p>Sign message, airdrop, batch transfer, and keypair tools</p>
+        <h1>{t("solana.title")}</h1>
+        <p>{t("solana.subtitle")}</p>
         <div className="solana-hero-stats">
           <span className="solana-hero-account-row">
-            Account:{" "}
+            {t("common.account")}:{" "}
             <strong className="solana-hero-value">
               {currentSolanaAccount
                 ? `${currentSolanaAccount.slice(0, 8)}…${currentSolanaAccount.slice(-8)}`
@@ -592,18 +587,18 @@ const SolanaUtilsContent = () => {
                 className="solana-hero-copy"
                 onClick={() => {
                   navigator.clipboard.writeText(currentSolanaAccount).then(
-                    () => toast.success("Address copied"),
-                    () => toast.error("Copy failed")
+                    () => toast.success(t("common.addressCopied")),
+                    () => toast.error(t("common.copyFailed"))
                   );
                 }}
-                title="Copy full address"
+                title={t("common.copyFullAddress")}
               >
-                Copy
+                {t("common.copy")}
               </button>
             )}
           </span>
           <span>
-            Balance:{" "}
+            {t("common.balance")}:{" "}
             <strong className="solana-hero-value">
               {accountSOLBalance != null
                 ? `${Number(accountSOLBalance).toFixed(4)} SOL`
@@ -619,18 +614,15 @@ const SolanaUtilsContent = () => {
       </section>
       {message && (
         <section className="feature-panel">
-          <h3>Signature / Output</h3>
+          <h3>{t("solana.signatureOutput")}</h3>
           <pre className="solana-output-pre">{message}</pre>
         </section>
       )}
       <section className="feature-panel">
-        <h3>Batch Transfer SOL</h3>
-        <p className="feature-field-hint">
-          Send 0.5 SOL to each address. Input a single base58 address or a JSON
-          array of addresses.
-        </p>
+        <h3>{t("solana.batchTransfer")}</h3>
+        <p className="feature-field-hint">{t("solana.batchTransferHint")}</p>
         <div className="feature-field">
-          <label htmlFor="toSolAddress">To address(es)</label>
+          <label htmlFor="toSolAddress">{t("solana.toAddresses")}</label>
           <textarea
             id="toSolAddress"
             placeholder='["address1","address2"]'
@@ -647,10 +639,10 @@ const SolanaUtilsContent = () => {
               <span
                 className={`feature-tx-result-badge feature-tx-result-badge--${transferTx.status}`}
               >
-                {transferTx.status === "pending" && "Pending"}
-                {transferTx.status === "success" && "Success"}
-                {transferTx.status === "failed" && "Failed"}
-                {transferTx.status === "rejected" && "Rejected"}
+                {transferTx.status === "pending" && t("common.pending")}
+                {transferTx.status === "success" && t("common.success")}
+                {transferTx.status === "failed" && t("common.failed")}
+                {transferTx.status === "rejected" && t("common.rejected")}
               </span>
               {transferTx.link && (
                 <a
@@ -670,12 +662,10 @@ const SolanaUtilsContent = () => {
         </div>
       </section>
       <section className="feature-panel">
-        <h3>Get Associated Address</h3>
-        <p className="feature-field-hint">
-          Compute SPL token associated token account address for owner + mint.
-        </p>
+        <h3>{t("solana.associatedSection")}</h3>
+        <p className="feature-field-hint">{t("solana.associatedHint")}</p>
         <div className="feature-field">
-          <label htmlFor="ownerAddress">Owner address</label>
+          <label htmlFor="ownerAddress">{t("solana.ownerAddress")}</label>
           <input
             id="ownerAddress"
             type="text"
@@ -686,7 +676,7 @@ const SolanaUtilsContent = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="mintAddress">Mint address</label>
+          <label htmlFor="mintAddress">{t("solana.mintAddress")}</label>
           <input
             id="mintAddress"
             type="text"
@@ -699,19 +689,18 @@ const SolanaUtilsContent = () => {
         <div className="feature-actions">{getAssociatedAddressButton()}</div>
         {associatedAddress && (
           <div className="feature-field solana-result-box">
-            <span className="feature-field-hint">Associated address</span>
+            <span className="feature-field-hint">
+              {t("solana.associatedAddress")}
+            </span>
             <span className="solana-result-value">{associatedAddress}</span>
           </div>
         )}
       </section>
       <section className="feature-panel">
-        <h3>Keypair → Private key</h3>
-        <p className="feature-field-hint">
-          Paste keypair as JSON array (e.g. from Phantom export), get base58
-          private key and public key.
-        </p>
+        <h3>{t("solana.keypairToPrivate")}</h3>
+        <p className="feature-field-hint">{t("solana.keypairToPrivateHint")}</p>
         <div className="feature-field">
-          <label htmlFor="keypair">Keypair (JSON array)</label>
+          <label htmlFor="keypair">{t("solana.keypairJson")}</label>
           <textarea
             id="keypair"
             placeholder="[38,109,228,83,...]"
@@ -723,13 +712,17 @@ const SolanaUtilsContent = () => {
         {(solPrivateKey || solPublicKey) && (
           <div className="solana-result-grid">
             <div className="feature-field solana-result-box">
-              <span className="feature-field-hint">Private key (base58)</span>
+              <span className="feature-field-hint">
+                {t("solana.privateKeyBase58")}
+              </span>
               <span className="solana-result-value solana-result-mono">
                 {solPrivateKey || "—"}
               </span>
             </div>
             <div className="feature-field solana-result-box">
-              <span className="feature-field-hint">Public key</span>
+              <span className="feature-field-hint">
+                {t("solana.publicKey")}
+              </span>
               <span className="solana-result-value solana-result-mono">
                 {solPublicKey || "—"}
               </span>
@@ -738,12 +731,12 @@ const SolanaUtilsContent = () => {
         )}
       </section>
       <section className="feature-panel">
-        <h3>Private key → Keypair</h3>
-        <p className="feature-field-hint">
-          Paste base58 private key, get keypair array and public key.
-        </p>
+        <h3>{t("solana.privateToKeypair")}</h3>
+        <p className="feature-field-hint">{t("solana.privateToKeypairHint")}</p>
         <div className="feature-field">
-          <label htmlFor="privateKey">Private key (base58)</label>
+          <label htmlFor="privateKey">
+            {t("solana.privateKeyBase58Label")}
+          </label>
           <textarea
             id="privateKey"
             placeholder="mZeFbFsK1Ezt29Z9pA5ZbSMbw8PZyB4DPTtSEPwHqYr5..."
@@ -755,13 +748,17 @@ const SolanaUtilsContent = () => {
         {(solKeypair || solKeypairPublicKey) && (
           <div className="solana-result-grid">
             <div className="feature-field solana-result-box">
-              <span className="feature-field-hint">Keypair (JSON)</span>
+              <span className="feature-field-hint">
+                {t("solana.keypairJsonResult")}
+              </span>
               <pre className="solana-output-pre solana-result-pre">
                 {solKeypair || "—"}
               </pre>
             </div>
             <div className="feature-field solana-result-box">
-              <span className="feature-field-hint">Public key</span>
+              <span className="feature-field-hint">
+                {t("solana.publicKey")}
+              </span>
               <span className="solana-result-value solana-result-mono">
                 {solKeypairPublicKey || "—"}
               </span>

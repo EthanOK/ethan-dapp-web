@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { toast } from "sonner";
+import { tGlobal } from "@/i18n";
 import { getDefaultNetwork, modal } from "@/app/Wallet";
 import { ensureLoggedIn } from "@/lib/wallet/ConnectWallet";
 import {
@@ -120,12 +121,12 @@ export function useReownWalletSync() {
       if (result === "backend_down") return;
       if (!result) {
         clearAppSessionKeepChainId();
-        toast.error("Login failed. Please sign in again.");
+        toast.error(tGlobal("auth.loginFailed"));
         return;
       }
       localStorage.setItem("userAddress", address);
       // signature is empty when an existing token was reused.
-      if (result.signature) toast.success("Success, BaBy is ready to use!");
+      if (result.signature) toast.success(tGlobal("auth.loginSuccess"));
     });
   }, [isConnected, address]);
 

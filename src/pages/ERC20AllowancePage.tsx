@@ -13,6 +13,7 @@ import {
   zeroPadValue
 } from "ethers";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import {
   getDefaultReadonlyProvider,
   getProvider
@@ -47,6 +48,7 @@ const ERC20_ABI = [
 ];
 
 const ERC20AllowancePage = () => {
+  const { t } = useI18n();
   const { address, isConnected } = useEvmWallet();
 
   const [selectedChainIdRaw, setSelectedChainIdRaw] = useState<string>(() =>
@@ -100,23 +102,27 @@ const ERC20AllowancePage = () => {
 
     if (typeof evmId === "number") {
       const chain = SupportChains.find((c) => Number(c.id) === evmId);
-      return chain ? `${chain.name} (${evmId})` : `chainId ${evmId}`;
+      return chain
+        ? `${chain.name} (${evmId})`
+        : t("common.chainIdLabel", { id: String(evmId) });
     }
 
-    return stored ? `chainId ${stored}` : "unknown network";
-  }, [selectedChainIdRaw]);
+    return stored
+      ? t("common.chainIdLabel", { id: stored })
+      : t("common.unknownNetwork");
+  }, [selectedChainIdRaw, t]);
 
   const queryAllowance = async () => {
     if (!isAddress(tokenAddressTrimmed)) {
-      toast.error("Invalid token contract address");
+      toast.error(t("allowance.invalidToken"));
       return;
     }
     if (!isAddress(ownerTrimmed)) {
-      toast.error("Invalid owner address");
+      toast.error(t("allowance.invalidOwner"));
       return;
     }
     if (!isAddress(spenderTrimmed)) {
-      toast.error("Invalid spender address");
+      toast.error(t("allowance.invalidSpender"));
       return;
     }
 
@@ -125,7 +131,9 @@ const ERC20AllowancePage = () => {
     try {
       const provider = (await getProvider()) ?? getDefaultReadonlyProvider();
       if (!provider) {
-        toast.error(`No EVM provider for ${selectedNetworkLabel}`);
+        toast.error(
+          t("allowance.noProvider", { network: selectedNetworkLabel })
+        );
         return;
       }
 
@@ -146,13 +154,16 @@ const ERC20AllowancePage = () => {
           message?: string;
         };
         const msg = String(
-          e?.reason ?? e?.error?.message ?? e?.message ?? "Call failed"
+          e?.reason ??
+            e?.error?.message ??
+            e?.message ??
+            t("allowance.callFailed")
         );
         const isCallException =
           String(e?.code) === "CALL_EXCEPTION" ||
           /missing revert data|call exception/i.test(msg);
         if (isCallException) {
-          return "Call reverted (missing revert data). Common causes: wrong network, token not ERC20, or token not deployed on this chain.";
+          return t("allowance.callReverted");
         }
         return msg;
       };
@@ -208,7 +219,9 @@ const ERC20AllowancePage = () => {
         res[2]
       );
       if (!rawAllowance) {
-        toast.error(`allowance() failed on ${selectedNetworkLabel}`);
+        toast.error(
+          t("allowance.allowanceFailed", { network: selectedNetworkLabel })
+        );
         return;
       }
 
@@ -224,10 +237,10 @@ const ERC20AllowancePage = () => {
         raw,
         formatted
       });
-      toast.success("Query successful");
+      toast.success(t("common.querySuccessful"));
     } catch (err: unknown) {
       const e = err as { reason?: string; message?: string };
-      toast.error(e?.reason ?? e?.message ?? "Query failed");
+      toast.error(e?.reason ?? e?.message ?? t("common.queryFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -236,19 +249,18 @@ const ERC20AllowancePage = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>ERC20 Allowance Checker</h1>
-        <p>Check how much an ERC20 owner has approved for a spender.</p>
+        <h1>{t("allowance.title")}</h1>
+        <p>{t("allowance.subtitle")}</p>
       </section>
 
       <section className="feature-panel">
-        <h3>Inputs</h3>
-        <p className="feature-field-hint">
-          Token is the ERC20 contract. Owner is the token holder. Spender is the
-          approved address (often a router/contract).
-        </p>
+        <h3>{t("allowance.inputs")}</h3>
+        <p className="feature-field-hint">{t("allowance.hint")}</p>
 
         <div className="feature-field">
-          <label htmlFor="allowance-token">Token Contract</label>
+          <label htmlFor="allowance-token">
+            {t("allowance.tokenContract")}
+          </label>
           <input
             id="allowance-token"
             type="text"
@@ -261,7 +273,7 @@ const ERC20AllowancePage = () => {
         </div>
 
         <div className="feature-field">
-          <label htmlFor="allowance-owner">Owner</label>
+          <label htmlFor="allowance-owner">{t("common.owner")}</label>
           <input
             id="allowance-owner"
             type="text"
@@ -274,7 +286,7 @@ const ERC20AllowancePage = () => {
         </div>
 
         <div className="feature-field">
-          <label htmlFor="allowance-spender">Spender</label>
+          <label htmlFor="allowance-spender">{t("allowance.spender")}</label>
           <input
             id="allowance-spender"
             type="text"
@@ -293,24 +305,27 @@ const ERC20AllowancePage = () => {
             className="cta-button mint-nft-button"
             disabled={!canQuery || isLoading}
           >
-            {isLoading ? "Querying…" : "Check Allowance"}
+            {isLoading ? t("allowance.querying") : t("allowance.checkButton")}
           </button>
         </div>
 
         {result && (
           <div className="feature-result" style={{ marginTop: 12 }}>
             <div style={{ opacity: 0.9, marginBottom: 8 }}>
-              Network chainId: <b>{String(result.chainId ?? "-")}</b>
+              {t("allowance.networkChainId")}{" "}
+              <b>{String(result.chainId ?? "-")}</b>
             </div>
             <div style={{ opacity: 0.9, marginBottom: 8 }}>
-              Token: <b>{result.symbol ?? "-"}</b> (decimals:{" "}
-              <b>{String(result.decimals ?? "-")}</b>)
+              {t("allowance.tokenInfo", {
+                symbol: result.symbol ?? "-",
+                decimals: String(result.decimals ?? "-")
+              })}
             </div>
             <div style={{ marginBottom: 8 }}>
-              Allowance (formatted): <b>{result.formatted}</b>
+              {t("allowance.formatted")} <b>{result.formatted}</b>
             </div>
             <div style={{ wordBreak: "break-all", opacity: 0.85 }}>
-              Allowance (raw): <b>{result.raw}</b>
+              {t("allowance.raw")} <b>{result.raw}</b>
             </div>
           </div>
         )}

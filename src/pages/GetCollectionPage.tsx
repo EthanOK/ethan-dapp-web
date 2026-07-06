@@ -7,11 +7,13 @@ import {
   getNFTListByOwnerAndContract
 } from "@/lib/nft/GetNFTListByOwner";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 const PLACEHOLDER = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
 
 const GetCollectionPage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [owner, setOwner] = useState("");
   const [contract, setContract] = useState("");
@@ -47,7 +49,7 @@ const GetCollectionPage = () => {
   const getCollectionHandler = async () => {
     const o = owner.trim();
     if (!isAddress(o)) {
-      toast.error("Owner is not a valid address");
+      toast.error(t("collection.invalidOwner"));
       return;
     }
     try {
@@ -56,7 +58,7 @@ const GetCollectionPage = () => {
       const result = await getContractsForOwner(chainId, o);
       if (result !== null) setMessage(stringifyJson(result, 2));
     } catch (error) {
-      toast.error((error as Error)?.message ?? "Failed");
+      toast.error((error as Error)?.message ?? t("common.failedGeneric"));
     }
   };
 
@@ -64,7 +66,7 @@ const GetCollectionPage = () => {
     const c = contract.trim();
     const o = owner2.trim();
     if (!isAddress(c) || !isAddress(o)) {
-      toast.error("Contract or owner is not a valid address");
+      toast.error(t("collection.invalidContractOrOwner"));
       return;
     }
     try {
@@ -73,20 +75,20 @@ const GetCollectionPage = () => {
       const result = await getNFTListByOwnerAndContract(chainId, o, c);
       if (result !== null) setMessage(stringifyJson(result, 2));
     } catch (error) {
-      toast.error((error as Error)?.message ?? "Failed");
+      toast.error((error as Error)?.message ?? t("common.failedGeneric"));
     }
   };
 
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>Get Collection</h1>
-        <p>Query collections and NFT list by owner</p>
+        <h1>{t("collection.title")}</h1>
+        <p>{t("collection.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Contracts by owner</h3>
+        <h3>{t("collection.contractsByOwner")}</h3>
         <div className="feature-field">
-          <label htmlFor="getcoll-owner">Owner</label>
+          <label htmlFor="getcoll-owner">{t("common.owner")}</label>
           <input
             id="getcoll-owner"
             type="text"
@@ -105,14 +107,14 @@ const GetCollectionPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Get collection
+            {t("collection.getCollection")}
           </button>
         </div>
       </section>
       <section className="feature-panel">
-        <h3>NFT list by contract & owner</h3>
+        <h3>{t("collection.nftListSection")}</h3>
         <div className="feature-field">
-          <label htmlFor="getcoll-contract">Contract</label>
+          <label htmlFor="getcoll-contract">{t("common.contract")}</label>
           <input
             id="getcoll-contract"
             type="text"
@@ -125,7 +127,7 @@ const GetCollectionPage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="getcoll-owner2">Owner</label>
+          <label htmlFor="getcoll-owner2">{t("common.owner")}</label>
           <input
             id="getcoll-owner2"
             type="text"
@@ -144,13 +146,13 @@ const GetCollectionPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Get NFT list
+            {t("collection.getNftList")}
           </button>
         </div>
       </section>
       {message && (
         <section className="feature-panel">
-          <h3>Result</h3>
+          <h3>{t("common.result")}</h3>
           <pre
             style={{
               margin: 0,

@@ -26,12 +26,14 @@ Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + T
 
 - `src/app/` — App shell: `App.tsx` (routes/layout), `Wallet.ts` (Reown AppKit init), `App.css`
 - `src/pages/` — One route page per file, all lazy-imported in `App.tsx`
+- `src/i18n/` — Locale provider (`I18nProvider.tsx`), `useI18n()` hook, `tGlobal()` for lib/hooks; locale files in `locales/` (`en`, `zh-CN`, `zh-TW`)
 - `src/hooks/` — Wallet state (`useReownWalletSync`, `useEvmWallet`), theme, sidebar, network switching
 - `src/lib/wallet/` — `GetProvider.ts` (provider resolution), `ConnectWallet.ts`, `Suscribers.ts` (AppKit event subscribers)
 - `src/lib/evm/` — Contract interactions, LayerZero, multicall, EIP-7702
 - `src/lib/nft/` — OpenSea, mint, orders
 - `src/lib/solana/` — Connection, WSOL, sign/verify
 - `src/lib/signing/` — EIP-712, bulk orders
+- `src/lib/price/` — CoinGecko market ticker (`marketTicker.ts`), chart data
 - `src/config/` — `SystemConfiguration.ts` (env vars, API URLs), `ChainsConfig.ts`, `FaucetConfig.ts`
 - `src/abis/` — Contract ABIs (evm/, solana/)
 - `src/services/` — Backend API fetch helpers (`GetData.ts`, `AuthApi.ts` login/health, `WebhookApi.ts` webhook relay)
@@ -45,6 +47,22 @@ Uses **Reown AppKit** (formerly WalletConnect) with three adapters:
 
 Network switching and wallet state are managed via custom hooks in `src/hooks/`. The `useReownWalletSync` hook is the primary wallet state hook.
 
+### i18n
+
+Header locale menu switches **English**, **简体中文**, and **繁體中文**. Preference is stored in `localStorage` (`app-locale`).
+
+- **Pages / components:** `import { useI18n } from "@/i18n"` → `const { t } = useI18n()` → `t("some.key")`
+- **Non-React code** (lib, hooks): `import { tGlobal } from "@/i18n"` → `tGlobal("some.key")`
+- **New copy:** add the same key to `src/i18n/locales/en.ts`, `zh-CN.ts`, and `zh-TW.ts`
+- **Exceptions:** header **Network** label and chain names in the network `<select>` stay English (not translated)
+
+### Markets
+
+- `/markets` — Binance-style market list (top 250 by market cap from CoinGecko, 50 rows/page, local sort/search)
+- `/market` — Single-coin chart (K-line / area, navigated from list rows)
+- Sidebar includes **Markets** (`nav.markets`) under Ethereum section
+- Long token full names in the list are truncated with `...` (hover `title` shows full name)
+
 ### ethers
 
 EVM code uses **ethers v6** (`ethers` package). Amounts on-chain use native `bigint` where applicable.
@@ -56,4 +74,4 @@ Copy `.env.example` to `.env`. Required variables:
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown/WalletConnect project ID
 - `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
 
-Backend API base URL is in `src/config/SystemConfiguration.ts` (`React_Serve_Back`). The backend is not in this repo.
+Backend API base URL is in `src/config/SystemConfiguration.ts` (`React_Serve_Back`, default `https://ethan-dapp.onrender.com/`). The backend is not in this repo.

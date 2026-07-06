@@ -8,8 +8,10 @@ import {
   createSolanaWallet,
   initSolanaWeb3Auth
 } from "@/lib/web3auth/solanaWeb3Auth";
+import { useI18n } from "@/i18n";
 
 const Web3AuthSolanaPage = () => {
+  const { t } = useI18n();
   const [provider, setProvider] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
   const [solanaWallet, setSolanaWallet] = useState(null);
@@ -51,7 +53,7 @@ const Web3AuthSolanaPage = () => {
           } catch (error) {
             console.error(error);
             uiConsole({
-              error: "Get solana provider config failed",
+              error: t("web3auth.solanaConfigFailed"),
               detail: error
             });
           }
@@ -62,13 +64,13 @@ const Web3AuthSolanaPage = () => {
         }
       } catch (error) {
         console.error(error);
-        uiConsole({ error: "Web3Auth initModal failed", detail: error });
+        uiConsole({ error: t("web3auth.initFailed"), detail: error });
         setIsReady(true);
       }
     };
 
     init();
-  }, []);
+  }, [t]);
 
   const loginHandler = async () => {
     if (isConnecting) return;
@@ -88,7 +90,7 @@ const Web3AuthSolanaPage = () => {
       }
     } catch (error) {
       console.error(error);
-      uiConsole({ error: "Web3Auth connect failed", detail: error });
+      uiConsole({ error: t("web3auth.connectFailed"), detail: error });
     } finally {
       setIsConnecting(false);
     }
@@ -103,13 +105,17 @@ const Web3AuthSolanaPage = () => {
       aria-disabled={!isReady || isConnecting}
       title={
         !isReady
-          ? "Web3Auth 正在初始化…"
+          ? t("web3auth.initTitle")
           : isConnecting
-            ? "正在打开登录…"
-            : "Login"
+            ? t("web3auth.openingLogin")
+            : t("common.login")
       }
     >
-      {!isReady ? "Initializing..." : isConnecting ? "Connecting..." : "Login"}
+      {!isReady
+        ? t("common.initializing")
+        : isConnecting
+          ? t("common.connecting")
+          : t("common.login")}
     </button>
   );
 
@@ -126,12 +132,12 @@ const Web3AuthSolanaPage = () => {
     setLoggedIn(false);
     setSolanaWallet(null);
     setConnection(null);
-    uiConsole("logged out");
+    uiConsole(t("common.loggedOut"));
   };
 
   const getAccounts = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      uiConsole(t("common.providerNotReady"));
       return;
     }
 
@@ -142,7 +148,7 @@ const Web3AuthSolanaPage = () => {
 
   const getBalance = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      uiConsole(t("common.providerNotReady"));
       return;
     }
 
@@ -155,7 +161,7 @@ const Web3AuthSolanaPage = () => {
 
   const signMessage = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      uiConsole(t("common.providerNotReady"));
       return;
     }
     const originalMessage = "This is Web3Auth";
@@ -167,7 +173,7 @@ const Web3AuthSolanaPage = () => {
 
   const getPrivateKey = async () => {
     if (!provider) {
-      uiConsole("provider not initialized yet");
+      uiConsole(t("common.providerNotReady"));
       return;
     }
 
@@ -189,42 +195,42 @@ const Web3AuthSolanaPage = () => {
         onClick={getUserInfo}
         className="cta-button mint-nft-button"
       >
-        Get User Info
+        {t("web3auth.getUserInfo")}
       </button>
       <button
         type="button"
         onClick={getAccounts}
         className="cta-button mint-nft-button"
       >
-        Get Accounts
+        {t("web3auth.getAccounts")}
       </button>
       <button
         type="button"
         onClick={getBalance}
         className="cta-button mint-nft-button"
       >
-        Get Balance
+        {t("web3auth.getBalance")}
       </button>
       <button
         type="button"
         onClick={signMessage}
         className="cta-button mint-nft-button"
       >
-        Sign Message
+        {t("web3auth.signMessage")}
       </button>
       <button
         type="button"
         onClick={getPrivateKey}
         className="cta-button mint-nft-button"
       >
-        Get PrivateKey
+        {t("web3auth.getPrivateKey")}
       </button>
       <button
         type="button"
         onClick={logout}
         className="cta-button mint-nft-button"
       >
-        Log Out
+        {t("common.logout")}
       </button>
     </>
   );
@@ -239,13 +245,13 @@ const Web3AuthSolanaPage = () => {
             rel="noreferrer"
             style={{ color: "inherit" }}
           >
-            Web3Auth Solana
+            {t("web3auth.solanaTitle")}
           </a>
         </h1>
-        <p>Social / email login for Solana</p>
+        <p>{t("web3auth.subtitleSolana")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Actions</h3>
+        <h3>{t("common.actions")}</h3>
         <div
           className="feature-actions"
           style={{ flexDirection: "column", alignItems: "flex-start" }}
@@ -254,7 +260,7 @@ const Web3AuthSolanaPage = () => {
         </div>
         {consoleOutput && (
           <div className="feature-field" style={{ marginTop: 16 }}>
-            <label>Output</label>
+            <label>{t("common.output")}</label>
             <pre
               style={{
                 margin: 0,

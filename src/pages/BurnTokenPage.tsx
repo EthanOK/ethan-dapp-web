@@ -4,11 +4,13 @@ import { isAddress, getScanURL } from "@/lib/shared/Utils";
 import { formatUnits, parseUnits } from "ethers";
 import { toast } from "sonner";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { truncateHash } from "@/lib/shared/Format";
 
 const PLACEHOLDER_ADDRESS = "0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b";
 
 const BurnTokenPage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [tokenAddress, setTokenAddress] = useState("");
   const [tokenBalance, setTokenBalance] = useState<bigint | null>(null);
@@ -56,7 +58,7 @@ const BurnTokenPage = () => {
   const getBalanceHandler = async () => {
     const addr = parseAddress(tokenAddress);
     if (!addr) {
-      toast.error("Invalid token address");
+      toast.error(t("burn.invalidTokenAddress"));
       return;
     }
     if (!address) return;
@@ -67,7 +69,7 @@ const BurnTokenPage = () => {
     try {
       const contract = await getERC20Contract(addr);
       if (!contract) {
-        toast.error("Failed to load contract");
+        toast.error(t("burn.loadContractFailed"));
         return;
       }
       const [balance, decimals, symbol] = await Promise.all([
@@ -83,7 +85,7 @@ const BurnTokenPage = () => {
       );
       setBurnAmount(formatUnits(balance, decimals));
     } catch (err: unknown) {
-      toast.error((err as Error)?.message ?? "Failed to get balance");
+      toast.error((err as Error)?.message ?? t("burn.getBalanceFailed"));
     } finally {
       setIsLoadingBalance(false);
     }
@@ -105,20 +107,20 @@ const BurnTokenPage = () => {
   const burnTokenHandler = async () => {
     const addr = parseAddress(tokenAddress);
     if (!addr) {
-      toast.error("Invalid token address");
+      toast.error(t("burn.invalidTokenAddress"));
       return;
     }
     if (!tokenBalance || tokenBalance === 0n) {
-      toast.error("No balance to burn");
+      toast.error(t("burn.noBalance"));
       return;
     }
     const amountToBurn = computeBurnAmountBN();
     if (!amountToBurn) {
-      toast.error("Invalid burn amount");
+      toast.error(t("burn.invalidAmount"));
       return;
     }
     if (amountToBurn > tokenBalance) {
-      toast.error("Burn amount exceeds balance");
+      toast.error(t("burn.amountExceedsBalance"));
       return;
     }
 
@@ -127,7 +129,7 @@ const BurnTokenPage = () => {
     try {
       const contract = await getERC20Contract(addr);
       if (!contract) {
-        toast.error("Failed to load contract");
+        toast.error(t("burn.loadContractFailed"));
         return;
       }
       const burnAccount = "0x0000000000000000000000000000000000000001";
@@ -138,10 +140,10 @@ const BurnTokenPage = () => {
       const receipt = await tx.wait();
       setBurnTx({ link, status: receipt.status === 1 ? "success" : "failed" });
       if (receipt.status === 1) {
-        toast.success("Burn successful");
+        toast.success(t("burn.success"));
         await getBalanceHandler();
       } else {
-        toast.error("Burn failed");
+        toast.error(t("burn.failed"));
       }
     } catch (err: unknown) {
       const e = err as {
@@ -155,12 +157,12 @@ const BurnTokenPage = () => {
           String(e?.message ?? e?.reason ?? "")
         );
       if (rejected) {
-        toast("Transaction rejected");
+        toast(t("burn.txRejected"));
         setBurnTx((prev) =>
           prev ? { ...prev, status: "rejected" } : { status: "rejected" }
         );
       } else {
-        toast.error(e?.message ?? e?.reason ?? "Burn failed");
+        toast.error(e?.message ?? e?.reason ?? t("burn.failed"));
         setBurnTx((prev) =>
           prev ? { ...prev, status: "failed" } : { status: "failed" }
         );
@@ -179,20 +181,22 @@ const BurnTokenPage = () => {
   const burnAmountInvalid =
     tokenBalance != null && burnAmount.trim() !== "" && burnAmountBN == null;
 
+  const symbolSuffix = tokenSymbol ? ` (${tokenSymbol})` : "";
+
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>Burn Token</h1>
-        <p>Burn ERC20 tokens by transferring them to the zero address</p>
+        <h1>{t("burn.title")}</h1>
+        <p>{t("burn.subtitle")}</p>
         <p className="feature-field-hint" style={{ marginTop: 8 }}>
-          Please switch to testnet for testing
+          {t("burn.testnetHint")}
         </p>
       </section>
 
       <section className="feature-panel">
-        <h3>ERC20 Token</h3>
+        <h3>{t("burn.erc20Section")}</h3>
         <div className="feature-field">
-          <label htmlFor="burn-token-address">Token contract address</label>
+          <label htmlFor="burn-token-address">{t("burn.tokenAddress")}</label>
           <input
             id="burn-token-address"
             type="text"
@@ -211,14 +215,17 @@ const BurnTokenPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount || isLoadingBalance}
           >
-            {isLoadingBalance ? "Loading…" : "Query Balance"}
+            {isLoadingBalance ? t("common.loading") : t("burn.queryBalance")}
           </button>
         </div>
 
         {balanceDisplay !== null && (
           <>
             <div className="feature-field" style={{ marginTop: 16 }}>
-              <label>Balance{tokenSymbol ? ` (${tokenSymbol})` : ""}</label>
+              <label>
+                {t("common.balance")}
+                {symbolSuffix}
+              </label>
               <div
                 className="feature-field-value"
                 style={{
@@ -236,10 +243,12 @@ const BurnTokenPage = () => {
 
             <div className="feature-field" style={{ marginTop: 16 }}>
               <label htmlFor="burn-amount">
-                Burn Amount{" "}
+                {t("burn.amount")}{" "}
                 <span style={{ color: "var(--w3-text-dim)" }}>
-                  (max {balanceDisplay}
-                  {tokenSymbol ? ` ${tokenSymbol}` : ""})
+                  {t("burn.maxHint", {
+                    amount: balanceDisplay,
+                    symbol: tokenSymbol ? ` ${tokenSymbol}` : ""
+                  })}
                 </span>
               </label>
               <input
@@ -259,8 +268,8 @@ const BurnTokenPage = () => {
                     fontSize: "0.85rem"
                   }}
                 >
-                  {burnAmountInvalid && "Amount format invalid"}
-                  {burnAmountExceeds && "Amount exceeds balance"}
+                  {burnAmountInvalid && t("burn.amountInvalid")}
+                  {burnAmountExceeds && t("burn.amountExceeds")}
                 </div>
               )}
             </div>
@@ -285,8 +294,8 @@ const BurnTokenPage = () => {
             }
           >
             {isBurning
-              ? "Burning…"
-              : `Burn token${tokenSymbol ? ` (${tokenSymbol})` : ""}`}
+              ? t("burn.burning")
+              : t("burn.burnButton", { symbol: symbolSuffix })}
           </button>
           {burnTx && (
             <div
@@ -295,10 +304,10 @@ const BurnTokenPage = () => {
               <span
                 className={`feature-tx-result-badge feature-tx-result-badge--${burnTx.status}`}
               >
-                {burnTx.status === "pending" && "Pending"}
-                {burnTx.status === "success" && "Success"}
-                {burnTx.status === "failed" && "Failed"}
-                {burnTx.status === "rejected" && "Rejected"}
+                {burnTx.status === "pending" && t("common.pending")}
+                {burnTx.status === "success" && t("common.success")}
+                {burnTx.status === "failed" && t("common.failed")}
+                {burnTx.status === "rejected" && t("common.rejected")}
               </span>
               {burnTx.link && (
                 <a

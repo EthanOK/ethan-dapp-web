@@ -12,6 +12,7 @@ import {
 } from "@/lib/wallet/GetProvider";
 import { toast } from "sonner";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { truncateHash } from "@/lib/shared/Format";
 import { formatUnits, parseUnits } from "ethers";
 import { multicall3Aggregate3Value } from "@/lib/evm/Multicall3";
@@ -57,6 +58,7 @@ const parseNonceInput = (raw: string): number | "empty" | "invalid" => {
 };
 
 const CreateTransactionPage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   type TxStatus = "pending" | "success" | "failed" | "rejected";
@@ -102,19 +104,19 @@ const CreateTransactionPage = () => {
   const fetchNonceFromTxHash = async () => {
     const h = cancelTxHash.trim();
     if (!TX_HASH_RE.test(h)) {
-      toast.error("Invalid transaction hash (0x + 64 hex)");
+      toast.error(t("createTx.invalidTxHash"));
       return;
     }
     setIsFetchingNonceFromHash(true);
     try {
       const provider = await resolveTxProvider();
       if (!provider) {
-        toast.error("No RPC available");
+        toast.error(t("common.noRpcAvailable"));
         return;
       }
       const tx = await provider.getTransaction(h);
       if (!tx) {
-        toast.error("Transaction not found on this network");
+        toast.error(t("createTx.txNotFound"));
         return;
       }
       setNonceTx(String(tx.nonce));
@@ -122,14 +124,12 @@ const CreateTransactionPage = () => {
         currentAccount &&
         tx.from.toLowerCase() !== currentAccount.toLowerCase()
       ) {
-        toast(
-          "Tx sender differs from connected wallet; nonce filled for review"
-        );
+        toast(t("createTx.senderMismatch"));
       } else {
-        toast.success("Nonce loaded from transaction");
+        toast.success(t("createTx.nonceLoaded"));
       }
     } catch {
-      toast.error("Failed to load transaction");
+      toast.error(t("createTx.loadTxFailed"));
     } finally {
       setIsFetchingNonceFromHash(false);
     }
@@ -159,12 +159,12 @@ const CreateTransactionPage = () => {
   const transferNativeHandler = async () => {
     const toList = parseToAddresses(to);
     if (toList.length === 0) {
-      toast.error("To address is not valid");
+      toast.error(t("createTx.invalidTo"));
       return;
     }
     const invalid = toList.find((a) => !isAddress(a));
     if (invalid) {
-      toast.error("To address is not valid");
+      toast.error(t("createTx.invalidTo"));
       return;
     }
     const amountBN = getDecimalBigNumber(amount === "" ? "0" : amount, 18);
@@ -175,7 +175,7 @@ const CreateTransactionPage = () => {
         : utf8ToHexBytes(inputData);
 
     if (toList.length > 1 && (hexData ?? "").trim() !== "") {
-      toast.error("Batch transfer does not support Data");
+      toast.error(t("createTx.batchNoData"));
       return;
     }
 
@@ -210,8 +210,8 @@ const CreateTransactionPage = () => {
         link,
         status: receipt?.status === 1 ? "success" : "failed"
       });
-      if (receipt?.status === 1) toast.success("Transaction successful");
-      else toast.error("Transaction failed");
+      if (receipt?.status === 1) toast.success(t("common.txSuccessful"));
+      else toast.error(t("common.txFailed"));
     } catch (err: unknown) {
       const e = err as {
         code?: number | string;
@@ -224,12 +224,12 @@ const CreateTransactionPage = () => {
           String(e?.message ?? e?.reason ?? "")
         );
       if (rejected) {
-        toast("Transaction rejected");
+        toast(t("common.txRejected"));
         setTransferTx((prev) =>
           prev ? { ...prev, status: "rejected" } : { status: "rejected" }
         );
       } else {
-        toast.error(e?.reason ?? e?.message ?? "Error");
+        toast.error(e?.reason ?? e?.message ?? t("common.error"));
         setTransferTx((prev) =>
           prev ? { ...prev, status: "failed" } : { status: "failed" }
         );
@@ -242,13 +242,13 @@ const CreateTransactionPage = () => {
   const createTxHandler = async () => {
     const toTrimmed = toTx.trim();
     if (toTrimmed.length > 0 && !isAddress(toTrimmed)) {
-      toast.error("To address is not valid");
+      toast.error(t("createTx.invalidTo"));
       return;
     }
     const dataTrimmed = dataTx.trim();
     if (dataTrimmed.length > 0) {
       if (!dataTrimmed.startsWith("0x") || dataTrimmed.length % 2 !== 0) {
-        toast.error("Data must be hex (0x...) or empty");
+        toast.error(t("createTx.invalidData"));
         return;
       }
     }
@@ -273,8 +273,8 @@ const CreateTransactionPage = () => {
         link,
         status: receipt?.status === 1 ? "success" : "failed"
       });
-      if (receipt?.status === 1) toast.success("Transaction successful");
-      else toast.error("Transaction failed");
+      if (receipt?.status === 1) toast.success(t("common.txSuccessful"));
+      else toast.error(t("common.txFailed"));
     } catch (err: unknown) {
       const e = err as {
         code?: number | string;
@@ -287,12 +287,12 @@ const CreateTransactionPage = () => {
           String(e?.message ?? e?.reason ?? "")
         );
       if (rejected) {
-        toast("Transaction rejected");
+        toast(t("common.txRejected"));
         setCreateTx((prev) =>
           prev ? { ...prev, status: "rejected" } : { status: "rejected" }
         );
       } else {
-        toast.error(e?.reason ?? e?.message ?? "Error");
+        toast.error(e?.reason ?? e?.message ?? t("common.error"));
         setCreateTx((prev) =>
           prev ? { ...prev, status: "failed" } : { status: "failed" }
         );
@@ -305,12 +305,12 @@ const CreateTransactionPage = () => {
   /** Replace/cancel a stuck tx: self-transfer 0 ETH with the same nonce (use higher gas in the wallet if needed). */
   const cancelTxHandler = async () => {
     if (!currentAccount) {
-      toast.error("Connect wallet");
+      toast.error(t("createTx.connectWallet"));
       return;
     }
     const nonceParsed = parseNonceInput(nonceTx);
     if (nonceParsed === "empty" || nonceParsed === "invalid") {
-      toast.error("Set the nonce of the pending transaction to cancel");
+      toast.error(t("createTx.setNonce"));
       return;
     }
 
@@ -334,9 +334,9 @@ const CreateTransactionPage = () => {
         status: receipt?.status === 1 ? "success" : "failed"
       });
       if (receipt?.status === 1) {
-        toast.success("Cancelled transaction");
+        toast.success(t("createTx.cancelled"));
         void refreshPendingNonce(currentAccount);
-      } else toast.error("Transaction failed");
+      } else toast.error(t("common.txFailed"));
     } catch (err: unknown) {
       const e = err as {
         code?: number | string;
@@ -349,12 +349,12 @@ const CreateTransactionPage = () => {
           String(e?.message ?? e?.reason ?? "")
         );
       if (rejected) {
-        toast("Transaction rejected");
+        toast(t("common.txRejected"));
         setAdvTx((prev) =>
           prev ? { ...prev, status: "rejected" } : { status: "rejected" }
         );
       } else {
-        toast.error(e?.reason ?? e?.message ?? "Error");
+        toast.error(e?.reason ?? e?.message ?? t("common.error"));
         setAdvTx((prev) =>
           prev ? { ...prev, status: "failed" } : { status: "failed" }
         );
@@ -367,21 +367,15 @@ const CreateTransactionPage = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>Create Transaction</h1>
-        <p>Transfer native coin or send a raw transaction / deploy contract</p>
+        <h1>{t("createTx.title")}</h1>
+        <p>{t("createTx.subtitle")}</p>
       </section>
 
       <section className="feature-panel">
-        <h3>Transfer native coin</h3>
-        <p className="feature-field-hint">
-          Send ETH (or native token) to an address. Data can be text or hex
-          (0x...); leave empty for a simple transfer. To can also be an array
-          (JSON like [0x..,0x..] or comma/newline separated). When multiple
-          addresses are provided, it will batch transfer via Multicall3 and
-          treat Value as per-recipient amount.
-        </p>
+        <h3>{t("createTx.transferSection")}</h3>
+        <p className="feature-field-hint">{t("createTx.transferHint")}</p>
         <div className="feature-field">
-          <label htmlFor="create-to">To</label>
+          <label htmlFor="create-to">{t("common.to")}</label>
           <textarea
             id="create-to"
             value={to}
@@ -394,7 +388,7 @@ const CreateTransactionPage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="create-amount">Value (ETH)</label>
+          <label htmlFor="create-amount">{t("common.valueEth")}</label>
           <input
             id="create-amount"
             type="text"
@@ -407,7 +401,7 @@ const CreateTransactionPage = () => {
         </div>
         <div className="feature-field">
           <label htmlFor="create-input-data">
-            Data (optional, text or 0x hex)
+            {t("createTx.dataOptional")}
           </label>
           <textarea
             id="create-input-data"
@@ -425,7 +419,7 @@ const CreateTransactionPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount || isTransferring}
           >
-            {isTransferring ? "Sending…" : "Transfer"}
+            {isTransferring ? t("common.sending") : t("common.transfer")}
           </button>
           {transferTx && (
             <div
@@ -434,10 +428,10 @@ const CreateTransactionPage = () => {
               <span
                 className={`feature-tx-result-badge feature-tx-result-badge--${transferTx.status}`}
               >
-                {transferTx.status === "pending" && "Pending"}
-                {transferTx.status === "success" && "Success"}
-                {transferTx.status === "failed" && "Failed"}
-                {transferTx.status === "rejected" && "Rejected"}
+                {transferTx.status === "pending" && t("common.pending")}
+                {transferTx.status === "success" && t("common.success")}
+                {transferTx.status === "failed" && t("common.failed")}
+                {transferTx.status === "rejected" && t("common.rejected")}
               </span>
               {transferTx.link && (
                 <a
@@ -456,13 +450,10 @@ const CreateTransactionPage = () => {
       </section>
 
       <section className="feature-panel">
-        <h3>Create transaction / Deploy contract</h3>
-        <p className="feature-field-hint">
-          Raw transaction with hex data. Leave To empty for contract deploy.
-          Nonce is chosen by the wallet.
-        </p>
+        <h3>{t("createTx.deploySection")}</h3>
+        <p className="feature-field-hint">{t("createTx.deployHint")}</p>
         <div className="feature-field">
-          <label htmlFor="create-tx-to">To (optional for deploy)</label>
+          <label htmlFor="create-tx-to">{t("createTx.toOptional")}</label>
           <input
             id="create-tx-to"
             type="text"
@@ -475,7 +466,7 @@ const CreateTransactionPage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="create-tx-value">Value (ETH)</label>
+          <label htmlFor="create-tx-value">{t("common.valueEth")}</label>
           <input
             id="create-tx-value"
             type="text"
@@ -487,9 +478,7 @@ const CreateTransactionPage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="create-tx-data">
-            Data (hex, e.g. 0x or contract bytecode)
-          </label>
+          <label htmlFor="create-tx-data">{t("createTx.dataHex")}</label>
           <textarea
             id="create-tx-data"
             value={dataTx}
@@ -506,7 +495,7 @@ const CreateTransactionPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount || isCreating}
           >
-            {isCreating ? "Sending…" : "Create transaction"}
+            {isCreating ? t("common.sending") : t("createTx.createButton")}
           </button>
           {createTx && (
             <div
@@ -515,10 +504,10 @@ const CreateTransactionPage = () => {
               <span
                 className={`feature-tx-result-badge feature-tx-result-badge--${createTx.status}`}
               >
-                {createTx.status === "pending" && "Pending"}
-                {createTx.status === "success" && "Success"}
-                {createTx.status === "failed" && "Failed"}
-                {createTx.status === "rejected" && "Rejected"}
+                {createTx.status === "pending" && t("common.pending")}
+                {createTx.status === "success" && t("common.success")}
+                {createTx.status === "failed" && t("common.failed")}
+                {createTx.status === "rejected" && t("common.rejected")}
               </span>
               {createTx.link && (
                 <a
@@ -537,15 +526,10 @@ const CreateTransactionPage = () => {
       </section>
 
       <section className="feature-panel">
-        <h3>Cancel pending</h3>
-        <p className="feature-field-hint">
-          Paste the pending or stuck transaction hash and load its nonce, or set
-          nonce manually. Refresh fills next nonce from chain head (
-          <code>latest</code>). Cancel sends 0 ETH to yourself with this nonce
-          to replace—raise gas in the wallet if needed.
-        </p>
+        <h3>{t("createTx.cancelSection")}</h3>
+        <p className="feature-field-hint">{t("createTx.cancelHint")}</p>
         <div className="feature-field">
-          <label htmlFor="adv-cancel-tx-hash">Transaction hash</label>
+          <label htmlFor="adv-cancel-tx-hash">{t("common.txHash")}</label>
           <div className="feature-actions feature-actions--inline">
             <input
               id="adv-cancel-tx-hash"
@@ -564,12 +548,14 @@ const CreateTransactionPage = () => {
               disabled={isAdvBusy || isFetchingNonceFromHash}
               onClick={() => void fetchNonceFromTxHash()}
             >
-              {isFetchingNonceFromHash ? "Loading…" : "Load nonce"}
+              {isFetchingNonceFromHash
+                ? t("common.loading")
+                : t("createTx.loadNonce")}
             </button>
           </div>
         </div>
         <div className="feature-field">
-          <label htmlFor="adv-tx-nonce">Nonce</label>
+          <label htmlFor="adv-tx-nonce">{t("common.nonce")}</label>
           <div className="feature-actions feature-actions--inline">
             <input
               id="adv-tx-nonce"
@@ -577,7 +563,7 @@ const CreateTransactionPage = () => {
               inputMode="numeric"
               value={nonceTx}
               onChange={(e) => setNonceTx(e.target.value)}
-              placeholder="latest chain head"
+              placeholder={t("createTx.noncePlaceholder")}
               spellCheck={false}
               autoComplete="off"
               className="estimate-address-input"
@@ -589,7 +575,7 @@ const CreateTransactionPage = () => {
               disabled={!currentAccount || isAdvBusy || isFetchingNonceFromHash}
               onClick={() => void refreshPendingNonce(currentAccount)}
             >
-              Refresh
+              {t("common.refresh")}
             </button>
           </div>
         </div>
@@ -599,9 +585,9 @@ const CreateTransactionPage = () => {
             onClick={cancelTxHandler}
             className="cta-button mint-nft-button"
             disabled={!currentAccount || isAdvBusy || isFetchingNonceFromHash}
-            title="0 ETH self-transfer with this nonce"
+            title={t("createTx.cancelTitle")}
           >
-            {isAdvBusy ? "Sending…" : "Cancel transaction"}
+            {isAdvBusy ? t("common.sending") : t("createTx.cancelButton")}
           </button>
           {advTx && (
             <div
@@ -610,10 +596,10 @@ const CreateTransactionPage = () => {
               <span
                 className={`feature-tx-result-badge feature-tx-result-badge--${advTx.status}`}
               >
-                {advTx.status === "pending" && "Pending"}
-                {advTx.status === "success" && "Success"}
-                {advTx.status === "failed" && "Failed"}
-                {advTx.status === "rejected" && "Rejected"}
+                {advTx.status === "pending" && t("common.pending")}
+                {advTx.status === "success" && t("common.success")}
+                {advTx.status === "failed" && t("common.failed")}
+                {advTx.status === "rejected" && t("common.rejected")}
               </span>
               {advTx.link && (
                 <a

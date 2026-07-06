@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { mintNFT, signEIP712MessageMintNft } from "@/lib/nft/CallNftMint";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 
 const MintNFTPage = () => {
+  const { t } = useI18n();
   const [selectedAmount, setSelectedAmount] = useState("1");
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
@@ -83,18 +85,18 @@ const MintNFTPage = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>Mint YGME</h1>
-        <p>Mint or sign EIP712 and mint NFT</p>
+        <h1>{t("mintNft.title")}</h1>
+        <p>{t("mintNft.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Mint Amount</h3>
+        <h3>{t("mintNft.amountSection")}</h3>
         <div className="feature-field">
-          <label htmlFor="mintAmount">Amount</label>
+          <label htmlFor="mintAmount">{t("common.amount")}</label>
           <select
             id="mintAmount"
             value={selectedAmount}
             onChange={handleChangeAmount}
-            aria-label="Mint amount"
+            aria-label={t("mintNft.amountSection")}
           >
             <option value="1">1</option>
             <option value="5">5</option>
@@ -107,20 +109,20 @@ const MintNFTPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Mint NFT
+            {t("mintNft.mintButton")}
           </button>
           <button
             onClick={signEIP712MessageMintNftHandler}
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            signEIP712 Message and Mint NFT
+            {t("mintNft.signAndMint")}
           </button>
         </div>
       </section>
       {message && (
         <div className="feature-tx-link">
-          <p>Transaction</p>
+          <p>{t("common.transaction")}</p>
           <a href={message} target="_blank" rel="noopener noreferrer">
             {message}
           </a>

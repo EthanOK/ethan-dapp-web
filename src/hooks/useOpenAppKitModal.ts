@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { tGlobal } from "@/i18n";
 import { modal } from "@/app/Wallet";
 
 type AppKitModalLike = {
@@ -19,7 +20,7 @@ export function useOpenAppKitModal() {
     } catch (error) {
       console.error("Connect failed:", error);
       localStorage.removeItem("LoginType");
-      toast.error("Connect wallet failed, please try again");
+      toast.error(tGlobal("wallet.connectFailed"));
     } finally {
       setIsConnecting(false);
     }

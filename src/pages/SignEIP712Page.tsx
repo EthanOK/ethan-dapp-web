@@ -7,10 +7,12 @@ import {
 } from "@/lib/signing/SignFunc";
 import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { stringifyJson } from "@/lib/shared/Format";
 import { toast } from "sonner";
 
 const SignEIP712Page = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
@@ -67,7 +69,7 @@ const SignEIP712Page = () => {
     if (!message) return;
     try {
       await navigator.clipboard.writeText(message);
-      toast.success("Copied to clipboard");
+      toast.success(t("common.copiedToClipboard"));
     } catch (e) {
       try {
         const el = document.createElement("textarea");
@@ -80,10 +82,10 @@ const SignEIP712Page = () => {
         el.select();
         document.execCommand("copy");
         document.body.removeChild(el);
-        toast.success("Copied to clipboard");
+        toast.success(t("common.copiedToClipboard"));
       } catch (err) {
         console.error("copy failed", e, err);
-        toast.error("Copy failed. Please select and copy manually.");
+        toast.error(t("common.copyManual"));
       }
     }
   };
@@ -91,53 +93,53 @@ const SignEIP712Page = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>EIP-712 Sign</h1>
-        <p>Sign typed data (YunGou, OpenSea, etc.)</p>
+        <h1>{t("signEip712.title")}</h1>
+        <p>{t("signEip712.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Actions</h3>
+        <h3>{t("common.actions")}</h3>
         <div className="feature-actions feature-actions-row">
           <button
             onClick={signEIP712YunGouHandler}
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Sign EIP-712 YunGou
+            {t("signEip712.signYunGou")}
           </button>
           <button
             onClick={signEIP712OpenSeaHandler}
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Sign EIP-712 OpenSea
+            {t("signEip712.signOpenSea")}
           </button>
           <button
             onClick={signBulkOrderOpenSeaHandler}
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Sign bulk order OpenSea
+            {t("signEip712.signBulkOpenSea")}
           </button>
           <button
             onClick={signBulkOrdersHandler}
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Sign custom bulk orders
+            {t("signEip712.signCustomBulk")}
           </button>
         </div>
       </section>
       {message && (
         <section className="feature-panel">
           <div className="feature-panel-header">
-            <h3>Result</h3>
+            <h3>{t("common.result")}</h3>
             <button
               type="button"
               onClick={copyResult}
               className="mini-action-button"
-              title="Copy result"
+              title={t("common.copyResult")}
             >
-              Copy
+              {t("common.copy")}
             </button>
           </div>
           <pre
