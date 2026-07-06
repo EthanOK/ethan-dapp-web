@@ -21,8 +21,10 @@ import { getTokenPrice } from "@/lib/price/GetLpTokenPrice";
 import { signHexDataMessage } from "@/lib/signing/SignFunc";
 import { getSigner } from "@/lib/wallet/GetProvider";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 
 const UtilsPage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [signatureHex, setSignatureHex] = useState("");
@@ -141,7 +143,7 @@ const UtilsPage = () => {
       );
       setSignatureHex(signatureHex_ ?? "");
     } catch {
-      alert("INVALID_ARGUMENT");
+      alert(t("common.invalidArgument"));
     }
   };
 
@@ -165,17 +167,14 @@ const UtilsPage = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>Utils</h1>
-        <p>
-          Sign hex data, IPFS URLs, gas, SqrtPriceX96, LP price, contract
-          address
-        </p>
+        <h1>{t("utils.title")}</h1>
+        <p>{t("utils.subtitle")}</p>
       </section>
 
       <section className="feature-panel">
-        <h3>Sign Hex Data</h3>
+        <h3>{t("utils.signHex")}</h3>
         <div className="feature-field">
-          <label htmlFor="hexData">Hex Data</label>
+          <label htmlFor="hexData">{t("utils.hexData")}</label>
           <textarea
             id="hexData"
             placeholder="0xc0e8f831a90406f3a15e808f3f1ec26ea4bc214cfb986cdb4b0623b22bbf8ed3"
@@ -188,19 +187,19 @@ const UtilsPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Sign Hex Data
+            {t("utils.signButton")}
           </button>
         </div>
         <div className="feature-field">
-          <label>Signature</label>
+          <label>{t("common.signature")}</label>
           <textarea value={signatureHex} readOnly rows={3} />
         </div>
       </section>
 
       <section className="feature-panel">
-        <h3>IPFS</h3>
+        <h3>{t("utils.ipfsSection")}</h3>
         <div className="feature-field">
-          <label htmlFor="cid">CID</label>
+          <label htmlFor="cid">{t("ipfs.cid")}</label>
           <textarea
             id="cid"
             placeholder="QmSFZ84W8uNjoZJMkGkVDuJR5PBNtsHorDBmcHCjzACdXY"
@@ -212,12 +211,12 @@ const UtilsPage = () => {
             onClick={getIPFSURLHandler}
             className="cta-button mint-nft-button"
           >
-            getIPFSURL
+            {t("utils.getIpfsUrl")}
           </button>
         </div>
         {(message || message1) && (
           <div className="feature-tx-link" style={{ marginTop: 16 }}>
-            <p>Gateways</p>
+            <p>{t("common.gateways")}</p>
             {message && (
               <a href={message} target="_blank" rel="noopener noreferrer">
                 {message.substring(0, message.lastIndexOf("/") + 2)}
@@ -260,13 +259,13 @@ const UtilsPage = () => {
       </section>
 
       <section className="feature-panel">
-        <h3>计算 Gas</h3>
+        <h3>{t("utils.gasSection")}</h3>
         <div className="feature-field">
-          <label htmlFor="gasUsed">Gas Used</label>
+          <label htmlFor="gasUsed">{t("utils.gasUsed")}</label>
           <input id="gasUsed" type="text" placeholder="158170" />
         </div>
         <div className="feature-field">
-          <label htmlFor="gasPrice">Gas Price (Gwei)</label>
+          <label htmlFor="gasPrice">{t("utils.gasPrice")}</label>
           <input id="gasPrice" type="text" placeholder="1.5" />
         </div>
         <div className="feature-actions">
@@ -274,13 +273,13 @@ const UtilsPage = () => {
             onClick={calculateTxFeeHandler}
             className="cta-button mint-nft-button"
           >
-            calculate TxFee
+            {t("utils.calculateTxFee")}
           </button>
         </div>
         <p style={{ color: "var(--w3-text-muted)", marginTop: 12 }}>
-          TxFee:{" "}
+          {t("utils.txFee")}{" "}
           <strong style={{ color: "var(--w3-text)" }}>{transactionFee}</strong>{" "}
-          ether
+          {t("utils.ether")}
           {" · "}
           {etherPrice
             ? (
@@ -288,14 +287,14 @@ const UtilsPage = () => {
                 parseFloat(String(etherPrice))
               ).toFixed(4)
             : "—"}{" "}
-          USD
+          {t("utils.usd")}
         </p>
       </section>
 
       <section className="feature-panel">
-        <h3>SqrtPriceX96</h3>
+        <h3>{t("utils.sqrtPriceSection")}</h3>
         <div className="feature-field">
-          <label htmlFor="sqrtPriceX96">sqrtPriceX96</label>
+          <label htmlFor="sqrtPriceX96">{t("utils.sqrtPriceX96")}</label>
           <input
             id="sqrtPriceX96"
             type="text"
@@ -307,11 +306,11 @@ const UtilsPage = () => {
             onClick={getPriceHandler}
             className="cta-button mint-nft-button"
           >
-            getPrice
+            {t("utils.getPrice")}
           </button>
         </div>
         <p style={{ color: "var(--w3-text-muted)", marginTop: 12 }}>
-          Price:{" "}
+          {t("common.price")}:{" "}
           <strong style={{ color: "var(--w3-text)" }}>
             {tokenPrice ?? "—"}
           </strong>
@@ -319,20 +318,20 @@ const UtilsPage = () => {
       </section>
 
       <section className="feature-panel">
-        <h3>LP Token Price V2</h3>
+        <h3>{t("utils.lpSection")}</h3>
         <div className="feature-field">
-          <label htmlFor="utils-platform">Platform</label>
+          <label htmlFor="utils-platform">{t("common.platform")}</label>
           <select
             id="utils-platform"
             value={selectedValue}
             onChange={handleChangeValue}
           >
-            <option value="1">UniSwap V2 (ETH)</option>
-            <option value="56">PancakeSwap V2 (BSC)</option>
+            <option value="1">{t("utils.uniswapEth")}</option>
+            <option value="56">{t("utils.pancakeBsc")}</option>
           </select>
         </div>
         <div className="feature-field">
-          <label htmlFor="token0">Token0</label>
+          <label htmlFor="token0">{t("utils.token0")}</label>
           <input
             id="token0"
             type="text"
@@ -340,7 +339,7 @@ const UtilsPage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="token1">Token1</label>
+          <label htmlFor="token1">{t("utils.token1")}</label>
           <input
             id="token1"
             type="text"
@@ -352,11 +351,11 @@ const UtilsPage = () => {
             onClick={getTokenPriceHandler}
             className="cta-button mint-nft-button"
           >
-            getTokenPrice
+            {t("utils.getTokenPrice")}
           </button>
         </div>
         <p style={{ color: "var(--w3-text-muted)", marginTop: 12 }}>
-          LP Price:{" "}
+          {t("utils.lpPrice")}{" "}
           <strong style={{ color: "var(--w3-text)" }}>
             {lpTokenPrice ?? "—"}
           </strong>
@@ -364,9 +363,9 @@ const UtilsPage = () => {
       </section>
 
       <section className="feature-panel">
-        <h3>Get Contract Address (By Create)</h3>
+        <h3>{t("utils.contractSection")}</h3>
         <div className="feature-field">
-          <label htmlFor="account_create">Account</label>
+          <label htmlFor="account_create">{t("common.account")}</label>
           <input
             id="account_create"
             type="text"
@@ -374,7 +373,7 @@ const UtilsPage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="nonce_create">Nonce</label>
+          <label htmlFor="nonce_create">{t("utils.nonce")}</label>
           <input id="nonce_create" type="text" placeholder="11" />
         </div>
         <div className="feature-actions">
@@ -382,11 +381,11 @@ const UtilsPage = () => {
             onClick={getAddressByCreatHandler}
             className="cta-button mint-nft-button"
           >
-            getContractAddress
+            {t("utils.getContractAddress")}
           </button>
         </div>
         <p style={{ color: "var(--w3-text-muted)", marginTop: 12 }}>
-          Contract Address:{" "}
+          {t("utils.contractAddress")}{" "}
           <strong
             style={{
               color: "var(--w3-text)",

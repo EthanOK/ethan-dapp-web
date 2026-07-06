@@ -22,6 +22,7 @@ import { BulkOrder } from "bulkorder-sdk";
 import type { Order as BulkSignedOrder } from "bulkorder-sdk";
 import { SiweMessage } from "siwe";
 import { toast } from "sonner";
+import { tGlobal } from "@/i18n";
 
 type WalletError = { code?: number | string; message?: string };
 type YunGouOrderData = typeof order_data;
@@ -70,7 +71,7 @@ export const signSiweMessage = async () => {
     return { message: prepared, signature, siweMessage: msg };
   } catch (error: unknown) {
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     }
     return null;
   }
@@ -126,7 +127,7 @@ const signEIP712Message = async (_signer: Signer, _chainId: number) => {
   } catch (error: unknown) {
     console.log(error);
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     }
     return null;
   }
@@ -150,7 +151,7 @@ const signStringMessage = async (signer: Signer) => {
   } catch (error: unknown) {
     console.log(error);
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     }
     const e = error as WalletError;
     if (e.code === -32000) {
@@ -182,7 +183,7 @@ const signHexDataMessage = async (signer: Signer, hexData: string) => {
   } catch (error: unknown) {
     console.log(error);
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     }
     const e = error as WalletError;
     if (e.code === -32000) {
@@ -257,7 +258,7 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
     console.log(error);
 
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     } else {
       const e = error as WalletError;
       if (e.code === -32000) {
@@ -457,7 +458,7 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
   } catch (error: unknown) {
     console.log(error);
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     }
     const e = error as WalletError;
     if (e.code === -32000) {
@@ -529,7 +530,7 @@ const signBulkOrderOpenSeaMessage = async (signer: Signer, chainId: number) => {
     ordersWithSign = await seaport.signBulkOrder(orders);
   } catch (error: unknown) {
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     }
   }
 
@@ -626,7 +627,7 @@ const signCustomBulkOrderMessage = async (signer: Signer, chainId: number) => {
     console.log("verified:", verified);
   } catch (error: unknown) {
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     }
   }
 
@@ -670,7 +671,7 @@ const getSystemSignature = async (
   } catch (error: unknown) {
     console.log(error);
     if (isUserRejected(error)) {
-      toast.error("User rejected request!");
+      toast.error(tGlobal("common.txRejected"));
     }
     const e = error as WalletError;
     if (e.code === -32000) {

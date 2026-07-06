@@ -1,6 +1,7 @@
 import { formatUnits } from "ethers";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useI18n } from "@/i18n";
 import {
   addressesEqual,
   getTokenDisplayName,
@@ -101,6 +102,7 @@ export function SwapTokenPickerModal({
   onFavoritesChange,
   onClose
 }: SwapTokenPickerModalProps) {
+  const { t } = useI18n();
   const [listFilter, setListFilter] = useState<ListFilter>("all");
   const [marketInfoSide, setMarketInfoSide] = useState<TokenSide | null>(null);
 
@@ -120,7 +122,9 @@ export function SwapTokenPickerModal({
   const handleToggleFavorite = (side: TokenSide) => {
     const result = toggleFavoriteTokenAddress(chainId, side.tokenAddress);
     if (result.limitReached) {
-      toast.error(`You can favorite up to ${SWAP_FAVORITE_MAX} tokens`);
+      toast.error(
+        t("swap.picker.favoriteLimit", { max: String(SWAP_FAVORITE_MAX) })
+      );
       return;
     }
     onFavoritesChange?.();
@@ -172,9 +176,9 @@ export function SwapTokenPickerModal({
   );
 
   const emptyListMessage = useMemo(() => {
-    if (listFilter === "imported") return "No imported tokens";
-    return "No tokens match your search";
-  }, [listFilter]);
+    if (listFilter === "imported") return t("swap.picker.noImported");
+    return t("swap.picker.noMatch");
+  }, [listFilter, t]);
 
   if (!open) return null;
 
@@ -193,7 +197,7 @@ export function SwapTokenPickerModal({
             type="button"
             className="swap-picker-close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             ×
           </button>
@@ -208,7 +212,7 @@ export function SwapTokenPickerModal({
             className="swap-picker-search"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search symbol, name or contract address"
+            placeholder={t("swap.picker.searchPlaceholder")}
             autoFocus
           />
         </div>
@@ -244,7 +248,9 @@ export function SwapTokenPickerModal({
                 <button
                   type="button"
                   className="swap-picker-favorite-chip-remove"
-                  aria-label={`Remove ${side.symbol} from favorites`}
+                  aria-label={t("swap.picker.removeFavoriteSymbol", {
+                    symbol: side.symbol
+                  })}
                   onClick={(event) => {
                     event.stopPropagation();
                     toggleFavoriteTokenAddress(chainId, side.tokenAddress);
@@ -259,11 +265,13 @@ export function SwapTokenPickerModal({
         ) : null}
 
         <div className="swap-picker-network">
-          <span className="swap-picker-network-label">Network</span>
+          <span className="swap-picker-network-label">
+            {t("swap.picker.network")}
+          </span>
           <div
             className="swap-picker-network-chains"
             role="group"
-            aria-label="Swap networks"
+            aria-label={t("swap.picker.networksAria")}
           >
             {availableChains.map((chain) => {
               const isActive = chain.chainId === activeChainId;
@@ -294,7 +302,7 @@ export function SwapTokenPickerModal({
         <div
           className="swap-picker-tabs"
           role="tablist"
-          aria-label="Token list filter"
+          aria-label={t("swap.picker.filterAria")}
         >
           <button
             type="button"
@@ -303,7 +311,7 @@ export function SwapTokenPickerModal({
             aria-selected={listFilter === "all"}
             onClick={() => setListFilter("all")}
           >
-            All
+            {t("swap.picker.all")}
           </button>
           <button
             type="button"
@@ -312,19 +320,23 @@ export function SwapTokenPickerModal({
             aria-selected={listFilter === "imported"}
             onClick={() => setListFilter("imported")}
           >
-            Imported
+            {t("swap.picker.imported")}
           </button>
         </div>
 
         <div className="swap-picker-table-head">
-          <span>Token</span>
-          <span>{showBalances ? "Balance" : "Price"}</span>
+          <span>{t("swap.picker.token")}</span>
+          <span>
+            {showBalances
+              ? t("swap.picker.balanceOrPrice")
+              : t("swap.picker.price")}
+          </span>
         </div>
 
         <ul className="swap-picker-list">
           {addressLookupLoading && (
             <li className="swap-picker-empty swap-picker-loading">
-              Loading token from chain…
+              {t("swap.picker.loadingFromChain")}
             </li>
           )}
 
@@ -349,8 +361,8 @@ export function SwapTokenPickerModal({
                         className={`swap-picker-favorite${isFavorite ? " is-active" : ""}`}
                         aria-label={
                           isFavorite
-                            ? "Remove from favorites"
-                            : "Add to favorites"
+                            ? t("swap.picker.removeFavorite")
+                            : t("swap.picker.addFavorite")
                         }
                         aria-pressed={isFavorite}
                         onClick={() => handleToggleFavorite(side)}
@@ -426,7 +438,9 @@ export function SwapTokenPickerModal({
                       <button
                         type="button"
                         className="swap-picker-info"
-                        aria-label={`Market info for ${side.symbol}`}
+                        aria-label={t("swap.picker.marketInfoFor", {
+                          symbol: side.symbol
+                        })}
                         onClick={() => setMarketInfoSide(side)}
                       >
                         i

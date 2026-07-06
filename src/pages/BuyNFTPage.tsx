@@ -10,8 +10,10 @@ import {
   fulfillAvailableOrders
 } from "@/lib/nft/OpenseaFunc";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 
 const BuyNFTPage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [message, setMessage] = useState("");
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
@@ -50,7 +52,7 @@ const BuyNFTPage = () => {
         ? isAddress(JSON.parse(contractValue) as string)
         : isAddress(contractValue);
     if (!res) {
-      alert("地址错误");
+      alert(t("buyNft.invalidAddress"));
       return;
     }
     const chainId = localStorage.getItem("chainId");
@@ -77,7 +79,7 @@ const BuyNFTPage = () => {
     ) as HTMLTextAreaElement | null;
     if (!contractEl || !tokenIdEl) return;
     if (!currentAccount) {
-      alert("请先连接钱包");
+      alert(t("buyNft.connectWallet"));
       return;
     }
     const contractValue = contractEl.value;
@@ -87,7 +89,7 @@ const BuyNFTPage = () => {
         ? isAddress(JSON.parse(contractValue) as string)
         : isAddress(contractValue);
     if (!res) {
-      alert("地址错误");
+      alert(t("buyNft.invalidAddress"));
       return;
     }
     try {
@@ -124,7 +126,7 @@ const BuyNFTPage = () => {
     ) as HTMLTextAreaElement | null;
     if (!contractsEl || !tokenIdsEl) return;
     if (!currentAccount) {
-      alert("请先连接钱包");
+      alert(t("buyNft.connectWallet"));
       return;
     }
     const contractsValue = stringToArray(contractsEl.value);
@@ -158,13 +160,13 @@ const BuyNFTPage = () => {
   return (
     <center>
       <div>
-        <h2>OpenSea</h2>
+        <h2>{t("buyNft.title")}</h2>
         <div className="bordered-div">
-          <h4>Buy One NFT</h4>
+          <h4>{t("buyNft.buyOne")}</h4>
           <div className="container">
             <div className="input-container">
               <label className="label" htmlFor="contract">
-                contract:
+                {t("buyNft.contractLabel")}
               </label>
               <textarea
                 className="textarea"
@@ -174,7 +176,7 @@ const BuyNFTPage = () => {
             </div>
             <div className="input-container">
               <label className="label" htmlFor="tokenId">
-                tokenId:
+                {t("buyNft.tokenIdLabel")}
               </label>
               <textarea className="textarea" id="tokenId" placeholder="100" />
             </div>
@@ -185,7 +187,7 @@ const BuyNFTPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            fulfillBasicOrder(推荐使用)
+            {t("buyNft.fulfillBasicOrder")}
           </button>
           <p />
           <button
@@ -193,7 +195,7 @@ const BuyNFTPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            fulfillOrder
+            {t("buyNft.fulfillOrder")}
           </button>
           <p />
           <button
@@ -201,15 +203,15 @@ const BuyNFTPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            fulfillBasicOrder_efficient_6GL6yc(gas最优)
+            {t("buyNft.fulfillBasicEfficient")}
           </button>
         </div>
         <div className="bordered-div">
-          <h4>Buy Multiple NFT</h4>
+          <h4>{t("buyNft.buyMultiple")}</h4>
           <div className="container">
             <div className="input-container">
               <label className="label" htmlFor="contracts">
-                contracts:
+                {t("buyNft.contractsLabel")}
               </label>
               <textarea
                 className="textarea"
@@ -220,7 +222,7 @@ const BuyNFTPage = () => {
             </div>
             <div className="input-container">
               <label className="label" htmlFor="tokenIds">
-                tokenIds:
+                {t("buyNft.tokenIdsLabel")}
               </label>
               <textarea
                 className="textarea"
@@ -236,7 +238,7 @@ const BuyNFTPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            fulfillAvailableOrders
+            {t("buyNft.fulfillAvailableOrders")}
           </button>
           <p />
           <button
@@ -244,13 +246,13 @@ const BuyNFTPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            fulfillAvailableAdvancedOrders(推荐使用)
+            {t("buyNft.fulfillAvailableAdvanced")}
           </button>
         </div>
       </div>
       <div>
         <h2>
-          Please See:
+          {t("buyNft.pleaseSee")}
           <p />
           <textarea
             value={message}

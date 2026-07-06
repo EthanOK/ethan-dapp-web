@@ -1,7 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { headerNetworksAll } from "@/app/Wallet";
 import { useReownWalletSync } from "@/hooks/useReownWalletSync";
 import { useHeaderChainId } from "@/hooks/useHeaderChainId";
+import { useI18n } from "@/i18n";
+
+const MOBILE_HEADER_MQ = "(max-width: 768px)";
+
+function useMobileHeaderLayout() {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia(MOBILE_HEADER_MQ).matches
+      : false
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_HEADER_MQ);
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  return isMobile;
+}
 
 /**
  * Wallet-dependent header cluster (network selector + connect button).
@@ -12,6 +33,8 @@ import { useHeaderChainId } from "@/hooks/useHeaderChainId";
  * so first paint no longer ships the wallet SDK bundle.
  */
 function WalletControls() {
+  const { t } = useI18n();
+  const isMobileHeader = useMobileHeaderLayout();
   const { address, isConnected, currentChainId } = useReownWalletSync();
   const { chainId, handleHeaderNetworkChange } = useHeaderChainId({
     isConnected,
@@ -33,7 +56,11 @@ function WalletControls() {
   };
 
   return (
-    <>
+    <div
+      className={
+        "app-header-wallet-controls" + (isConnected ? " is-connected" : "")
+      }
+    >
       <label htmlFor="app-network" className="app-header-network-label">
         Network
       </label>
@@ -42,7 +69,7 @@ function WalletControls() {
         className="app-header-network-select"
         value={String(chainId ?? "")}
         onChange={handleHeaderNetworkChange}
-        aria-label="当前网络"
+        aria-label="Network"
       >
         {headerNetworksAll.map((network) => {
           const value = String(
@@ -58,12 +85,15 @@ function WalletControls() {
       </select>
       <div className="w3-connect-wrap">
         <appkit-button
-          label={isConnecting ? "Connecting..." : "Connect Wallet"}
+          balance={isMobileHeader ? "hide" : "show"}
+          label={
+            isConnecting ? t("common.connecting") : t("common.connectWallet")
+          }
           style={{ display: "block", marginLeft: "auto" }}
           onClick={handleConnect}
         />
       </div>
-    </>
+    </div>
   );
 }
 

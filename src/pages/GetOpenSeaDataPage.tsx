@@ -3,9 +3,11 @@ import { stringifyJson } from "@/lib/shared/Format";
 import { isAddress } from "@/lib/shared/Utils";
 import { getOrderHashSignatureOpenSea } from "@/services/GetData";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 const GetOpenSeaDataPage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [contract, setContract] = useState("");
   const [tokenId, setTokenId] = useState("");
@@ -45,7 +47,7 @@ const GetOpenSeaDataPage = () => {
   const getOrderHashAndSignatureHandler = async () => {
     const c = parseContract(contract);
     if (!c) {
-      toast.error("Invalid contract address");
+      toast.error(t("opensea.invalidContract"));
       return;
     }
     const chainId = localStorage.getItem("chainId") ?? "";
@@ -55,7 +57,7 @@ const GetOpenSeaDataPage = () => {
       tokenId.trim()
     )) as { code?: number; message?: string; data?: unknown };
     if (result.code !== 200) {
-      toast.error(result.message ?? "Request failed");
+      toast.error(result.message ?? t("common.requestFailed"));
       return;
     }
     setMessage(stringifyJson(result.data, "\t"));
@@ -64,13 +66,13 @@ const GetOpenSeaDataPage = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>OpenSea Data</h1>
-        <p>Get order hash and signature for OpenSea</p>
+        <h1>{t("opensea.title")}</h1>
+        <p>{t("opensea.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Parameters</h3>
+        <h3>{t("common.parameters")}</h3>
         <div className="feature-field">
-          <label htmlFor="opensea-contract">Contract</label>
+          <label htmlFor="opensea-contract">{t("common.contract")}</label>
           <input
             id="opensea-contract"
             type="text"
@@ -83,7 +85,7 @@ const GetOpenSeaDataPage = () => {
           />
         </div>
         <div className="feature-field">
-          <label htmlFor="opensea-tokenid">Token ID</label>
+          <label htmlFor="opensea-tokenid">{t("common.tokenId")}</label>
           <input
             id="opensea-tokenid"
             type="text"
@@ -101,12 +103,12 @@ const GetOpenSeaDataPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Get order hash & signature
+            {t("opensea.getOrderHash")}
           </button>
         </div>
         {message && (
           <div className="feature-field" style={{ marginTop: 16 }}>
-            <label>Result</label>
+            <label>{t("common.result")}</label>
             <pre
               style={{
                 margin: 0,

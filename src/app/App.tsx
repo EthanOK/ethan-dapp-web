@@ -88,8 +88,13 @@ function HeaderLocaleMenu() {
         setOpen(false);
       }
     };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
+    const timerId = window.setTimeout(() => {
+      document.addEventListener("pointerdown", onPointerDown);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [open]);
 
   const selectLocale = (next: AppLocale) => {
@@ -213,6 +218,7 @@ function App() {
 
   const ethNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
     { titleKey: "nav.home", linkTo: "/" },
+    { titleKey: "nav.markets", linkTo: "/markets" },
     { titleKey: "nav.bricswap", linkTo: "/bricswap" },
     { titleKey: "nav.estimateTxFee", linkTo: "/estimateTxFee" },
     { titleKey: "nav.createTransaction", linkTo: "/createTransaction" },
@@ -303,10 +309,8 @@ function App() {
             </button>
             <Suspense
               fallback={
-                <div className="w3-connect-wrap">
-                  <span className="app-header-network-label">
-                    {t("common.network")}
-                  </span>
+                <div className="app-header-wallet-controls">
+                  <span className="app-header-network-label">Network</span>
                 </div>
               }
             >

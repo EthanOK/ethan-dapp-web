@@ -161,8 +161,16 @@
 .app-header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.app-header-wallet-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .w3-network-badge {
@@ -203,7 +211,7 @@
 /* Header locale menu */
 .app-header-locale-wrap {
   position: relative;
-  margin-right: 6px;
+  z-index: 1201;
 }
 
 .app-header-locale-toggle {
@@ -218,10 +226,22 @@
   background: var(--w3-bg-card);
   color: var(--w3-text);
   cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
   transition:
     border-color 0.2s,
     color 0.2s,
     background 0.2s;
+}
+
+.app-header-locale-toggle:focus {
+  outline: none;
+}
+
+.app-header-locale-toggle:focus-visible {
+  outline: 2px solid var(--w3-border-accent);
+  outline-offset: 1px;
 }
 
 .app-header-locale-toggle:hover {
@@ -289,16 +309,28 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  margin-right: 8px;
+  margin-right: 0;
   padding: 0;
   border: 1px solid var(--w3-border);
   border-radius: var(--w3-radius-sm);
   background: var(--w3-bg-card);
   color: var(--w3-text);
   cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
   transition:
     border-color 0.2s,
     background 0.2s;
+}
+
+.app-header-theme-toggle:focus {
+  outline: none;
+}
+
+.app-header-theme-toggle:focus-visible {
+  outline: 2px solid var(--w3-border-accent);
+  outline-offset: 1px;
 }
 
 .app-header-theme-toggle:hover {
@@ -1084,13 +1116,17 @@ body.app-menu-open {
 
 @media (max-width: 768px) {
   .app-header {
-    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
+    padding: 10px 12px;
     min-height: 52px;
+    overflow: visible;
   }
 
   .app-header-left {
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
     flex: 1;
   }
@@ -1100,6 +1136,16 @@ body.app-menu-open {
     width: 36px;
     height: 36px;
     flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-header-menu-btn:focus {
+    outline: none;
+  }
+
+  .app-header-menu-btn:focus-visible {
+    outline: 2px solid var(--w3-border-accent);
+    outline-offset: 1px;
   }
 
   .app-header-menu-icon {
@@ -1109,40 +1155,32 @@ body.app-menu-open {
   .app-logo {
     font-size: 1rem;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    gap: 0;
+  }
+
+  .app-logo-text {
+    display: none;
   }
 
   .app-header-right {
-    gap: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
     flex-shrink: 0;
-    flex-wrap: nowrap;
+    overflow: visible;
   }
 
-  .app-header-locale-wrap {
-    margin-right: 4px;
+  .app-header-wallet-controls {
+    gap: 10px;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
   }
 
-  .app-header-locale-toggle {
-    width: 32px;
-    height: 32px;
-  }
-
-  .app-header-locale-icon svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .app-header-theme-toggle {
-    width: 32px;
-    height: 32px;
-    margin-right: 0;
-  }
-
-  .app-header-theme-icon svg {
-    width: 16px;
-    height: 16px;
+  .app-header-wallet-controls.is-connected .app-header-network-select {
+    display: none;
   }
 
   .app-header-network-label {
@@ -1160,13 +1198,23 @@ body.app-menu-open {
   .app-header-network-select {
     padding: 6px 28px 6px 10px;
     font-size: 0.8rem;
-    margin-right: 6px;
+    margin-right: 0;
     min-width: 0;
-    max-width: 100px;
+    max-width: 92px;
+    flex-shrink: 1;
   }
 
   .w3-connect-wrap {
     min-width: 0;
+    flex: 1 1 auto;
+    max-width: min(128px, 40vw);
+    overflow: hidden;
+  }
+
+  .w3-connect-wrap appkit-button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
   }
 
   .w3-account-badge {

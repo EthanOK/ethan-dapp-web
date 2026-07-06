@@ -13,9 +13,11 @@ import {
 import { JsonRpcProvider, Wallet } from "ethers";
 import { getScanURL } from "@/lib/shared/Utils";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 const EIP7702Page = () => {
+  const { t } = useI18n();
   const [privateKey, setPrivateKey] = useState("");
   const [txLink, setTxLink] = useState("");
 
@@ -24,14 +26,14 @@ const EIP7702Page = () => {
   const createEIP7702AccountHandler = async () => {
     const pk = privateKey.trim();
     if (!pk) {
-      toast.error("Please enter private key");
+      toast.error(t("eip7702.enterPrivateKey"));
       return;
     }
     try {
       const url = await getScanURL();
       const chainId = await getChainId();
       if (chainId === null) {
-        toast.error("无法获取链 ID，请先连接钱包");
+        toast.error(t("error.chainIdRequired"));
         return;
       }
       const provider = new JsonRpcProvider(
@@ -43,8 +45,8 @@ const EIP7702Page = () => {
       const delegationAddress = await getDelegationAddress(signer);
       const logger =
         delegationAddress === null
-          ? "Create EIP-7702 account"
-          : "Update EIP-7702 account";
+          ? t("eip7702.createLog")
+          : t("eip7702.updateLog");
       toast(logger);
       currentNonce++;
       const delegator: string | null = EIP7702Delegator_Metamask;
@@ -60,25 +62,25 @@ const EIP7702Page = () => {
       const prov = signer.provider;
       if (prov) {
         const txReceipt = await prov.waitForTransaction(hash);
-        if (txReceipt?.status === 1) toast.success("EIP-7702 success");
-        else toast.error("Transaction failed");
+        if (txReceipt?.status === 1) toast.success(t("eip7702.success"));
+        else toast.error(t("common.txFailed"));
       }
     } catch (error) {
-      toast.error((error as Error)?.message ?? "Failed");
+      toast.error((error as Error)?.message ?? t("common.failedGeneric"));
     }
   };
 
   const revokeEIP7702AccountHandler = async () => {
     const pk = privateKey.trim();
     if (!pk) {
-      toast.error("Please enter private key");
+      toast.error(t("eip7702.enterPrivateKey"));
       return;
     }
     try {
       const url = await getScanURL();
       const chainId = await getChainId();
       if (chainId === null) {
-        toast.error("无法获取链 ID，请先连接钱包");
+        toast.error(t("error.chainIdRequired"));
         return;
       }
       const provider = new JsonRpcProvider(
@@ -88,7 +90,7 @@ const EIP7702Page = () => {
       const signer = new Wallet(pk, provider);
       const delegationAddress = await getDelegationAddress(signer);
       if (delegationAddress === null) {
-        toast.error("Not EIP-7702 account");
+        toast.error(t("eip7702.notAccount"));
         return;
       }
       const hash = await revokeEIP7702Account(signer);
@@ -96,24 +98,24 @@ const EIP7702Page = () => {
       const prov = signer.provider;
       if (prov) {
         const txReceipt = await prov.waitForTransaction(hash);
-        if (txReceipt?.status === 1) toast.success("Revoke success");
-        else toast.error("Transaction failed");
+        if (txReceipt?.status === 1) toast.success(t("eip7702.revokeSuccess"));
+        else toast.error(t("common.txFailed"));
       }
     } catch (error) {
-      toast.error((error as Error)?.message ?? "Failed");
+      toast.error((error as Error)?.message ?? t("common.failedGeneric"));
     }
   };
 
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>EIP-7702</h1>
-        <p>Delegation and revoke for EOA</p>
+        <h1>{t("eip7702.title")}</h1>
+        <p>{t("eip7702.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Private key (delegator)</h3>
+        <h3>{t("eip7702.privateKeySection")}</h3>
         <div className="feature-field">
-          <label htmlFor="eip7702-pk">Private key</label>
+          <label htmlFor="eip7702-pk">{t("eip7702.privateKey")}</label>
           <input
             id="eip7702-pk"
             type="password"
@@ -132,7 +134,7 @@ const EIP7702Page = () => {
             className="cta-button mint-nft-button"
             disabled={!address}
           >
-            Create EIP-7702 account
+            {t("eip7702.createAccount")}
           </button>
           <button
             type="button"
@@ -140,12 +142,12 @@ const EIP7702Page = () => {
             className="cta-button mint-nft-button"
             disabled={!address}
           >
-            Revoke EIP-7702 account
+            {t("eip7702.revokeAccount")}
           </button>
         </div>
         {txLink && (
           <div className="feature-tx-link" style={{ marginTop: 16 }}>
-            <p>Transaction</p>
+            <p>{t("common.transaction")}</p>
             <a href={txLink} target="_blank" rel="noopener noreferrer">
               {txLink}
             </a>

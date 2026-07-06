@@ -1,7 +1,9 @@
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { useEffect, useState } from "react";
 
 const GetIPFSPage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [cid, setCid] = useState("");
   const [ipfsUrl, setIpfsUrl] = useState("");
@@ -34,13 +36,13 @@ const GetIPFSPage = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>IPFS</h1>
-        <p>Resolve IPFS CID to gateway URL</p>
+        <h1>{t("ipfs.title")}</h1>
+        <p>{t("ipfs.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>CID</h3>
+        <h3>{t("ipfs.cid")}</h3>
         <div className="feature-field">
-          <label htmlFor="ipfs-cid">Content ID (CID)</label>
+          <label htmlFor="ipfs-cid">{t("ipfs.cidLabel")}</label>
           <input
             id="ipfs-cid"
             type="text"
@@ -58,12 +60,12 @@ const GetIPFSPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount || !cid.trim()}
           >
-            Get IPFS URL
+            {t("ipfs.getUrl")}
           </button>
         </div>
         {ipfsUrl && (
           <div className="feature-tx-link" style={{ marginTop: 16 }}>
-            <p>URL</p>
+            <p>{t("common.url")}</p>
             <a href={ipfsUrl} target="_blank" rel="noopener noreferrer">
               {ipfsUrl}
             </a>

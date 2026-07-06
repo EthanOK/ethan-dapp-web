@@ -32,9 +32,11 @@ import OrdersTest from "@/lib/nft/GetOrdersTestnet";
 import { createOpenSeaSDK } from "@/lib/nft/CreateOpenSeaSdk";
 import { YUNGOU_END, chainName_S } from "@/config/SystemConfiguration";
 import { useEvmWallet, useWalletChain } from "@/hooks";
+import { useI18n } from "@/i18n";
 import "./YunGouAggregatorsPage.css";
 
 const YunGouAggregatorsPage = () => {
+  const { t } = useI18n();
   const [currentAccount, setCurrentAccount] = useState(null);
   const [chainId, setChainId] = useState(localStorage.getItem("chainId"));
   const [message, setMessage] = useState("");
@@ -60,7 +62,7 @@ const YunGouAggregatorsPage = () => {
     tokenIdsValue = stringToArray(tokenIdsValue);
     const { ethereum } = window;
     if (!ethereum) {
-      alert("ethereum object does not exist!");
+      alert(t("common.ethereumNotFound"));
       return;
     }
     try {
@@ -197,7 +199,7 @@ const YunGouAggregatorsPage = () => {
   const excuteWithETHHandler = async () => {
     const { ethereum } = window;
     if (!ethereum) {
-      alert("ethereum object does not exist!");
+      alert(t("common.ethereumNotFound"));
       return;
     }
     try {
@@ -227,7 +229,7 @@ const YunGouAggregatorsPage = () => {
   const batchExcuteWithETHHandler = async () => {
     const { ethereum } = window;
     if (!ethereum) {
-      alert("ethereum object does not exist!");
+      alert(t("common.ethereumNotFound"));
       return;
     }
     try {
@@ -296,29 +298,27 @@ const YunGouAggregatorsPage = () => {
   return (
     <div className="yg-page main-app">
       <section className="yg-hero">
-        <h1>YunGou Aggregators</h1>
-        <p>Batch buy OpenSea orders & YunGou 2.0 actions</p>
+        <h1>{t("yungou.title")}</h1>
+        <p>{t("yungou.subtitle")}</p>
       </section>
 
       <section className="yg-panel">
-        <h3>OpenSea Orders</h3>
-        <p className="yg-desc">
-          Input contract addresses and token IDs to batch fulfill.
-        </p>
+        <h3>{t("yungou.openseaSection")}</h3>
+        <p className="yg-desc">{t("yungou.openseaDesc")}</p>
         <div className="yg-field">
-          <label htmlFor="yg-contracts">Contracts</label>
+          <label htmlFor="yg-contracts">{t("yungou.contracts")}</label>
           <textarea
             id="yg-contracts"
             placeholder="[0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b, ...]"
-            aria-label="合约地址列表"
+            aria-label={t("yungou.contractsAria")}
           />
         </div>
         <div className="yg-field">
-          <label htmlFor="yg-tokenIds">Token IDs</label>
+          <label htmlFor="yg-tokenIds">{t("yungou.tokenIds")}</label>
           <textarea
             id="yg-tokenIds"
             placeholder="[1, 2, ...]"
-            aria-label="Token ID 列表"
+            aria-label={t("yungou.tokenIdsAria")}
           />
         </div>
         <div className="yg-actions">
@@ -328,16 +328,14 @@ const YunGouAggregatorsPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Batch Buy (YunGou Aggregators)
+            {t("yungou.batchBuy")}
           </button>
         </div>
       </section>
 
       <section className="yg-panel">
-        <h3>YunGou 2.0</h3>
-        <p className="yg-desc">
-          Execute / batch execute / cancel / get order hash.
-        </p>
+        <h3>{t("yungou.v2Section")}</h3>
+        <p className="yg-desc">{t("yungou.v2Desc")}</p>
         <div className="yg-actions">
           <button
             type="button"
@@ -345,7 +343,7 @@ const YunGouAggregatorsPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            excuteWithETH
+            {t("yungou.excuteWithEth")}
           </button>
           <button
             type="button"
@@ -353,7 +351,7 @@ const YunGouAggregatorsPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            batchExcuteWithETH
+            {t("yungou.batchExcuteWithEth")}
           </button>
           <button
             type="button"
@@ -361,7 +359,7 @@ const YunGouAggregatorsPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Cancel
+            {t("yungou.cancel")}
           </button>
           <button
             type="button"
@@ -369,14 +367,14 @@ const YunGouAggregatorsPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Get OrderHash
+            {t("yungou.getOrderHash")}
           </button>
         </div>
       </section>
 
       {message && (
         <div className="yg-tx-link">
-          <p>Transaction</p>
+          <p>{t("common.transaction")}</p>
           <a href={message} target="_blank" rel="noopener noreferrer">
             {message}
           </a>

@@ -21,10 +21,12 @@ import {
   useSwitchAppKitNetwork,
   useWalletChain
 } from "@/hooks";
+import { useI18n } from "@/i18n";
 
 const faucetFromAddress = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
 
 const FaucetTokenPage = () => {
+  const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
   const [currentAccount, setCurrentAccount] = useState<string | null>(() => {
     try {
@@ -239,7 +241,7 @@ const FaucetTokenPage = () => {
         await switchNetwork(cid);
       } catch (error) {
         console.error("Failed to switch chain:", error);
-        toast.error("切换链失败，请手动切换");
+        toast.error(t("error.switchChain"));
       }
     }
   };
@@ -254,8 +256,7 @@ const FaucetTokenPage = () => {
     const targetChainId = selectedChainId ?? faucetChainIdList[0];
     if (chainId === targetChainId) return true;
     const ok = await switchToChainAndWait(targetChainId, {
-      onMismatchMessage:
-        "Switching network timeout or not completed, please switch manually and try again"
+      onMismatchMessage: t("faucet.switchTimeout")
     });
     if (ok) setChainId(targetChainId);
     return ok;
@@ -289,7 +290,7 @@ const FaucetTokenPage = () => {
       if (!tokenAddress) return;
       const decimals = await getERC20Decimals(tokenAddress);
       if (Number(faucetAmount) > totalAmount) {
-        toast.error("Insufficient Supply");
+        toast.error(t("faucet.insufficientSupply"));
         return;
       }
       const faucetContract = await getFaucetContract();
@@ -318,11 +319,11 @@ const FaucetTokenPage = () => {
         String(e?.code) === "4001" ||
         /user rejected|rejected|denied/i.test(msg);
       if (rejected) {
-        toast("User rejected the transaction");
+        toast(t("faucet.userRejected"));
       } else if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.error("Faucet failed, please try again");
+        toast.error(t("faucet.failed"));
       }
     } finally {
       setIsTransactionProcessing(false);
@@ -351,10 +352,10 @@ const FaucetTokenPage = () => {
                 marginRight: "8px"
               }}
             />
-            Processing...
+            {t("common.processingDots")}
           </>
         ) : (
-          `Faucet ${amountStr} ${coinType}`
+          t("faucet.faucetButton", { amount: amountStr, token: coinType })
         )}
       </button>
     );
@@ -364,7 +365,7 @@ const FaucetTokenPage = () => {
     const { ethereum } = window;
     try {
       if (!ethereum) {
-        alert("Please install Metamask");
+        alert(t("common.installMetamask"));
         return false;
       }
       return true;
@@ -378,22 +379,22 @@ const FaucetTokenPage = () => {
     <div className="feature-page main-app">
       {showAlert && (
         <div className="feature-alert">
-          <strong>Claim Successful!</strong>
+          <strong>{t("faucet.claimSuccess")}</strong>
         </div>
       )}
       <section className="feature-hero">
-        <h1>Faucet Token</h1>
-        <p>Select chain and token to claim testnet tokens</p>
+        <h1>{t("faucet.title")}</h1>
+        <p>{t("faucet.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Select Chain</h3>
+        <h3>{t("common.selectChain")}</h3>
         <div className="feature-field">
-          <label htmlFor="faucet-chain">Chain</label>
+          <label htmlFor="faucet-chain">{t("common.chain")}</label>
           <select
             id="faucet-chain"
             value={selectedChainId ?? ""}
             onChange={handleChainSelectChange}
-            aria-label="Select chain"
+            aria-label={t("common.selectChain")}
           >
             {faucetChainIdList.map((cid) => (
               <option key={cid} value={cid}>
@@ -404,7 +405,8 @@ const FaucetTokenPage = () => {
         </div>
         {selectedChainId && (
           <p className="feature-field" style={{ marginBottom: 0 }}>
-            Current: <strong>{chainId ? getChainName(chainId) : "—"}</strong>
+            {t("common.current")}:{" "}
+            <strong>{chainId ? getChainName(chainId) : "—"}</strong>
             {/* {chainId != null &&
               selectedChainId != null &&
               chainId !== selectedChainId && (
@@ -417,20 +419,20 @@ const FaucetTokenPage = () => {
       </section>
       {selectedChainId && (
         <section className="feature-panel">
-          <h3>Faucet Token</h3>
+          <h3>{t("faucet.tokenSection")}</h3>
           <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
-            Remaining Supply:{" "}
+            {t("faucet.remainingSupply")}{" "}
             <strong style={{ color: "var(--w3-text)" }}>{totalAmount}</strong>
           </p>
           {availableTokens.length > 0 ? (
             <>
               <div className="feature-field">
-                <label htmlFor="faucet-token">Token</label>
+                <label htmlFor="faucet-token">{t("common.token")}</label>
                 <select
                   id="faucet-token"
                   value={selectedToken}
                   onChange={handleSelectChange}
-                  aria-label="Select token"
+                  aria-label={t("common.selectToken")}
                 >
                   {availableTokens.map((token) => (
                     <option key={token.label} value={token.label}>
@@ -440,7 +442,7 @@ const FaucetTokenPage = () => {
                 </select>
               </div>
               <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
-                My {selectedToken} Balance:{" "}
+                {t("faucet.myBalance", { token: selectedToken })}{" "}
                 <strong style={{ color: "var(--w3-text)" }}>
                   {tokenBalance}
                 </strong>
@@ -469,10 +471,12 @@ const FaucetTokenPage = () => {
                             marginRight: "8px"
                           }}
                         />
-                        Switching...
+                        {t("common.switchingEllipsis")}
                       </>
                     ) : (
-                      `Switch to ${getChainName(selectedChainId)}`
+                      t("common.switchToChain", {
+                        chain: getChainName(selectedChainId)
+                      })
                     )}
                   </button>
                 ) : (
@@ -483,7 +487,7 @@ const FaucetTokenPage = () => {
             </>
           ) : (
             <p style={{ color: "var(--w3-text-muted)" }}>
-              No tokens available for this chain
+              {t("faucet.noTokens")}
             </p>
           )}
         </section>
@@ -495,7 +499,7 @@ const FaucetTokenPage = () => {
             className="cta-button connect-wallet-button"
             disabled={isConnecting}
           >
-            {isConnecting ? "Connecting..." : "Connect Wallet"}
+            {isConnecting ? t("common.connecting") : t("common.connectWallet")}
           </button>
         </section>
       )}

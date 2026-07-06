@@ -68,12 +68,12 @@ function getChartUi(width: number) {
   };
 }
 
-const TIME_RANGES = [
-  { label: "1W", days: 7 },
-  { label: "1M", days: 30 },
-  { label: "3M", days: 90 },
-  { label: "6M", days: 180 },
-  { label: "1Y", days: 365 }
+const TIME_RANGE_KEYS = [
+  { labelKey: "marketChart.range1W" as const, days: 7 },
+  { labelKey: "marketChart.range1M" as const, days: 30 },
+  { labelKey: "marketChart.range3M" as const, days: 90 },
+  { labelKey: "marketChart.range6M" as const, days: 180 },
+  { labelKey: "marketChart.range1Y" as const, days: 365 }
 ] as const;
 
 const ChartExpandIcon = () => (
@@ -1679,14 +1679,14 @@ const MarketChartPage = () => {
       <div
         className={`marketchart-tabs ${landscapeOpen ? "marketchart-tabs--hidden" : ""}`}
       >
-        {TIME_RANGES.map(({ label, days }) => (
+        {TIME_RANGE_KEYS.map(({ labelKey, days }) => (
           <button
-            key={label}
+            key={labelKey}
             type="button"
             className={`marketchart-tab ${activeRange === days ? "active" : ""}`}
             onClick={() => handleRangeChange(days)}
           >
-            {label}
+            {t(labelKey)}
           </button>
         ))}
         <span className="marketchart-tabs-sep" />
@@ -1758,14 +1758,14 @@ const MarketChartPage = () => {
               )}
             </div>
             <div className="marketchart-landscape-tabs">
-              {TIME_RANGES.map(({ label, days }) => (
+              {TIME_RANGE_KEYS.map(({ labelKey, days }) => (
                 <button
-                  key={label}
+                  key={labelKey}
                   type="button"
                   className={`marketchart-tab marketchart-tab--compact ${activeRange === days ? "active" : ""}`}
                   onClick={() => handleRangeChange(days)}
                 >
-                  {label}
+                  {t(labelKey)}
                 </button>
               ))}
               <span className="marketchart-tabs-sep" />

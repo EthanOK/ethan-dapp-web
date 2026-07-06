@@ -29,6 +29,7 @@ bun start              # http://localhost:3000
 src/
 ├── app/           App shell (App.tsx, App.css, Wallet.ts — AppKit init)
 ├── pages/         Route pages (one feature per file)
+├── i18n/          Locale provider, useI18n hook, en / zh-CN / zh-TW strings
 ├── components/    Shared UI
 ├── hooks/         React hooks (wallet, theme, sidebar, network switch)
 ├── lib/           Domain logic
@@ -52,11 +53,15 @@ Entry: `src/index.tsx` → `src/app/App.tsx`.
 
 ## Features (sidebar)
 
-**Ethereum:** Home, tx fee estimate, raw tx builder, ERC20 allowance, LayerZero OFT bridge, faucet, burn, ENS, mint NFT, EIP-712 sign, EIP-7702, utils, ERC-6551, Web3Auth.
+**Ethereum:** Home, **Markets** (`/markets`), BricSwap, tx fee estimate, raw tx builder, ERC20 allowance, LayerZero OFT bridge, faucet, burn, ENS, mint NFT, EIP-712 sign, EIP-7702, utils, ERC-6551, Web3Auth.
 
 **Solana:** Solana utils, WSOL wrap/unwrap.
 
-Additional routes (not in sidebar): `/market`, OpenSea buy/data, YunGou aggregators, IPFS, collection lookup, etc.
+**Markets:** Top 250 coins (CoinGecko), sortable table, 50 per page. Row click opens `/market` chart. Token names truncate with `...` when too long.
+
+**i18n:** Header globe menu — English, 简体中文, 繁體中文. All tool pages and swap UI follow the selected locale. The header **Network** label is always English.
+
+Additional routes (not in sidebar): OpenSea buy/data, YunGou aggregators, IPFS, collection lookup, etc.
 
 ## Environment
 
@@ -65,7 +70,7 @@ Copy `.env.example` to `.env`. Common variables:
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown / WalletConnect project id
 - `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
 
-Backend API base URL is configured in `src/config/SystemConfiguration.ts` (`React_Serve_Back`). The backend service is not in this repo.
+Backend API base URL is configured in `src/config/SystemConfiguration.ts` (`React_Serve_Back`, default `https://ethan-dapp.onrender.com/`). The backend service is not in this repo.
 
 ## Docker
 

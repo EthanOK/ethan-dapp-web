@@ -24,8 +24,10 @@ import {
   TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 import { truncateHash } from "@/lib/shared/Format";
+import { useI18n } from "@/i18n";
 
 const WsolPageContent = () => {
+  const { t } = useI18n();
   const { walletProvider } = useAppKitProvider<Provider>("solana");
   const { connection: appKitConnection } = useAppKitConnection();
   const connection = appKitConnection ?? getDevConnection();
@@ -154,7 +156,7 @@ const WsolPageContent = () => {
     }
 
     if (state) {
-      toast.error("Already initialized");
+      toast.error(t("wsol.alreadyInitialized"));
     } else {
       try {
         const txTransaction = await program.methods
@@ -166,11 +168,11 @@ const WsolPageContent = () => {
           .transaction();
         const tx = await sendPreparedTransaction(txTransaction, connection);
         console.log(tx);
-        toast.success("initialize success");
+        toast.success(t("wsol.initSuccess"));
         updateShowData();
       } catch (error) {
         console.log(error);
-        toast.error("initialize failed");
+        toast.error(t("wsol.initFailed"));
       }
     }
   };
@@ -209,8 +211,8 @@ const WsolPageContent = () => {
       );
       const ok = !confirm?.value?.err;
       setDepositTx({ link, status: ok ? "success" : "failed" });
-      if (ok) toast.success("Transaction successful");
-      else toast.error("Transaction failed");
+      if (ok) toast.success(t("common.txSuccessful"));
+      else toast.error(t("common.txFailed"));
       updateShowData();
     } catch (err: unknown) {
       const e = err as { code?: number | string; message?: string };
@@ -218,12 +220,12 @@ const WsolPageContent = () => {
         String(e?.code) === "4001" ||
         /rejected|denied|user rejected/i.test(String(e?.message ?? ""));
       if (rejected) {
-        toast("Transaction rejected");
+        toast(t("common.txRejected"));
         setDepositTx((prev) =>
           prev ? { ...prev, status: "rejected" } : { status: "rejected" }
         );
       } else {
-        toast.error(String(e?.message ?? "Error"));
+        toast.error(String(e?.message ?? t("common.error")));
         setDepositTx((prev) =>
           prev ? { ...prev, status: "failed" } : { status: "failed" }
         );
@@ -256,8 +258,8 @@ const WsolPageContent = () => {
       );
       const ok = !confirm?.value?.err;
       setWithdrawTx({ link, status: ok ? "success" : "failed" });
-      if (ok) toast.success("Transaction successful");
-      else toast.error("Transaction failed");
+      if (ok) toast.success(t("common.txSuccessful"));
+      else toast.error(t("common.txFailed"));
       updateShowData();
     } catch (err: unknown) {
       const e = err as { code?: number | string; message?: string };
@@ -265,12 +267,12 @@ const WsolPageContent = () => {
         String(e?.code) === "4001" ||
         /rejected|denied|user rejected/i.test(String(e?.message ?? ""));
       if (rejected) {
-        toast("Transaction rejected");
+        toast(t("common.txRejected"));
         setWithdrawTx((prev) =>
           prev ? { ...prev, status: "rejected" } : { status: "rejected" }
         );
       } else {
-        toast.error(String(e?.message ?? "Error"));
+        toast.error(String(e?.message ?? t("common.error")));
         setWithdrawTx((prev) =>
           prev ? { ...prev, status: "failed" } : { status: "failed" }
         );
@@ -293,7 +295,7 @@ const WsolPageContent = () => {
         onClick={initializeHandler}
         className="cta-button mint-nft-button"
       >
-        initialize
+        {t("wsol.initialize")}
       </button>
     );
   };
@@ -319,10 +321,10 @@ const WsolPageContent = () => {
                 marginRight: "8px"
               }}
             ></span>
-            Processing...
+            {t("common.processingDots")}
           </>
         ) : (
-          "deposit 1 SOL"
+          t("wsol.depositButton")
         )}
       </button>
     );
@@ -349,10 +351,10 @@ const WsolPageContent = () => {
                 marginRight: "8px"
               }}
             ></span>
-            Processing...
+            {t("common.processingDots")}
           </>
         ) : (
-          "withdraw 1 WSOL"
+          t("wsol.withdrawButton")
         )}
       </button>
     );
@@ -364,7 +366,7 @@ const WsolPageContent = () => {
         onClick={disConnectHandler}
         className="cta-button mint-nft-button"
       >
-        DisConnect
+        {t("common.disConnect")}
       </button>
     );
   };
@@ -372,14 +374,14 @@ const WsolPageContent = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>WSOL (Solana)</h1>
-        <p>Wrap SOL and manage WSOL balance</p>
+        <h1>{t("wsol.title")}</h1>
+        <p>{t("wsol.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>SOL</h3>
+        <h3>{t("wsol.solSection")}</h3>
         <div className="solana-hero-stats" style={{ marginTop: 0 }}>
           <span className="solana-hero-account-row">
-            Account:{" "}
+            {t("wsol.account")}{" "}
             <strong className="solana-hero-value">
               {currentSolanaAccount
                 ? `${currentSolanaAccount.slice(0, 8)}…${currentSolanaAccount.slice(-8)}`
@@ -391,18 +393,18 @@ const WsolPageContent = () => {
                 className="solana-hero-copy"
                 onClick={() => {
                   navigator.clipboard.writeText(currentSolanaAccount).then(
-                    () => toast.success("Address copied"),
-                    () => toast.error("Copy failed")
+                    () => toast.success(t("common.addressCopied")),
+                    () => toast.error(t("common.copyFailed"))
                   );
                 }}
-                title="Copy full address"
+                title={t("common.copyFullAddress")}
               >
-                Copy
+                {t("common.copy")}
               </button>
             )}
           </span>
           <span>
-            Balance:{" "}
+            {t("wsol.balanceSol")}{" "}
             <strong className="solana-hero-value">
               {accountSOLBalance != null
                 ? `${Number(accountSOLBalance).toFixed(4)} SOL`
@@ -414,18 +416,23 @@ const WsolPageContent = () => {
         {/* <div className="feature-actions">{disConnectButton()}</div> */}
       </section>
       <section className="feature-panel">
-        <h3>WSOL</h3>
-        <p className="feature-field-hint">Mint: {getWethMintAddress()}</p>
+        <h3>{t("wsol.wsolSection")}</h3>
         <p className="feature-field-hint">
-          Balance: {accountWethBalance != null ? accountWethBalance : "—"} WSOL
+          {t("wsol.mint")} {getWethMintAddress()}
+        </p>
+        <p className="feature-field-hint">
+          {t("wsol.balanceWsol", {
+            balance:
+              accountWethBalance != null ? String(accountWethBalance) : "—"
+          })}
         </p>
       </section>
       <section className="feature-panel">
-        <h3>Initialize</h3>
+        <h3>{t("wsol.initializeSection")}</h3>
         <div className="feature-actions">{initializeButton()}</div>
       </section>
       <section className="feature-panel">
-        <h3>Deposit</h3>
+        <h3>{t("wsol.depositSection")}</h3>
         <div className="feature-actions feature-actions--inline">
           {depositButton()}
           {depositTx && (
@@ -435,10 +442,10 @@ const WsolPageContent = () => {
               <span
                 className={`feature-tx-result-badge feature-tx-result-badge--${depositTx.status}`}
               >
-                {depositTx.status === "pending" && "Pending"}
-                {depositTx.status === "success" && "Success"}
-                {depositTx.status === "failed" && "Failed"}
-                {depositTx.status === "rejected" && "Rejected"}
+                {depositTx.status === "pending" && t("common.pending")}
+                {depositTx.status === "success" && t("common.success")}
+                {depositTx.status === "failed" && t("common.failed")}
+                {depositTx.status === "rejected" && t("common.rejected")}
               </span>
               {depositTx.link && (
                 <a
@@ -456,7 +463,7 @@ const WsolPageContent = () => {
         </div>
       </section>
       <section className="feature-panel">
-        <h3>Withdraw</h3>
+        <h3>{t("wsol.withdrawSection")}</h3>
         <div className="feature-actions feature-actions--inline">
           {withdrawButton()}
           {withdrawTx && (
@@ -466,10 +473,10 @@ const WsolPageContent = () => {
               <span
                 className={`feature-tx-result-badge feature-tx-result-badge--${withdrawTx.status}`}
               >
-                {withdrawTx.status === "pending" && "Pending"}
-                {withdrawTx.status === "success" && "Success"}
-                {withdrawTx.status === "failed" && "Failed"}
-                {withdrawTx.status === "rejected" && "Rejected"}
+                {withdrawTx.status === "pending" && t("common.pending")}
+                {withdrawTx.status === "success" && t("common.success")}
+                {withdrawTx.status === "failed" && t("common.failed")}
+                {withdrawTx.status === "rejected" && t("common.rejected")}
               </span>
               {withdrawTx.link && (
                 <a

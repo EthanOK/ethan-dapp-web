@@ -6,9 +6,11 @@ import {
 } from "@/services/GetData";
 import { isAddress } from "@/lib/shared/Utils";
 import { useEvmWallet } from "@/hooks";
+import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 const ENSPage = () => {
+  const { t } = useI18n();
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [addressInput, setAddressInput] = useState("");
@@ -60,7 +62,7 @@ const ENSPage = () => {
   const getENSHandler = async () => {
     const addr = parseAddress(addressInput);
     if (!addr) {
-      toast.error("Invalid address");
+      toast.error(t("common.invalidAddress"));
       return;
     }
     const result = await getENSUniversalResolver(addr);
@@ -74,7 +76,7 @@ const ENSPage = () => {
   const getAddressHandler = async () => {
     const ens = ensInput.trim();
     if (ens.length < 4) {
-      toast.error("ENS name too short");
+      toast.error(t("ens.nameTooShort"));
       return;
     }
     const result = (await getAddressOfENSTheGraph(ens)) as {
@@ -92,7 +94,7 @@ const ENSPage = () => {
   const getNameByTokenIdHandler = async () => {
     const tokenId = tokenIdInput.trim();
     if (tokenId.length < 64) {
-      toast.error("Token ID must be at least 64 chars");
+      toast.error(t("ens.tokenIdTooShort"));
       return;
     }
     const result = (await getENSByTokenId(tokenId)) as {
@@ -110,13 +112,13 @@ const ENSPage = () => {
   return (
     <div className="feature-page main-app">
       <section className="feature-hero">
-        <h1>ENS Service</h1>
-        <p>Resolve ENS names and addresses</p>
+        <h1>{t("ens.title")}</h1>
+        <p>{t("ens.subtitle")}</p>
       </section>
       <section className="feature-panel">
-        <h3>Get ENS by address</h3>
+        <h3>{t("ens.byAddress")}</h3>
         <div className="feature-field">
-          <label htmlFor="ens-address">Address</label>
+          <label htmlFor="ens-address">{t("common.address")}</label>
           <input
             id="ens-address"
             type="text"
@@ -135,12 +137,12 @@ const ENSPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Get ENS
+            {t("ens.getEns")}
           </button>
         </div>
         {messageENS && (
           <div className="feature-field" style={{ marginTop: 12 }}>
-            <label>Result</label>
+            <label>{t("common.result")}</label>
             <div
               style={{
                 padding: "10px 12px",
@@ -157,9 +159,9 @@ const ENSPage = () => {
         )}
       </section>
       <section className="feature-panel">
-        <h3>Get address by ENS</h3>
+        <h3>{t("ens.byEns")}</h3>
         <div className="feature-field">
-          <label htmlFor="ens-name">ENS name</label>
+          <label htmlFor="ens-name">{t("ens.nameLabel")}</label>
           <input
             id="ens-name"
             type="text"
@@ -177,12 +179,12 @@ const ENSPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Get address
+            {t("ens.getAddress")}
           </button>
         </div>
         {messageAddress && (
           <div className="feature-field" style={{ marginTop: 12 }}>
-            <label>Result</label>
+            <label>{t("common.result")}</label>
             <div
               style={{
                 padding: "10px 12px",
@@ -200,9 +202,9 @@ const ENSPage = () => {
         )}
       </section>
       <section className="feature-panel">
-        <h3>Get name by token ID</h3>
+        <h3>{t("ens.byTokenId")}</h3>
         <div className="feature-field">
-          <label htmlFor="ens-tokenid">ENS token ID</label>
+          <label htmlFor="ens-tokenid">{t("ens.tokenIdLabel")}</label>
           <input
             id="ens-tokenid"
             type="text"
@@ -221,12 +223,12 @@ const ENSPage = () => {
             className="cta-button mint-nft-button"
             disabled={!currentAccount}
           >
-            Get name by token ID
+            {t("ens.getNameByTokenId")}
           </button>
         </div>
         {messageName && (
           <div className="feature-field" style={{ marginTop: 12 }}>
-            <label>Result</label>
+            <label>{t("common.result")}</label>
             <div
               style={{
                 padding: "10px 12px",
