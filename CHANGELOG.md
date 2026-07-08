@@ -2,17 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [Unreleased]
+### [3.0.3](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.1...v3.0.3) (2026-07-08)
+
 
 ### Features
 
-* extend i18n to all pages, swap components, and lib toast messages (EN / zh-CN / zh-TW)
-* add Markets (`/markets`) to sidebar navigation
-* truncate long token names on market list with ellipsis
+* add i18n with EN, zh-CN, and zh-TW locale menu ([ca540bc](https://github.com/EthanOK/ethan-bric-web/commit/ca540bc6824437578be8f95722f9412f3e091b4f))
+* add market list page and polish coin detail loading UX ([7f7d185](https://github.com/EthanOK/ethan-bric-web/commit/7f7d1857654e19de2f9763fa226ee7f2bd6f9771))
+* **i18n:** localize all pages and polish markets UX ([d50928c](https://github.com/EthanOK/ethan-bric-web/commit/d50928ce4e55ff050b5fbc0eecb70f0e818a9d38))
+* redesign market list with Binance-style table and top-250 pagination ([bc13b23](https://github.com/EthanOK/ethan-bric-web/commit/bc13b232b0830ae68097552fd842d5646e17fe0a))
+* **swap:** use Permit2 for BricSwap ERC20 swaps ([aa204fb](https://github.com/EthanOK/ethan-bric-web/commit/aa204fb04854765fd85e5ec501ad7838a31fad30))
+
 
 ### Bug Fixes
 
-* keep header Network label in English regardless of locale
+* **auth:** remove login webhook relay call ([25bbbb8](https://github.com/EthanOK/ethan-bric-web/commit/25bbbb8524bf803e61d07d02fedab6be2b9e0296))
+* **bric:** default dex proxy to REACT_APP_API_URL/api ([2a11c74](https://github.com/EthanOK/ethan-bric-web/commit/2a11c749300f02375aaeaf74737a725a6af8ebdb))
+* **config:** strip trailing slash from API base URL ([5d0107f](https://github.com/EthanOK/ethan-bric-web/commit/5d0107f37065b81db1bf9868e9cb586cfd440362))
+* **header:** improve mobile wallet bar and locale menu ([3b5f86c](https://github.com/EthanOK/ethan-bric-web/commit/3b5f86cc09a442560f8d11dc93ffb38f7f1431e2))
 
 ### [3.0.2](https://github.com/EthanOK/ethan-dapp-web/compare/v3.0.1...v3.0.2) (2026-07-02)
 

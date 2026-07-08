@@ -1,1 +1,0 @@
-import{a as e,d as t,n,p as r}from"./index.browser.esm-p5jaKMav.js";r();var i=()=>new n(t(`devnet`),`confirmed`);r();var a=async(t,n)=>{let r=null;try{return r=await t.getBalance(new e(n)),r}catch(e){return console.log(e),r}};export{i as n,a as t};
