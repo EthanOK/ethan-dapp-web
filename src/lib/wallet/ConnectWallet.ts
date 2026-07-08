@@ -3,11 +3,6 @@ import {
   isTokenExpired
 } from "@/lib/wallet/sessionToken";
 import { isBackendHealthy, postLogin } from "@/services/AuthApi";
-import { postWebhooks } from "@/services/WebhookApi";
-
-function shouldNotifyLoginWebhook(siweDomain: string): boolean {
-  return siweDomain !== "" && !siweDomain.includes("localhost");
-}
 
 export type LoginResult = {
   userAddress: string;
@@ -31,11 +26,6 @@ export const login = async (): Promise<LoginResult | null> => {
     if (!userToken) return null;
 
     localStorage.setItem("token", userToken);
-
-    const domain = siweMessage.domain ?? "";
-    if (shouldNotifyLoginWebhook(domain)) {
-      void postWebhooks({ siweMessage, signature }, userToken);
-    }
 
     return {
       userAddress: siweMessage.address ?? "",
