@@ -22,9 +22,14 @@ const ALCHEMY_KEY_V3 = import.meta.env.REACT_APP_ALCHEMY_KEY_V3;
 
 export const APP_VERSION = import.meta.env.REACT_APP_VERSION ?? "dev";
 export const IS_DEVELOPMENT = import.meta.env.MODE === "development";
+
+const React_Serve_Back = (
+  import.meta.env.REACT_APP_API_URL ?? "https://ethan-dapp.onrender.com"
+).replace(/\/+$/, "");
+
 export const BRIC_DEX_PROXY_BASE_URL =
   import.meta.env.REACT_APP_BRIC_DEX_PROXY_BASE_URL ??
-  "https://new-test.bric.one/bric-api";
+  `${React_Serve_Back}/api`;
 
 const YunGou2_0_main = "0x0000006c517ed32ff128b33f137bb4ac31b0c6dd";
 const YunGou2_0_goerli = "0xb0E3773e3E02d0A1653F90345Bc8889fC820E230";
@@ -45,10 +50,6 @@ const crossChain_tbsc = "0x6AAf3B8a8E42BeDc226e2d1F166Dfdc22d4b5182";
 
 const PancakeRouter = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
 const UniswapRouter = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-
-const React_Serve_Back = (
-  import.meta.env.REACT_APP_API_URL ?? "https://ethan-dapp.onrender.com"
-).replace(/\/+$/, "");
 const DefaultChainId = "11155111";
 
 const EXPIRES_TIME = "7d";
