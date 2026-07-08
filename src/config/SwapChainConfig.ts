@@ -17,7 +17,7 @@ export type SwapChainDefinition = {
   bricSwapAddress: string;
   /**
    * Tokens that require allowance reset (approve 0) before setting a new
-   * non-zero allowance (e.g. mainnet USDT).
+   * non-zero allowance to Permit2 (e.g. mainnet USDT).
    */
   tokensRequiringAllowanceReset?: string[];
   enabled: boolean;

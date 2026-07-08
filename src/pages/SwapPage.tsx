@@ -15,10 +15,11 @@ import {
   isBricSwapAddressConfigured
 } from "@/config/SwapChainConfig";
 import {
-  ensureErc20Allowance,
+  ensurePermit2TokenApproval,
   executeSwapExactInput,
   fetchSwapQuote,
   isExecutableSwapQuote,
+  signSwapPermit2,
   type SwapQuoteResult
 } from "@/lib/swap/BricSwap";
 import {
@@ -820,27 +821,27 @@ const SwapPage = () => {
         return;
       }
 
-      const allowanceResult = await ensureErc20Allowance({
+      const permit2Approval = await ensurePermit2TokenApproval({
         chain: swapChain,
         signer,
         token: paySide.tokenAddress,
         owner: address,
         amount: amountIn
       });
-      if (allowanceResult?.reset?.txHash) {
+      if (permit2Approval?.reset?.txHash) {
         showSwapTxToast(
           t("swap.allowanceReset"),
-          allowanceResult.reset.txHash,
+          permit2Approval.reset.txHash,
           {
             detail: t("swap.resetAllowance", { symbol: paySide.symbol }),
             duration: 5000
           }
         );
       }
-      if (allowanceResult?.approve.txHash) {
+      if (permit2Approval?.approve.txHash) {
         showSwapTxToast(
           t("swap.approveConfirmed"),
-          allowanceResult.approve.txHash,
+          permit2Approval.approve.txHash,
           {
             detail: t("swap.approvedSymbol", { symbol: paySide.symbol }),
             duration: 5000
@@ -848,7 +849,14 @@ const SwapPage = () => {
         );
       }
 
-      // Quote swapData goes stale while waiting for approve confirmation.
+      const permit2 = await signSwapPermit2({
+        chain: swapChain,
+        signer,
+        token: paySide.tokenAddress,
+        amount: amountIn
+      });
+
+      // Quote swapData goes stale while waiting for approve / Permit2 signature.
       const freshQuote = await fetchSwapQuote({
         chain: swapChain,
         signer,
@@ -870,7 +878,8 @@ const SwapPage = () => {
         amountIn,
         tokenOut: receiveSide.tokenAddress,
         quote: freshQuote,
-        receiver: address
+        receiver: address,
+        permit2
       });
 
       const swapToast =

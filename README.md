@@ -38,10 +38,11 @@ src/
 │   ├── nft/       OpenSea, mint, orders
 │   ├── solana/    Connection, WSOL, sign/verify
 │   ├── signing/   EIP-712, bulk orders
+│   ├── swap/      BricSwap (Permit2 quote / approve / execute via bric-sdk)
 │   ├── price/     CoinGecko, LP price
 │   └── shared/    Utils, format helpers
 ├── config/        Chains, faucet, system constants
-├── services/      Backend API fetch helpers (GetData, AuthApi, WebhookApi)
+├── services/      Backend API fetch helpers (GetData, AuthApi)
 ├── abis/          Contract ABIs (evm/, solana/)
 ├── fixtures/      Sample order data for signing demos
 └── types/         Ambient type declarations
@@ -53,7 +54,9 @@ Entry: `src/index.tsx` → `src/app/App.tsx`.
 
 ## Features (sidebar)
 
-**Ethereum:** Home, **Markets** (`/markets`), BricSwap, tx fee estimate, raw tx builder, ERC20 allowance, LayerZero OFT bridge, faucet, burn, ENS, mint NFT, EIP-712 sign, EIP-7702, utils, ERC-6551, Web3Auth.
+**Ethereum:** Home, **Markets** (`/markets`), **BricSwap** (`/swap`), tx fee estimate, raw tx builder, ERC20 allowance, LayerZero OFT bridge, faucet, burn, ENS, mint NFT, EIP-712 sign, EIP-7702, utils, ERC-6551, Web3Auth.
+
+**BricSwap:** Aggregated swap via `@bric-labs/bric-sdk`. ERC20 path uses Uniswap **Permit2** — approve Permit2 once per token if needed, sign EIP-712, then swap (no approve to the BricSwap router). Native ETH swaps skip Permit2. BRIC API defaults to `{REACT_APP_API_URL}/api`.
 
 **Solana:** Solana utils, WSOL wrap/unwrap.
 
@@ -69,6 +72,7 @@ Copy `.env.example` to `.env`. Common variables:
 
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown / WalletConnect project id
 - `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
+- `REACT_APP_API_URL` — Backend base URL (BricSwap dex proxy uses `{API_URL}/api` by default)
 
 Backend API base URL is configured in `src/config/SystemConfiguration.ts` (`React_Serve_Back`, default `https://ethan-dapp.onrender.com`). The backend service is not in this repo.
 

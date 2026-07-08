@@ -1,13 +1,16 @@
 import {
   BricAggregatorHelper,
+  BricError,
   ERC20Helper,
   MULTICALL3_ADDRESS,
+  Permit2Address,
   TxStatus,
   type CallResult,
   type SwapRouterDataOutput
 } from "@bric-labs/bric-sdk";
 import {
   JsonRpcProvider,
+  MaxUint256,
   ZeroAddress,
   type Provider,
   type Signer
@@ -15,6 +18,10 @@ import {
 import { BRIC_SUPPORTED_AGGREGATORS, initBricSdk } from "@/config/BricConfig";
 import { SupportChains } from "@/config/ChainsConfig";
 import type { SwapChainDefinition } from "@/config/SwapChainConfig";
+
+function isNativeToken(token: string): boolean {
+  return token.toLowerCase() === ZeroAddress.toLowerCase();
+}
 
 function requiresAllowanceReset(
   chain: SwapChainDefinition,
@@ -26,10 +33,7 @@ function requiresAllowanceReset(
   return list.some((t) => t.toLowerCase() === token.toLowerCase());
 }
 
-function assertApproveSucceeded(
-  result: CallResult,
-  fallbackMessage: string
-): void {
+function assertTxSucceeded(result: CallResult, fallbackMessage: string): void {
   if (result.status === TxStatus.Reverted) {
     throw new Error(result.error?.message ?? fallbackMessage);
   }
@@ -37,6 +41,12 @@ function assertApproveSucceeded(
 
 export type SwapQuoteResult = SwapRouterDataOutput & {
   minReceived: bigint;
+};
+
+export type Permit2Signature = {
+  nonce: bigint;
+  deadline: bigint;
+  signature: string;
 };
 
 /** True when quote includes on-chain swap calldata (can execute). */
@@ -109,7 +119,11 @@ export async function fetchSwapQuote(params: {
     ? await createBricAggregator(params.chain, params.signer)
     : await createBricAggregatorReadonly(params.chain);
 
-  const quote = await aggregator.previewSwapExactInput(
+  const preview = isNativeToken(params.tokenIn)
+    ? aggregator.previewSwapExactInput.bind(aggregator)
+    : aggregator.previewSwapExactInputWithPermit2.bind(aggregator);
+
+  const quote = await preview(
     params.tokenIn,
     params.amountIn,
     params.tokenOut,
@@ -134,19 +148,20 @@ export async function fetchSwapQuote(params: {
   };
 }
 
-export type Erc20AllowanceResult = {
+export type Permit2TokenApprovalResult = {
   reset?: CallResult;
   approve: CallResult;
 };
 
-export async function ensureErc20Allowance(params: {
+/** One-time ERC20 approve to Permit2 when allowance is insufficient. */
+export async function ensurePermit2TokenApproval(params: {
   chain: SwapChainDefinition;
   signer: Signer;
   token: string;
   owner: string;
   amount: bigint;
-}): Promise<Erc20AllowanceResult | null> {
-  if (params.token === ZeroAddress) return null;
+}): Promise<Permit2TokenApprovalResult | null> {
+  if (isNativeToken(params.token)) return null;
 
   const provider = params.signer.provider;
   if (!provider) throw new Error("Signer has no provider");
@@ -156,27 +171,59 @@ export async function ensureErc20Allowance(params: {
     MULTICALL3_ADDRESS,
     true
   ).connect(params.signer);
-  const spender = params.chain.bricSwapAddress;
   const [row] = await erc20Helper.batchBalancesAndAllowances(
     [params.token],
-    spender,
+    Permit2Address,
     params.owner
   );
   if (row.allowance >= params.amount) return null;
 
   let reset: CallResult | undefined;
   if (requiresAllowanceReset(params.chain, params.token, row.allowance)) {
-    reset = await erc20Helper.approve(params.token, spender, 0n);
-    assertApproveSucceeded(reset, "Failed to reset allowance");
+    reset = await erc20Helper.approve(params.token, Permit2Address, 0n);
+    assertTxSucceeded(reset, "Failed to reset Permit2 allowance");
   }
 
   const approve = await erc20Helper.approve(
     params.token,
-    spender,
+    Permit2Address,
+    MaxUint256
+  );
+  assertTxSucceeded(approve, "Permit2 approve failed");
+  return reset ? { reset, approve } : { approve };
+}
+
+/** EIP-712 Permit2 signature for ERC20 input; native tokens skip signing. */
+export async function signSwapPermit2(params: {
+  chain: SwapChainDefinition;
+  signer: Signer;
+  token: string;
+  amount: bigint;
+}): Promise<Permit2Signature | null> {
+  if (isNativeToken(params.token)) return null;
+
+  const aggregator = await createBricAggregator(params.chain, params.signer);
+  const result = await aggregator.signPermitTransferFromWithPermit2(
+    params.token,
     params.amount
   );
-  assertApproveSucceeded(approve, "Approve failed");
-  return reset ? { reset, approve } : { approve };
+
+  if (result.error) {
+    throw new Error(BricError.toString(result.error));
+  }
+  if (
+    result.signature == null ||
+    result.nonce == null ||
+    result.deadline == null
+  ) {
+    throw new Error("Permit2 signature failed");
+  }
+
+  return {
+    nonce: result.nonce,
+    deadline: result.deadline,
+    signature: result.signature
+  };
 }
 
 export async function executeSwapExactInput(params: {
@@ -187,6 +234,7 @@ export async function executeSwapExactInput(params: {
   tokenOut: string;
   quote: SwapQuoteResult;
   receiver: string;
+  permit2?: Permit2Signature | null;
 }): Promise<CallResult> {
   if (!params.quote.swapData) {
     throw new Error("Insufficient balance or swap route unavailable");
@@ -195,17 +243,31 @@ export async function executeSwapExactInput(params: {
   const aggregator = await createBricAggregator(params.chain, params.signer);
   aggregator.setOptions({ waitForConfirmation: true, autoGasBuffer: true });
 
-  const result = await aggregator.swapExactInput(
-    params.tokenIn,
-    params.amountIn,
-    params.tokenOut,
-    params.quote.minReceived,
-    params.receiver,
-    params.quote.swapData!
-  );
-
-  if (result.status === TxStatus.Reverted) {
-    throw new Error(result.error?.message ?? "Swap reverted");
+  if (!isNativeToken(params.tokenIn) && !params.permit2) {
+    throw new Error("Permit2 signature required");
   }
+
+  const result = isNativeToken(params.tokenIn)
+    ? await aggregator.swapExactInput(
+        params.tokenIn,
+        params.amountIn,
+        params.tokenOut,
+        params.quote.minReceived,
+        params.receiver,
+        params.quote.swapData
+      )
+    : await aggregator.swapExactInputWithPermit2(
+        params.tokenIn,
+        params.amountIn,
+        params.tokenOut,
+        params.quote.minReceived,
+        params.receiver,
+        params.quote.swapData,
+        params.permit2!.nonce,
+        params.permit2!.deadline,
+        params.permit2!.signature
+      );
+
+  assertTxSucceeded(result, "Swap reverted");
   return result;
 }

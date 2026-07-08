@@ -32,11 +32,11 @@ Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + T
 - `src/lib/evm/` — Contract interactions, LayerZero, multicall, EIP-7702
 - `src/lib/nft/` — OpenSea, mint, orders
 - `src/lib/solana/` — Connection, WSOL, sign/verify
-- `src/lib/signing/` — EIP-712, bulk orders
+- `src/lib/swap/` — BricSwap (`BricSwap.ts`): quote, Permit2 approval/sign, execute via `@bric-labs/bric-sdk`
 - `src/lib/price/` — CoinGecko market ticker (`marketTicker.ts`), chart data
 - `src/config/` — `SystemConfiguration.ts` (env vars, API URLs), `ChainsConfig.ts`, `FaucetConfig.ts`
 - `src/abis/` — Contract ABIs (evm/, solana/)
-- `src/services/` — Backend API fetch helpers (`GetData.ts`, `AuthApi.ts` login/health, `WebhookApi.ts` webhook relay)
+- `src/services/` — Backend API fetch helpers (`GetData.ts`, `AuthApi.ts` login/health)
 
 ### Wallet integration
 
@@ -63,6 +63,14 @@ Header locale menu switches **English**, **简体中文**, and **繁體中文**.
 - Sidebar includes **Markets** (`nav.markets`) under Ethereum section
 - Long token full names in the list are truncated with `...` (hover `title` shows full name)
 
+### BricSwap
+
+- Route: `/swap` (`SwapPage.tsx`); SDK wrapper in `src/lib/swap/BricSwap.ts`
+- BRIC dex proxy base URL defaults to `${REACT_APP_API_URL}/api` (`SystemConfiguration.ts`; override with `REACT_APP_BRIC_DEX_PROXY_BASE_URL`)
+- **ERC20:** one-time `approve(Permit2, max)` when allowance is low → EIP-712 `signPermitTransferFromWithPermit2` → `swapExactInputWithPermit2` (no direct approve to BricSwap router)
+- **Native ETH** (`0x000…000`): plain `previewSwapExactInput` / `swapExactInput` (no Permit2)
+- Chain/token config: `SwapChainConfig.ts`, `BricConfig.ts`; USDT-style tokens may require allowance reset before Permit2 approve (`tokensRequiringAllowanceReset`)
+
 ### ethers
 
 EVM code uses **ethers v6** (`ethers` package). Amounts on-chain use native `bigint` where applicable.
@@ -73,5 +81,6 @@ Copy `.env.example` to `.env`. Required variables:
 
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown/WalletConnect project ID
 - `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
+- `REACT_APP_API_URL` — Backend base URL (also used for BRIC dex proxy at `{API_URL}/api` unless overridden)
 
 Backend API base URL is in `src/config/SystemConfiguration.ts` (`React_Serve_Back`, default `https://ethan-dapp.onrender.com`). The backend is not in this repo.
