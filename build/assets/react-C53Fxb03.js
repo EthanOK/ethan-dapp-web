@@ -1,0 +1,1 @@
+import{R as e,i as t}from"./react-CbfMwz1Q.js";function n(){return{connection:t(e.state).connection}}export{n as t};

@@ -19,6 +19,7 @@ import {
   executeSwapExactInput,
   fetchSwapQuote,
   isExecutableSwapQuote,
+  readSwapErrorMessage,
   signSwapPermit2,
   type SwapQuoteResult
 } from "@/lib/swap/BricSwap";
@@ -913,12 +914,8 @@ const SwapPage = () => {
       setQuote(null);
       await loadAllBalances();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t("swap.swapFailed");
-      if (msg.toLowerCase().includes("user rejected") || msg.includes("4001")) {
-        toast.error(t("common.txCancelled"));
-      } else {
-        toast.error(msg);
-      }
+      const msg = readSwapErrorMessage(err);
+      if (msg) toast.error(msg);
     } finally {
       setIsSwapping(false);
     }

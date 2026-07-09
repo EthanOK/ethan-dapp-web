@@ -1,6 +1,5 @@
 import {
   BricAggregatorHelper,
-  BricError,
   ERC20Helper,
   MULTICALL3_ADDRESS,
   Permit2Address,
@@ -52,6 +51,18 @@ export type Permit2Signature = {
 /** True when quote includes on-chain swap calldata (can execute). */
 export function isExecutableSwapQuote(quote: SwapQuoteResult): boolean {
   return quote.swapData != null;
+}
+
+/** Use `message` from bric-sdk / wallet errors (unwrap JSON if needed). */
+export function readSwapErrorMessage(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  try {
+    const parsed = JSON.parse(raw) as { message?: string };
+    if (typeof parsed?.message === "string") return parsed.message;
+  } catch {
+    /* plain string */
+  }
+  return raw;
 }
 
 function readQuoteAmountOut(quote: SwapRouterDataOutput): bigint {
@@ -209,14 +220,14 @@ export async function signSwapPermit2(params: {
   );
 
   if (result.error) {
-    throw new Error(BricError.toString(result.error));
+    throw new Error(result.error.message);
   }
   if (
     result.signature == null ||
     result.nonce == null ||
     result.deadline == null
   ) {
-    throw new Error("Permit2 signature failed");
+    throw new Error("");
   }
 
   return {
