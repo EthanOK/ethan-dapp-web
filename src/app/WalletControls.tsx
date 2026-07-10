@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { headerNetworksAll } from "@/app/Wallet";
+import HeaderGasStatus from "@/app/HeaderGasStatus";
 import { useReownWalletSync } from "@/hooks/useReownWalletSync";
 import { useHeaderChainId } from "@/hooks/useHeaderChainId";
 import { useI18n } from "@/i18n";
@@ -64,6 +65,7 @@ function WalletControls() {
       <label htmlFor="app-network" className="app-header-network-label">
         Network
       </label>
+      <HeaderGasStatus chainId={String(chainId ?? "")} />
       <select
         id="app-network"
         className="app-header-network-select"
