@@ -293,15 +293,19 @@ const SwapPage = () => {
     setAddressLookup({ side: null, loading: false, error: null });
     setAmount(loadLastSwapPayAmount(swapChain.chainId) ?? DEFAULT_PAY_AMOUNT);
     setDebouncedAmountIn(null);
-    setTokenBalances(
-      address ? readSwapTokenBalanceCache(swapChain.chainId, address) : {}
-    );
     setTokenPrices(readSwapTokenPriceCache(swapChain.chainId));
     setQuote(null);
     setQuoteError(null);
     setIsQuoting(false);
     setRateInverted(false);
-  }, [swapChain.chainId, defaultPayKey, defaultReceiveKey, address]);
+  }, [swapChain.chainId, defaultPayKey, defaultReceiveKey]);
+
+  // Show cached balances immediately when the wallet connects or disconnects.
+  useEffect(() => {
+    setTokenBalances(
+      address ? readSwapTokenBalanceCache(swapChain.chainId, address) : {}
+    );
+  }, [address, swapChain.chainId]);
 
   useEffect(() => {
     if (!amount.trim()) return;
@@ -454,7 +458,7 @@ const SwapPage = () => {
       setDebouncedAmountIn(amountIn);
     }, QUOTE_AMOUNT_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [amountIn]);
+  }, [amountIn, swapChain.chainId]);
 
   useEffect(() => {
     if (amountIn === debouncedAmountIn) return;
