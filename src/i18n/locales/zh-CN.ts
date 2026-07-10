@@ -431,6 +431,7 @@ export const zhCN: Record<TranslationKey, string> = {
   "swap.enterAmount": "输入数量",
   "swap.insufficientBalance": "余额不足",
   "swap.quoteUnavailable": "报价不可用",
+  "swap.quoteRateLimited": "报价请求过于频繁，请稍后再试。",
   "swap.swap": "兑换",
   "swap.notConfigured": "{{network}} 上尚未配置 BricSwap",
   "swap.allowanceReset": "授权重置已确认",

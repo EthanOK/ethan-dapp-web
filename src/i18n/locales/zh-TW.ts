@@ -431,6 +431,7 @@ export const zhTW: Record<TranslationKey, string> = {
   "swap.enterAmount": "輸入數量",
   "swap.insufficientBalance": "餘額不足",
   "swap.quoteUnavailable": "報價不可用",
+  "swap.quoteRateLimited": "報價請求過於頻繁，請稍後再試。",
   "swap.swap": "兌換",
   "swap.notConfigured": "{{network}} 上尚未設定 BricSwap",
   "swap.allowanceReset": "授權重設已確認",
