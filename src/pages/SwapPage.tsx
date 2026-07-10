@@ -38,7 +38,8 @@ import {
   loadLastSwapPair,
   saveLastSwapPair,
   loadLastSwapPayAmount,
-  saveLastSwapPayAmount
+  saveLastSwapPayAmount,
+  clearLastSwapPayAmount
 } from "@/lib/swap/swapLastPair";
 import { loadFavoriteTokenAddresses } from "@/lib/swap/swapFavoriteTokens";
 import {
@@ -82,6 +83,15 @@ const DEFAULT_PAY_AMOUNT = "1";
 const QUOTE_AUTO_REFRESH_MS = 15_000;
 /** Auto-refresh token prices on the swap page. */
 const TOKEN_PRICE_AUTO_REFRESH_MS = 30_000;
+
+function isRateLimitError(err: unknown): boolean {
+  const msg = readSwapErrorMessage(err).toLowerCase();
+  return (
+    msg.includes("429") ||
+    msg.includes("too many requests") ||
+    msg.includes("rate limit")
+  );
+}
 
 function buildDefaultsForChain(chainId: number) {
   const swapChain = getSwapChainConfig(chainId) ?? getDefaultSwapChain();
@@ -237,6 +247,7 @@ const SwapPage = () => {
   );
   const pairValidatedRef = useRef(false);
   const quoteRefreshSilentRef = useRef(false);
+  const quoteRequestGenRef = useRef(0);
   const [savedTokensRevision, setSavedTokensRevision] = useState(0);
   const savedTokens = useMemo(
     () => loadSavedSwapTokens(swapChain.chainId),
@@ -643,18 +654,20 @@ const SwapPage = () => {
       return;
     }
 
-    let cancelled = false;
+    const requestGen = ++quoteRequestGenRef.current;
     const silentRefresh = quoteRefreshSilentRef.current;
     quoteRefreshSilentRef.current = false;
     if (!silentRefresh) {
       setIsQuoting(true);
+      setQuoteError(null);
     }
-    setQuoteError(null);
 
     void (async () => {
       try {
         const canUseWalletQuote = isConnected && isOnSwapChain && !!address;
         const signer = canUseWalletQuote ? await getSigner() : null;
+        if (quoteRequestGenRef.current !== requestGen) return;
+
         const result = await fetchSwapQuote({
           chain: swapChain,
           signer,
@@ -665,24 +678,32 @@ const SwapPage = () => {
           from: canUseWalletQuote && signer ? address : undefined,
           checkBalance: canUseWalletQuote && !!signer
         });
-        if (!cancelled) {
-          setQuote(result);
-        }
+        if (quoteRequestGenRef.current !== requestGen) return;
+
+        setQuote(result);
+        setQuoteError(null);
       } catch (err) {
-        if (!cancelled) {
+        if (quoteRequestGenRef.current !== requestGen) return;
+
+        const rateLimited = isRateLimitError(err);
+
+        // Keep the last good quote on silent refresh failures (e.g. 429).
+        if (!silentRefresh) {
           setQuote(null);
           setQuoteError(
-            err instanceof Error ? err.message : t("swap.quoteUnavailable")
+            rateLimited
+              ? t("swap.quoteRateLimited")
+              : err instanceof Error
+                ? err.message
+                : t("swap.quoteUnavailable")
           );
         }
       } finally {
-        if (!cancelled && !silentRefresh) setIsQuoting(false);
+        if (quoteRequestGenRef.current === requestGen) {
+          setIsQuoting(false);
+        }
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [
     isConnected,
     isOnSwapChain,
@@ -909,8 +930,9 @@ const SwapPage = () => {
       showSwapTxToast(t("swap.swapSuccessful"), result.txHash, {
         swap: swapToast
       });
-      setAmount(DEFAULT_PAY_AMOUNT);
-      saveLastSwapPayAmount(swapChain.chainId, DEFAULT_PAY_AMOUNT);
+      setAmount("");
+      setDebouncedAmountIn(null);
+      clearLastSwapPayAmount(swapChain.chainId);
       setQuote(null);
       await loadAllBalances();
     } catch (err) {

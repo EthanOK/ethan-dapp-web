@@ -448,6 +448,7 @@ export const en = {
   "swap.enterAmount": "Enter amount",
   "swap.insufficientBalance": "Insufficient balance",
   "swap.quoteUnavailable": "Quote unavailable",
+  "swap.quoteRateLimited": "Too many quote requests. Please wait a moment.",
   "swap.swap": "Swap",
   "swap.notConfigured": "BricSwap is not configured on {{network}} yet",
   "swap.allowanceReset": "Allowance reset confirmed",

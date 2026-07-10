@@ -65,6 +65,20 @@ export function saveLastSwapPayAmount(
   writeStore(store);
 }
 
+/** Remove persisted pay amount after a successful swap. */
+export function clearLastSwapPayAmount(chainId: number): void {
+  const store = readStore();
+  const key = storageKey(chainId);
+  const existing = store[key];
+  if (!existing?.payAmount) return;
+
+  store[key] = {
+    paySelectKey: existing.paySelectKey,
+    receiveSelectKey: existing.receiveSelectKey
+  };
+  writeStore(store);
+}
+
 export function saveLastSwapPair(
   chainId: number,
   paySelectKey: string,
