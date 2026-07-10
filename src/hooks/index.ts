@@ -17,3 +17,4 @@ export {
   clearAppSessionKeepChainId
 } from "@/hooks/useReownWalletSync";
 export { useHeaderChainId } from "@/hooks/useHeaderChainId";
+export { useNetworkGas } from "@/hooks/useNetworkGas";
