@@ -48,6 +48,7 @@ import {
   formatSwapUsdValue,
   getSwapTokenPrice,
   readSwapTokenPriceCache,
+  SWAP_USD_UNAVAILABLE,
   type SwapTokenPriceMap
 } from "@/lib/swap/swapTokenPrices";
 import {
@@ -970,34 +971,33 @@ const SwapPage = () => {
       tokenPrices,
       paySide.tokenAddress
     )?.priceUsd;
-    if (!priceUsd) return "";
+    if (!priceUsd) return SWAP_USD_UNAVAILABLE;
     return formatSwapUsdValue(
       calcTokenUsdValue(amountIn, paySide.decimals, priceUsd)
     );
   }, [amountIn, paySide, tokenPrices]);
 
   const receiveUsdLabel = useMemo(() => {
-    if (
-      !receiveSide ||
-      !quote?.amountOut ||
-      isQuoting ||
-      (amountIn != null && amountIn !== debouncedAmountIn)
-    ) {
-      return "";
-    }
+    if (!receiveSide || amountIn == null || amountIn === 0n) return "";
+
+    const isWaiting =
+      isQuoting || amountIn !== debouncedAmountIn || !quote?.amountOut;
+
+    if (isWaiting) return SWAP_USD_UNAVAILABLE;
+
     try {
       const out = BigInt(quote.amountOut);
-      if (out === 0n) return "";
+      if (out === 0n) return SWAP_USD_UNAVAILABLE;
       const priceUsd = getSwapTokenPrice(
         tokenPrices,
         receiveSide.tokenAddress
       )?.priceUsd;
-      if (!priceUsd) return "";
+      if (!priceUsd) return SWAP_USD_UNAVAILABLE;
       return formatSwapUsdValue(
         calcTokenUsdValue(out, receiveSide.decimals, priceUsd)
       );
     } catch {
-      return "";
+      return SWAP_USD_UNAVAILABLE;
     }
   }, [receiveSide, quote, tokenPrices, isQuoting, amountIn, debouncedAmountIn]);
 
