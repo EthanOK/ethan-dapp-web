@@ -247,6 +247,9 @@ export function calcTokenUsdValue(
 
 const SWAP_USD_MIN_DISPLAY = 0.000001;
 
+/** Shown under swap amounts when USD price is temporarily unavailable. */
+export const SWAP_USD_UNAVAILABLE = "$--";
+
 /** Format CoinGecko 24h change for token picker rows. */
 export function formatSwapTokenChange24h(change24hPct: number | undefined): {
   text: string;

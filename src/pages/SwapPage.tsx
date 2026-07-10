@@ -48,6 +48,7 @@ import {
   formatSwapUsdValue,
   getSwapTokenPrice,
   readSwapTokenPriceCache,
+  SWAP_USD_UNAVAILABLE,
   type SwapTokenPriceMap
 } from "@/lib/swap/swapTokenPrices";
 import {
@@ -293,15 +294,19 @@ const SwapPage = () => {
     setAddressLookup({ side: null, loading: false, error: null });
     setAmount(loadLastSwapPayAmount(swapChain.chainId) ?? DEFAULT_PAY_AMOUNT);
     setDebouncedAmountIn(null);
-    setTokenBalances(
-      address ? readSwapTokenBalanceCache(swapChain.chainId, address) : {}
-    );
     setTokenPrices(readSwapTokenPriceCache(swapChain.chainId));
     setQuote(null);
     setQuoteError(null);
     setIsQuoting(false);
     setRateInverted(false);
-  }, [swapChain.chainId, defaultPayKey, defaultReceiveKey, address]);
+  }, [swapChain.chainId, defaultPayKey, defaultReceiveKey]);
+
+  // Show cached balances immediately when the wallet connects or disconnects.
+  useEffect(() => {
+    setTokenBalances(
+      address ? readSwapTokenBalanceCache(swapChain.chainId, address) : {}
+    );
+  }, [address, swapChain.chainId]);
 
   useEffect(() => {
     if (!amount.trim()) return;
@@ -454,7 +459,7 @@ const SwapPage = () => {
       setDebouncedAmountIn(amountIn);
     }, QUOTE_AMOUNT_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [amountIn]);
+  }, [amountIn, swapChain.chainId]);
 
   useEffect(() => {
     if (amountIn === debouncedAmountIn) return;
@@ -966,34 +971,33 @@ const SwapPage = () => {
       tokenPrices,
       paySide.tokenAddress
     )?.priceUsd;
-    if (!priceUsd) return "";
+    if (!priceUsd) return SWAP_USD_UNAVAILABLE;
     return formatSwapUsdValue(
       calcTokenUsdValue(amountIn, paySide.decimals, priceUsd)
     );
   }, [amountIn, paySide, tokenPrices]);
 
   const receiveUsdLabel = useMemo(() => {
-    if (
-      !receiveSide ||
-      !quote?.amountOut ||
-      isQuoting ||
-      (amountIn != null && amountIn !== debouncedAmountIn)
-    ) {
-      return "";
-    }
+    if (!receiveSide || amountIn == null || amountIn === 0n) return "";
+
+    const isWaiting =
+      isQuoting || amountIn !== debouncedAmountIn || !quote?.amountOut;
+
+    if (isWaiting) return SWAP_USD_UNAVAILABLE;
+
     try {
       const out = BigInt(quote.amountOut);
-      if (out === 0n) return "";
+      if (out === 0n) return SWAP_USD_UNAVAILABLE;
       const priceUsd = getSwapTokenPrice(
         tokenPrices,
         receiveSide.tokenAddress
       )?.priceUsd;
-      if (!priceUsd) return "";
+      if (!priceUsd) return SWAP_USD_UNAVAILABLE;
       return formatSwapUsdValue(
         calcTokenUsdValue(out, receiveSide.decimals, priceUsd)
       );
     } catch {
-      return "";
+      return SWAP_USD_UNAVAILABLE;
     }
   }, [receiveSide, quote, tokenPrices, isQuoting, amountIn, debouncedAmountIn]);
 
