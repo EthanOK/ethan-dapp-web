@@ -34,11 +34,11 @@ src/
 ├── hooks/         React hooks (wallet, theme, sidebar, network switch)
 ├── lib/           Domain logic
 │   ├── wallet/    Provider, ConnectWallet, AppKit subscribers
-│   ├── evm/       Contracts, LayerZero, multicall, EIP-7702
+│   ├── evm/       Contracts, LayerZero, multicall, EIP-7702, GasStrategy (header gas + tx overrides)
 │   ├── nft/       OpenSea, mint, orders
 │   ├── solana/    Connection, WSOL, sign/verify
 │   ├── signing/   EIP-712, bulk orders
-│   ├── swap/      BricSwap (Permit2 quote / approve / execute via bric-sdk)
+│   ├── swap/      BricSwap, swapPermit2Cache (Permit2 quote / approve / execute via bric-sdk)
 │   ├── price/     CoinGecko, LP price
 │   └── shared/    Utils, format helpers
 ├── config/        Chains, faucet, system constants
@@ -56,13 +56,15 @@ Entry: `src/index.tsx` → `src/app/App.tsx`.
 
 **Ethereum:** Home, **Markets** (`/markets`), **BricSwap** (`/swap`), tx fee estimate, raw tx builder, ERC20 allowance, LayerZero OFT bridge, faucet, burn, ENS, mint NFT, EIP-712 sign, EIP-7702, utils, ERC-6551, Web3Auth.
 
-**BricSwap:** Aggregated swap via `@bric-labs/bric-sdk`. ERC20 path uses Uniswap **Permit2** — approve Permit2 once per token if needed, sign EIP-712, then swap (no approve to the BricSwap router). Native ETH swaps skip Permit2. BRIC API defaults to `{REACT_APP_API_URL}/api`.
+**BricSwap:** Aggregated swap via `@bric-labs/bric-sdk`. ERC20 path uses Uniswap **Permit2** — approve Permit2 once per token if needed, sign EIP-712, then swap (no approve to the BricSwap router). Native ETH swaps skip Permit2. BRIC API defaults to `{REACT_APP_API_URL}/api`. Swaps prefill gas from the header network-gas poll (public RPC, `maxFeePerGas = base × 1.05 + priority`). Permit2 signatures are cached when the user cancels after signing.
+
+**Header:** EVM chains show a **Gas** badge (fee breakdown on hover / tap on mobile). Language menu: English, 简体中文, 繁體中文.
 
 **Solana:** Solana utils, WSOL wrap/unwrap.
 
 **Markets:** Top 250 coins (CoinGecko), sortable table, 50 per page. Row click opens `/market` chart. Token names truncate with `...` when too long.
 
-**i18n:** Header globe menu — English, 简体中文, 繁體中文. All tool pages and swap UI follow the selected locale. The header **Network** label is always English.
+**i18n:** Header globe menu — English, 简体中文, 繁體中文. All tool pages and swap UI follow the selected locale. The header **Network** label is always English. Gas fee labels in the header tooltip stay English.
 
 Additional routes (not in sidebar): OpenSea buy/data, YunGou aggregators, IPFS, collection lookup, etc.
 

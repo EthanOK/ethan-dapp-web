@@ -1,14 +1,23 @@
-import { formatUnits, type FeeData, type Provider } from "ethers";
+import {
+  formatUnits,
+  type FeeData,
+  type Provider,
+  type Signer,
+  type TransactionRequest
+} from "ethers";
+import { getReadonlyProviderForChain } from "@/lib/wallet/GetProvider";
 
 export type NetworkGasKind = "eip1559" | "legacy";
 
 export type NetworkGasSnapshot = {
   chainId: number;
   kind: NetworkGasKind;
-  /** EIP-1559: base + priority; legacy: gas price */
+  /** EIP-1559: max base + priority (tx estimate); legacy: gas price */
   effectiveGasGwei: string | null;
   baseFeeGwei: string | null;
   priorityFeeGwei: string | null;
+  /** EIP-1559: max base fee cap sent with txs (base × 1.05) */
+  maxBaseFeeGwei: string | null;
   maxFeeGwei: string | null;
   gasPriceGwei: string | null;
   updatedAt: number;
@@ -23,6 +32,64 @@ type GasMarketData = {
   marketPriority: bigint;
   isEip1559: boolean;
 };
+
+/** Raw gas fees from the last header poll (shared with tx overrides). */
+type GasPriceCacheEntry = {
+  chainId: number;
+  kind: NetworkGasKind;
+  baseFee: bigint | null;
+  marketPriority: bigint;
+  maxFee: bigint | null;
+  gasPrice: bigint | null;
+  updatedAt: number;
+};
+
+const GAS_CACHE_MAX_AGE_MS = 60_000;
+const gasPriceCache = new Map<number, GasPriceCacheEntry>();
+
+function setGasPriceCache(entry: GasPriceCacheEntry): void {
+  gasPriceCache.set(entry.chainId, entry);
+}
+
+function getGasPriceCache(chainId: number): GasPriceCacheEntry | null {
+  const entry = gasPriceCache.get(chainId);
+  if (!entry) return null;
+  if (Date.now() - entry.updatedAt > GAS_CACHE_MAX_AGE_MS) return null;
+  return entry;
+}
+
+function marketToGasPriceCache(
+  chainId: number,
+  market: GasMarketData
+): GasPriceCacheEntry {
+  return {
+    chainId,
+    kind: market.isEip1559 ? "eip1559" : "legacy",
+    baseFee: market.baseFee,
+    marketPriority: market.marketPriority,
+    maxFee: market.maxFee,
+    gasPrice: market.gasPrice,
+    updatedAt: Date.now()
+  };
+}
+
+function gasCacheToOverrides(
+  entry: GasPriceCacheEntry
+): Partial<TransactionRequest> {
+  if (entry.kind === "eip1559" && entry.maxFee != null) {
+    const baseFee = entry.baseFee ?? 0n;
+    const priority = entry.marketPriority;
+    const maxFeePerGas =
+      baseFee > 0n ? (baseFee * 105n) / 100n + priority : entry.maxFee;
+    return { maxPriorityFeePerGas: priority, maxFeePerGas };
+  }
+
+  if (entry.gasPrice != null && entry.gasPrice > 0n) {
+    return { gasPrice: entry.gasPrice };
+  }
+
+  return {};
+}
 
 export function parseEvmChainId(
   raw: string | number | undefined | null
@@ -79,8 +146,13 @@ async function fetchGasMarketData(provider: Provider): Promise<GasMarketData> {
       ? gasPrice - baseFee
       : null;
 
+  // Prefer gasPrice − baseFee; wallet RPC often returns inflated maxPriorityFeePerGas (e.g. 1 Gwei).
   const marketPriority =
-    derived != null && derived >= 0n ? derived : (rpcPriority ?? 0n);
+    derived != null
+      ? derived
+      : rpcPriority != null && rpcPriority >= 0n
+        ? rpcPriority
+        : 0n;
 
   const isEip1559 = maxFee != null && (rpcPriority != null || derived != null);
 
@@ -101,20 +173,24 @@ export async function fetchNetworkGasSnapshot(
   chainId: number
 ): Promise<NetworkGasSnapshot> {
   const market = await fetchGasMarketData(provider);
+  setGasPriceCache(marketToGasPriceCache(chainId, market));
 
   if (market.isEip1559 && market.maxFee != null) {
-    const effectiveGas =
-      market.baseFee != null
-        ? market.baseFee + market.marketPriority
-        : market.marketPriority;
+    const maxBaseFee =
+      market.baseFee != null && market.baseFee > 0n
+        ? (market.baseFee * 105n) / 100n
+        : null;
+    const maxFeePerGas =
+      maxBaseFee != null ? maxBaseFee + market.marketPriority : market.maxFee;
 
     return {
       chainId,
       kind: "eip1559",
-      effectiveGasGwei: formatGwei(effectiveGas),
+      effectiveGasGwei: maxFeePerGas != null ? formatGwei(maxFeePerGas) : null,
       baseFeeGwei: market.baseFee != null ? formatGwei(market.baseFee) : null,
       priorityFeeGwei: formatGwei(market.marketPriority),
-      maxFeeGwei: formatGwei(market.maxFee),
+      maxBaseFeeGwei: maxBaseFee != null ? formatGwei(maxBaseFee) : null,
+      maxFeeGwei: formatGwei(maxFeePerGas),
       gasPriceGwei: null,
       updatedAt: Date.now()
     };
@@ -130,6 +206,7 @@ export async function fetchNetworkGasSnapshot(
       effectiveLegacy != null ? formatGwei(effectiveLegacy) : null,
     baseFeeGwei: null,
     priorityFeeGwei: null,
+    maxBaseFeeGwei: null,
     maxFeeGwei: null,
     gasPriceGwei:
       market.gasPrice != null && market.gasPrice > 0n
@@ -137,4 +214,74 @@ export async function fetchNetworkGasSnapshot(
         : null,
     updatedAt: Date.now()
   };
+}
+
+function hasGasPricing(request: TransactionRequest): boolean {
+  return (
+    request.maxFeePerGas != null ||
+    request.maxPriorityFeePerGas != null ||
+    request.gasPrice != null
+  );
+}
+
+function marketToOverrides(market: GasMarketData): Partial<TransactionRequest> {
+  if (market.isEip1559 && market.maxFee != null) {
+    const baseFee = market.baseFee ?? 0n;
+    const priority = market.marketPriority;
+    const maxFeePerGas =
+      baseFee > 0n ? (baseFee * 105n) / 100n + priority : market.maxFee;
+    return { maxPriorityFeePerGas: priority, maxFeePerGas };
+  }
+
+  if (market.gasPrice != null && market.gasPrice > 0n) {
+    return { gasPrice: market.gasPrice };
+  }
+
+  return {};
+}
+
+/** EIP-1559 or legacy gas price fields (prefers header poll cache, else public RPC). */
+export async function resolveGasPriceOverrides(
+  provider: Provider,
+  chainId?: number
+): Promise<Partial<TransactionRequest>> {
+  if (chainId != null) {
+    const cached = getGasPriceCache(chainId);
+    if (cached) return gasCacheToOverrides(cached);
+  }
+
+  const gasProvider =
+    chainId != null
+      ? (getReadonlyProviderForChain(chainId) ?? provider)
+      : provider;
+  const market = await fetchGasMarketData(gasProvider);
+  if (chainId != null) {
+    setGasPriceCache(marketToGasPriceCache(chainId, market));
+  }
+  return marketToOverrides(market);
+}
+
+/**
+ * Wrap a signer so bric-sdk sends use dApp gas prices. Pass chainId to read fees
+ * from the public RPC (matches header display); wallet RPC often inflates priority.
+ */
+export function withCustomGasPrice(signer: Signer, chainId?: number): Signer {
+  const provider = signer.provider;
+  if (!provider) return signer;
+
+  return new Proxy(signer, {
+    get(target, prop, receiver) {
+      if (prop === "sendTransaction") {
+        return async (tx: TransactionRequest) => {
+          if (hasGasPricing(tx)) {
+            return target.sendTransaction(tx);
+          }
+          const overrides = await resolveGasPriceOverrides(provider, chainId);
+          return target.sendTransaction({ ...overrides, ...tx });
+        };
+      }
+      const value = Reflect.get(target, prop, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) as Signer;
 }
