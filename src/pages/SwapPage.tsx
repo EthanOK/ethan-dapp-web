@@ -880,7 +880,8 @@ const SwapPage = () => {
         chain: swapChain,
         signer,
         token: paySide.tokenAddress,
-        amount: amountIn
+        amount: amountIn,
+        owner: address
       });
 
       // Quote swapData goes stale while waiting for approve / Permit2 signature.

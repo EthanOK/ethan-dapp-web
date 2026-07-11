@@ -1,5 +1,26 @@
+import { useEffect, useRef, useState } from "react";
 import { useNetworkGas } from "@/hooks/useNetworkGas";
 import { useI18n } from "@/i18n";
+
+const MOBILE_GAS_MQ = "(max-width: 768px)";
+
+function useMobileGasLayout() {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia(MOBILE_GAS_MQ).matches
+      : false
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_GAS_MQ);
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  return isMobile;
+}
 
 function GasPumpIcon() {
   return (
@@ -26,7 +47,7 @@ function gasLevelClass(gwei: string | null | undefined): string {
 type GasTooltipRowProps = {
   label: string;
   value: string | null | undefined;
-  accent?: "base" | "priority" | "total";
+  accent?: "base" | "priority" | "maxbase" | "total";
 };
 
 function GasTooltipRow({ label, value, accent }: GasTooltipRowProps) {
@@ -49,7 +70,30 @@ type HeaderGasStatusProps = {
 
 function HeaderGasStatus({ chainId }: HeaderGasStatusProps) {
   const { t } = useI18n();
+  const isMobile = useMobileGasLayout();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
   const { snapshot, loading, error, isEvm } = useNetworkGas(chainId);
+
+  useEffect(() => {
+    if (!panelOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!wrapRef.current?.contains(event.target as Node)) {
+        setPanelOpen(false);
+      }
+    };
+    const timerId = window.setTimeout(() => {
+      document.addEventListener("pointerdown", onPointerDown);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [panelOpen]);
+
+  useEffect(() => {
+    setPanelOpen(false);
+  }, [chainId]);
 
   if (!isEvm) return null;
 
@@ -65,49 +109,100 @@ function HeaderGasStatus({ chainId }: HeaderGasStatusProps) {
           ? t("gas.unavailable")
           : "—";
 
+  const handleBadgeClick = () => {
+    if (isMobile) {
+      setPanelOpen((open) => !open);
+    }
+  };
+
+  const showTooltipPanel =
+    Boolean(snapshot) || (isMobile && panelOpen && (loading || Boolean(error)));
+
   return (
     <div
-      className="app-header-gas-wrap"
-      tabIndex={0}
-      aria-label={t("gas.panelTitle")}
+      ref={wrapRef}
+      className={
+        "app-header-gas-wrap" +
+        (panelOpen ? " is-open" : "") +
+        (isMobile ? " is-mobile" : "")
+      }
     >
-      <div className={"app-header-gas-badge" + levelClass}>
+      <button
+        type="button"
+        className={"app-header-gas-badge" + levelClass}
+        onClick={handleBadgeClick}
+        aria-label={
+          primaryGwei
+            ? `${t("gas.panelTitle")}: ${displayValue}`
+            : t("gas.panelTitle")
+        }
+        aria-expanded={isMobile ? panelOpen : undefined}
+        aria-haspopup={showTooltipPanel ? "dialog" : undefined}
+      >
         <span className="app-header-gas-icon">
           <GasPumpIcon />
         </span>
         <span className="app-header-gas-label">{t("gas.label")}</span>
-        <span className="app-header-gas-value">{displayValue}</span>
-      </div>
+        <span className="app-header-gas-value">
+          {loading && !snapshot ? (
+            t("gas.loading")
+          ) : primaryGwei ? (
+            <>
+              <span className="app-header-gas-value-num">{primaryGwei}</span>
+              <span className="app-header-gas-value-unit"> Gwei</span>
+            </>
+          ) : error ? (
+            t("gas.unavailable")
+          ) : (
+            "—"
+          )}
+        </span>
+      </button>
 
-      {snapshot ? (
+      {showTooltipPanel ? (
         <div className="app-header-gas-tooltip" role="tooltip">
-          <div className="app-header-gas-tooltip-head">
-            {t("gas.panelTitle")}
-          </div>
           <div className="app-header-gas-tooltip-body">
-            {snapshot.kind === "eip1559" ? (
-              <>
+            {snapshot ? (
+              snapshot.kind === "eip1559" ? (
+                <>
+                  <GasTooltipRow
+                    label={t("gas.baseFee")}
+                    value={snapshot.baseFeeGwei}
+                    accent="base"
+                  />
+                  <GasTooltipRow
+                    label={t("gas.priorityFee")}
+                    value={snapshot.priorityFeeGwei}
+                    accent="priority"
+                  />
+                  <GasTooltipRow
+                    label={t("gas.maxBaseFee")}
+                    value={snapshot.maxBaseFeeGwei}
+                    accent="maxbase"
+                  />
+                  <GasTooltipRow
+                    label={t("gas.effectiveFee")}
+                    value={snapshot.effectiveGasGwei}
+                    accent="total"
+                  />
+                </>
+              ) : (
                 <GasTooltipRow
-                  label={t("gas.baseFee")}
-                  value={snapshot.baseFeeGwei}
-                  accent="base"
-                />
-                <GasTooltipRow
-                  label={t("gas.priorityFee")}
-                  value={snapshot.priorityFeeGwei}
-                  accent="priority"
-                />
-                <GasTooltipRow
-                  label={t("gas.effectiveFee")}
+                  label={t("gas.gasPrice")}
                   value={snapshot.effectiveGasGwei}
                   accent="total"
                 />
-              </>
+              )
             ) : (
               <GasTooltipRow
-                label={t("gas.gasPrice")}
-                value={snapshot.effectiveGasGwei}
-                accent="total"
+                label={t("gas.panelTitle")}
+                value={
+                  loading
+                    ? t("gas.loading")
+                    : error
+                      ? t("gas.unavailable")
+                      : "—"
+                }
               />
             )}
           </div>

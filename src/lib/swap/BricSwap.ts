@@ -16,7 +16,14 @@ import {
 } from "ethers";
 import { BRIC_SUPPORTED_AGGREGATORS, initBricSdk } from "@/config/BricConfig";
 import { SupportChains } from "@/config/ChainsConfig";
+import { withCustomGasPrice } from "@/lib/evm/GasStrategy";
 import type { SwapChainDefinition } from "@/config/SwapChainConfig";
+import {
+  clearCachedPermit2Signature,
+  readCachedPermit2Signature,
+  writeCachedPermit2Signature,
+  type Permit2Signature
+} from "@/lib/swap/swapPermit2Cache";
 
 function isNativeToken(token: string): boolean {
   return token.toLowerCase() === ZeroAddress.toLowerCase();
@@ -42,11 +49,7 @@ export type SwapQuoteResult = SwapRouterDataOutput & {
   minReceived: bigint;
 };
 
-export type Permit2Signature = {
-  nonce: bigint;
-  deadline: bigint;
-  signature: string;
-};
+export type { Permit2Signature } from "@/lib/swap/swapPermit2Cache";
 
 /** True when quote includes on-chain swap calldata (can execute). */
 export function isExecutableSwapQuote(quote: SwapQuoteResult): boolean {
@@ -88,15 +91,16 @@ export async function createBricAggregator(
   signer: Signer
 ): Promise<BricAggregatorHelper> {
   initBricSdk();
+  const gasSigner = withCustomGasPrice(signer, chain.chainId);
   const helper = new BricAggregatorHelper(
-    signer,
+    gasSigner,
     chain.chainId,
     chain.bricSwapAddress,
     { waitForConfirmation: true, autoGasBuffer: true },
-    signer.provider!,
+    gasSigner.provider!,
     BRIC_SUPPORTED_AGGREGATORS
   );
-  return helper.connect(signer, true);
+  return helper.connect(gasSigner, true);
 }
 
 export async function createBricAggregatorReadonly(
@@ -177,11 +181,12 @@ export async function ensurePermit2TokenApproval(params: {
   const provider = params.signer.provider;
   if (!provider) throw new Error("Signer has no provider");
 
+  const gasSigner = withCustomGasPrice(params.signer, params.chain.chainId);
   const erc20Helper = new ERC20Helper(
     provider,
     MULTICALL3_ADDRESS,
     true
-  ).connect(params.signer);
+  ).connect(gasSigner);
   const [row] = await erc20Helper.batchBalancesAndAllowances(
     [params.token],
     Permit2Address,
@@ -210,8 +215,17 @@ export async function signSwapPermit2(params: {
   signer: Signer;
   token: string;
   amount: bigint;
+  owner: string;
 }): Promise<Permit2Signature | null> {
   if (isNativeToken(params.token)) return null;
+
+  const cached = readCachedPermit2Signature(
+    params.chain.chainId,
+    params.owner,
+    params.token,
+    params.amount
+  );
+  if (cached) return cached;
 
   const aggregator = await createBricAggregator(params.chain, params.signer);
   const result = await aggregator.signPermitTransferFromWithPermit2(
@@ -230,11 +244,19 @@ export async function signSwapPermit2(params: {
     throw new Error("");
   }
 
-  return {
+  const permit2: Permit2Signature = {
     nonce: result.nonce,
     deadline: result.deadline,
     signature: result.signature
   };
+  writeCachedPermit2Signature(
+    params.chain.chainId,
+    params.owner,
+    params.token,
+    params.amount,
+    permit2
+  );
+  return permit2;
 }
 
 export async function executeSwapExactInput(params: {
@@ -280,5 +302,13 @@ export async function executeSwapExactInput(params: {
       );
 
   assertTxSucceeded(result, "Swap reverted");
+  if (!isNativeToken(params.tokenIn) && params.permit2) {
+    clearCachedPermit2Signature(
+      params.chain.chainId,
+      params.receiver,
+      params.tokenIn,
+      params.amountIn
+    );
+  }
   return result;
 }

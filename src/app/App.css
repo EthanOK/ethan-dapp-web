@@ -199,25 +199,41 @@
     border-color 0.2s,
     background 0.2s,
     box-shadow 0.2s;
+  appearance: none;
+  margin: 0;
 }
 
-.app-header-gas-badge.is-low .app-header-gas-value {
+.app-header-gas-badge.is-low .app-header-gas-value,
+.app-header-gas-badge.is-low .app-header-gas-value-num {
   color: #4ade80;
 }
 
-.app-header-gas-badge.is-medium .app-header-gas-value {
+.app-header-gas-badge.is-medium .app-header-gas-value,
+.app-header-gas-badge.is-medium .app-header-gas-value-num {
   color: var(--w3-accent);
 }
 
-.app-header-gas-badge.is-high .app-header-gas-value {
+.app-header-gas-badge.is-high .app-header-gas-value,
+.app-header-gas-badge.is-high .app-header-gas-value-num {
   color: #fbbf24;
 }
 
 .app-header-gas-wrap:hover .app-header-gas-badge,
-.app-header-gas-wrap:focus-within .app-header-gas-badge {
+.app-header-gas-wrap:focus-within .app-header-gas-badge,
+.app-header-gas-badge:hover,
+.app-header-gas-badge:focus-visible {
   border-color: var(--w3-border-accent);
   background: var(--w3-bg-hover);
   box-shadow: 0 0 14px rgba(0, 229, 255, 0.1);
+}
+
+.app-header-gas-badge:focus {
+  outline: none;
+}
+
+.app-header-gas-badge:focus-visible {
+  outline: 2px solid var(--w3-border-accent);
+  outline-offset: 1px;
 }
 
 .app-header-gas-icon {
@@ -305,7 +321,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 6px 0 8px;
+  padding: 8px 0;
 }
 
 .app-header-gas-tooltip-row {
@@ -350,6 +366,11 @@
 
 .app-header-gas-tooltip-row.is-priority .app-header-gas-tooltip-label::before {
   background: #a78bfa;
+  opacity: 0.9;
+}
+
+.app-header-gas-tooltip-row.is-maxbase .app-header-gas-tooltip-label::before {
+  background: #fbbf24;
   opacity: 0.9;
 }
 
@@ -1339,7 +1360,9 @@ body.app-menu-open {
   .app-header-left {
     gap: 8px;
     min-width: 0;
-    flex: 1;
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 1;
   }
 
   .app-header-menu-btn {
@@ -1364,9 +1387,7 @@ body.app-menu-open {
   }
 
   .app-logo {
-    font-size: 1rem;
-    min-width: 0;
-    gap: 0;
+    display: none;
   }
 
   .app-logo-text {
@@ -1377,36 +1398,83 @@ body.app-menu-open {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 6px;
     min-width: 0;
+    flex: 1 1 0;
+    overflow: visible;
+    position: relative;
+    z-index: 2;
+  }
+
+  .app-header-locale-wrap {
     flex-shrink: 0;
+    z-index: 6;
     overflow: visible;
   }
 
+  .app-header-locale-menu {
+    left: 0;
+    right: auto;
+    z-index: 1300;
+  }
+
+  .app-header-locale-toggle,
+  .app-header-theme-toggle {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 5;
+  }
+
   .app-header-wallet-controls {
-    gap: 10px;
+    gap: 6px;
     min-width: 0;
+    flex: 0 1 auto;
     flex-shrink: 1;
-    overflow: hidden;
+    overflow: visible;
+    position: relative;
+    z-index: 4;
   }
 
-  .app-header-wallet-controls.is-connected .app-header-network-select {
-    display: none;
+  .app-header-gas-wrap {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 5;
+    overflow: visible;
   }
 
-  .app-header-gas-badge {
-    padding: 0 8px;
-  }
-
-  .app-header-gas-label {
-    display: none;
-  }
-
+  .app-header-gas-wrap.is-mobile .app-header-gas-tooltip,
   .app-header-gas-tooltip {
     left: auto;
     right: 0;
+    min-width: min(228px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
     transform: translateX(0) translateY(6px) scale(0.98);
     transform-origin: top right;
+    overflow: visible;
+  }
+
+  .app-header-gas-wrap.is-mobile:not(.is-open):hover .app-header-gas-tooltip,
+  .app-header-gas-wrap.is-mobile:not(.is-open):focus-within
+    .app-header-gas-tooltip {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(0) translateY(6px) scale(0.98);
+  }
+
+  .app-header-gas-wrap.is-mobile.is-open .app-header-gas-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0) translateY(0) scale(1);
+    pointer-events: auto;
+    z-index: 1300;
+  }
+
+  .app-header-gas-wrap.is-mobile.is-open .app-header-gas-badge {
+    border-color: var(--w3-border-accent);
+    background: var(--w3-bg-hover);
+    box-shadow: 0 0 14px rgba(0, 229, 255, 0.1);
   }
 
   .app-header-gas-wrap:hover .app-header-gas-tooltip,
@@ -1414,10 +1482,80 @@ body.app-menu-open {
     transform: translateX(0) translateY(0) scale(1);
   }
 
+  .app-header-gas-wrap.is-mobile .app-header-gas-tooltip::before,
   .app-header-gas-tooltip::before {
     left: auto;
-    right: 20px;
+    right: 14px;
     transform: rotate(45deg);
+  }
+
+  .app-header-gas-tooltip-row {
+    gap: 10px;
+    padding: 7px 12px;
+  }
+
+  .app-header-gas-tooltip-label {
+    font-size: 0.7rem;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-badge {
+    width: auto;
+    max-width: min(104px, 30vw);
+    height: 32px;
+    padding: 0 7px;
+    gap: 4px;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-label {
+    display: none;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-value {
+    display: inline-flex;
+    align-items: baseline;
+    min-width: 0;
+    font-size: 0.68rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-value-unit {
+    font-size: 0.62rem;
+    font-weight: 500;
+    color: var(--w3-text-muted);
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-icon {
+    flex-shrink: 0;
+    opacity: 1;
+  }
+
+  .app-header-gas-wrap.is-mobile
+    .app-header-gas-badge.is-low
+    .app-header-gas-icon,
+  .app-header-gas-wrap.is-mobile
+    .app-header-gas-badge.is-medium
+    .app-header-gas-icon,
+  .app-header-gas-wrap.is-mobile
+    .app-header-gas-badge.is-high
+    .app-header-gas-icon {
+    color: var(--w3-text-muted);
+  }
+
+  .app-header-wallet-controls.is-connected {
+    flex-shrink: 0;
+  }
+
+  .app-header-wallet-controls.is-connected .app-header-network-select {
+    display: none;
+  }
+
+  .app-header-gas-label {
+    display: none;
   }
 
   .app-header-network-label {
@@ -1443,9 +1581,17 @@ body.app-menu-open {
 
   .w3-connect-wrap {
     min-width: 0;
-    flex: 1 1 auto;
-    max-width: min(128px, 40vw);
+    flex: 0 1 auto;
+    max-width: min(108px, 34vw);
     overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  .app-header-wallet-controls.is-connected .w3-connect-wrap {
+    flex: 0 0 auto;
+    max-width: min(156px, 46vw);
+    overflow: visible;
   }
 
   .w3-connect-wrap appkit-button {
@@ -1454,8 +1600,13 @@ body.app-menu-open {
     max-width: 100%;
   }
 
+  .app-header-wallet-controls.is-connected .w3-connect-wrap appkit-button {
+    width: auto;
+    max-width: none;
+  }
+
   .w3-account-badge {
-    max-width: 72px;
+    max-width: none;
     padding: 4px 8px;
     font-size: 0.7rem;
   }

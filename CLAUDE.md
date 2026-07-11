@@ -29,10 +29,10 @@ Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + T
 - `src/i18n/` — Locale provider (`I18nProvider.tsx`), `useI18n()` hook, `tGlobal()` for lib/hooks; locale files in `locales/` (`en`, `zh-CN`, `zh-TW`)
 - `src/hooks/` — Wallet state (`useReownWalletSync`, `useEvmWallet`), theme, sidebar, network switching
 - `src/lib/wallet/` — `GetProvider.ts` (provider resolution), `ConnectWallet.ts`, `Suscribers.ts` (AppKit event subscribers)
-- `src/lib/evm/` — Contract interactions, LayerZero, multicall, EIP-7702
+- `src/lib/evm/` — Contract interactions, LayerZero, multicall, EIP-7702, **`GasStrategy.ts`** (header gas snapshot + tx gas overrides)
 - `src/lib/nft/` — OpenSea, mint, orders
 - `src/lib/solana/` — Connection, WSOL, sign/verify
-- `src/lib/swap/` — BricSwap (`BricSwap.ts`): quote, Permit2 approval/sign, execute via `@bric-labs/bric-sdk`
+- `src/lib/swap/` — BricSwap (`BricSwap.ts`): quote, Permit2 approval/sign, execute via `@bric-labs/bric-sdk`; **`swapPermit2Cache.ts`** reuses EIP-712 signatures when swap is cancelled after signing
 - `src/lib/price/` — CoinGecko market ticker (`marketTicker.ts`), chart data
 - `src/config/` — `SystemConfiguration.ts` (env vars, API URLs), `ChainsConfig.ts`, `FaucetConfig.ts`
 - `src/abis/` — Contract ABIs (evm/, solana/)
@@ -54,7 +54,15 @@ Header locale menu switches **English**, **简体中文**, and **繁體中文**.
 - **Pages / components:** `import { useI18n } from "@/i18n"` → `const { t } = useI18n()` → `t("some.key")`
 - **Non-React code** (lib, hooks): `import { tGlobal } from "@/i18n"` → `tGlobal("some.key")`
 - **New copy:** add the same key to `src/i18n/locales/en.ts`, `zh-CN.ts`, and `zh-TW.ts`
-- **Exceptions:** header **Network** label and chain names in the network `<select>` stay English (not translated)
+- **Exceptions:** header **Network** label and chain names in the network `<select>` stay English (not translated); gas fee row labels (**Base Fee**, **Priority Fee**, **Max Base Fee**, **Max Base Fee + Priority**) stay English
+
+### Network gas (header)
+
+- **Badge:** `HeaderGasStatus.tsx` in `WalletControls`; polls every 30s via `useNetworkGas` → `fetchNetworkGasSnapshot()` (`GasStrategy.ts`, public RPC via `getReadonlyProviderForChain`)
+- **EIP-1559 display:** Base Fee, Priority Fee, Max Base Fee (`base × 1.05`), badge total = **Max Base Fee + Priority** (matches tx `maxFeePerGas`)
+- **Priority fee:** derived from `gasPrice − baseFee` on public RPC (avoids MetaMask-inflated `maxPriorityFeePerGas`)
+- **Tx overrides:** `withCustomGasPrice(signer, chainId)` wraps BricSwap sends; reuses polled gas cache when fresh (`resolveGasPriceOverrides`)
+- **Mobile (≤768px):** compact badge (icon + value); tap opens fee breakdown; locale/gas popovers use edge-aware positioning; logo hidden to save header space
 
 ### Markets
 
@@ -69,6 +77,8 @@ Header locale menu switches **English**, **简体中文**, and **繁體中文**.
 - BRIC dex proxy base URL defaults to `${REACT_APP_API_URL}/api` (`SystemConfiguration.ts`; override with `REACT_APP_BRIC_DEX_PROXY_BASE_URL`)
 - **ERC20:** one-time `approve(Permit2, max)` when allowance is low → EIP-712 `signPermitTransferFromWithPermit2` → `swapExactInputWithPermit2` (no direct approve to BricSwap router)
 - **Native ETH** (`0x000…000`): plain `previewSwapExactInput` / `swapExactInput` (no Permit2)
+- **Gas:** swaps use `withCustomGasPrice` (same fees as header badge; SDK `autoGasBuffer` still applies to gas limit)
+- **Permit2 cache:** if user signs Permit2 then cancels the final wallet tx, retry with the same token/amount reuses the signature until deadline or success (`swapPermit2Cache.ts`)
 - Chain/token config: `SwapChainConfig.ts`, `BricConfig.ts`; USDT-style tokens may require allowance reset before Permit2 approve (`tokensRequiringAllowanceReset`)
 
 ### ethers

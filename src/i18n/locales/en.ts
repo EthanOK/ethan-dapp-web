@@ -615,7 +615,8 @@ export const en = {
   "gas.baseFee": "Base Fee",
   "gas.priorityFee": "Priority Fee",
   "gas.maxFee": "Max fee",
-  "gas.effectiveFee": "Base + Priority",
+  "gas.maxBaseFee": "Max Base Fee",
+  "gas.effectiveFee": "Max Base Fee + Priority",
   "gas.gasPrice": "Gas price",
   "gas.updatedAt": "Updated {{time}}",
 
