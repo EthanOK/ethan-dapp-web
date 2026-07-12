@@ -9,6 +9,27 @@ import { getReadonlyProviderForChain } from "@/lib/wallet/GetProvider";
 
 export type NetworkGasKind = "eip1559" | "legacy";
 
+export type GasSpeed = "low" | "medium" | "high";
+
+export const GAS_SPEED_KEY = "app-gas-speed";
+
+const GAS_SPEEDS: GasSpeed[] = ["low", "medium", "high"];
+
+const EIP1559_SPEED_CONFIG: Record<
+  GasSpeed,
+  { priorityBps: bigint; maxBaseBps: bigint }
+> = {
+  low: { priorityBps: 100n, maxBaseBps: 110n },
+  medium: { priorityBps: 200n, maxBaseBps: 120n },
+  high: { priorityBps: 300n, maxBaseBps: 135n }
+};
+
+const LEGACY_SPEED_BPS: Record<GasSpeed, bigint> = {
+  low: 90n,
+  medium: 100n,
+  high: 125n
+};
+
 export type NetworkGasSnapshot = {
   chainId: number;
   kind: NetworkGasKind;
@@ -20,8 +41,74 @@ export type NetworkGasSnapshot = {
   maxBaseFeeGwei: string | null;
   maxFeeGwei: string | null;
   gasPriceGwei: string | null;
+  tierGwei: Record<GasSpeed, string | null>;
   updatedAt: number;
 };
+
+export function getStoredGasSpeed(): GasSpeed {
+  try {
+    const stored = localStorage.getItem(GAS_SPEED_KEY);
+    return GAS_SPEEDS.includes(stored as GasSpeed)
+      ? (stored as GasSpeed)
+      : "medium";
+  } catch {
+    return "medium";
+  }
+}
+
+export function setStoredGasSpeed(speed: GasSpeed): void {
+  try {
+    localStorage.setItem(GAS_SPEED_KEY, speed);
+    window.dispatchEvent(
+      new CustomEvent("app-gas-speed-changed", { detail: speed })
+    );
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function computeEip1559TierWei(
+  baseFee: bigint,
+  marketPriority: bigint,
+  speed: GasSpeed
+): { maxFeePerGas: bigint; maxPriorityFeePerGas: bigint } {
+  const { priorityBps, maxBaseBps } = EIP1559_SPEED_CONFIG[speed];
+  const maxPriorityFeePerGas = (marketPriority * priorityBps) / 100n;
+  const maxBaseFee =
+    baseFee > 0n ? (baseFee * maxBaseBps) / 100n : maxPriorityFeePerGas;
+  const maxFeePerGas = maxBaseFee + maxPriorityFeePerGas;
+  return { maxFeePerGas, maxPriorityFeePerGas };
+}
+
+function computeLegacyTierWei(gasPrice: bigint, speed: GasSpeed): bigint {
+  return (gasPrice * LEGACY_SPEED_BPS[speed]) / 100n;
+}
+
+function tierGweiFromMarket(
+  market: GasMarketData
+): Record<GasSpeed, string | null> {
+  const tiers = {} as Record<GasSpeed, string | null>;
+  for (const speed of GAS_SPEEDS) {
+    if (market.isEip1559 && market.maxFee != null) {
+      const baseFee = market.baseFee ?? 0n;
+      const { maxFeePerGas } = computeEip1559TierWei(
+        baseFee,
+        market.marketPriority,
+        speed
+      );
+      tiers[speed] = formatGwei(maxFeePerGas);
+      continue;
+    }
+
+    if (market.gasPrice != null && market.gasPrice > 0n) {
+      tiers[speed] = formatGwei(computeLegacyTierWei(market.gasPrice, speed));
+      continue;
+    }
+
+    tiers[speed] = null;
+  }
+  return tiers;
+}
 
 type GasMarketData = {
   feeData: FeeData;
@@ -74,18 +161,21 @@ function marketToGasPriceCache(
 }
 
 function gasCacheToOverrides(
-  entry: GasPriceCacheEntry
+  entry: GasPriceCacheEntry,
+  speed: GasSpeed = getStoredGasSpeed()
 ): Partial<TransactionRequest> {
   if (entry.kind === "eip1559" && entry.maxFee != null) {
     const baseFee = entry.baseFee ?? 0n;
-    const priority = entry.marketPriority;
-    const maxFeePerGas =
-      baseFee > 0n ? (baseFee * 105n) / 100n + priority : entry.maxFee;
-    return { maxPriorityFeePerGas: priority, maxFeePerGas };
+    const { maxFeePerGas, maxPriorityFeePerGas } = computeEip1559TierWei(
+      baseFee,
+      entry.marketPriority,
+      speed
+    );
+    return { maxPriorityFeePerGas, maxFeePerGas };
   }
 
   if (entry.gasPrice != null && entry.gasPrice > 0n) {
-    return { gasPrice: entry.gasPrice };
+    return { gasPrice: computeLegacyTierWei(entry.gasPrice, speed) };
   }
 
   return {};
@@ -175,10 +265,13 @@ export async function fetchNetworkGasSnapshot(
   const market = await fetchGasMarketData(provider);
   setGasPriceCache(marketToGasPriceCache(chainId, market));
 
+  const tierGwei = tierGweiFromMarket(market);
+  const selectedSpeed = getStoredGasSpeed();
+
   if (market.isEip1559 && market.maxFee != null) {
     const maxBaseFee =
       market.baseFee != null && market.baseFee > 0n
-        ? (market.baseFee * 105n) / 100n
+        ? (market.baseFee * EIP1559_SPEED_CONFIG.medium.maxBaseBps) / 100n
         : null;
     const maxFeePerGas =
       maxBaseFee != null ? maxBaseFee + market.marketPriority : market.maxFee;
@@ -186,12 +279,13 @@ export async function fetchNetworkGasSnapshot(
     return {
       chainId,
       kind: "eip1559",
-      effectiveGasGwei: maxFeePerGas != null ? formatGwei(maxFeePerGas) : null,
+      effectiveGasGwei: tierGwei[selectedSpeed],
       baseFeeGwei: market.baseFee != null ? formatGwei(market.baseFee) : null,
       priorityFeeGwei: formatGwei(market.marketPriority),
       maxBaseFeeGwei: maxBaseFee != null ? formatGwei(maxBaseFee) : null,
       maxFeeGwei: formatGwei(maxFeePerGas),
       gasPriceGwei: null,
+      tierGwei,
       updatedAt: Date.now()
     };
   }
@@ -202,8 +296,7 @@ export async function fetchNetworkGasSnapshot(
   return {
     chainId,
     kind: "legacy",
-    effectiveGasGwei:
-      effectiveLegacy != null ? formatGwei(effectiveLegacy) : null,
+    effectiveGasGwei: tierGwei[selectedSpeed],
     baseFeeGwei: null,
     priorityFeeGwei: null,
     maxBaseFeeGwei: null,
@@ -212,6 +305,7 @@ export async function fetchNetworkGasSnapshot(
       market.gasPrice != null && market.gasPrice > 0n
         ? formatGwei(market.gasPrice)
         : null,
+    tierGwei,
     updatedAt: Date.now()
   };
 }
@@ -224,17 +318,22 @@ function hasGasPricing(request: TransactionRequest): boolean {
   );
 }
 
-function marketToOverrides(market: GasMarketData): Partial<TransactionRequest> {
+function marketToOverrides(
+  market: GasMarketData,
+  speed: GasSpeed = getStoredGasSpeed()
+): Partial<TransactionRequest> {
   if (market.isEip1559 && market.maxFee != null) {
     const baseFee = market.baseFee ?? 0n;
-    const priority = market.marketPriority;
-    const maxFeePerGas =
-      baseFee > 0n ? (baseFee * 105n) / 100n + priority : market.maxFee;
-    return { maxPriorityFeePerGas: priority, maxFeePerGas };
+    const { maxFeePerGas, maxPriorityFeePerGas } = computeEip1559TierWei(
+      baseFee,
+      market.marketPriority,
+      speed
+    );
+    return { maxPriorityFeePerGas, maxFeePerGas };
   }
 
   if (market.gasPrice != null && market.gasPrice > 0n) {
-    return { gasPrice: market.gasPrice };
+    return { gasPrice: computeLegacyTierWei(market.gasPrice, speed) };
   }
 
   return {};
