@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useGasSpeed } from "@/hooks/useGasSpeed";
 import { useNetworkGas } from "@/hooks/useNetworkGas";
 import { useI18n } from "@/i18n";
+import type { GasSpeed } from "@/lib/evm/GasStrategy";
 
 const MOBILE_GAS_MQ = "(max-width: 768px)";
+const GAS_SPEEDS: GasSpeed[] = ["low", "medium", "high"];
 
 function useMobileGasLayout() {
   const [isMobile, setIsMobile] = useState(() =>
@@ -36,31 +39,38 @@ function GasPumpIcon() {
   );
 }
 
-function gasLevelClass(gwei: string | null | undefined): string {
-  const n = Number(gwei);
-  if (!Number.isFinite(n)) return "";
-  if (n < 5) return " is-low";
-  if (n < 30) return " is-medium";
-  return " is-high";
-}
-
-type GasTooltipRowProps = {
+type GasSpeedOptionProps = {
   label: string;
   value: string | null | undefined;
-  accent?: "base" | "priority" | "maxbase" | "total";
+  speed: GasSpeed;
+  selected: boolean;
+  onSelect: (speed: GasSpeed) => void;
 };
 
-function GasTooltipRow({ label, value, accent }: GasTooltipRowProps) {
+function GasSpeedOption({
+  label,
+  value,
+  speed,
+  selected,
+  onSelect
+}: GasSpeedOptionProps) {
   return (
-    <div
-      className={"app-header-gas-tooltip-row" + (accent ? ` is-${accent}` : "")}
+    <button
+      type="button"
+      className={
+        "app-header-gas-speed-option is-" +
+        speed +
+        (selected ? " is-selected" : "")
+      }
+      onClick={() => onSelect(speed)}
+      aria-pressed={selected}
     >
-      <span className="app-header-gas-tooltip-label">{label}</span>
-      <span className="app-header-gas-tooltip-value">
+      <span className="app-header-gas-speed-label">{label}</span>
+      <span className="app-header-gas-speed-value">
         {value ?? "—"}
-        <span className="app-header-gas-tooltip-unit"> Gwei</span>
+        <span className="app-header-gas-speed-unit"> Gwei</span>
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -73,6 +83,7 @@ function HeaderGasStatus({ chainId }: HeaderGasStatusProps) {
   const isMobile = useMobileGasLayout();
   const wrapRef = useRef<HTMLDivElement>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const { speed, setSpeed } = useGasSpeed();
   const { snapshot, loading, error, isEvm } = useNetworkGas(chainId);
 
   useEffect(() => {
@@ -97,8 +108,7 @@ function HeaderGasStatus({ chainId }: HeaderGasStatusProps) {
 
   if (!isEvm) return null;
 
-  const primaryGwei = snapshot?.effectiveGasGwei;
-  const levelClass = gasLevelClass(primaryGwei);
+  const primaryGwei = snapshot?.tierGwei?.[speed] ?? snapshot?.effectiveGasGwei;
 
   const displayValue =
     loading && !snapshot
@@ -115,8 +125,16 @@ function HeaderGasStatus({ chainId }: HeaderGasStatusProps) {
     }
   };
 
-  const showTooltipPanel =
-    Boolean(snapshot) || (isMobile && panelOpen && (loading || Boolean(error)));
+  const handleSpeedSelect = (next: GasSpeed) => {
+    setSpeed(next);
+    if (isMobile) {
+      setPanelOpen(false);
+    }
+  };
+
+  const showTooltipPanel = isMobile
+    ? panelOpen
+    : Boolean(snapshot) || loading || Boolean(error);
 
   return (
     <div
@@ -129,11 +147,11 @@ function HeaderGasStatus({ chainId }: HeaderGasStatusProps) {
     >
       <button
         type="button"
-        className={"app-header-gas-badge" + levelClass}
+        className={"app-header-gas-badge is-" + speed}
         onClick={handleBadgeClick}
         aria-label={
           primaryGwei
-            ? `${t("gas.panelTitle")}: ${displayValue}`
+            ? `${t("gas.panelTitle")} ${t(`gas.speed.${speed}`)}: ${displayValue}`
             : t("gas.panelTitle")
         }
         aria-expanded={isMobile ? panelOpen : undefined}
@@ -142,6 +160,7 @@ function HeaderGasStatus({ chainId }: HeaderGasStatusProps) {
         <span className="app-header-gas-icon">
           <GasPumpIcon />
         </span>
+        <span className="app-header-gas-tier">{t(`gas.speed.${speed}`)}</span>
         <span className="app-header-gas-label">{t("gas.label")}</span>
         <span className="app-header-gas-value">
           {loading && !snapshot ? (
@@ -163,47 +182,24 @@ function HeaderGasStatus({ chainId }: HeaderGasStatusProps) {
         <div className="app-header-gas-tooltip" role="tooltip">
           <div className="app-header-gas-tooltip-body">
             {snapshot ? (
-              snapshot.kind === "eip1559" ? (
-                <>
-                  <GasTooltipRow
-                    label={t("gas.baseFee")}
-                    value={snapshot.baseFeeGwei}
-                    accent="base"
-                  />
-                  <GasTooltipRow
-                    label={t("gas.priorityFee")}
-                    value={snapshot.priorityFeeGwei}
-                    accent="priority"
-                  />
-                  <GasTooltipRow
-                    label={t("gas.maxBaseFee")}
-                    value={snapshot.maxBaseFeeGwei}
-                    accent="maxbase"
-                  />
-                  <GasTooltipRow
-                    label={t("gas.effectiveFee")}
-                    value={snapshot.effectiveGasGwei}
-                    accent="total"
-                  />
-                </>
-              ) : (
-                <GasTooltipRow
-                  label={t("gas.gasPrice")}
-                  value={snapshot.effectiveGasGwei}
-                  accent="total"
+              GAS_SPEEDS.map((tier) => (
+                <GasSpeedOption
+                  key={tier}
+                  label={t(`gas.speed.${tier}`)}
+                  value={snapshot.tierGwei?.[tier]}
+                  speed={tier}
+                  selected={speed === tier}
+                  onSelect={handleSpeedSelect}
                 />
-              )
+              ))
             ) : (
-              <GasTooltipRow
-                label={t("gas.panelTitle")}
-                value={
-                  loading
-                    ? t("gas.loading")
-                    : error
-                      ? t("gas.unavailable")
-                      : "—"
-                }
-              />
+              <div className="app-header-gas-speed-empty">
+                {loading
+                  ? t("gas.loading")
+                  : error
+                    ? t("gas.unavailable")
+                    : "—"}
+              </div>
             )}
           </div>
         </div>

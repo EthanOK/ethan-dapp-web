@@ -27,7 +27,7 @@ Multi-chain Web3 dApp dashboard (EVM, Solana, Bitcoin) built with **React 18 + T
 - `src/app/` — App shell: `App.tsx` (routes/layout), `Wallet.ts` (Reown AppKit init), `App.css`
 - `src/pages/` — One route page per file, all lazy-imported in `App.tsx`
 - `src/i18n/` — Locale provider (`I18nProvider.tsx`), `useI18n()` hook, `tGlobal()` for lib/hooks; locale files in `locales/` (`en`, `zh-CN`, `zh-TW`)
-- `src/hooks/` — Wallet state (`useReownWalletSync`, `useEvmWallet`), theme, sidebar, network switching
+- `src/hooks/` — Wallet state (`useReownWalletSync`, `useEvmWallet`), theme, sidebar, network switching, **`useGasSpeed`** (header gas tier)
 - `src/lib/wallet/` — `GetProvider.ts` (provider resolution), `ConnectWallet.ts`, `Suscribers.ts` (AppKit event subscribers)
 - `src/lib/evm/` — Contract interactions, LayerZero, multicall, EIP-7702, **`GasStrategy.ts`** (header gas snapshot + tx gas overrides)
 - `src/lib/nft/` — OpenSea, mint, orders
@@ -54,15 +54,25 @@ Header locale menu switches **English**, **简体中文**, and **繁體中文**.
 - **Pages / components:** `import { useI18n } from "@/i18n"` → `const { t } = useI18n()` → `t("some.key")`
 - **Non-React code** (lib, hooks): `import { tGlobal } from "@/i18n"` → `tGlobal("some.key")`
 - **New copy:** add the same key to `src/i18n/locales/en.ts`, `zh-CN.ts`, and `zh-TW.ts`
-- **Exceptions:** header **Network** label and chain names in the network `<select>` stay English (not translated); gas fee row labels (**Base Fee**, **Priority Fee**, **Max Base Fee**, **Max Base Fee + Priority**) stay English
+- **Exceptions:** header **Network** label and chain names in the network `<select>` stay English (not translated); gas speed tier labels stay **L / M / H** in all locales
 
 ### Network gas (header)
 
 - **Badge:** `HeaderGasStatus.tsx` in `WalletControls`; polls every 30s via `useNetworkGas` → `fetchNetworkGasSnapshot()` (`GasStrategy.ts`, public RPC via `getReadonlyProviderForChain`)
-- **EIP-1559 display:** Base Fee, Priority Fee, Max Base Fee (`base × 1.05`), badge total = **Max Base Fee + Priority** (matches tx `maxFeePerGas`)
-- **Priority fee:** derived from `gasPrice − baseFee` on public RPC (avoids MetaMask-inflated `maxPriorityFeePerGas`)
-- **Tx overrides:** `withCustomGasPrice(signer, chainId)` wraps BricSwap sends; reuses polled gas cache when fresh (`resolveGasPriceOverrides`)
-- **Mobile (≤768px):** compact badge (icon + value); tap opens fee breakdown; locale/gas popovers use edge-aware positioning; logo hidden to save header space
+- **Speed tiers:** user picks **L / M / H** (low / medium / high) in the header popover; preference stored in `localStorage` (`app-gas-speed`, default `medium`). Hook: `useGasSpeed.ts`; keys `gas.speed.low|medium|high` → `L` / `M` / `H` in all locales
+- **Badge display:** icon + tier letter (colored) + effective Gwei for the selected tier
+- **EIP-1559 tiers** (`maxFeePerGas = maxBase + priority`, priority from `gasPrice − baseFee` on public RPC — avoids MetaMask-inflated `maxPriorityFeePerGas`):
+
+  | Tier | Priority | Max base |
+  |------|----------|----------|
+  | L | ×100% | base × 110% |
+  | M | ×200% | base × 120% |
+  | H | ×300% | base × 135% |
+
+- **Legacy chains:** gas price multipliers L 90% / M 100% / H 125% (no EIP-1559 split)
+- **Tx overrides:** `withCustomGasPrice(signer, chainId)` applies the stored tier via `resolveGasPriceOverrides`; reuses polled gas cache when fresh (60s). Currently wired in **BricSwap** only — other `sendTransaction` paths still use wallet defaults
+- **Desktop:** hover badge to open tier picker
+- **Mobile (≤768px):** compact badge (`icon + L/M/H + value`, hides `Gwei` unit); **tap** badge to open picker (not hover); 44px tap targets; popover right-aligned; tap outside or after selection closes panel; logo hidden to save header space
 
 ### Markets
 
@@ -77,7 +87,7 @@ Header locale menu switches **English**, **简体中文**, and **繁體中文**.
 - BRIC dex proxy base URL defaults to `${REACT_APP_API_URL}/api` (`SystemConfiguration.ts`; override with `REACT_APP_BRIC_DEX_PROXY_BASE_URL`)
 - **ERC20:** one-time `approve(Permit2, max)` when allowance is low → EIP-712 `signPermitTransferFromWithPermit2` → `swapExactInputWithPermit2` (no direct approve to BricSwap router)
 - **Native ETH** (`0x000…000`): plain `previewSwapExactInput` / `swapExactInput` (no Permit2)
-- **Gas:** swaps use `withCustomGasPrice` (same fees as header badge; SDK `autoGasBuffer` still applies to gas limit)
+- **Gas:** swaps use `withCustomGasPrice` with the header **L/M/H** tier (same effective Gwei as badge); SDK `autoGasBuffer` still applies to gas limit
 - **Permit2 cache:** if user signs Permit2 then cancels the final wallet tx, retry with the same token/amount reuses the signature until deadline or success (`swapPermit2Cache.ts`)
 - Chain/token config: `SwapChainConfig.ts`, `BricConfig.ts`; USDT-style tokens may require allowance reset before Permit2 approve (`tokensRequiringAllowanceReset`)
 

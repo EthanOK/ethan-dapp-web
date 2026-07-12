@@ -250,6 +250,30 @@
   opacity: 1;
 }
 
+.app-header-gas-tier {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  font-family: var(--w3-font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: inherit;
+}
+
+.app-header-gas-badge.is-low .app-header-gas-tier {
+  color: #4ade80;
+}
+
+.app-header-gas-badge.is-medium .app-header-gas-tier {
+  color: var(--w3-accent);
+}
+
+.app-header-gas-badge.is-high .app-header-gas-tier {
+  color: #fbbf24;
+}
+
 .app-header-gas-label {
   color: var(--w3-text-muted);
   font-family: inherit;
@@ -277,7 +301,7 @@
     0 16px 40px rgba(0, 0, 0, 0.28),
     0 0 0 1px rgba(0, 229, 255, 0.06),
     0 0 24px rgba(0, 229, 255, 0.08);
-  pointer-events: none;
+  pointer-events: auto;
   opacity: 0;
   visibility: hidden;
   transform: translateX(-50%) translateY(6px) scale(0.98);
@@ -320,8 +344,117 @@
 .app-header-gas-tooltip-body {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  padding: 8px 0;
+  gap: 4px;
+  padding: 8px;
+}
+
+.app-header-gas-speed-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--w3-text-muted);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  appearance: none;
+  margin: 0;
+}
+
+.app-header-gas-speed-option:hover {
+  background: var(--w3-bg-hover);
+  border-color: var(--w3-border);
+}
+
+.app-header-gas-speed-option.is-selected {
+  background: rgba(0, 229, 255, 0.06);
+  border-color: rgba(0, 229, 255, 0.28);
+}
+
+.app-header-gas-speed-option.is-low.is-selected {
+  background: rgba(74, 222, 128, 0.08);
+  border-color: rgba(74, 222, 128, 0.28);
+}
+
+.app-header-gas-speed-option.is-high.is-selected {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.28);
+}
+
+.app-header-gas-speed-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--w3-text);
+  white-space: nowrap;
+}
+
+.app-header-gas-speed-label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--w3-text-muted);
+  opacity: 0.45;
+}
+
+.app-header-gas-speed-option.is-low .app-header-gas-speed-label::before {
+  background: #4ade80;
+  opacity: 1;
+}
+
+.app-header-gas-speed-option.is-medium .app-header-gas-speed-label::before {
+  background: var(--w3-accent);
+  opacity: 1;
+}
+
+.app-header-gas-speed-option.is-high .app-header-gas-speed-label::before {
+  background: #fbbf24;
+  opacity: 1;
+}
+
+.app-header-gas-speed-value {
+  font-family: var(--w3-font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--w3-text);
+  white-space: nowrap;
+}
+
+.app-header-gas-speed-option.is-selected .app-header-gas-speed-value {
+  color: var(--w3-accent);
+}
+
+.app-header-gas-speed-option.is-low.is-selected .app-header-gas-speed-value {
+  color: #4ade80;
+}
+
+.app-header-gas-speed-option.is-high.is-selected .app-header-gas-speed-value {
+  color: #fbbf24;
+}
+
+.app-header-gas-speed-unit {
+  font-weight: 500;
+  font-size: 0.68rem;
+  color: var(--w3-text-muted);
+}
+
+.app-header-gas-speed-empty {
+  padding: 10px 14px;
+  font-size: 0.74rem;
+  color: var(--w3-text-muted);
+  text-align: center;
 }
 
 .app-header-gas-tooltip-row {
@@ -1500,12 +1633,20 @@ body.app-menu-open {
 
   .app-header-gas-wrap.is-mobile .app-header-gas-badge {
     width: auto;
-    max-width: min(104px, 30vw);
+    max-width: min(118px, 36vw);
     height: 32px;
-    padding: 0 7px;
-    gap: 4px;
+    padding: 0 8px;
+    gap: 5px;
     justify-content: center;
     cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-tier {
+    flex-shrink: 0;
+    min-width: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
   }
 
   .app-header-gas-wrap.is-mobile .app-header-gas-label {
@@ -1524,9 +1665,27 @@ body.app-menu-open {
   }
 
   .app-header-gas-wrap.is-mobile .app-header-gas-value-unit {
-    font-size: 0.62rem;
-    font-weight: 500;
-    color: var(--w3-text-muted);
+    display: none;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-tooltip-body {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-speed-option {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-speed-label {
+    font-size: 0.88rem;
+    min-width: 18px;
+  }
+
+  .app-header-gas-wrap.is-mobile .app-header-gas-speed-value {
+    font-size: 0.76rem;
   }
 
   .app-header-gas-wrap.is-mobile .app-header-gas-icon {
