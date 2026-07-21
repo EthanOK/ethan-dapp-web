@@ -62,6 +62,9 @@
   --w3-scrollbar-thumb: #252532;
   --w3-scrollbar-thumb-hover: #353545;
 
+  /* Light plate so black/transparent CoinGecko logos stay visible on dark UI */
+  --w3-token-icon-bg: #f8fafc;
+
   --w3-gradient-accent: linear-gradient(135deg, #00e5ff 0%, #06b6d4 100%);
   --w3-gradient-text: linear-gradient(
     120deg,
@@ -110,6 +113,8 @@ html[data-theme="light"] {
   --w3-scrollbar-track: #e2e8f0;
   --w3-scrollbar-thumb: #cbd5e1;
   --w3-scrollbar-thumb-hover: #94a3b8;
+
+  --w3-token-icon-bg: #ffffff;
 
   --w3-gradient-accent: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   --w3-gradient-text: linear-gradient(
