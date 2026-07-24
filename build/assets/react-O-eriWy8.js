@@ -1,1 +1,0 @@
-import{i as e,z as t}from"./react-D-2R3pb6.js";function n(){return{connection:e(t.state).connection}}export{n as t};

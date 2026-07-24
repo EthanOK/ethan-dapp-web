@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { tGlobal } from "@/i18n";
 import { getDefaultNetwork, modal } from "@/app/Wallet";
+import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
 
 export function dispatchAppNetworkChanged(chainId: number | string) {
   window.dispatchEvent(
@@ -28,8 +29,6 @@ export function useSwitchAppKitNetwork() {
       setIsSwitching(true);
       try {
         await modal.switchNetwork(getDefaultNetwork(targetChainId));
-        const { getSignerAndChainId } =
-          await import("@/lib/wallet/GetProvider");
         const deadline = Date.now() + timeoutMs;
         while (Date.now() < deadline) {
           const [, cid] = await getSignerAndChainId();

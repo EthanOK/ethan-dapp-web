@@ -631,6 +631,8 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  background: var(--w3-token-icon-bg);
+  box-shadow: 0 0 0 1px var(--w3-border);
 }
 
 .home-coin-card-title {

@@ -349,6 +349,9 @@
   height: 24px;
   border-radius: 50%;
   flex-shrink: 0;
+  object-fit: cover;
+  background: var(--w3-token-icon-bg);
+  box-shadow: 0 0 0 1px var(--w3-border);
 }
 
 .market-list-name-text {
