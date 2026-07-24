@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.4](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.3...v3.0.4) (2026-07-24)
+
+
+### Features
+
+* **gas:** add header network gas badge with fee breakdown tooltip. ([b254e5e](https://github.com/EthanOK/ethan-bric-web/commit/b254e5e66f33e66c8a4ad87e7f3b92046bac0a50))
+* **gas:** add L/M/H speed tiers with persisted header and swap fees. ([52e3f86](https://github.com/EthanOK/ethan-bric-web/commit/52e3f863e4b361fcc08a58dc90ee8885dea10431))
+* **gas:** align BricSwap fees with header poll and improve mobile header UX. ([914ae10](https://github.com/EthanOK/ethan-bric-web/commit/914ae10b4d489b56641c08eaf0c547145c8c7c13))
+
+
+### Bug Fixes
+
+* **markets:** give token icons a light plate so dark logos stay visible. ([cf050ed](https://github.com/EthanOK/ethan-bric-web/commit/cf050ed981a13c013662201316a1b509c4d9e055))
+* **swap:** prevent stuck quote loading and clear input after swap ([8a77f96](https://github.com/EthanOK/ethan-bric-web/commit/8a77f9698207fd5266b4565d2b00076e3237e9bd))
+* **swap:** refetch quote after wallet connect without clearing debounced amount ([cfeb94f](https://github.com/EthanOK/ethan-bric-web/commit/cfeb94fd525e5db7b3fc50f887dace93f9e5b6d6))
+* **swap:** show $-- placeholder and keep receive field height stable ([5c19621](https://github.com/EthanOK/ethan-bric-web/commit/5c19621e670711f2dc27bc72aca1415877b23d29))
+* **swap:** surface wallet error message on swap failure ([998bcea](https://github.com/EthanOK/ethan-bric-web/commit/998bceae971e8c4184c65ba07761904905eac1a2))
+
 ### [3.0.3](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.1...v3.0.3) (2026-07-08)
 
 
