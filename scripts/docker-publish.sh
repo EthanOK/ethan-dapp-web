@@ -9,7 +9,7 @@
 #   PLATFORMS=linux/arm64 ./scripts/docker-publish.sh  # single arch
 #
 # Requirements:
-#   - .npmrc with a valid GitLab token (private @bric-labs packages)
+#   - .npmrc with a valid GitHub Packages token (private @bric-lab → aliased as @bric-labs)
 #   - logged in to the registry (docker login)
 #   - a buildx builder that supports multi-platform (docker-container driver)
 
@@ -28,7 +28,7 @@ case "$(uname -m)" in
 esac
 
 if [[ ! -f .npmrc ]]; then
-  echo "ERROR: .npmrc not found. Private @bric-labs packages need it to install." >&2
+  echo "ERROR: .npmrc not found. Private @bric-labs/@bric-lab packages need it to install." >&2
   exit 1
 fi
 

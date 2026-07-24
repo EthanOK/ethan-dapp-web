@@ -5,7 +5,7 @@
     "": {
       "name": "ethan-dapp-web",
       "dependencies": {
-        "@bric-labs/bric-sdk": "^0.3.9",
+        "@bric-labs/bric-sdk": "npm:@bric-lab/bric-sdk@^0.3.10",
         "@coral-xyz/anchor": "^0.30.1",
         "@noble/ed25519": "^2.0.0",
         "@opensea/sdk": "^11.1.0",
@@ -109,7 +109,7 @@
 
     "@base-org/account": ["@base-org/account@2.4.0", "", { "dependencies": { "@coinbase/cdp-sdk": "^1.0.0", "@noble/hashes": "1.4.0", "clsx": "1.2.1", "eventemitter3": "5.0.1", "idb-keyval": "6.2.1", "ox": "0.6.9", "preact": "10.24.2", "viem": "^2.31.7", "zustand": "5.0.3" } }, "sha512-A4Umpi8B9/pqR78D1Yoze4xHyQaujioVRqqO3d6xuDFw9VRtjg6tK3bPlwE0aW+nVH/ntllCpPa2PbI8Rnjcug=="],
 
-    "@bric-labs/bric-sdk": ["@bric-labs/bric-sdk@0.3.9", "https://gitlab.keystonedigitalvaults.com/api/v4/projects/74/packages/npm/@bric-labs/bric-sdk/-/@bric-labs/bric-sdk-0.3.9.tgz", { "dependencies": { "@okx-dex/okx-dex-sdk": "^1.0.19", "@velora-dex/sdk": "^9.5.2", "axios": "^1.10.0", "decimal.js": "^10.5.0", "ethers": "^6.16.0" } }, "sha1-bKKteY4sw17aMNM+FzmIWs4l6+4="],
+    "@bric-labs/bric-sdk": ["@bric-lab/bric-sdk@0.3.10", "https://npm.pkg.github.com/download/@bric-lab/bric-sdk/0.3.10/b290f07a1fbee7008eea8963af0e8fe7645f3028", { "dependencies": { "@okx-dex/okx-dex-sdk": "^1.0.19", "@velora-dex/sdk": "^9.5.2", "axios": "^1.10.0", "decimal.js": "^10.5.0", "ethers": "^6.16.0" } }, "sha512-1p6AZraA8cXV/dPARP+wIzbWK5BoaB/OL35PsNCfLbtFjqwoOFLNuwbZ4EcVyo9Ww/4ETnDkpT1Wx/eZuwaJFA=="],
 
     "@coinbase/cdp-sdk": ["@coinbase/cdp-sdk@1.51.2", "", { "dependencies": { "@solana-program/system": "^0.10.0", "@solana-program/token": "^0.9.0", "@solana/kit": "^5.5.1", "abitype": "1.0.6", "axios": "1.16.0", "axios-retry": "^4.5.0", "bs58": "^6.0.0", "jose": "^6.2.0", "md5": "^2.3.0", "uncrypto": "^0.1.3", "viem": "^2.47.0", "zod": "^3.25.76" } }, "sha512-o4IEwXbyAjfhPQWoFBuqnV1JQGLk4NlUVMzH/ur4voPSjYZvlYFVuOoE/eEcsoPFN28xaWTBvqebwncQL8h8fQ=="],
 

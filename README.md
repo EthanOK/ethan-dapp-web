@@ -56,7 +56,7 @@ Entry: `src/index.tsx` → `src/app/App.tsx`.
 
 **Ethereum:** Home, **Markets** (`/markets`), **BricSwap** (`/swap`), tx fee estimate, raw tx builder, ERC20 allowance, LayerZero OFT bridge, faucet, burn, ENS, mint NFT, EIP-712 sign, EIP-7702, utils, ERC-6551, Web3Auth.
 
-**BricSwap:** Aggregated swap via `@bric-labs/bric-sdk`. ERC20 path uses Uniswap **Permit2** — approve Permit2 once per token if needed, sign EIP-712, then swap (no approve to the BricSwap router). Native ETH swaps skip Permit2. BRIC API defaults to `{REACT_APP_API_URL}/api`. Swaps prefill gas from the header network-gas poll (public RPC, `maxFeePerGas = base × 1.05 + priority`). Permit2 signatures are cached when the user cancels after signing.
+**BricSwap:** Aggregated swap via `@bric-labs/bric-sdk` (alias of `@bric-lab/bric-sdk` from GitHub Packages). ERC20 path uses Uniswap **Permit2** — approve Permit2 once per token if needed, sign EIP-712, then swap (no approve to the BricSwap router). Native ETH swaps skip Permit2. BRIC API defaults to `{REACT_APP_API_URL}/api`. Swaps prefill gas from the header network-gas poll (public RPC, `maxFeePerGas = base × 1.05 + priority`). Permit2 signatures are cached when the user cancels after signing.
 
 **Header:** EVM chains show a **Gas** badge (fee breakdown on hover / tap on mobile). Language menu: English, 简体中文, 繁體中文.
 
@@ -89,7 +89,7 @@ docker run -p 8888:3000 --name ethan-dapp-web --env-file .env 0xethan/ethan-dapp
 
 ### Build image
 
-Local (single platform). Enable BuildKit and pass `.npmrc` as a secret (token is **not** in the final image). **`--secret id=npmrc,src=.npmrc` is required** for `@bric-labs/bric-sdk`.
+Local (single platform). Enable BuildKit and pass `.npmrc` as a secret (token is **not** in the final image). **`--secret id=npmrc,src=.npmrc` is required** for `@bric-labs/bric-sdk` (resolves to `@bric-lab/bric-sdk` on GitHub Packages).
 
 ```shell
 DOCKER_BUILDKIT=1 docker buildx build -t 0xethan/ethan-dapp-web:latest . \
@@ -107,7 +107,7 @@ DOCKER_BUILDKIT=1 docker buildx build -t 0xethan/ethan-dapp-web:latest . \
   --push
 ```
 
-If `bun install` fails with exit code 1: ensure `.npmrc` exists with a valid GitLab token; scroll up in the log for 401/404 (registry) or husky errors (Dockerfile sets `HUSKY=0` to skip git hooks).
+If `bun install` fails with exit code 1: ensure `.npmrc` exists with a valid GitHub Packages token (`read:packages`); scroll up in the log for 401/404 (registry) or husky errors (Dockerfile sets `HUSKY=0` to skip git hooks).
 
 If you see `auth.docker.io ... i/o timeout`, configure a Docker Hub mirror or VPN, then retry.
 
