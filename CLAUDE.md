@@ -100,7 +100,7 @@ EVM code uses **ethers v6** (`ethers` package). Amounts on-chain use native `big
 Copy `.env.example` to `.env`. Required variables:
 
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown/WalletConnect project ID
-- `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
+- `REACT_APP_ALCHEMY_KEY` — Alchemy RPC / NFT API key
 - `REACT_APP_API_URL` — Backend base URL (also used for BRIC dex proxy at `{API_URL}/api` unless overridden)
 
 Backend API base URL is in `src/config/SystemConfiguration.ts` (`React_Serve_Back`, default `https://ethan-dapp.onrender.com`). The backend is not in this repo.

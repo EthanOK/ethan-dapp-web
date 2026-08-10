@@ -7,7 +7,7 @@ import {
   YunGouAggregators_main,
   YunGouAggregators_tbsc,
   YunGouAggregators_goerli,
-  ALCHEMY_KEY_V3,
+  ALCHEMY_KEY,
   YunGou2_0_sepolia,
   YunGouAggregators_sepolia
 } from "@/config/SystemConfiguration";
@@ -70,7 +70,7 @@ const getScanAddressURL = (chainId: number, address: string): string => {
 };
 
 const getAlchemyProvider = async (): Promise<JsonRpcProvider | undefined> => {
-  const apiKey = ALCHEMY_KEY_V3?.trim();
+  const apiKey = ALCHEMY_KEY?.trim();
   if (!apiKey) return undefined;
 
   const chainIdStr = localStorage.getItem("chainId");
@@ -220,10 +220,10 @@ async function getAssociatedAddress(
 
 function getAlchemyURL(chainId: string | number): string | null {
   if (Number(chainId) === 1) {
-    return `https://eth-mainnet.g.alchemy.com/nft/v3/${ALCHEMY_KEY_V3}/`;
+    return `https://eth-mainnet.g.alchemy.com/nft/v3/${ALCHEMY_KEY}/`;
   }
   if (Number(chainId) === 11155111) {
-    return `https://eth-sepolia.g.alchemy.com/nft/v3/${ALCHEMY_KEY_V3}/`;
+    return `https://eth-sepolia.g.alchemy.com/nft/v3/${ALCHEMY_KEY}/`;
   }
   return null;
 }
@@ -231,13 +231,13 @@ function getAlchemyURL(chainId: string | number): string | null {
 function getAlchemy(chainId: string | number): Alchemy | null {
   if (Number(chainId) === 1) {
     return new Alchemy({
-      apiKey: ALCHEMY_KEY_V3,
+      apiKey: ALCHEMY_KEY,
       network: Network.ETH_MAINNET
     });
   }
   if (Number(chainId) === 11155111) {
     return new Alchemy({
-      apiKey: ALCHEMY_KEY_V3,
+      apiKey: ALCHEMY_KEY,
       network: Network.ETH_SEPOLIA
     });
   }

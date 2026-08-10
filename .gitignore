@@ -33,3 +33,6 @@ bun.lockb
 # Vite
 dist
 *.local
+
+# Workbuddy
+.workbuddy

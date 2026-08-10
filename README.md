@@ -73,7 +73,7 @@ Additional routes (not in sidebar): OpenSea buy/data, YunGou aggregators, IPFS, 
 Copy `.env.example` to `.env`. Common variables:
 
 - `REACT_APP_WALLETCONNECT_PROJECTID` — Reown / WalletConnect project id
-- `REACT_APP_ALCHEMY_KEY_V3` — Alchemy RPC / NFT API key
+- `REACT_APP_ALCHEMY_KEY` — Alchemy RPC / NFT API key
 - `REACT_APP_API_URL` — Backend base URL (BricSwap dex proxy uses `{API_URL}/api` by default)
 
 Backend API base URL is configured in `src/config/SystemConfiguration.ts` (`React_Serve_Back`, default `https://ethan-dapp.onrender.com`). The backend service is not in this repo.

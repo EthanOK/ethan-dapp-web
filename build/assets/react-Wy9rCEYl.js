@@ -1,1 +1,0 @@
-import{i as e,z as t}from"./react-BGe8SJ_P.js";function n(){return{connection:e(t.state).connection}}export{n as t};
