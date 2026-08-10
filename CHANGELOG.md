@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.5](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.4...v3.0.5) (2026-08-10)
+
+
+### Bug Fixes
+
+* **erc6551:** unify TBA panel and avoid broken Cloudflare RPC. ([616b171](https://github.com/EthanOK/ethan-bric-web/commit/616b171135cd26840c89e78bf5c26f86a747f791))
+* use ensNormalize for ENS name normalization ([5b60001](https://github.com/EthanOK/ethan-bric-web/commit/5b6000124a8ef1f2c6a666dafae8326b8e7d7491))
+
 ### [3.0.4](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.3...v3.0.4) (2026-07-24)
 
 
