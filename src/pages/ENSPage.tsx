@@ -1,50 +1,30 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  getENSUniversalResolver,
-  getAddressOfENSTheGraph,
-  getENSByTokenId
+  getENSByAddress,
+  getAddressByENS,
+  getENSByTokenId,
+  type ENSByTokenIdResult,
+  type ENSByNameResult
 } from "@/services/GetData";
 import { isAddress } from "@/lib/shared/Utils";
-import { useEvmWallet } from "@/hooks";
 import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 const ENSPage = () => {
   const { t } = useI18n();
-  const [currentAccount, setCurrentAccount] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const [addressInput, setAddressInput] = useState("");
-  const [ensInput, setEnsInput] = useState("");
-  const [tokenIdInput, setTokenIdInput] = useState("");
+  const [addressInput, setAddressInput] = useState(
+    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+  );
+  const [ensInput, setEnsInput] = useState("vitalik.eth");
+  const [tokenIdInput, setTokenIdInput] = useState(
+    "79233663829379634837589865448569342784712482819484549289560981379859480642508"
+  );
   const [messageENS, setMessageENS] = useState("");
   const [messageAddress, setMessageAddress] = useState("");
+  const [messageAddressExpiration, setMessageAddressExpiration] = useState("");
+  const [messageAddressCreated, setMessageAddressCreated] = useState("");
   const [messageName, setMessageName] = useState("");
-
-  const { address, isConnected } = useEvmWallet();
-
-  useEffect(() => {
-    if (isConnected && address) setCurrentAccount(address);
-  }, [isConnected, address]);
-
-  useEffect(() => {
-    setIsMounted(true);
-    const intervalId = setInterval(updatePrices, 5000);
-    return () => {
-      clearInterval(intervalId);
-      setIsMounted(false);
-    };
-  }, []);
-
-  const updatePrices = async () => {
-    // keep for any future price display
-  };
-
-  useEffect(() => {
-    if (isMounted) {
-      const account = localStorage.getItem("userAddress");
-      if (account !== null) setCurrentAccount(account);
-    }
-  }, [isMounted]);
+  const [messageExpiration, setMessageExpiration] = useState("");
 
   const parseAddress = (val: string): string | null => {
     const trimmed = val.trim();
@@ -65,7 +45,7 @@ const ENSPage = () => {
       toast.error(t("common.invalidAddress"));
       return;
     }
-    const result = await getENSUniversalResolver(addr);
+    const result = await getENSByAddress(addr);
     if (result.code !== 200) {
       toast.error((result as { message?: string }).message);
       return;
@@ -79,16 +59,24 @@ const ENSPage = () => {
       toast.error(t("ens.nameTooShort"));
       return;
     }
-    const result = (await getAddressOfENSTheGraph(ens)) as {
+    const result = (await getAddressByENS(ens)) as {
       code?: number;
       message?: string;
-      data?: string | null;
+      data?: ENSByNameResult | null;
     };
     if (result.code !== 200) {
       toast.error(result.message);
       return;
     }
-    setMessageAddress(result.data === null ? "null" : (result.data ?? "null"));
+    if (!result.data || !result.data.address) {
+      setMessageAddress("null");
+      setMessageAddressExpiration("");
+      setMessageAddressCreated("");
+      return;
+    }
+    setMessageAddress(result.data.address);
+    setMessageAddressExpiration(result.data.expirationDate ?? "");
+    setMessageAddressCreated(result.data.createdDate ?? "");
   };
 
   const getNameByTokenIdHandler = async () => {
@@ -100,13 +88,21 @@ const ENSPage = () => {
     const result = (await getENSByTokenId(tokenId)) as {
       code?: number;
       message?: string;
-      data?: string | null;
+      data?: ENSByTokenIdResult | null;
     };
     if (result.code !== 200) {
       toast.error(result.message);
       return;
     }
-    setMessageName(result.data === null ? "null" : (result.data ?? "null"));
+    if (!result.data) {
+      setMessageName("null");
+      setMessageExpiration("");
+      return;
+    }
+    setMessageName(
+      result.data.name === null ? "null" : String(result.data.name)
+    );
+    setMessageExpiration(result.data.expirationDate ?? "");
   };
 
   return (
@@ -124,7 +120,7 @@ const ENSPage = () => {
             type="text"
             value={addressInput}
             onChange={(e) => setAddressInput(e.target.value)}
-            placeholder="0xEAAfcC17f28Afe5CdA5b3F76770eFb7ef162D20b"
+            placeholder="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
             className="estimate-address-input"
             spellCheck={false}
             autoComplete="off"
@@ -135,7 +131,6 @@ const ENSPage = () => {
             type="button"
             onClick={getENSHandler}
             className="cta-button mint-nft-button"
-            disabled={!currentAccount}
           >
             {t("ens.getEns")}
           </button>
@@ -177,7 +172,6 @@ const ENSPage = () => {
             type="button"
             onClick={getAddressHandler}
             className="cta-button mint-nft-button"
-            disabled={!currentAccount}
           >
             {t("ens.getAddress")}
           </button>
@@ -198,6 +192,36 @@ const ENSPage = () => {
             >
               {messageAddress}
             </div>
+            {messageAddressExpiration && (
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: "10px 12px",
+                  background: "var(--w3-bg-elevated)",
+                  borderRadius: "var(--w3-radius-sm)",
+                  border: "1px solid var(--w3-border)",
+                  fontSize: "0.875rem",
+                  color: "var(--w3-text-secondary)"
+                }}
+              >
+                {t("ens.expirationDate")}: {messageAddressExpiration}
+              </div>
+            )}
+            {messageAddressCreated && (
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: "10px 12px",
+                  background: "var(--w3-bg-elevated)",
+                  borderRadius: "var(--w3-radius-sm)",
+                  border: "1px solid var(--w3-border)",
+                  fontSize: "0.875rem",
+                  color: "var(--w3-text-secondary)"
+                }}
+              >
+                {t("ens.createdDate")}: {messageAddressCreated}
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -221,7 +245,6 @@ const ENSPage = () => {
             type="button"
             onClick={getNameByTokenIdHandler}
             className="cta-button mint-nft-button"
-            disabled={!currentAccount}
           >
             {t("ens.getNameByTokenId")}
           </button>
@@ -241,6 +264,21 @@ const ENSPage = () => {
             >
               {messageName}
             </div>
+            {messageExpiration && (
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: "10px 12px",
+                  background: "var(--w3-bg-elevated)",
+                  borderRadius: "var(--w3-radius-sm)",
+                  border: "1px solid var(--w3-border)",
+                  fontSize: "0.875rem",
+                  color: "var(--w3-text-secondary)"
+                }}
+              >
+                {t("ens.expirationDate")}: {messageExpiration}
+              </div>
+            )}
           </div>
         )}
       </section>

@@ -7,7 +7,7 @@ import {
   revokeEIP7702Account
 } from "@/lib/evm/EIP7702Utils";
 import {
-  ALCHEMY_KEY_V3,
+  ALCHEMY_KEY,
   EIP7702Delegator_Metamask
 } from "@/config/SystemConfiguration";
 import { JsonRpcProvider, Wallet } from "ethers";
@@ -37,7 +37,7 @@ const EIP7702Page = () => {
         return;
       }
       const provider = new JsonRpcProvider(
-        `https://eth-${chainId === 1 ? "mainnet" : "sepolia"}.g.alchemy.com/v2/${ALCHEMY_KEY_V3 ?? ""}`,
+        `https://eth-${chainId === 1 ? "mainnet" : "sepolia"}.g.alchemy.com/v2/${ALCHEMY_KEY ?? ""}`,
         chainId
       );
       const signer = new Wallet(pk, provider);
@@ -84,7 +84,7 @@ const EIP7702Page = () => {
         return;
       }
       const provider = new JsonRpcProvider(
-        `https://eth-${chainId === 1 ? "mainnet" : "sepolia"}.g.alchemy.com/v2/${ALCHEMY_KEY_V3 ?? ""}`,
+        `https://eth-${chainId === 1 ? "mainnet" : "sepolia"}.g.alchemy.com/v2/${ALCHEMY_KEY ?? ""}`,
         chainId
       );
       const signer = new Wallet(pk, provider);

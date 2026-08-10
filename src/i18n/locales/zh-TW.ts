@@ -504,6 +504,8 @@ export const zhTW: Record<TranslationKey, string> = {
   "ens.getNameByTokenId": "透過 Token ID 取得名稱",
   "ens.nameTooShort": "ENS 名稱過短",
   "ens.tokenIdTooShort": "Token ID 至少需要 64 個字元",
+  "ens.expirationDate": "到期時間",
+  "ens.createdDate": "建立時間",
 
   "burn.title": "銷毀代幣",
   "burn.subtitle": "透過將 ERC20 代幣轉入零地址來銷毀",

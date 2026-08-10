@@ -521,6 +521,8 @@ export const en = {
   "ens.getNameByTokenId": "Get name by token ID",
   "ens.nameTooShort": "ENS name too short",
   "ens.tokenIdTooShort": "Token ID must be at least 64 chars",
+  "ens.expirationDate": "Expiration Date",
+  "ens.createdDate": "Created Date",
 
   "burn.title": "Burn Token",
   "burn.subtitle": "Burn ERC20 tokens by transferring them to the zero address",

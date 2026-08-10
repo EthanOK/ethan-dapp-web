@@ -3,7 +3,7 @@ import {
   PancakeRouter,
   UniswapRouter,
   bsc_rpc,
-  ALCHEMY_KEY_V3
+  ALCHEMY_KEY
 } from "@/config/SystemConfiguration";
 import routerABI from "@/abis/evm/UniswapV2RouterABI.json";
 import erc20ABI from "@/abis/evm/erc20ABI.json";
@@ -20,8 +20,8 @@ const getTokenPrice = async (
     console.log(platform);
     if (platform === "1") {
       routerV2 = UniswapRouter;
-      rpc = ALCHEMY_KEY_V3
-        ? `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY_V3}`
+      rpc = ALCHEMY_KEY
+        ? `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`
         : undefined;
     } else if (platform === "56") {
       routerV2 = PancakeRouter;

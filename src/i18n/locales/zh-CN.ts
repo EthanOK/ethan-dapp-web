@@ -504,6 +504,8 @@ export const zhCN: Record<TranslationKey, string> = {
   "ens.getNameByTokenId": "通过 Token ID 获取名称",
   "ens.nameTooShort": "ENS 名称过短",
   "ens.tokenIdTooShort": "Token ID 至少需要 64 个字符",
+  "ens.expirationDate": "到期时间",
+  "ens.createdDate": "创建时间",
 
   "burn.title": "销毁代币",
   "burn.subtitle": "通过将 ERC20 代币转入零地址来销毁",

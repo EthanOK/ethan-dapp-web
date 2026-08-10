@@ -18,7 +18,7 @@ const bsc_rpc = "https://rpc.ankr.com/bsc";
 const projectId_walletconnect = import.meta.env
   .REACT_APP_WALLETCONNECT_PROJECTID;
 
-const ALCHEMY_KEY_V3 = import.meta.env.REACT_APP_ALCHEMY_KEY_V3;
+const ALCHEMY_KEY = import.meta.env.REACT_APP_ALCHEMY_KEY;
 
 export const APP_VERSION = import.meta.env.REACT_APP_VERSION ?? "dev";
 export const IS_DEVELOPMENT = import.meta.env.MODE === "development";
@@ -95,5 +95,5 @@ export {
   LOGIN_SOLANA_MESSAGE,
   SOLANA_DEV_RPC,
   batchTransferToken_sepolia,
-  ALCHEMY_KEY_V3
+  ALCHEMY_KEY
 };
