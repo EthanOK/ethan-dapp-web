@@ -1,4 +1,4 @@
-import { AlchemyProvider } from "ethers";
+import { AlchemyProvider, ensNormalize } from "ethers";
 import { React_Serve_Back, ALCHEMY_KEY } from "@/config/SystemConfiguration";
 import { getReadonlyProviderForChain } from "@/lib/wallet/GetProvider";
 
@@ -50,6 +50,7 @@ export const getAddressByENS = async (
   data: ENSByNameResult | null;
   message?: string;
 }> => {
+  const normalizedEns = ensNormalize(ens.trim());
   const apiKey = ALCHEMY_KEY?.trim();
 
   try {
@@ -60,8 +61,8 @@ export const getAddressByENS = async (
       return { code: 500, message: "No provider available", data: null };
 
     const [address, metaResponse] = await Promise.all([
-      provider.resolveName(ens),
-      fetch(`${ENS_METADATA_BASE}/${ens}`).catch(() => null)
+      provider.resolveName(normalizedEns),
+      fetch(`${ENS_METADATA_BASE}/${normalizedEns}`).catch(() => null)
     ]);
 
     if (!address) return { code: 200, data: null };
