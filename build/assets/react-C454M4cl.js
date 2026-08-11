@@ -1,1 +1,0 @@
-import{a as e,i as t}from"./react-u7z35Nav.js";function n(){return{connection:t(e.state).connection}}export{n as t};

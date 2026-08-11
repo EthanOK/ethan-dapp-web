@@ -44,7 +44,6 @@ const YunGouAggregators_bsc = "0x0000007eE460B0928c2119E3B9747454A10d1557";
 const YunGouAggregators_sepolia = "0x596Aa28bB2ca2D29E352bC21600DB5ECe3E69797";
 
 const nftMint_goerli = "0x71eE06999F6D5f66AcA3c12e45656362fD9D031f";
-const batchTransferToken_sepolia = "0x6e7f9fCcAdFD34689A9542534c25475B5FFB7282";
 const crossChain_goerli = "0x2817c37eB23FC4F94f1168A94f26befa1F42FF7d";
 const crossChain_tbsc = "0x6AAf3B8a8E42BeDc226e2d1F166Dfdc22d4b5182";
 
@@ -94,6 +93,5 @@ export {
   ZERO_ADDRESS,
   LOGIN_SOLANA_MESSAGE,
   SOLANA_DEV_RPC,
-  batchTransferToken_sepolia,
   ALCHEMY_KEY
 };

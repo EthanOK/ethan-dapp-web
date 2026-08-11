@@ -29,6 +29,8 @@ export const zhCN: Record<TranslationKey, string> = {
   "common.success": "成功",
   "common.failed": "失败",
   "common.rejected": "已拒绝",
+  "common.tokenTypeErc20": "ERC-20",
+  "common.tokenTypeErc721": "ERC-721",
   "common.failedGeneric": "失败",
   "common.requestFailed": "请求失败",
   "common.invalidAddress": "无效地址",
@@ -242,6 +244,7 @@ export const zhCN: Record<TranslationKey, string> = {
   "faucet.userRejected": "用户拒绝了交易",
   "faucet.failed": "领水失败，请重试",
   "faucet.switchTimeout": "切换网络超时或未完成，请手动切换后重试",
+  "faucet.mintYgmeSuccess": "YGME 铸造成功",
 
   "wsol.title": "WSOL（Solana）",
   "wsol.subtitle": "包装 SOL 并管理 WSOL 余额",
@@ -561,13 +564,6 @@ export const zhCN: Record<TranslationKey, string> = {
   "collection.invalidOwner": "所有者地址无效",
   "collection.invalidContractOrOwner": "合约或所有者地址无效",
 
-  "mintNft.title": "铸造 YGME",
-  "mintNft.subtitle": "铸造或签名 EIP712 后铸造 NFT",
-  "mintNft.amountSection": "铸造数量",
-  "mintNft.mintButton": "铸造 NFT",
-  "mintNft.signAndMint": "签名 EIP712 并铸造 NFT",
-  "mintNft.sepoliaOnly": "仅支持 Sepolia 测试网",
-
   "estimateTxFee.title": "估算 TxFee",
   "estimateTxFee.subtitle": "发送交易前估算 gas 与费用",
   "estimateTxFee.params": "交易参数",
@@ -623,7 +619,6 @@ export const zhCN: Record<TranslationKey, string> = {
   "nav.faucet": "领水",
   "nav.burn": "销毁代币",
   "nav.ens": "ENS 服务",
-  "nav.mintNft": "铸造 NFT",
   "nav.signEip712": "Sign EIP712",
   "nav.eip7702": "EIP7702",
   "nav.utils": "工具",

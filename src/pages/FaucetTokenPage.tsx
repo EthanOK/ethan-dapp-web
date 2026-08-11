@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
+import { Interface } from "ethers";
 import {
   getFaucetContract,
   getERC20Contract,
@@ -14,6 +15,7 @@ import {
   getFaucetTokenListByChain,
   getChainName
 } from "@/config/FaucetConfig";
+import YGMEABI from "@/abis/evm/YGMEABI.json";
 import { toast } from "sonner";
 import {
   useEvmWallet,
@@ -24,6 +26,20 @@ import {
 import { useI18n } from "@/i18n";
 
 const faucetFromAddress = "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2";
+
+/** Recommender used when minting the YGME ERC-721 via the faucet forwarder. */
+const YGME_ZERO_RECOMMENDER = "0x0000000000000000000000000000000000000000";
+
+const isErc721Token = (
+  tokenName: string,
+  chainIdParam: number | null
+): boolean => {
+  if (chainIdParam == null) return false;
+  const token = getFaucetTokenListByChain(chainIdParam).find(
+    (t) => t.label === tokenName
+  );
+  return token?.type === "erc721";
+};
 
 const FaucetTokenPage = () => {
   const { t } = useI18n();
@@ -39,6 +55,7 @@ const FaucetTokenPage = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [selectedChainId, setSelectedChainId] = useState<number | null>(null);
   const [selectedToken, setSelectedToken] = useState("");
+  const [tokenPickerOpen, setTokenPickerOpen] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isTransactionProcessing, setIsTransactionProcessing] = useState(false);
@@ -145,9 +162,13 @@ const FaucetTokenPage = () => {
     if (!tokenAddress || !account) return 0;
     const contract = await getERC20Contract(tokenAddress);
     if (!contract) return 0;
-    const ygioBalance = await contract.balanceOf(account);
+    const balance = await contract.balanceOf(account);
+    if (isErc721Token(tokenName, chainIdVal)) {
+      // ERC-721: balanceOf returns the NFT count, no decimals.
+      return getDecimal(balance, 0);
+    }
     const decimals = await contract.decimals();
-    return getDecimal(ygioBalance, Number(decimals));
+    return getDecimal(balance, Number(decimals));
   };
 
   const getTokenTotalClaim = async (
@@ -162,6 +183,10 @@ const FaucetTokenPage = () => {
     if (!tokenAddress) return 0;
     const contract = await getERC20Contract(tokenAddress);
     if (!contract) return 0;
+    if (isErc721Token(tokenName, chainIdVal)) {
+      // ERC-721: minted on demand, no "remaining supply" concept.
+      return 0;
+    }
     const balance1 = await contract.balanceOf(faucetFromAddress);
     const chainConfig = faucetConfig[String(chainIdVal)] as
       | Record<string, string>
@@ -222,13 +247,22 @@ const FaucetTokenPage = () => {
     if (selectedChainId) faucetBalance();
   }, [selectedToken, selectedChainId, isConnected, address]);
 
-  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const tokenName = event.target.value;
+  const selectToken = (tokenName: string) => {
     setSelectedToken(tokenName);
     if (selectedChainId) {
       localStorage.setItem(`faucetTokenName_${selectedChainId}`, tokenName);
     }
   };
+
+  // Close the token picker modal on Escape.
+  useEffect(() => {
+    if (!tokenPickerOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTokenPickerOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tokenPickerOpen]);
 
   const handleChainSelectChange = async (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -288,13 +322,32 @@ const FaucetTokenPage = () => {
       if (!account) return;
       const tokenAddress = getFaucetTokenAddress(chainIdC, tokenName);
       if (!tokenAddress) return;
+      const faucetContract = await getFaucetContract();
+      if (!faucetContract) return;
+
+      if (isErc721Token(tokenName, chainIdC)) {
+        // ERC-721 (YGME): mint via the faucet's `faucetDatas` forwarder so the
+        // faucet contract is the caller of `swap` (bypasses user whitelist).
+        const ygmeInterface = new Interface(YGMEABI);
+        const swapData = ygmeInterface.encodeFunctionData("swap", [
+          account,
+          YGME_ZERO_RECOMMENDER,
+          faucetAmount
+        ]);
+        const tx = await faucetContract.faucetDatas(tokenAddress, swapData);
+        const result = await tx.wait();
+        if (result.status === 1) {
+          toast.success(t("faucet.mintYgmeSuccess"));
+          await updateBalance();
+        }
+        return;
+      }
+
       const decimals = await getERC20Decimals(tokenAddress);
       if (Number(faucetAmount) > totalAmount) {
         toast.error(t("faucet.insufficientSupply"));
         return;
       }
-      const faucetContract = await getFaucetContract();
-      if (!faucetContract) return;
       const tx = await faucetContract.faucet(
         tokenAddress,
         faucetFromAddress,
@@ -420,26 +473,56 @@ const FaucetTokenPage = () => {
       {selectedChainId && (
         <section className="feature-panel">
           <h3>{t("faucet.tokenSection")}</h3>
-          <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
-            {t("faucet.remainingSupply")}{" "}
-            <strong style={{ color: "var(--w3-text)" }}>{totalAmount}</strong>
-          </p>
+          {currentToken?.type !== "erc721" && (
+            <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
+              {t("faucet.remainingSupply")}{" "}
+              <strong style={{ color: "var(--w3-text)" }}>{totalAmount}</strong>
+            </p>
+          )}
           {availableTokens.length > 0 ? (
             <>
               <div className="feature-field">
-                <label htmlFor="faucet-token">{t("common.token")}</label>
-                <select
-                  id="faucet-token"
-                  value={selectedToken}
-                  onChange={handleSelectChange}
-                  aria-label={t("common.selectToken")}
-                >
-                  {availableTokens.map((token) => (
-                    <option key={token.label} value={token.label}>
-                      {token.label}
-                    </option>
-                  ))}
-                </select>
+                <label>{t("common.token")}</label>
+                <div className="faucet-token-select">
+                  <button
+                    type="button"
+                    id="faucet-token"
+                    className="faucet-token-select-btn"
+                    onClick={() => setTokenPickerOpen(true)}
+                    aria-haspopup="dialog"
+                    aria-expanded={tokenPickerOpen}
+                    aria-label={t("common.selectToken")}
+                  >
+                    <span className="faucet-token-select-label">
+                      {selectedToken}
+                      {currentToken && (
+                        <span
+                          className={`token-type-badge token-type-badge--${currentToken.type ?? "erc20"}`}
+                        >
+                          {currentToken.type === "erc721"
+                            ? t("common.tokenTypeErc721")
+                            : t("common.tokenTypeErc20")}
+                        </span>
+                      )}
+                    </span>
+                    <svg
+                      className="faucet-token-select-arrow"
+                      width={10}
+                      height={10}
+                      viewBox="0 0 10 10"
+                      fill="none"
+                      aria-hidden
+                    >
+                      <path
+                        d="M2 3.5L5 6.5L8 3.5"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
                 {t("faucet.myBalance", { token: selectedToken })}{" "}
@@ -502,6 +585,57 @@ const FaucetTokenPage = () => {
             {isConnecting ? t("common.connecting") : t("common.connectWallet")}
           </button>
         </section>
+      )}
+      {tokenPickerOpen && (
+        <div
+          className="faucet-picker-overlay"
+          onClick={() => setTokenPickerOpen(false)}
+          role="presentation"
+        >
+          <div
+            className="faucet-picker-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("common.selectToken")}
+          >
+            <div className="faucet-picker-header">
+              <h3>{t("common.selectToken")}</h3>
+              <button
+                type="button"
+                className="faucet-picker-close"
+                onClick={() => setTokenPickerOpen(false)}
+                aria-label={t("common.close")}
+              >
+                ×
+              </button>
+            </div>
+            <div className="faucet-picker-list">
+              {availableTokens.map((token) => (
+                <button
+                  type="button"
+                  key={token.label}
+                  className={`faucet-picker-option ${selectedToken === token.label ? "active" : ""}`}
+                  onClick={() => {
+                    selectToken(token.label);
+                    setTokenPickerOpen(false);
+                  }}
+                >
+                  <span className="faucet-picker-option-label">
+                    {token.label}
+                  </span>
+                  <span
+                    className={`token-type-badge token-type-badge--${token.type ?? "erc20"}`}
+                  >
+                    {token.type === "erc721"
+                      ? t("common.tokenTypeErc721")
+                      : t("common.tokenTypeErc20")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
