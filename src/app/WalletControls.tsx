@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { headerNetworksAll } from "@/app/Wallet";
+import { headerNetworksAll, modal } from "@/app/Wallet";
 import HeaderGasStatus from "@/app/HeaderGasStatus";
 import { useReownWalletSync } from "@/hooks/useReownWalletSync";
 import { useHeaderChainId } from "@/hooks/useHeaderChainId";
@@ -7,6 +7,27 @@ import { useOpenAppKitModal } from "@/hooks/useOpenAppKitModal";
 import { useI18n } from "@/i18n";
 
 const MOBILE_HEADER_MQ = "(max-width: 768px)";
+
+/** Keep AppKit modal/button theme in sync with the app theme (data-theme attr). */
+function useSyncAppKitTheme() {
+  useEffect(() => {
+    const sync = () => {
+      const theme = document.documentElement.getAttribute("data-theme");
+      try {
+        modal.setThemeMode(theme === "light" ? "light" : "dark");
+      } catch {
+        /* ignore: modal may not be ready */
+      }
+    };
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"]
+    });
+    return () => observer.disconnect();
+  }, []);
+}
 
 function useMobileHeaderLayout() {
   const [isMobile, setIsMobile] = useState(() =>
@@ -49,6 +70,8 @@ function WalletControls() {
     currentChainId
   });
   const { isConnecting, openConnectModal } = useOpenAppKitModal();
+
+  useSyncAppKitTheme();
 
   const handleConnect = () => {
     void openConnectModal();

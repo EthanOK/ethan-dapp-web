@@ -16,7 +16,6 @@ import {
 } from "ethers";
 import { BRIC_SUPPORTED_AGGREGATORS, initBricSdk } from "@/config/BricConfig";
 import { SupportChains } from "@/config/ChainsConfig";
-import { withCustomGasPrice } from "@/lib/evm/GasStrategy";
 import type { SwapChainDefinition } from "@/config/SwapChainConfig";
 import {
   clearCachedPermit2Signature,
@@ -91,16 +90,15 @@ export async function createBricAggregator(
   signer: Signer
 ): Promise<BricAggregatorHelper> {
   initBricSdk();
-  const gasSigner = withCustomGasPrice(signer, chain.chainId);
   const helper = new BricAggregatorHelper(
-    gasSigner,
+    signer,
     chain.chainId,
     chain.bricSwapAddress,
     { waitForConfirmation: true, autoGasBuffer: true },
-    gasSigner.provider!,
+    signer.provider!,
     BRIC_SUPPORTED_AGGREGATORS
   );
-  return helper.connect(gasSigner, true);
+  return helper.connect(signer, true);
 }
 
 export async function createBricAggregatorReadonly(
@@ -181,12 +179,11 @@ export async function ensurePermit2TokenApproval(params: {
   const provider = params.signer.provider;
   if (!provider) throw new Error("Signer has no provider");
 
-  const gasSigner = withCustomGasPrice(params.signer, params.chain.chainId);
   const erc20Helper = new ERC20Helper(
     provider,
     MULTICALL3_ADDRESS,
     true
-  ).connect(gasSigner);
+  ).connect(params.signer);
   const [row] = await erc20Helper.batchBalancesAndAllowances(
     [params.token],
     Permit2Address,

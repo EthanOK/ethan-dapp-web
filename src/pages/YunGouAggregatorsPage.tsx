@@ -18,7 +18,12 @@ import {
 } from "ethers";
 import { Chain } from "@opensea/sdk";
 
-import { getSigner, getProvider } from "@/lib/wallet/GetProvider";
+import {
+  getSigner,
+  getProvider,
+  parseEvmChainIdFromStored
+} from "@/lib/wallet/GetProvider";
+import { withCustomGasPrice } from "@/lib/evm/GasStrategy";
 import {
   getYunGouAddress,
   getScanURL,
@@ -66,7 +71,10 @@ const YunGouAggregatorsPage = () => {
     }
     try {
       const provider = await getProvider();
-      const signer = await provider.getSigner();
+      const signer = withCustomGasPrice(
+        await provider.getSigner(),
+        parseEvmChainIdFromStored(localStorage.getItem("chainId")) ?? undefined
+      );
       const chainIdStorage = localStorage.getItem("chainId");
       const tradeDetails = [];
 
@@ -203,7 +211,10 @@ const YunGouAggregatorsPage = () => {
     }
     try {
       const provider = new ethers.BrowserProvider(ethereum);
-      const signer = await provider.getSigner();
+      const signer = withCustomGasPrice(
+        await provider.getSigner(),
+        parseEvmChainIdFromStored(localStorage.getItem("chainId")) ?? undefined
+      );
       const chainIdStorage = localStorage.getItem("chainId");
       if (!chainIdStorage) return;
       const [YG_Address, order] =

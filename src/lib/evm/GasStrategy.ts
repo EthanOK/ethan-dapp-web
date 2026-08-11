@@ -375,8 +375,13 @@ export function withCustomGasPrice(signer: Signer, chainId?: number): Signer {
           if (hasGasPricing(tx)) {
             return target.sendTransaction(tx);
           }
-          const overrides = await resolveGasPriceOverrides(provider, chainId);
-          return target.sendTransaction({ ...overrides, ...tx });
+          try {
+            const overrides = await resolveGasPriceOverrides(provider, chainId);
+            return target.sendTransaction({ ...overrides, ...tx });
+          } catch {
+            // Fall back to wallet defaults if gas resolution fails
+            return target.sendTransaction(tx);
+          }
         };
       }
       const value = Reflect.get(target, prop, receiver);

@@ -11,6 +11,7 @@ import {
   EIP7702Delegator_Metamask
 } from "@/config/SystemConfiguration";
 import { JsonRpcProvider, Wallet } from "ethers";
+import { withCustomGasPrice } from "@/lib/evm/GasStrategy";
 import { getScanURL } from "@/lib/shared/Utils";
 import { useEvmWallet } from "@/hooks";
 import { useI18n } from "@/i18n";
@@ -40,7 +41,7 @@ const EIP7702Page = () => {
         `https://eth-${chainId === 1 ? "mainnet" : "sepolia"}.g.alchemy.com/v2/${ALCHEMY_KEY ?? ""}`,
         chainId
       );
-      const signer = new Wallet(pk, provider);
+      const signer = withCustomGasPrice(new Wallet(pk, provider), chainId);
       let currentNonce = await signer.getNonce();
       const delegationAddress = await getDelegationAddress(signer);
       const logger =
@@ -87,7 +88,7 @@ const EIP7702Page = () => {
         `https://eth-${chainId === 1 ? "mainnet" : "sepolia"}.g.alchemy.com/v2/${ALCHEMY_KEY ?? ""}`,
         chainId
       );
-      const signer = new Wallet(pk, provider);
+      const signer = withCustomGasPrice(new Wallet(pk, provider), chainId);
       const delegationAddress = await getDelegationAddress(signer);
       if (delegationAddress === null) {
         toast.error(t("eip7702.notAccount"));
