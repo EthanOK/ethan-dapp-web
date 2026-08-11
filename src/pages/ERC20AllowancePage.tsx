@@ -218,7 +218,10 @@ const ERC20AllowancePage = () => {
         "allowance",
         res[2]
       );
-      if (!rawAllowance) {
+      // ethers v6 returns a `bigint` for `allowance()`. `0n` is a valid
+      // value (no approval granted yet) and must NOT be treated as a
+      // missing result — only `undefined` means the call / decode failed.
+      if (rawAllowance === undefined) {
         toast.error(
           t("allowance.allowanceFailed", { network: selectedNetworkLabel })
         );
