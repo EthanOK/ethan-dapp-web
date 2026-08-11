@@ -550,23 +550,19 @@
   text-transform: uppercase;
 }
 
-.w3-account-badge {
-  padding: 6px 12px;
-  border-radius: var(--w3-radius-sm);
-  background: var(--w3-accent-soft);
-  border: 1px solid var(--w3-border-accent);
-  font-size: 0.75rem;
-  color: var(--w3-accent);
-  font-family: var(--w3-font-mono);
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.08);
-}
-
 .w3-connect-wrap {
   display: flex;
   align-items: center;
+}
+
+.w3-connect-wrap .connect-wallet-button {
+  height: 36px;
+  padding: 0 14px;
+  min-width: 0;
+  font-size: 0.8rem;
+  border-radius: var(--w3-radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .w3-connect-wrap appkit-button {
@@ -1348,6 +1344,145 @@
   margin-bottom: 20px;
 }
 
+/* Token type badge (ERC-20 / ERC-721) next to the faucet token label */
+.token-type-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+.token-type-badge--erc20 {
+  background: rgba(34, 211, 238, 0.15);
+  color: #22d3ee;
+}
+.token-type-badge--erc721 {
+  background: rgba(168, 85, 247, 0.16);
+  color: #a855f7;
+}
+
+/* Faucet token selector button (opens the token picker modal) */
+.faucet-token-select-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-main);
+  color: var(--w3-text);
+  font-family: var(--w3-font-sans);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+}
+.faucet-token-select-btn:hover {
+  border-color: var(--w3-border-accent);
+}
+.faucet-token-select-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.faucet-token-select-arrow {
+  flex-shrink: 0;
+  color: var(--w3-text-muted);
+}
+
+/* Faucet token picker modal */
+.faucet-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(6px);
+}
+.faucet-picker-modal {
+  position: relative;
+  width: min(100%, 420px);
+  max-height: min(88vh, 560px);
+  display: flex;
+  flex-direction: column;
+  border-radius: calc(var(--w3-radius) + 4px);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-card);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.faucet-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--w3-border);
+}
+.faucet-picker-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--w3-text);
+}
+.faucet-picker-close {
+  border: none;
+  background: transparent;
+  color: var(--w3-text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.faucet-picker-close:hover {
+  color: var(--w3-text);
+  background: var(--w3-bg-main);
+}
+.faucet-picker-list {
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.faucet-picker-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--w3-text);
+  font-family: var(--w3-font-sans);
+  font-size: 0.92rem;
+  cursor: pointer;
+  text-align: left;
+}
+.faucet-picker-option:hover {
+  background: var(--w3-bg-main);
+}
+.faucet-picker-option.active {
+  background: rgba(34, 211, 238, 0.1);
+}
+.faucet-picker-option-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Solana Utils page */
 .solana-hero-stats {
   display: flex;
@@ -1741,7 +1876,7 @@ body.app-menu-open {
   .w3-connect-wrap {
     min-width: 0;
     flex: 0 1 auto;
-    max-width: min(108px, 34vw);
+    max-width: min(170px, 52vw);
     overflow: hidden;
     position: relative;
     z-index: 1;
@@ -1753,21 +1888,25 @@ body.app-menu-open {
     overflow: visible;
   }
 
+  .w3-connect-wrap .connect-wallet-button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 10px;
+  }
+
   .w3-connect-wrap appkit-button {
     display: block;
     width: 100%;
     max-width: 100%;
   }
 
+  .app-header-wallet-controls.is-connected
+    .w3-connect-wrap
+    .connect-wallet-button,
   .app-header-wallet-controls.is-connected .w3-connect-wrap appkit-button {
     width: auto;
     max-width: none;
-  }
-
-  .w3-account-badge {
-    max-width: none;
-    padding: 4px 8px;
-    font-size: 0.7rem;
   }
 
   .app-sidebar-overlay {

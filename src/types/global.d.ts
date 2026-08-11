@@ -14,7 +14,6 @@ declare global {
         React.HTMLAttributes<HTMLElement> & {
           label?: string;
           balance?: "show" | "hide";
-          onClick?: () => void;
         },
         HTMLElement
       >;

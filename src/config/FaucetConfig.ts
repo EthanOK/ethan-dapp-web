@@ -37,6 +37,8 @@ export const faucetConfig = normalizeFaucetConfigKeys(faucetConfigRaw);
 export interface FaucetTokenItem {
   label: string;
   faucetAmount: number;
+  /** "erc20" (default) for token transfer; "erc721" for NFT mint via faucetDatas. */
+  type?: "erc20" | "erc721";
 }
 
 export const faucetTokenListByChain: Record<number, FaucetTokenItem[]> = {
@@ -50,7 +52,8 @@ export const faucetTokenListByChain: Record<number, FaucetTokenItem[]> = {
     { label: "TSLA-B", faucetAmount: 10000 },
     { label: "NVDA-B", faucetAmount: 10000 },
     { label: "APPL-B", faucetAmount: 10000 },
-    { label: "META-B", faucetAmount: 10000 }
+    { label: "META-B", faucetAmount: 10000 },
+    { label: "YGME", faucetAmount: 5, type: "erc721" }
   ],
   560048: [
     { label: "BRIC", faucetAmount: 10000 },

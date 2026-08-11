@@ -10,7 +10,11 @@ import {
   chainName_TBSC,
   chainName_S
 } from "@/config/SystemConfiguration";
-import { getProvider } from "@/lib/wallet/GetProvider";
+import {
+  getProvider,
+  parseEvmChainIdFromStored
+} from "@/lib/wallet/GetProvider";
+import { withCustomGasPrice } from "@/lib/evm/GasStrategy";
 import { getScanURL } from "@/lib/shared/Utils";
 import { createOpenSeaSDK } from "@/lib/nft/CreateOpenSeaSdk";
 
@@ -119,12 +123,8 @@ const isFulfillAvailableOrdersBundle = (
   return Array.isArray(value) && value.length >= 7;
 };
 
-const getNumericChainId = (): number | null => {
-  const chainIdStr = localStorage.getItem("chainId");
-  if (!chainIdStr) return null;
-  const n = Number(chainIdStr);
-  return Number.isFinite(n) ? n : null;
-};
+const getNumericChainId = (): number | null =>
+  parseEvmChainIdFromStored(localStorage.getItem("chainId"));
 
 const fulfillBasicOrder = async (
   contract_: string,
@@ -133,7 +133,10 @@ const fulfillBasicOrder = async (
 ): Promise<TxMessageResult | undefined> => {
   const providerWeb3 = await getProvider();
   if (!providerWeb3) return;
-  const signer = await providerWeb3.getSigner();
+  const signer = withCustomGasPrice(
+    await providerWeb3.getSigner(),
+    getNumericChainId() ?? undefined
+  );
   const chainId = getNumericChainId();
 
   let transactionData: FulfillmentTransaction | null | undefined;
@@ -235,7 +238,10 @@ const fulfillOrder = async (
 ): Promise<TxMessageResult | undefined> => {
   const providerWeb3 = await getProvider();
   if (!providerWeb3) return;
-  const signer = await providerWeb3.getSigner();
+  const signer = withCustomGasPrice(
+    await providerWeb3.getSigner(),
+    getNumericChainId() ?? undefined
+  );
   const chainId = getNumericChainId();
   let orderdata: unknown;
 
@@ -313,7 +319,10 @@ const fulfillBasicOrder_efficient = async (
 ): Promise<TxMessageResult | undefined> => {
   const providerWeb3 = await getProvider();
   if (!providerWeb3) return;
-  const signer = await providerWeb3.getSigner();
+  const signer = withCustomGasPrice(
+    await providerWeb3.getSigner(),
+    getNumericChainId() ?? undefined
+  );
   const chainId = getNumericChainId();
   let transactionData: FulfillmentTransaction | null | undefined;
 
@@ -392,7 +401,10 @@ const fulfillAvailableOrders = async (
 
   const providerWeb3 = await getProvider();
   if (!providerWeb3) return;
-  const signer = await providerWeb3.getSigner();
+  const signer = withCustomGasPrice(
+    await providerWeb3.getSigner(),
+    getNumericChainId() ?? undefined
+  );
   const chainId = getNumericChainId();
 
   let protocolAddress: string;
@@ -524,7 +536,10 @@ const fulfillAvailableAdvancedOrders = async (
   console.log(data);
   const provider = await getProvider();
   if (!provider) return;
-  const signer = await provider.getSigner();
+  const signer = withCustomGasPrice(
+    await provider.getSigner(),
+    getNumericChainId() ?? undefined
+  );
   const chainId = getNumericChainId();
 
   let protocolAddress: string;

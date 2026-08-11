@@ -17,6 +17,7 @@ import {
   DefaultChainId,
   projectId_walletconnect
 } from "@/config/SystemConfiguration";
+import { getStoredAppTheme } from "@/hooks/useAppTheme";
 import { initializeSubscribers } from "@/lib/wallet/Suscribers";
 
 const storedChainId = localStorage.getItem("chainId") || DefaultChainId;
@@ -98,6 +99,7 @@ export const modal = createAppKit({
   ],
   defaultNetwork: getDefaultNetwork(storedChainId),
   projectId: projectId_walletconnect ?? "",
+  themeMode: getStoredAppTheme(),
   chainImages: {
     [mainnet.id]: FALLBACK_CHAIN_ICON,
     [sepolia.id]: FALLBACK_CHAIN_ICON,

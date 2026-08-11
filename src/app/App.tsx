@@ -149,7 +149,6 @@ const MarketChartPage = lazy(() => import("@/pages/MarketChartPage"));
 const MarketListPage = lazy(() => import("@/pages/MarketListPage"));
 const SolanaUtilsPage = lazy(() => import("@/pages/SolanaUtilsPage"));
 const ENSPage = lazy(() => import("@/pages/ENSPage"));
-const MintNFTPage = lazy(() => import("@/pages/MintNFTPage"));
 const GetCollectionPage = lazy(() => import("@/pages/GetCollectionPage"));
 const YunGouAggregatorsPage = lazy(
   () => import("@/pages/YunGouAggregatorsPage")
@@ -227,7 +226,6 @@ function App() {
     { titleKey: "nav.faucet", linkTo: "/faucet" },
     { titleKey: "nav.burn", linkTo: "/burn" },
     { titleKey: "nav.ens", linkTo: "/ens" },
-    { titleKey: "nav.mintNft", linkTo: "/mintnft" },
     { titleKey: "nav.signEip712", linkTo: "/signEIP712" },
     { titleKey: "nav.eip7702", linkTo: "/eip7702" },
     { titleKey: "nav.utils", linkTo: "/utils" },
@@ -413,7 +411,6 @@ function App() {
                 <Route path="/market" element={<MarketChartPage />} />
                 <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
                 <Route path="/ens" element={<ENSPage />} />
-                <Route path="/mintnft" element={<MintNFTPage />} />
                 <Route path="/getCollection" element={<GetCollectionPage />} />
                 <Route
                   path="/yunGouAggregators"

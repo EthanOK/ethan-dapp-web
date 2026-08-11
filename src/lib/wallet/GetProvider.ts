@@ -8,10 +8,19 @@ import {
 import { EthereumProvider } from "@walletconnect/ethereum-provider";
 import { projectId_walletconnect } from "@/config/SystemConfiguration";
 import { SupportChains } from "@/config/ChainsConfig";
+import { withCustomGasPrice } from "@/lib/evm/GasStrategy";
 import { store } from "@/lib/wallet/Suscribers";
 import { tGlobal } from "@/i18n";
 
-const parseEvmChainIdFromStored = (stored: string | null): number | null => {
+/** Wrap a signer so every sent transaction uses the dApp-selected gas speed. */
+const wrapSignerWithGas = (signer: Signer): Signer => {
+  const chainId = parseEvmChainIdFromStored(localStorage.getItem("chainId"));
+  return withCustomGasPrice(signer, chainId ?? undefined);
+};
+
+export const parseEvmChainIdFromStored = (
+  stored: string | null
+): number | null => {
   if (!stored) return null;
   const s = String(stored).trim();
   if (s === "") return null;
@@ -106,11 +115,12 @@ export const switchChain = async (chainId: string): Promise<boolean> => {
 };
 
 const getWalletConnectProvider = async () => {
-  const chainId = localStorage.getItem("chainId") ?? "";
+  const chainId =
+    parseEvmChainIdFromStored(localStorage.getItem("chainId")) ?? 11155111;
   const optionalChains = SupportChains.map((c) => parseInt(c.id, 10));
   const provider = await EthereumProvider.init({
     projectId: projectId_walletconnect ?? "",
-    chains: [Number.parseInt(chainId, 10)],
+    chains: [chainId],
     optionalChains,
     methods: [
       "eth_sendTransaction",
@@ -187,7 +197,7 @@ const getSigner = async (): Promise<Signer | null> => {
   try {
     const provider = await getProvider();
     if (!provider) return null;
-    return provider.getSigner();
+    return wrapSignerWithGas(await provider.getSigner());
   } catch {
     return null;
   }
@@ -210,7 +220,7 @@ const getSignerAndChainId = async (): Promise<
   try {
     const provider = await getProvider();
     if (!provider) return [null, null];
-    const signer = await provider.getSigner();
+    const signer = wrapSignerWithGas(await provider.getSigner());
     const network = await provider.getNetwork();
     return [signer, Number(network.chainId)];
   } catch {
@@ -224,7 +234,7 @@ const getSignerAndAccountAndChainId = async (): Promise<
   try {
     const provider = await getProvider();
     if (!provider) return [null, null, null];
-    const signer = await provider.getSigner();
+    const signer = wrapSignerWithGas(await provider.getSigner());
     const account = await signer.getAddress();
     const network = await provider.getNetwork();
     return [signer, account, Number(network.chainId)];

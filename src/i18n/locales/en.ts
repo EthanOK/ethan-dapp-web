@@ -27,11 +27,14 @@ export const en = {
   "common.success": "Success",
   "common.failed": "Failed",
   "common.rejected": "Rejected",
+  "common.tokenTypeErc20": "ERC-20",
+  "common.tokenTypeErc721": "ERC-721",
   "common.failedGeneric": "Failed",
   "common.requestFailed": "Request failed",
   "common.invalidAddress": "Invalid address",
   "common.providerUnavailable": "Provider not available",
   "common.connectWallet": "Connect Wallet",
+  "common.connect": "Connect",
   "common.connecting": "Connecting...",
   "common.connectingEllipsis": "Connecting…",
   "common.processing": "Processing…",
@@ -253,6 +256,7 @@ export const en = {
   "faucet.failed": "Faucet failed, please try again",
   "faucet.switchTimeout":
     "Switching network timeout or not completed, please switch manually and try again",
+  "faucet.mintYgmeSuccess": "YGME minted successfully",
 
   "wsol.title": "WSOL (Solana)",
   "wsol.subtitle": "Wrap SOL and manage WSOL balance",
@@ -327,9 +331,8 @@ export const en = {
   "yungou.tokenIds": "Token IDs",
   "yungou.batchBuy": "Batch Buy (YunGou Aggregators)",
   "yungou.v2Section": "YunGou 2.0",
-  "yungou.v2Desc": "Execute / batch execute / cancel / get order hash.",
+  "yungou.v2Desc": "Execute / cancel / get order hash.",
   "yungou.excuteWithEth": "excuteWithETH",
-  "yungou.batchExcuteWithEth": "batchExcuteWithETH",
   "yungou.cancel": "Cancel",
   "yungou.getOrderHash": "Get OrderHash",
   "yungou.contractsAria": "Contract address list",
@@ -579,13 +582,6 @@ export const en = {
   "collection.invalidContractOrOwner":
     "Contract or owner is not a valid address",
 
-  "mintNft.title": "Mint YGME",
-  "mintNft.subtitle": "Mint or sign EIP712 and mint NFT",
-  "mintNft.amountSection": "Mint Amount",
-  "mintNft.mintButton": "Mint NFT",
-  "mintNft.signAndMint": "signEIP712 Message and Mint NFT",
-  "mintNft.sepoliaOnly": "Sepolia testnet only",
-
   "estimateTxFee.title": "Estimate TxFee",
   "estimateTxFee.subtitle":
     "Estimate gas and fee for a transaction before sending",
@@ -642,7 +638,6 @@ export const en = {
   "nav.faucet": "Faucet Token",
   "nav.burn": "Burn Token",
   "nav.ens": "ENS Service",
-  "nav.mintNft": "Mint NFT",
   "nav.signEip712": "Sign EIP712",
   "nav.eip7702": "EIP7702",
   "nav.utils": "Utils",
