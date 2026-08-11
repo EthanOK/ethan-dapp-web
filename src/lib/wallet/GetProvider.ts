@@ -11,7 +11,9 @@ import { SupportChains } from "@/config/ChainsConfig";
 import { store } from "@/lib/wallet/Suscribers";
 import { tGlobal } from "@/i18n";
 
-const parseEvmChainIdFromStored = (stored: string | null): number | null => {
+export const parseEvmChainIdFromStored = (
+  stored: string | null
+): number | null => {
   if (!stored) return null;
   const s = String(stored).trim();
   if (s === "") return null;
@@ -106,11 +108,12 @@ export const switchChain = async (chainId: string): Promise<boolean> => {
 };
 
 const getWalletConnectProvider = async () => {
-  const chainId = localStorage.getItem("chainId") ?? "";
+  const chainId =
+    parseEvmChainIdFromStored(localStorage.getItem("chainId")) ?? 11155111;
   const optionalChains = SupportChains.map((c) => parseInt(c.id, 10));
   const provider = await EthereumProvider.init({
     projectId: projectId_walletconnect ?? "",
-    chains: [Number.parseInt(chainId, 10)],
+    chains: [chainId],
     optionalChains,
     methods: [
       "eth_sendTransaction",

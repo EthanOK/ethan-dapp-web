@@ -550,23 +550,19 @@
   text-transform: uppercase;
 }
 
-.w3-account-badge {
-  padding: 6px 12px;
-  border-radius: var(--w3-radius-sm);
-  background: var(--w3-accent-soft);
-  border: 1px solid var(--w3-border-accent);
-  font-size: 0.75rem;
-  color: var(--w3-accent);
-  font-family: var(--w3-font-mono);
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.08);
-}
-
 .w3-connect-wrap {
   display: flex;
   align-items: center;
+}
+
+.w3-connect-wrap .connect-wallet-button {
+  height: 36px;
+  padding: 0 14px;
+  min-width: 0;
+  font-size: 0.8rem;
+  border-radius: var(--w3-radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .w3-connect-wrap appkit-button {
@@ -1880,7 +1876,7 @@ body.app-menu-open {
   .w3-connect-wrap {
     min-width: 0;
     flex: 0 1 auto;
-    max-width: min(108px, 34vw);
+    max-width: min(170px, 52vw);
     overflow: hidden;
     position: relative;
     z-index: 1;
@@ -1892,21 +1888,25 @@ body.app-menu-open {
     overflow: visible;
   }
 
+  .w3-connect-wrap .connect-wallet-button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 10px;
+  }
+
   .w3-connect-wrap appkit-button {
     display: block;
     width: 100%;
     max-width: 100%;
   }
 
+  .app-header-wallet-controls.is-connected
+    .w3-connect-wrap
+    .connect-wallet-button,
   .app-header-wallet-controls.is-connected .w3-connect-wrap appkit-button {
     width: auto;
     max-width: none;
-  }
-
-  .w3-account-badge {
-    max-width: none;
-    padding: 4px 8px;
-    font-size: 0.7rem;
   }
 
   .app-sidebar-overlay {

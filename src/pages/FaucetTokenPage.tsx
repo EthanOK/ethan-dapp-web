@@ -7,7 +7,10 @@ import {
   getERC20Decimals
 } from "@/lib/evm/GetContract";
 import { getDecimal, getDecimalBigNumber } from "@/lib/shared/Utils";
-import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
+import {
+  getSignerAndChainId,
+  parseEvmChainIdFromStored
+} from "@/lib/wallet/GetProvider";
 import {
   faucetChainIdList,
   faucetConfig,
@@ -157,7 +160,8 @@ const FaucetTokenPage = () => {
     const chainIdVal =
       chainIdParam ??
       selectedChainId ??
-      parseInt(localStorage.getItem("chainId") ?? "0", 10);
+      parseEvmChainIdFromStored(localStorage.getItem("chainId")) ??
+      0;
     const tokenAddress = getFaucetTokenAddress(chainIdVal, tokenName);
     if (!tokenAddress || !account) return 0;
     const contract = await getERC20Contract(tokenAddress);
@@ -178,7 +182,8 @@ const FaucetTokenPage = () => {
     const chainIdVal =
       chainIdParam ??
       selectedChainId ??
-      parseInt(localStorage.getItem("chainId") ?? "0", 10);
+      parseEvmChainIdFromStored(localStorage.getItem("chainId")) ??
+      0;
     const tokenAddress = getFaucetTokenAddress(chainIdVal, tokenName);
     if (!tokenAddress) return 0;
     const contract = await getERC20Contract(tokenAddress);

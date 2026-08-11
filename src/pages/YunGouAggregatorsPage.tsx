@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import seaportAbi from "@/abis/evm/seaport1_5.json";
 import order_data_t from "@/fixtures/OrderData";
-import orders_data_t from "@/fixtures/OrdersData";
 import yunGouAggregatorsAbi from "@/abis/evm/YunGouAggregators.json";
 import yunGou2_0Abi from "@/abis/evm/yungou2_0.json";
 import {
@@ -205,7 +204,11 @@ const YunGouAggregatorsPage = () => {
     try {
       const provider = new ethers.BrowserProvider(ethereum);
       const signer = await provider.getSigner();
-      const [YG_Address, order] = await getYunGouAddressAndOrder();
+      const chainIdStorage = localStorage.getItem("chainId");
+      if (!chainIdStorage) return;
+      const [YG_Address, order] =
+        await getYunGouAddressAndOrder(chainIdStorage);
+      if (!YG_Address) return;
       const yungou2_0 = new Contract(YG_Address, yunGou2_0Abi, signer);
       const result_ = await yungou2_0.populateTransaction.excuteWithETH(
         order,
@@ -218,45 +221,6 @@ const YunGouAggregatorsPage = () => {
         to: result_.to,
         data: inputDataWithExtra,
         value: order.totalPayment
-      });
-      setMessage(`${etherscan}/tx/${tx.hash}`);
-      await tx.wait();
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const batchExcuteWithETHHandler = async () => {
-    const { ethereum } = window;
-    if (!ethereum) {
-      alert(t("common.ethereumNotFound"));
-      return;
-    }
-    try {
-      const provider = await getProvider();
-      const signer = await provider.getSigner();
-      const chainIdStorage = localStorage.getItem("chainId");
-      let orders;
-      let valueEth = BigInt("0");
-      if (chainIdStorage === "5") {
-        orders = orders_data_t.orders;
-        for (let i = 0; i < orders.length; i++) {
-          valueEth = valueEth + orders[i].totalPayment;
-        }
-      }
-      const YunGou2_0 = await getYunGouAddress();
-      const yungou2_0 = new Contract(YunGou2_0, yunGou2_0Abi, signer);
-      const result_ = await yungou2_0.populateTransaction.batchExcuteWithETH(
-        orders,
-        currentAccount
-      );
-      const inputData = result_.data;
-      const extraData = YUNGOU_END;
-      const inputDataWithExtra = hexConcat([inputData, extraData]);
-      const tx = await signer.sendTransaction({
-        to: result_.to,
-        data: inputDataWithExtra,
-        value: valueEth
       });
       setMessage(`${etherscan}/tx/${tx.hash}`);
       await tx.wait();
@@ -282,12 +246,8 @@ const YunGouAggregatorsPage = () => {
   const getYunGouOrderHashHandler = async () => {
     const signer = await getSigner();
     const chainIdStorage = localStorage.getItem("chainId");
-    let parameters;
-    if (chainIdStorage === "5") {
-      parameters = order_data_t.order_data.parameters;
-    } else if (chainIdStorage === "97") {
-      parameters = order_data_t.order_data_tbsc.parameters;
-    }
+    if (chainIdStorage !== "97") return;
+    const parameters = order_data_t.order_data_tbsc.parameters;
     const YunGou2_0 = await getYunGouAddress();
     const yungou2_0 = new Contract(YunGou2_0, yunGou2_0Abi, signer);
     const orderHash = await yungou2_0.getOrderHash(parameters);
@@ -344,14 +304,6 @@ const YunGouAggregatorsPage = () => {
             disabled={!currentAccount}
           >
             {t("yungou.excuteWithEth")}
-          </button>
-          <button
-            type="button"
-            onClick={batchExcuteWithETHHandler}
-            className="cta-button mint-nft-button"
-            disabled={!currentAccount}
-          >
-            {t("yungou.batchExcuteWithEth")}
           </button>
           <button
             type="button"

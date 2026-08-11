@@ -1,0 +1,1 @@
+import{a as e,i as t}from"./react-D7F-K03x.js";function n(){return{connection:t(e.state).connection}}export{n as t};

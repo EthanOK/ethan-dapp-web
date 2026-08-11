@@ -1,16 +1,4 @@
-import {
-  YunGou2_0_main,
-  YunGou2_0_goerli,
-  YunGou2_0_tbsc,
-  YunGou2_0_bsc,
-  YunGouAggregators_bsc,
-  YunGouAggregators_main,
-  YunGouAggregators_tbsc,
-  YunGouAggregators_goerli,
-  ALCHEMY_KEY,
-  YunGou2_0_sepolia,
-  YunGouAggregators_sepolia
-} from "@/config/SystemConfiguration";
+import { ALCHEMY_KEY } from "@/config/SystemConfiguration";
 import { order_data, order_data_tbsc } from "@/fixtures/OrderDataYungou";
 import {
   formatUnits,
@@ -27,7 +15,16 @@ import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { Alchemy, Network } from "alchemy-sdk";
 import { SupportChains } from "@/config/ChainsConfig";
+import {
+  getYunGouChainContracts,
+  getDefaultYunGouChainContracts
+} from "@/config/YunGouConfig";
+import { parseEvmChainIdFromStored } from "@/lib/wallet/GetProvider";
 import { AlchemyProvider } from "ethers";
+
+/** Normalize a chainId argument (number | string, may be "eip155:1") to number. */
+const toNumericChainId = (chainId: string | number): number | null =>
+  typeof chainId === "number" ? chainId : parseEvmChainIdFromStored(chainId);
 
 const equalityStringIgnoreCase = (
   string1: string,
@@ -40,15 +37,17 @@ const equalityStringIgnoreCase = (
   }
 };
 
+/** Look up a chain config by chainId (from ChainsConfig.SupportChains). */
+const getChainConfigById = (chainId: number) =>
+  SupportChains.find((item) => parseInt(item.id, 10) === chainId);
+
 const getScanURL = async (): Promise<string> => {
   const chainIdStr = localStorage.getItem("chainId");
-  const chainId = parseInt(chainIdStr ?? "0", 10);
-  if (!Number.isFinite(chainId)) {
+  const chainId = parseEvmChainIdFromStored(chainIdStr);
+  if (chainId === null) {
     throw new Error(`Invalid chainId: ${chainIdStr}`);
   }
-  const chainInfo = SupportChains.find(
-    (item) => parseInt(item.id, 10) === chainId
-  );
+  const chainInfo = getChainConfigById(chainId);
   if (!chainInfo) {
     throw new Error(`Chain info not found for chainId: ${chainId}`);
   }
@@ -61,9 +60,7 @@ const getScanTxURL = async (txHash: string): Promise<string> => {
 };
 
 const getScanAddressURL = (chainId: number, address: string): string => {
-  const chainInfo = SupportChains.find(
-    (item) => parseInt(item.id, 10) === chainId
-  );
+  const chainInfo = getChainConfigById(chainId);
   const base = chainInfo?.blockExplorerUrls?.[0];
   if (!base) return "";
   return `${base.replace(/\/$/, "")}/address/${address}`;
@@ -73,56 +70,39 @@ const getAlchemyProvider = async (): Promise<JsonRpcProvider | undefined> => {
   const apiKey = ALCHEMY_KEY?.trim();
   if (!apiKey) return undefined;
 
-  const chainIdStr = localStorage.getItem("chainId");
-  const chainId = parseInt(chainIdStr ?? "0", 10);
+  const chainId = parseEvmChainIdFromStored(localStorage.getItem("chainId"));
+  if (chainId === null) return undefined;
   const provider = new AlchemyProvider(chainId, apiKey);
   return provider;
 };
 
 const getYunGouAddress = async (): Promise<string | undefined> => {
-  const chainIdStr = localStorage.getItem("chainId");
-  const chainId = parseInt(chainIdStr ?? "0", 10);
-  if (chainId === 1) return YunGou2_0_main;
-  if (chainId === 5) return YunGou2_0_goerli;
-  if (chainId === 97) return YunGou2_0_tbsc;
-  if (chainId === 56) return YunGou2_0_bsc;
-  return undefined;
+  const chainId = parseEvmChainIdFromStored(localStorage.getItem("chainId"));
+  if (chainId === null) return undefined;
+  return getYunGouChainContracts(chainId)?.yungou2_0;
 };
 
 const getYunGouAggregatorsAddress = async (): Promise<string> => {
-  const chainIdStr = localStorage.getItem("chainId");
-  let chainId = parseInt(chainIdStr ?? "0", 10);
-  if (chainId === 1) return YunGouAggregators_main;
-  if (chainId === 5) return YunGouAggregators_goerli;
-  if (chainId === 97) return YunGouAggregators_tbsc;
-  if (chainId === 56) return YunGouAggregators_bsc;
-  if (chainId === 11155111) return YunGouAggregators_sepolia;
-  return YunGouAggregators_main;
+  const chainId = parseEvmChainIdFromStored(localStorage.getItem("chainId"));
+  // Fall back to the mainnet aggregator for unknown chains (historical behavior)
+  const aggregators =
+    (chainId !== null
+      ? getYunGouChainContracts(chainId)?.aggregators
+      : undefined) ?? getDefaultYunGouChainContracts().aggregators;
+  return aggregators ?? "";
 };
 
 const getYunGouAddressAndParameters = async (chainId: string | number) => {
-  const id = typeof chainId === "string" ? parseInt(chainId, 10) : chainId;
-  let YG_Address: string;
-  let parameters: unknown;
-  if (id === 1) {
-    YG_Address = YunGou2_0_main;
-    parameters = order_data.parameters;
-  } else if (id === 5) {
-    YG_Address = YunGou2_0_goerli;
-    parameters = order_data.parameters;
-  } else if (id === 97) {
-    YG_Address = YunGou2_0_tbsc;
-    parameters = order_data_tbsc.parameters;
-  } else if (id === 56) {
-    YG_Address = YunGou2_0_tbsc;
-    parameters = order_data_tbsc.parameters;
-  } else if (id === 11155111) {
-    YG_Address = YunGou2_0_sepolia;
-    parameters = order_data.parameters;
-  } else {
-    YG_Address = YunGou2_0_main;
-    parameters = order_data.parameters;
-  }
+  const id = toNumericChainId(chainId);
+  // Fall back to the mainnet contract for unknown chains (historical behavior)
+  const contracts =
+    (id !== null ? getYunGouChainContracts(id) : undefined) ??
+    getDefaultYunGouChainContracts();
+  const YG_Address = contracts.yungou2_0 ?? "";
+  const parameters =
+    contracts.yungouOrderData === "tbsc"
+      ? order_data_tbsc.parameters
+      : order_data.parameters;
   return [YG_Address, parameters];
 };
 
@@ -130,24 +110,15 @@ const getYunGouAddressAndParameters = async (chainId: string | number) => {
 const getYunGouAddressAndOrder = async (
   chainId: string | number
 ): Promise<[string, typeof order_data] | undefined> => {
-  const id = typeof chainId === "string" ? parseInt(chainId, 10) : chainId;
-  let YG_Address: string;
-  let order: typeof order_data;
-  if (id === 1) {
-    YG_Address = YunGou2_0_main;
-    order = order_data;
-  } else if (id === 5) {
-    YG_Address = YunGou2_0_goerli;
-    order = order_data;
-  } else if (id === 97) {
-    YG_Address = YunGou2_0_tbsc;
-    order = order_data_tbsc as unknown as typeof order_data;
-  } else if (id === 56) {
-    YG_Address = YunGou2_0_tbsc;
-    order = order_data_tbsc as unknown as typeof order_data;
-  } else {
-    return undefined;
-  }
+  const id = toNumericChainId(chainId);
+  if (id === null) return undefined;
+  const contracts = getYunGouChainContracts(id);
+  const YG_Address = contracts?.yungou2_0;
+  if (!YG_Address) return undefined;
+  const order =
+    contracts.yungouOrderData === "tbsc"
+      ? (order_data_tbsc as unknown as typeof order_data)
+      : order_data;
   return [YG_Address, order];
 };
 
