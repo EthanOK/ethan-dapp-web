@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.6](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.5...v3.0.6) (2026-08-11)
+
+
+### Features
+
+* apply header-selected gas price to all transactions, sync AppKit theme ([44ef5d2](https://github.com/EthanOK/ethan-bric-web/commit/44ef5d2a31f3c84a31130147347b60047dd3199b))
+* **faucet:** support ERC-721 claims via faucetDatas and drop Mint NFT page ([cb81205](https://github.com/EthanOK/ethan-bric-web/commit/cb81205e844148254112763d3c805403afe5d17e))
+* remove Goerli, configurable EVM chain contracts, stable header connect ([efd302a](https://github.com/EthanOK/ethan-bric-web/commit/efd302ab104f4a3801d35f3a37db0d571bf309cf))
+
 ### [3.0.5](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.4...v3.0.5) (2026-08-10)
 
 
