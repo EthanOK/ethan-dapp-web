@@ -745,6 +745,91 @@
   border-color: var(--w3-border-accent);
 }
 
+.app-header-network-wrap {
+  position: relative;
+  z-index: 1201;
+}
+.app-header-network-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 1200;
+  min-width: 168px;
+  max-height: min(60vh, 360px);
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  background: var(--w3-bg-elevated);
+  box-shadow: var(--w3-shadow-md, 0 8px 24px rgba(0, 0, 0, 0.18));
+}
+.app-header-network-option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: calc(var(--w3-radius-sm) - 2px);
+  background: transparent;
+  color: var(--w3-text);
+  font-family: var(--w3-font-sans);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.app-header-network-option:hover {
+  background: var(--w3-bg-hover);
+  color: var(--w3-accent);
+}
+.app-header-network-option.is-active {
+  background: var(--w3-bg-hover);
+  color: var(--w3-accent);
+  font-weight: 600;
+}
+
+.faucet-chain-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1200;
+  min-width: 100%;
+  max-height: min(60vh, 320px);
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  background: var(--w3-bg-elevated);
+  box-shadow: var(--w3-shadow-md, 0 8px 24px rgba(0, 0, 0, 0.18));
+}
+.faucet-chain-select-option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: calc(var(--w3-radius-sm) - 2px);
+  background: transparent;
+  color: var(--w3-text);
+  font-family: var(--w3-font-sans);
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.faucet-chain-select-option:hover {
+  background: var(--w3-bg-hover);
+  color: var(--w3-accent);
+}
+.faucet-chain-select-option.is-active {
+  background: var(--w3-bg-hover);
+  color: var(--w3-accent);
+  font-weight: 600;
+}
+
 /* ----- Collapsible sidebar ----- */
 .app-body {
   display: flex;
@@ -1195,6 +1280,26 @@
   font-size: 0.9rem;
 }
 
+.feature-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 10 10' fill='none'><path d='M2 3.5L5 6.5L8 3.5' stroke='%2322d3ee' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  color-scheme: dark;
+}
+.feature-field select:hover {
+  border-color: var(--w3-border-accent);
+}
+.feature-field select option {
+  background: var(--w3-bg-card);
+  color: var(--w3-text);
+}
+
 .feature-field textarea {
   min-height: 72px;
   resize: vertical;
@@ -1367,6 +1472,86 @@
 }
 
 /* Faucet token selector button (opens the token picker modal) */
+.faucet-panel {
+  max-width: 640px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.faucet-hero {
+  text-align: center;
+}
+.faucet-panel-title {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 18px;
+  color: var(--w3-text);
+}
+.faucet-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.faucet-field label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--w3-text-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.faucet-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--w3-radius);
+  background: rgba(34, 211, 238, 0.05);
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  margin: 18px 0;
+}
+.faucet-summary-item {
+  min-width: 0;
+}
+.faucet-summary-label {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--w3-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+.faucet-summary-value {
+  font-family: var(--w3-font-mono);
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: var(--w3-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.faucet-actions {
+  display: flex;
+}
+.faucet-actions .cta-button {
+  flex: 1;
+}
+.faucet-note {
+  font-size: 0.72rem;
+  color: var(--w3-text-muted);
+  text-align: center;
+  margin: 16px 0 0;
+}
+@media (max-width: 640px) {
+  .faucet-panel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.faucet-token-select {
+  position: relative;
+}
 .faucet-token-select-btn {
   width: 100%;
   display: flex;
@@ -1447,6 +1632,41 @@
   color: var(--w3-text);
   background: var(--w3-bg-main);
 }
+.faucet-picker-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 20px 6px;
+  border-bottom: 1px solid var(--w3-border);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--w3-text-muted);
+}
+.faucet-picker-list-header-name {
+  flex: 1;
+  text-align: center;
+}
+.faucet-picker-list-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.faucet-picker-list-header-supply {
+  display: block;
+  min-width: 108px;
+  padding: 0 12px;
+  text-align: right;
+  white-space: nowrap;
+}
+.faucet-picker-list-header-type {
+  white-space: nowrap;
+  min-width: 72px;
+  text-align: center;
+  margin-left: 8px;
+}
 .faucet-picker-list {
   overflow-y: auto;
   padding: 8px;
@@ -1477,10 +1697,33 @@
   background: rgba(34, 211, 238, 0.1);
 }
 .faucet-picker-option-label {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
+}
+.faucet-picker-option-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.faucet-picker-option-supply {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 108px;
+  padding: 3px 12px;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid var(--w3-border);
+  border-radius: 6px;
+  white-space: nowrap;
+  font-family: var(--w3-font-mono);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--w3-text);
 }
 
 /* Solana Utils page */

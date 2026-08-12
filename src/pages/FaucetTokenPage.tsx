@@ -1,16 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Interface } from "ethers";
 import {
-  getFaucetContract,
-  getERC20Contract,
-  getERC20Decimals
-} from "@/lib/evm/GetContract";
+  multicall3Aggregate3StaticCall,
+  decodeMulticallResult,
+  type Multicall3Call
+} from "@/lib/evm/Multicall3";
+import erc20ABI from "@/abis/evm/erc20ABI.json";
+import { getFaucetContract, getERC20Decimals } from "@/lib/evm/GetContract";
 import { getDecimal, getDecimalBigNumber } from "@/lib/shared/Utils";
-import {
-  getSignerAndChainId,
-  parseEvmChainIdFromStored
-} from "@/lib/wallet/GetProvider";
+import { getReadonlyProviderForChain } from "@/lib/wallet/GetProvider";
 import {
   faucetChainIdList,
   faucetConfig,
@@ -44,6 +43,16 @@ const isErc721Token = (
   return token?.type === "erc721";
 };
 
+/** Format supply: thousands separators, integers stay integer, decimals up to 2. */
+const formatSupply = (value: number): string => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "—";
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
+};
+
 const FaucetTokenPage = () => {
   const { t } = useI18n();
   const [isMounted, setIsMounted] = useState(false);
@@ -59,7 +68,13 @@ const FaucetTokenPage = () => {
   const [selectedChainId, setSelectedChainId] = useState<number | null>(null);
   const [selectedToken, setSelectedToken] = useState("");
   const [tokenPickerOpen, setTokenPickerOpen] = useState(false);
-  const [tokenBalance, setTokenBalance] = useState(0);
+  const [chainPickerOpen, setChainPickerOpen] = useState(false);
+  const [tokenBalances, setTokenBalances] = useState<Record<string, number>>(
+    {}
+  );
+  const [tokenSupplies, setTokenSupplies] = useState<Record<string, number>>(
+    {}
+  );
   const [totalAmount, setTotalAmount] = useState(0);
   const [isTransactionProcessing, setIsTransactionProcessing] = useState(false);
   const { address, isConnected } = useEvmWallet();
@@ -119,7 +134,7 @@ const FaucetTokenPage = () => {
         localStorage.setItem("faucetChainId", selectedChainId.toString());
       } else {
         setSelectedToken("");
-        setTokenBalance(0);
+        setTokenBalances({});
         setTotalAmount(0);
       }
     }
@@ -145,112 +160,175 @@ const FaucetTokenPage = () => {
     } else if (faucetChainIdList.length > 0) {
       setSelectedChainId(faucetChainIdList[0]);
     }
-    const intervalId = setInterval(updateBalance, 5000);
     return () => {
-      clearInterval(intervalId);
       setIsMounted(false);
     };
   }, []);
 
-  const getTokenBalance = async (
-    tokenName: string,
-    chainIdParam: number | null = null
-  ): Promise<number> => {
-    const account = localStorage.getItem("userAddress");
-    const chainIdVal =
-      chainIdParam ??
-      selectedChainId ??
-      parseEvmChainIdFromStored(localStorage.getItem("chainId")) ??
-      0;
-    const tokenAddress = getFaucetTokenAddress(chainIdVal, tokenName);
-    if (!tokenAddress || !account) return 0;
-    const contract = await getERC20Contract(tokenAddress);
-    if (!contract) return 0;
-    const balance = await contract.balanceOf(account);
-    if (isErc721Token(tokenName, chainIdVal)) {
-      // ERC-721: balanceOf returns the NFT count, no decimals.
-      return getDecimal(balance, 0);
-    }
-    const decimals = await contract.decimals();
-    return getDecimal(balance, Number(decimals));
-  };
+  useEffect(() => {
+    if (!selectedChainId) return;
+    batchUpdateTokenData(selectedChainId);
+    const intervalId = setInterval(() => {
+      batchUpdateTokenData(selectedChainId);
+    }, 30000);
+    return () => clearInterval(intervalId);
+  }, [selectedChainId, isConnected, address]);
 
-  const getTokenTotalClaim = async (
-    tokenName: string,
-    chainIdParam: number | null = null
-  ): Promise<number> => {
-    const chainIdVal =
-      chainIdParam ??
-      selectedChainId ??
-      parseEvmChainIdFromStored(localStorage.getItem("chainId")) ??
-      0;
-    const tokenAddress = getFaucetTokenAddress(chainIdVal, tokenName);
-    if (!tokenAddress) return 0;
-    const contract = await getERC20Contract(tokenAddress);
-    if (!contract) return 0;
-    if (isErc721Token(tokenName, chainIdVal)) {
-      // ERC-721: minted on demand, no "remaining supply" concept.
-      return 0;
-    }
-    const balance1 = await contract.balanceOf(faucetFromAddress);
-    const chainConfig = faucetConfig[String(chainIdVal)] as
-      | Record<string, string>
-      | undefined;
-    const faucetAddress = chainConfig?.faucet;
-    if (!faucetAddress) return 0;
-    const balance2 = await contract.allowance(faucetFromAddress, faucetAddress);
-    const minBalance =
-      BigInt(balance1) < BigInt(balance2) ? balance1 : balance2;
-    const decimals = await contract.decimals();
-    return getDecimal(minBalance, Number(decimals));
-  };
-
-  const faucetBalance = async () => {
+  /**
+   * Batch-fetch via Multicall3: per ERC-20 token, decimals + faucet balance +
+   * allowance (remaining supply), and per token the connected user's balance.
+   * No wallet connection required (read-only RPC); user balance is skipped
+   * when no address is stored. Switching tokens never triggers a query.
+   */
+  const batchUpdateTokenData = async (chainIdParam: number) => {
     try {
-      if (!selectedChainId) return;
-      const tokens = getFaucetTokenListByChain(selectedChainId);
+      const provider = getReadonlyProviderForChain(chainIdParam);
+      if (!provider) {
+        setTokenSupplies({});
+        setTokenBalances({});
+        return;
+      }
+      const tokens = getFaucetTokenListByChain(chainIdParam);
       if (tokens.length === 0) {
-        setTokenBalance(0);
-        setTotalAmount(0);
+        setTokenSupplies({});
+        setTokenBalances({});
         return;
       }
-      const selectedToken_ = selectedToken || tokens[0].label;
-      const tokenExists = tokens.find((t) => t.label === selectedToken_);
-      if (!tokenExists) {
-        const fallbackToken = tokens[0].label;
-        setSelectedToken(fallbackToken);
-        localStorage.setItem(
-          `faucetTokenName_${selectedChainId}`,
-          fallbackToken
-        );
-        const total = await getTokenTotalClaim(fallbackToken, selectedChainId);
-        setTotalAmount(total);
-        try {
-          setTokenBalance(
-            await getTokenBalance(fallbackToken, selectedChainId)
-          );
-        } catch {
-          setTokenBalance(0);
+      const chainConfig = faucetConfig[String(chainIdParam)] as
+        | Record<string, string>
+        | undefined;
+      const faucetAddress = chainConfig?.faucet;
+      if (!faucetAddress) {
+        setTokenSupplies({});
+        setTokenBalances({});
+        return;
+      }
+      const userAddress = localStorage.getItem("userAddress");
+
+      const erc20Interface = new Interface(erc20ABI);
+      const calls: Multicall3Call[] = [];
+      const tokenMeta: { label: string; isErc721: boolean }[] = [];
+
+      tokens.forEach((token) => {
+        const tokenAddress = getFaucetTokenAddress(chainIdParam, token.label);
+        if (!tokenAddress) return;
+        tokenMeta.push({
+          label: token.label,
+          isErc721: token.type === "erc721"
+        });
+        if (token.type !== "erc721") {
+          calls.push({
+            target: tokenAddress,
+            allowFailure: true,
+            callData: erc20Interface.encodeFunctionData("decimals", [])
+          });
+          calls.push({
+            target: tokenAddress,
+            allowFailure: true,
+            callData: erc20Interface.encodeFunctionData("balanceOf", [
+              faucetFromAddress
+            ])
+          });
+          calls.push({
+            target: tokenAddress,
+            allowFailure: true,
+            callData: erc20Interface.encodeFunctionData("allowance", [
+              faucetFromAddress,
+              faucetAddress
+            ])
+          });
         }
+        if (userAddress) {
+          calls.push({
+            target: tokenAddress,
+            allowFailure: true,
+            callData: erc20Interface.encodeFunctionData("balanceOf", [
+              userAddress
+            ])
+          });
+        }
+      });
+
+      if (calls.length === 0) {
+        setTokenSupplies({});
+        setTokenBalances({});
         return;
       }
-      const total = await getTokenTotalClaim(selectedToken_, selectedChainId);
-      setTotalAmount(total);
-      try {
-        setTokenBalance(await getTokenBalance(selectedToken_, selectedChainId));
-      } catch {
-        setTokenBalance(0);
-      }
+
+      const results = await multicall3Aggregate3StaticCall(provider, calls);
+
+      const newSupplies: Record<string, number> = {};
+      const newBalances: Record<string, number> = {};
+      tokens.forEach((token) => {
+        newSupplies[token.label] = 0;
+        newBalances[token.label] = 0;
+      });
+
+      let index = 0;
+      tokenMeta.forEach(({ label, isErc721 }) => {
+        if (isErc721) {
+          // ERC-721: minted on demand → supply MAX; user balance = NFT count.
+          if (userAddress) {
+            const nftCount = decodeMulticallResult<bigint>(
+              erc20Interface,
+              "balanceOf",
+              results[index++]
+            );
+            newBalances[label] =
+              nftCount === undefined ? 0 : getDecimal(nftCount, 0);
+          }
+          return;
+        }
+        const decimals = decodeMulticallResult<bigint>(
+          erc20Interface,
+          "decimals",
+          results[index++]
+        );
+        const balance = decodeMulticallResult<bigint>(
+          erc20Interface,
+          "balanceOf",
+          results[index++]
+        );
+        const allowance = decodeMulticallResult<bigint>(
+          erc20Interface,
+          "allowance",
+          results[index++]
+        );
+        if (
+          decimals === undefined ||
+          balance === undefined ||
+          allowance === undefined
+        ) {
+          newSupplies[label] = 0;
+        } else {
+          const minBalance = balance < allowance ? balance : allowance;
+          newSupplies[label] = getDecimal(minBalance, Number(decimals));
+        }
+        if (userAddress) {
+          const userBalance = decodeMulticallResult<bigint>(
+            erc20Interface,
+            "balanceOf",
+            results[index++]
+          );
+          newBalances[label] =
+            userBalance !== undefined && decimals !== undefined
+              ? getDecimal(userBalance, Number(decimals))
+              : 0;
+        }
+      });
+
+      setTokenSupplies(newSupplies);
+      setTokenBalances(newBalances);
     } catch (err) {
-      console.error("Failed to fetch balance", err);
-      setTokenBalance(0);
-      setTotalAmount(0);
+      console.error("Failed to batch fetch token data", err);
+      setTokenSupplies({});
+      setTokenBalances({});
     }
   };
 
   useEffect(() => {
-    if (selectedChainId) faucetBalance();
-  }, [selectedToken, selectedChainId, isConnected, address]);
+    setTotalAmount(tokenSupplies[selectedToken] ?? 0);
+  }, [tokenSupplies, selectedToken]);
 
   const selectToken = (tokenName: string) => {
     setSelectedToken(tokenName);
@@ -269,10 +347,26 @@ const FaucetTokenPage = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [tokenPickerOpen]);
 
-  const handleChainSelectChange = async (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const cid = parseInt(event.target.value, 10);
+  const chainMenuRef = useRef<HTMLDivElement>(null);
+  // Close chain dropdown on outside click (same pattern as HeaderLocaleMenu).
+  useEffect(() => {
+    if (!chainPickerOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!chainMenuRef.current?.contains(event.target as Node)) {
+        setChainPickerOpen(false);
+      }
+    };
+    const timerId = window.setTimeout(() => {
+      document.addEventListener("pointerdown", onPointerDown);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [chainPickerOpen]);
+
+  const handleChainSelect = async (cid: number) => {
+    setChainPickerOpen(false);
     setSelectedChainId(cid);
     localStorage.setItem("faucetChainId", cid.toString());
     if (chainIdCurrent != null && cid !== chainIdCurrent) {
@@ -283,12 +377,6 @@ const FaucetTokenPage = () => {
         toast.error(t("error.switchChain"));
       }
     }
-  };
-
-  const updateBalance = async () => {
-    const account = localStorage.getItem("userAddress");
-    if (!account || !selectedChainId) return;
-    await faucetBalance();
   };
 
   const switchToTargetChain = async (): Promise<boolean> => {
@@ -312,7 +400,7 @@ const FaucetTokenPage = () => {
 
   const switchToTargetChainHandler = async () => {
     const ok = await switchToTargetChain();
-    if (ok) await updateBalance();
+    if (ok && selectedChainId) await batchUpdateTokenData(selectedChainId);
   };
 
   const faucetTokenHandler = async (
@@ -343,7 +431,7 @@ const FaucetTokenPage = () => {
         const result = await tx.wait();
         if (result.status === 1) {
           toast.success(t("faucet.mintYgmeSuccess"));
-          await updateBalance();
+          await batchUpdateTokenData(chainIdC);
         }
         return;
       }
@@ -363,7 +451,7 @@ const FaucetTokenPage = () => {
       if (result.status === 1) {
         setShowAlert(true);
         setTimeout(() => setShowAlert(false), 3000);
-        await updateBalance();
+        await batchUpdateTokenData(chainIdC);
       }
     } catch (error) {
       const e = error as {
@@ -440,157 +528,202 @@ const FaucetTokenPage = () => {
           <strong>{t("faucet.claimSuccess")}</strong>
         </div>
       )}
-      <section className="feature-hero">
+      <section className="feature-hero faucet-hero">
         <h1>{t("faucet.title")}</h1>
         <p>{t("faucet.subtitle")}</p>
       </section>
-      <section className="feature-panel">
-        <h3>{t("common.selectChain")}</h3>
-        <div className="feature-field">
-          <label htmlFor="faucet-chain">{t("common.chain")}</label>
-          <select
-            id="faucet-chain"
-            value={selectedChainId ?? ""}
-            onChange={handleChainSelectChange}
-            aria-label={t("common.selectChain")}
-          >
-            {faucetChainIdList.map((cid) => (
-              <option key={cid} value={cid}>
-                {getChainName(cid)}
-              </option>
-            ))}
-          </select>
-        </div>
-        {selectedChainId && (
-          <p className="feature-field" style={{ marginBottom: 0 }}>
-            {t("common.current")}:{" "}
-            <strong>{chainId ? getChainName(chainId) : "—"}</strong>
-            {/* {chainId != null &&
-              selectedChainId != null &&
-              chainId !== selectedChainId && (
-                <span style={{ color: "var(--w3-accent)", marginLeft: 8 }}>
-                  → Please switch to target network
+      <section className="feature-panel faucet-panel">
+        <h3 className="faucet-panel-title">{t("faucet.claimSection")}</h3>
+        <div className="faucet-panel-grid">
+          <div className="faucet-field">
+            <label htmlFor="faucet-chain">{t("common.chain")}</label>
+            <div className="faucet-token-select" ref={chainMenuRef}>
+              <button
+                type="button"
+                id="faucet-chain"
+                className="faucet-token-select-btn"
+                onClick={() => setChainPickerOpen((value) => !value)}
+                aria-haspopup="listbox"
+                aria-expanded={chainPickerOpen}
+                aria-label={t("common.selectChain")}
+              >
+                <span className="faucet-token-select-label">
+                  {selectedChainId != null
+                    ? getChainName(selectedChainId)
+                    : t("common.selectChain")}
                 </span>
-              )} */}
-          </p>
-        )}
-      </section>
-      {selectedChainId && (
-        <section className="feature-panel">
-          <h3>{t("faucet.tokenSection")}</h3>
-          {currentToken?.type !== "erc721" && (
-            <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
-              {t("faucet.remainingSupply")}{" "}
-              <strong style={{ color: "var(--w3-text)" }}>{totalAmount}</strong>
-            </p>
-          )}
-          {availableTokens.length > 0 ? (
-            <>
-              <div className="feature-field">
-                <label>{t("common.token")}</label>
-                <div className="faucet-token-select">
-                  <button
-                    type="button"
-                    id="faucet-token"
-                    className="faucet-token-select-btn"
-                    onClick={() => setTokenPickerOpen(true)}
-                    aria-haspopup="dialog"
-                    aria-expanded={tokenPickerOpen}
-                    aria-label={t("common.selectToken")}
-                  >
-                    <span className="faucet-token-select-label">
-                      {selectedToken}
-                      {currentToken && (
-                        <span
-                          className={`token-type-badge token-type-badge--${currentToken.type ?? "erc20"}`}
-                        >
-                          {currentToken.type === "erc721"
-                            ? t("common.tokenTypeErc721")
-                            : t("common.tokenTypeErc20")}
-                        </span>
-                      )}
-                    </span>
-                    <svg
-                      className="faucet-token-select-arrow"
-                      width={10}
-                      height={10}
-                      viewBox="0 0 10 10"
-                      fill="none"
-                      aria-hidden
+                <svg
+                  className="faucet-token-select-arrow"
+                  width={10}
+                  height={10}
+                  viewBox="0 0 10 10"
+                  fill="none"
+                  aria-hidden
+                >
+                  <path
+                    d="M2 3.5L5 6.5L8 3.5"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              {chainPickerOpen && (
+                <div
+                  className="faucet-chain-select-menu"
+                  role="listbox"
+                  aria-label={t("common.selectChain")}
+                >
+                  {faucetChainIdList.map((cid) => (
+                    <button
+                      key={cid}
+                      type="button"
+                      role="option"
+                      aria-selected={selectedChainId === cid}
+                      className={
+                        "faucet-chain-select-option" +
+                        (selectedChainId === cid ? " is-active" : "")
+                      }
+                      onClick={() => handleChainSelect(cid)}
                     >
-                      <path
-                        d="M2 3.5L5 6.5L8 3.5"
-                        stroke="currentColor"
-                        strokeWidth={1.5}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                      {getChainName(cid)}
+                    </button>
+                  ))}
                 </div>
-              </div>
-              <p style={{ color: "var(--w3-text-muted)", marginBottom: 16 }}>
-                {t("faucet.myBalance", { token: selectedToken })}{" "}
-                <strong style={{ color: "var(--w3-text)" }}>
-                  {tokenBalance}
-                </strong>
-              </p>
-              <div className="feature-actions">
-                {selectedChainId != null &&
-                chainId != null &&
-                chainId !== selectedChainId ? (
-                  <button
-                    type="button"
-                    onClick={switchToTargetChainHandler}
-                    className="cta-button mint-nft-button"
-                    disabled={!currentAccount || isSwitchingChain}
-                  >
-                    {isSwitchingChain ? (
-                      <>
-                        <span
-                          style={{
-                            display: "inline-block",
-                            width: "12px",
-                            height: "12px",
-                            border: "2px solid currentColor",
-                            borderRightColor: "transparent",
-                            borderRadius: "50%",
-                            animation: "rotate 1s linear infinite",
-                            marginRight: "8px"
-                          }}
-                        />
-                        {t("common.switchingEllipsis")}
-                      </>
-                    ) : (
-                      t("common.switchToChain", {
-                        chain: getChainName(selectedChainId)
-                      })
+              )}
+            </div>
+          </div>
+          {selectedChainId && availableTokens.length > 0 && (
+            <div className="faucet-field">
+              <label htmlFor="faucet-token">{t("common.token")}</label>
+              <div className="faucet-token-select">
+                <button
+                  type="button"
+                  id="faucet-token"
+                  className="faucet-token-select-btn"
+                  onClick={() => setTokenPickerOpen(true)}
+                  aria-haspopup="dialog"
+                  aria-expanded={tokenPickerOpen}
+                  aria-label={t("common.selectToken")}
+                >
+                  <span className="faucet-token-select-label">
+                    {selectedToken}
+                    {currentToken && (
+                      <span
+                        className={`token-type-badge token-type-badge--${currentToken.type ?? "erc20"}`}
+                      >
+                        {currentToken.type === "erc721"
+                          ? t("common.tokenTypeErc721")
+                          : t("common.tokenTypeErc20")}
+                      </span>
                     )}
-                  </button>
-                ) : (
-                  currentToken &&
-                  faucetButton(selectedToken, currentToken.faucetAmount)
-                )}
+                  </span>
+                  <svg
+                    className="faucet-token-select-arrow"
+                    width={10}
+                    height={10}
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    aria-hidden
+                  >
+                    <path
+                      d="M2 3.5L5 6.5L8 3.5"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
               </div>
-            </>
-          ) : (
-            <p style={{ color: "var(--w3-text-muted)" }}>
-              {t("faucet.noTokens")}
-            </p>
+            </div>
           )}
-        </section>
-      )}
-      {shouldShowConnect && (
-        <section className="feature-panel">
-          <button
-            onClick={openConnectModal}
-            className="cta-button connect-wallet-button"
-            disabled={isConnecting}
-          >
-            {isConnecting ? t("common.connecting") : t("common.connectWallet")}
-          </button>
-        </section>
-      )}
+        </div>
+        {selectedChainId && availableTokens.length > 0 && (
+          <div className="faucet-summary">
+            <div className="faucet-summary-item">
+              <span className="faucet-summary-label">
+                {t("faucet.colRemaining")}
+              </span>
+              <span className="faucet-summary-value">
+                {currentToken?.type === "erc721"
+                  ? "MAX"
+                  : tokenSupplies[selectedToken] != null
+                    ? formatSupply(Number(tokenSupplies[selectedToken]))
+                    : "—"}
+              </span>
+            </div>
+            <div className="faucet-summary-item">
+              <span className="faucet-summary-label">
+                {t("faucet.colBalance")}
+              </span>
+              <span className="faucet-summary-value">
+                {tokenBalances[selectedToken] != null
+                  ? formatSupply(Number(tokenBalances[selectedToken]))
+                  : "—"}
+              </span>
+            </div>
+            <div className="faucet-summary-item">
+              <span className="faucet-summary-label">
+                {t("faucet.colReceive")}
+              </span>
+              <span className="faucet-summary-value">
+                {currentToken ? formatSupply(currentToken.faucetAmount) : "—"}
+              </span>
+            </div>
+          </div>
+        )}
+        <div className="faucet-actions">
+          {shouldShowConnect ? (
+            <button
+              type="button"
+              onClick={openConnectModal}
+              className="cta-button connect-wallet-button"
+              disabled={isConnecting}
+            >
+              {isConnecting
+                ? t("common.connecting")
+                : t("common.connectWallet")}
+            </button>
+          ) : selectedChainId != null &&
+            chainId != null &&
+            chainId !== selectedChainId ? (
+            <button
+              type="button"
+              onClick={switchToTargetChainHandler}
+              className="cta-button mint-nft-button"
+              disabled={!currentAccount || isSwitchingChain}
+            >
+              {isSwitchingChain ? (
+                <>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: "12px",
+                      height: "12px",
+                      border: "2px solid currentColor",
+                      borderRightColor: "transparent",
+                      borderRadius: "50%",
+                      animation: "rotate 1s linear infinite",
+                      marginRight: "8px"
+                    }}
+                  />
+                  {t("common.switchingEllipsis")}
+                </>
+              ) : (
+                t("common.switchToChain", {
+                  chain: getChainName(selectedChainId)
+                })
+              )}
+            </button>
+          ) : (
+            currentToken &&
+            faucetButton(selectedToken, currentToken.faucetAmount)
+          )}
+        </div>
+        <p className="faucet-note">{t("faucet.footerNote")}</p>
+      </section>
       {tokenPickerOpen && (
         <div
           className="faucet-picker-overlay"
@@ -615,6 +748,19 @@ const FaucetTokenPage = () => {
                 ×
               </button>
             </div>
+            <div className="faucet-picker-list-header">
+              <span className="faucet-picker-list-header-name">
+                {t("faucet.colName")}
+              </span>
+              <span className="faucet-picker-list-header-meta">
+                <span className="faucet-picker-list-header-supply">
+                  {t("faucet.colRemaining")}
+                </span>
+                <span className="faucet-picker-list-header-type">
+                  {t("faucet.colType")}
+                </span>
+              </span>
+            </div>
             <div className="faucet-picker-list">
               {availableTokens.map((token) => (
                 <button
@@ -629,12 +775,28 @@ const FaucetTokenPage = () => {
                   <span className="faucet-picker-option-label">
                     {token.label}
                   </span>
-                  <span
-                    className={`token-type-badge token-type-badge--${token.type ?? "erc20"}`}
-                  >
-                    {token.type === "erc721"
-                      ? t("common.tokenTypeErc721")
-                      : t("common.tokenTypeErc20")}
+                  <span className="faucet-picker-option-meta">
+                    <span
+                      className="faucet-picker-option-supply"
+                      title={
+                        token.type === "erc721"
+                          ? undefined
+                          : t("faucet.remainingSupply")
+                      }
+                    >
+                      {token.type === "erc721"
+                        ? "MAX"
+                        : tokenSupplies[token.label] != null
+                          ? formatSupply(Number(tokenSupplies[token.label]))
+                          : "—"}
+                    </span>
+                    <span
+                      className={`token-type-badge token-type-badge--${token.type ?? "erc20"}`}
+                    >
+                      {token.type === "erc721"
+                        ? t("common.tokenTypeErc721")
+                        : t("common.tokenTypeErc20")}
+                    </span>
                   </span>
                 </button>
               ))}
