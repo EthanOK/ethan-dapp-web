@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { headerNetworksAll, modal } from "@/app/Wallet";
 import HeaderGasStatus from "@/app/HeaderGasStatus";
 import { useReownWalletSync } from "@/hooks/useReownWalletSync";
@@ -70,8 +70,44 @@ function WalletControls() {
     currentChainId
   });
   const { isConnecting, openConnectModal } = useOpenAppKitModal();
+  const [networkPickerOpen, setNetworkPickerOpen] = useState(false);
+  const networkMenuRef = useRef<HTMLDivElement>(null);
 
   useSyncAppKitTheme();
+
+  // Close network menu on outside click (same pattern as HeaderLocaleMenu).
+  useEffect(() => {
+    if (!networkPickerOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!networkMenuRef.current?.contains(event.target as Node)) {
+        setNetworkPickerOpen(false);
+      }
+    };
+    const timerId = window.setTimeout(() => {
+      document.addEventListener("pointerdown", onPointerDown);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [networkPickerOpen]);
+
+  const currentNetworkName = (() => {
+    if (chainId == null) return null;
+    const found = headerNetworksAll.find(
+      (n) =>
+        (n as { caipNetworkId?: string }).caipNetworkId === String(chainId) ||
+        String((n as { id?: string | number }).id) === String(chainId)
+    );
+    return found?.name ?? null;
+  })();
+
+  const handleNetworkSelect = (value: string) => {
+    setNetworkPickerOpen(false);
+    handleHeaderNetworkChange({
+      target: { value }
+    } as unknown as React.ChangeEvent<HTMLSelectElement>);
+  };
 
   const handleConnect = () => {
     void openConnectModal();
@@ -93,25 +129,52 @@ function WalletControls() {
         Network
       </label>
       <HeaderGasStatus chainId={String(chainId ?? "")} />
-      <select
-        id="app-network"
-        className="app-header-network-select"
-        value={String(chainId ?? "")}
-        onChange={handleHeaderNetworkChange}
-        aria-label="Network"
-      >
-        {headerNetworksAll.map((network) => {
-          const value = String(
-            (network as { caipNetworkId?: string; id?: string | number })
-              .caipNetworkId ?? (network as { id?: string | number }).id
-          );
-          return (
-            <option key={value} value={value}>
-              {network.name}
-            </option>
-          );
-        })}
-      </select>
+      <div className="app-header-network-wrap" ref={networkMenuRef}>
+        <button
+          type="button"
+          id="app-network"
+          className="app-header-network-select"
+          onClick={() => setNetworkPickerOpen((value) => !value)}
+          aria-haspopup="listbox"
+          aria-expanded={networkPickerOpen}
+          aria-label="Network"
+        >
+          {currentNetworkName ?? "Network"}
+        </button>
+        {networkPickerOpen && (
+          <div
+            className="app-header-network-menu"
+            role="listbox"
+            aria-label="Network"
+          >
+            {headerNetworksAll.map((network) => {
+              const value = String(
+                (
+                  network as {
+                    caipNetworkId?: string;
+                    id?: string | number;
+                  }
+                ).caipNetworkId ?? (network as { id?: string | number }).id
+              );
+              const active = String(chainId ?? "") === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  className={
+                    "app-header-network-option" + (active ? " is-active" : "")
+                  }
+                  onClick={() => handleNetworkSelect(value)}
+                >
+                  {network.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
       <div className="w3-connect-wrap">
         {isConnected ? (
           <appkit-button

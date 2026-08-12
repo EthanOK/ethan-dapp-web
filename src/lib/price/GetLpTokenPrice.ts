@@ -2,9 +2,9 @@ import { Contract, formatUnits, JsonRpcProvider, parseUnits } from "ethers";
 import {
   PancakeRouter,
   UniswapRouter,
-  bsc_rpc,
-  ALCHEMY_KEY
+  bsc_rpc
 } from "@/config/SystemConfiguration";
+import { SupportChains } from "@/config/ChainsConfig";
 import routerABI from "@/abis/evm/UniswapV2RouterABI.json";
 import erc20ABI from "@/abis/evm/erc20ABI.json";
 
@@ -20,9 +20,7 @@ const getTokenPrice = async (
     console.log(platform);
     if (platform === "1") {
       routerV2 = UniswapRouter;
-      rpc = ALCHEMY_KEY
-        ? `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`
-        : undefined;
+      rpc = SupportChains.find((c) => Number(c.id) === 1)?.rpcUrls?.[0];
     } else if (platform === "56") {
       routerV2 = PancakeRouter;
       rpc = bsc_rpc;
