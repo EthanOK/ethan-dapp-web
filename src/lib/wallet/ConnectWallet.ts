@@ -1,6 +1,7 @@
 import {
-  hasValidSessionToken,
-  isTokenExpired
+  getTokenForAddress,
+  isTokenExpired,
+  saveTokenForAddress
 } from "@/lib/wallet/sessionToken";
 import { isBackendHealthy, postLogin } from "@/services/AuthApi";
 
@@ -25,7 +26,7 @@ export const login = async (): Promise<LoginResult | null> => {
     const userToken = await postLogin(message, signature);
     if (!userToken) return null;
 
-    localStorage.setItem("token", userToken);
+    saveTokenForAddress(siweMessage.address ?? "", userToken);
 
     return {
       userAddress: siweMessage.address ?? "",
@@ -45,11 +46,14 @@ export const login = async (): Promise<LoginResult | null> => {
 export async function ensureLoggedIn(
   address: string
 ): Promise<EnsureLoginResult> {
-  const token = localStorage.getItem("token");
-  if (token && hasValidSessionToken(address)) {
-    return { userAddress: address, userToken: token, signature: "" };
+  // Reuse this address's cached token (per-address cache) if it is still valid.
+  const cached = getTokenForAddress(address);
+  if (cached) {
+    localStorage.setItem("token", cached);
+    return { userAddress: address, userToken: cached, signature: "" };
   }
-  if (token && isTokenExpired(token)) localStorage.removeItem("token");
+  const legacy = localStorage.getItem("token");
+  if (legacy && isTokenExpired(legacy)) localStorage.removeItem("token");
 
   if (!(await isBackendHealthy())) return "backend_down";
   return login();

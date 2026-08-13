@@ -5,8 +5,8 @@ import { tGlobal } from "@/i18n";
 import { getDefaultNetwork, modal } from "@/app/Wallet";
 import { ensureLoggedIn } from "@/lib/wallet/ConnectWallet";
 import {
-  clearAppSessionKeepChainId,
-  hasValidSessionToken
+  activateSessionForAddress,
+  clearAppSessionKeepChainId
 } from "@/lib/wallet/sessionToken";
 import { dispatchAppNetworkChanged } from "@/hooks/useSwitchAppKitNetwork";
 
@@ -103,8 +103,9 @@ export function useReownWalletSync() {
 
     if (loginType !== "reown" || !isConnected || !address) return;
 
-    // Valid token for this address — skip SIWE signature and /api/login
-    if (hasValidSessionToken(address)) {
+    // Valid token for this address (per-address cache) — skip SIWE signature
+    // and /api/login; promote the cached token to the active one.
+    if (activateSessionForAddress(address)) {
       if (address.toLowerCase() !== storedAccount?.toLowerCase()) {
         localStorage.setItem("userAddress", address);
       }

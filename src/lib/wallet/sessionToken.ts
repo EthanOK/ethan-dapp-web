@@ -5,6 +5,8 @@ type JwtPayload = {
   iat?: number;
 };
 
+const TOKEN_MAP_KEY = "tokenMap";
+
 /** Decode JWT payload (client-side only; API still validates the token). */
 export function parseJwtPayload(token: string): JwtPayload | null {
   try {
@@ -31,14 +33,72 @@ export function tokenMatchesAddress(token: string, address: string): boolean {
   return payload.address.toLowerCase() === address.toLowerCase();
 }
 
-/** Valid local session: token present, not expired, bound to the connected address. */
-export function hasValidSessionToken(address: string): boolean {
-  const token = localStorage.getItem("token");
-  if (!token) return false;
-  if (isTokenExpired(token)) return false;
-  return tokenMatchesAddress(token, address);
+/**
+ * Per-address token cache (addressLower -> token). Lets every address that has
+ * logged in before reuse its own token without re-signing, even after a
+ * disconnect or an account switch.
+ */
+function readTokenMap(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(TOKEN_MAP_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, string>;
+    return typeof parsed === "object" && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
 }
 
+function writeTokenMap(map: Record<string, string>) {
+  localStorage.setItem(TOKEN_MAP_KEY, JSON.stringify(map));
+}
+
+/** Valid token for `address`: per-address cache first, legacy `token` fallback. */
+export function getTokenForAddress(address: string): string | null {
+  const addr = address.toLowerCase();
+  const cached = readTokenMap()[addr];
+  if (cached && !isTokenExpired(cached)) return cached;
+
+  const legacy = localStorage.getItem("token");
+  if (legacy && tokenMatchesAddress(legacy, addr) && !isTokenExpired(legacy)) {
+    return legacy;
+  }
+  return null;
+}
+
+/** Store a token for an address and make it the active token (prunes expired). */
+export function saveTokenForAddress(address: string, token: string) {
+  const addr = address.toLowerCase();
+  const map = readTokenMap();
+  map[addr] = token;
+  for (const key of Object.keys(map)) {
+    if (isTokenExpired(map[key])) delete map[key];
+  }
+  writeTokenMap(map);
+  localStorage.setItem("token", token);
+}
+
+/**
+ * Reuse a valid cached token for `address` and promote it to the active
+ * token. Returns true when a token was reused (caller should skip signing).
+ */
+export function activateSessionForAddress(address: string): boolean {
+  const cached = getTokenForAddress(address);
+  if (!cached) return false;
+  localStorage.setItem("token", cached);
+  return true;
+}
+
+/** Valid local session: token present, not expired, bound to the connected address. */
+export function hasValidSessionToken(address: string): boolean {
+  return getTokenForAddress(address) !== null;
+}
+
+/**
+ * Clear the current session pointer and the active token, but KEEP the
+ * per-address token cache so reconnecting or switching back to a previously
+ * logged-in address does not require signing again.
+ */
 export function clearAppSessionKeepChainId() {
   localStorage.removeItem("userAddress");
   localStorage.removeItem("token");
