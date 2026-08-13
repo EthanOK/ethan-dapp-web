@@ -88,20 +88,15 @@ export function useReownWalletSync() {
   ]);
 
   useEffect(() => {
-    const loginType = localStorage.getItem("LoginType");
     const storedAccount = localStorage.getItem("userAddress");
     const storedConnect = localStorage.getItem("@appkit/connection_status");
 
-    if (
-      loginType === "reown" &&
-      storedConnect === "disconnected" &&
-      storedAccount
-    ) {
+    if (storedConnect === "disconnected" && storedAccount) {
       clearAppSessionKeepChainId();
       return;
     }
 
-    if (loginType !== "reown" || !isConnected || !address) return;
+    if (!isConnected || !address) return;
 
     // Valid token for this address (per-address cache) — skip SIWE signature
     // and /api/login; promote the cached token to the active one.
