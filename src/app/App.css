@@ -1290,6 +1290,24 @@
 .eip7702-hero {
   text-align: center;
 }
+.eip5792-hero {
+  text-align: center;
+  padding: 16px 16px 8px;
+}
+.eip5792-hero h1 {
+  font-family: var(--w3-font-display);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 3vw, 1.85rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--w3-text);
+  margin: 0 0 6px;
+}
+.eip5792-hero p {
+  color: var(--w3-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
 .eip7702-shield {
   display: inline-flex;
   align-items: center;
@@ -1462,6 +1480,8 @@
   gap: 8px;
   margin-top: 16px;
   padding: 12px 14px;
+  width: 100%;
+  box-sizing: border-box;
   border-radius: var(--w3-radius-sm);
   background: rgba(34, 211, 238, 0.05);
   border: 1px solid rgba(34, 211, 238, 0.18);
@@ -1525,6 +1545,193 @@
   50% {
     opacity: 0.35;
   }
+}
+
+/* ========== EIP-7702 / ERC-5792 Readiness (7702-Readiness dapp) ========== */
+.eip7702-readiness-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 16px;
+  border-radius: var(--w3-radius);
+  border: 1px solid var(--w3-border);
+  overflow: hidden;
+}
+.eip7702-readiness-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+}
+.eip7702-readiness-row + .eip7702-readiness-row {
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+.eip7702-readiness-label {
+  font-size: 0.72rem;
+  color: var(--w3-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.eip7702-readiness-value {
+  font-family: var(--w3-font-mono);
+  font-size: 0.82rem;
+  color: var(--w3-text-primary);
+  word-break: break-all;
+  text-align: right;
+  min-width: 0;
+}
+.eip7702-readiness-caps {
+  color: #4ade80;
+}
+.eip7702-readiness-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.eip7702-readiness-batch-title {
+  margin: 0;
+}
+.eip7702-batch-table {
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  overflow: hidden;
+}
+.eip7702-batch-head,
+.eip7702-batch-row {
+  display: grid;
+  grid-template-columns:
+    40px 64px minmax(90px, 1fr) 32px minmax(160px, 2fr)
+    32px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+}
+.eip7702-batch-head {
+  background: rgba(148, 163, 184, 0.06);
+  color: var(--w3-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.68rem;
+}
+.eip7702-batch-row + .eip7702-batch-row {
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+.eip7702-batch-input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-card);
+  color: var(--w3-text-primary);
+  font-family: var(--w3-font-mono);
+  font-size: 0.78rem;
+  box-sizing: border-box;
+}
+.eip7702-batch-input:focus {
+  outline: none;
+  border-color: var(--w3-border-accent);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
+}
+.eip7702-batch-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.eip7702-batch-actions-top {
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+}
+.eip7702-batch-actions .cta-button {
+  margin: 0;
+}
+.eip7702-batch-progress {
+  font-size: 0.82rem;
+  color: #f59e0b;
+}
+.eip7702-batch-id {
+  font-size: 0.78rem;
+  color: var(--w3-text-muted);
+  text-align: center;
+  word-break: break-all;
+}
+.eip7702-batch-id-value {
+  font-family: var(--w3-font-mono);
+  color: var(--w3-text-primary);
+}
+.eip7702-batch-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(148, 163, 184, 0.15);
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.eip7702-batch-bar::-webkit-progress-bar {
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 999px;
+}
+.eip7702-batch-bar::-webkit-progress-value {
+  background: var(--w3-gradient-accent);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+@media (max-width: 560px) {
+  .eip7702-batch-head {
+    display: none;
+  }
+  .eip7702-batch-row {
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  .eip7702-batch-row > span:not(:first-child):not(:nth-child(2)) {
+    display: none;
+  }
+}
+.eip7702-batch-remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--w3-border);
+  background: rgba(244, 63, 94, 0.08);
+  color: #f43f5e;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.eip7702-batch-remove:hover:not(:disabled) {
+  background: rgba(244, 63, 94, 0.18);
+}
+.eip7702-batch-remove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.eip7702-batch-actions-top {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.eip7702-batch-add {
+  padding: 6px 12px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px dashed var(--w3-border);
+  background: transparent;
+  color: var(--w3-accent);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.eip7702-batch-add:hover {
+  background: rgba(34, 211, 238, 0.08);
+  border-style: solid;
 }
 
 .feature-field {

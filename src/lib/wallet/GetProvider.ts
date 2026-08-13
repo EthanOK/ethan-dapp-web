@@ -186,6 +186,40 @@ const getProvider = async (): Promise<BrowserProvider | null> => {
   return null;
 };
 
+type Eip1193Request = (args: {
+  method: string;
+  params?: unknown[];
+}) => Promise<unknown>;
+
+type Eip1193Provider = { request: Eip1193Request };
+
+/** Raw EIP-1193 provider (has `.request`), routed by LoginType like getProvider. */
+const getEip1193Provider = async (): Promise<Eip1193Provider | null> => {
+  const type = localStorage.getItem("LoginType");
+  if (type === "metamask" && window.ethereum) {
+    try {
+      await (window.ethereum as { request: Eip1193Request }).request({
+        method: "eth_chainId"
+      });
+      return window.ethereum as Eip1193Provider;
+    } catch {
+      return null;
+    }
+  }
+  if (type === "reown") {
+    const reownProvider = store.eip155Provider as Eip1193Provider | undefined;
+    if (reownProvider?.request) return reownProvider;
+  }
+  if (type === "walletconnect") {
+    try {
+      return (await getWalletConnectProvider()) as Eip1193Provider;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 const getChainId = async (): Promise<number | null> => {
   const provider = await getProvider();
   if (!provider) return null;
@@ -281,6 +315,7 @@ export type { Provider, Signer };
 
 export {
   getProvider,
+  getEip1193Provider,
   getSigner,
   getChainId,
   getBalance,
