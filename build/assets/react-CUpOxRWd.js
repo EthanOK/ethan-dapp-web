@@ -1,0 +1,1 @@
+import{a as e,i as t}from"./react-B4Of43gt.js";function n(){return{connection:t(e.state).connection}}export{n as t};
