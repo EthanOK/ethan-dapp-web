@@ -1273,9 +1273,18 @@
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
-  animation: rotate 1s linear infinite;
+  animation: eip7702-rotate 0.8s linear infinite;
   margin-right: 8px;
   vertical-align: -1px;
+}
+
+@keyframes eip7702-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .eip7702-hero {
@@ -1347,6 +1356,46 @@
 .eip7702-status.is-none .eip7702-status-value {
   color: var(--w3-text-muted);
 }
+.eip7702-sponsor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0 4px;
+  padding: 12px 16px;
+  border-radius: var(--w3-radius);
+  background: rgba(148, 163, 184, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+.eip7702-sponsor-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--w3-text-primary);
+  cursor: pointer;
+}
+.eip7702-sponsor-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #534ab7;
+  cursor: pointer;
+}
+.eip7702-sponsor-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--w3-text-muted);
+}
+.eip7702-sponsor .cta-button {
+  margin: 0;
+  align-self: flex-start;
+}
+.eip7702-login {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .eip7702-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1375,6 +1424,37 @@
   background: rgba(244, 63, 94, 0.2);
   border-color: rgba(244, 63, 94, 0.6);
   box-shadow: none;
+}
+/* Highlight whichever action button is currently executing (overrides the
+   global .cta-button:disabled gray-out so the running button stays prominent). */
+.cta-button.eip7702-btn-create.is-loading:disabled,
+.cta-button.eip7702-btn-revoke.is-loading:disabled {
+  opacity: 1;
+  cursor: wait;
+  animation: eip7702-loading-glow 1.4s ease-in-out infinite;
+}
+.cta-button.eip7702-btn-create.is-loading:disabled {
+  background: var(--w3-gradient-accent);
+  color: #030306;
+  border: none;
+  box-shadow:
+    0 0 0 3px rgba(83, 74, 183, 0.45),
+    var(--w3-shadow-glow);
+}
+.cta-button.eip7702-btn-revoke.is-loading:disabled {
+  background: rgba(244, 63, 94, 0.85);
+  border-color: #f43f5e;
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.45);
+}
+@keyframes eip7702-loading-glow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.25);
+  }
 }
 .eip7702-tx {
   display: flex;
@@ -2429,4 +2509,25 @@ body.app-menu-open {
   .app-body {
     min-height: calc(100vh - 52px);
   }
+}
+
+/* Make sonner toast action buttons (e.g. "View transaction") more prominent. */
+[data-sonner-toast] [data-button][data-action] {
+  background: linear-gradient(135deg, #534ab7, #6e5fd8);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 2px 8px rgba(83, 74, 183, 0.35);
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+[data-sonner-toast] [data-button][data-action]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(83, 74, 183, 0.5);
+}
+[data-sonner-toast] [data-button][data-action]:active {
+  transform: translateY(0);
 }

@@ -1,25 +1,32 @@
 import { useEffect, useState } from "react";
-import {
-  getChainId,
-  parseEvmChainIdFromStored
-} from "@/lib/wallet/GetProvider";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
+import { parseEvmChainIdFromStored } from "@/lib/wallet/GetProvider";
+import { useOpenAppKitModal } from "@/hooks/useOpenAppKitModal";
+import { hasValidSessionToken } from "@/lib/wallet/sessionToken";
 import {
   createAuthorization,
   createEIP7702Account,
-  getDelegationAddress,
-  revokeEIP7702Account
+  getDelegationAddress
 } from "@/lib/evm/EIP7702Utils";
 import { EIP7702Delegator_Metamask } from "@/config/SystemConfiguration";
 import { SupportChains } from "@/config/ChainsConfig";
-import { JsonRpcProvider, Wallet } from "ethers";
+import { JsonRpcProvider, Wallet, ZeroAddress } from "ethers";
 import { withCustomGasPrice } from "@/lib/evm/GasStrategy";
 import { getScanURL } from "@/lib/shared/Utils";
+import { relayEIP7702 } from "@/services/AuthApi";
 import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
+/** Reuse one JsonRpcProvider per chain on this page (staticNetwork = no probe). */
+const chainJsonRpcProviders = new Map<number, JsonRpcProvider>();
+
 const EIP7702Page = () => {
   const { t } = useI18n();
+  const { address, isConnected } = useAppKitAccount();
+  const { chainId: appKitChainId } = useAppKitNetwork();
+  const { isConnecting, openConnectModal } = useOpenAppKitModal();
   const [privateKey, setPrivateKey] = useState("");
+  const [sponsorGas, setSponsorGas] = useState(true);
   const [delegationAddress, setDelegationAddress] = useState(
     EIP7702Delegator_Metamask
   );
@@ -35,22 +42,27 @@ const EIP7702Page = () => {
   }>({ state: "idle" });
 
   /**
-   * Resolve the target chain. Prefers the connected wallet's chain; falls back
-   * to the stored chain id, then defaults to Ethereum mainnet. This lets the
-   * page work without a connected wallet (signing is done with the input key).
+   * Resolve the target chain without any RPC: prefer the connected wallet's
+   * chain (AppKit state), fall back to the stored chain id, then mainnet.
    */
-  const resolveChainId = async (): Promise<number | null> => {
-    const fromWallet = await getChainId();
-    if (fromWallet !== null) return fromWallet;
+  const resolveChainId = (): number | null => {
+    const fromAppKit = parseEvmChainIdFromStored(String(appKitChainId ?? ""));
+    if (fromAppKit !== null) return fromAppKit;
     return parseEvmChainIdFromStored(localStorage.getItem("chainId")) ?? 1;
   };
 
-  /** JSON-RPC provider from the project's own ChainsConfig RPC list. */
+  /** Cached JSON-RPC provider from the project's own ChainsConfig RPC list. */
   const getChainJsonRpcProvider = (chainId: number): JsonRpcProvider | null => {
+    const cached = chainJsonRpcProviders.get(chainId);
+    if (cached) return cached;
     const chain = SupportChains.find((c) => Number(c.id) === chainId);
     const rpc = chain?.rpcUrls?.[0];
     if (!rpc) return null;
-    return new JsonRpcProvider(rpc, chainId);
+    const provider = new JsonRpcProvider(rpc, chainId, {
+      staticNetwork: true
+    });
+    chainJsonRpcProviders.set(chainId, provider);
+    return provider;
   };
 
   /** Accept private keys with or without the 0x prefix; returns null if invalid. */
@@ -92,14 +104,15 @@ const EIP7702Page = () => {
       window.clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [privateKey]);
+  }, [privateKey, appKitChainId]);
 
   /** Send the actual type-4 authorization transaction. */
   const executeCreate = async (
     pk: string,
     chainId: number,
     delegator: string,
-    isUpdate: boolean
+    isUpdate: boolean,
+    sponsored: boolean
   ) => {
     setIsCreating(true);
     try {
@@ -109,35 +122,76 @@ const EIP7702Page = () => {
         toast.error(t("common.unsupportedChain"));
         return;
       }
-      const signer = withCustomGasPrice(new Wallet(pk, provider), chainId);
-      let currentNonce = await signer.getNonce();
-      currentNonce++;
-      const auth = await createAuthorization(signer, currentNonce, delegator);
-      const hash = await createEIP7702Account(signer, auth);
-      if (!hash) return;
+      const pkWallet = withCustomGasPrice(new Wallet(pk, provider), chainId);
+      const pkAddress = await pkWallet.getAddress();
+
+      // EIP-7702: the authorization nonce must equal `authority`'s nonce at
+      // check time. The tx sender's nonce is incremented BEFORE authorizations
+      // are processed, so:
+      //  - not sponsored (pk account sends): nonce = pk nonce + 1
+      //  - sponsored (connected wallet sends): pk nonce untouched → nonce = pk nonce
+      const pkNonce = await pkWallet.getNonce();
+      const auth = await createAuthorization(
+        pkWallet,
+        sponsored ? pkNonce : pkNonce + 1,
+        delegator
+      );
+
+      let hash: string;
+      if (sponsored) {
+        // Server-side relay: the pk wallet only signs the authorization; the
+        // backend broadcasts the type-4 tx and pays the gas.
+        const authLike = auth as {
+          chainId: number;
+          address: string;
+          nonce: number;
+          signature: { r: string; s: string; yParity: number | string };
+        };
+        const relayed = await relayEIP7702(chainId, pkAddress, [
+          {
+            chainId: Number(authLike.chainId),
+            address: authLike.address,
+            nonce: Number(authLike.nonce),
+            yParity: Number(authLike.signature.yParity),
+            r: authLike.signature.r,
+            s: authLike.signature.s
+          }
+        ]);
+        hash = relayed.txHash;
+      } else {
+        // Pass the already-fetched nonce so sendTransaction skips its own
+        // eth_getTransactionCount call.
+        hash = await createEIP7702Account(pkWallet, auth, undefined, pkNonce);
+      }
+
       const txUrl = `${url}/tx/${hash}`;
       setTxLink(txUrl);
       setTxStatus("pending");
-      const prov = signer.provider;
-      if (prov) {
-        const txReceipt = await prov.waitForTransaction(hash);
-        if (txReceipt?.status === 1) {
-          toast.success(
-            isUpdate ? t("eip7702.updateSuccess") : t("eip7702.createSuccess"),
-            {
-              action: {
-                label: t("common.viewTransaction"),
-                onClick: () =>
-                  window.open(txUrl, "_blank", "noopener,noreferrer")
-              }
+      // Cap the wait so a stuck pending tx does not poll eth_blockNumber /
+      // eth_getTransactionReceipt forever (ethers polls every ~4s otherwise).
+      let txReceipt: Awaited<ReturnType<typeof provider.waitForTransaction>>;
+      try {
+        txReceipt = await provider.waitForTransaction(hash, 1, 120_000);
+      } catch {
+        toast.error(t("eip7702.txTimeout"));
+        setTxStatus("failed");
+        return;
+      }
+      if (txReceipt?.status === 1) {
+        toast.success(
+          isUpdate ? t("eip7702.updateSuccess") : t("eip7702.createSuccess"),
+          {
+            action: {
+              label: t("common.viewTransaction"),
+              onClick: () => window.open(txUrl, "_blank", "noopener,noreferrer")
             }
-          );
-          setDelegationStatus({ state: "delegated", address: delegator });
-          setTxStatus("success");
-        } else {
-          toast.error(t("common.txFailed"));
-          setTxStatus("failed");
-        }
+          }
+        );
+        setDelegationStatus({ state: "delegated", address: delegator });
+        setTxStatus("success");
+      } else {
+        toast.error(t("common.txFailed"));
+        setTxStatus("failed");
       }
     } catch (error) {
       toast.error((error as Error)?.message ?? t("common.failedGeneric"));
@@ -168,17 +222,13 @@ const EIP7702Page = () => {
         toast.error(t("common.unsupportedChain"));
         return;
       }
-      const signer = withCustomGasPrice(new Wallet(pk, provider), chainId);
-      toast(
-        delegationStatus.state === "delegated"
-          ? t("eip7702.updateLog")
-          : t("eip7702.createLog")
-      );
+
       await executeCreate(
         pk,
         chainId,
         delegator,
-        delegationStatus.state === "delegated"
+        delegationStatus.state === "delegated",
+        sponsorGas
       );
     } catch (error) {
       toast.error((error as Error)?.message ?? t("common.failedGeneric"));
@@ -204,32 +254,74 @@ const EIP7702Page = () => {
         toast.error(t("common.unsupportedChain"));
         return;
       }
-      const signer = withCustomGasPrice(new Wallet(pk, provider), chainId);
-      const currentDelegation = await getDelegationAddress(signer);
+      const pkWallet = withCustomGasPrice(new Wallet(pk, provider), chainId);
+      const pkAddress = await pkWallet.getAddress();
+      const currentDelegation = await getDelegationAddress(pkWallet);
       if (currentDelegation === null) {
         toast.error(t("eip7702.notAccount"));
         return;
       }
-      const hash = await revokeEIP7702Account(signer);
+
+      // Same nonce rule as create: sponsored → pk's current nonce, else +1.
+      const pkNonce = await pkWallet.getNonce();
+      const revokeAuth = await createAuthorization(
+        pkWallet,
+        sponsorGas ? pkNonce : pkNonce + 1,
+        ZeroAddress
+      );
+
+      let hash: string;
+      if (sponsorGas) {
+        const authLike = revokeAuth as {
+          chainId: number;
+          address: string;
+          nonce: number;
+          signature: { r: string; s: string; yParity: number | string };
+        };
+        const relayed = await relayEIP7702(chainId, pkAddress, [
+          {
+            chainId: Number(authLike.chainId),
+            address: authLike.address,
+            nonce: Number(authLike.nonce),
+            yParity: Number(authLike.signature.yParity),
+            r: authLike.signature.r,
+            s: authLike.signature.s
+          }
+        ]);
+        hash = relayed.txHash;
+      } else {
+        hash = await createEIP7702Account(
+          pkWallet,
+          revokeAuth,
+          undefined,
+          pkNonce
+        );
+      }
+
       const txUrl = `${url}/tx/${hash}`;
       setTxLink(txUrl);
       setTxStatus("pending");
-      const prov = signer.provider;
-      if (prov) {
-        const txReceipt = await prov.waitForTransaction(hash);
-        if (txReceipt?.status === 1) {
-          toast.success(t("eip7702.revokeSuccess"), {
-            action: {
-              label: t("common.viewTransaction"),
-              onClick: () => window.open(txUrl, "_blank", "noopener,noreferrer")
-            }
-          });
-          setDelegationStatus({ state: "none" });
-          setTxStatus("success");
-        } else {
-          toast.error(t("common.txFailed"));
-          setTxStatus("failed");
-        }
+      // Cap the wait so a stuck pending tx does not poll forever.
+      let txReceipt: Awaited<ReturnType<typeof provider.waitForTransaction>>;
+      try {
+        txReceipt = await provider.waitForTransaction(hash, 1, 120_000);
+      } catch {
+        toast.error(t("eip7702.txTimeout"));
+        setTxStatus("failed");
+        return;
+      }
+      if (txReceipt?.status === 1) {
+        toast.success(t("eip7702.revokeSuccess"), {
+          action: {
+            label: t("common.viewTransaction"),
+            onClick: () => window.open(txUrl, "_blank", "noopener,noreferrer")
+          }
+        });
+        setDelegationStatus({ state: "none" });
+        setTxStatus("success");
+      } else {
+        toast.error(t("common.txFailed"));
+        setTxStatus("failed");
       }
     } catch (error) {
       toast.error((error as Error)?.message ?? t("common.failedGeneric"));
@@ -240,6 +332,9 @@ const EIP7702Page = () => {
 
   const shortAddress = (addr: string) =>
     addr.length > 14 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr;
+
+  /** Logged in = wallet connected and a valid (per-address) token exists. */
+  const loggedIn = isConnected && !!address && hasValidSessionToken(address);
 
   const statusText = (() => {
     switch (delegationStatus.state) {
@@ -298,6 +393,48 @@ const EIP7702Page = () => {
             autoComplete="off"
           />
         </div>
+        <div className="eip7702-sponsor">
+          <label className="eip7702-sponsor-toggle">
+            <input
+              type="checkbox"
+              checked={sponsorGas}
+              onChange={(e) => setSponsorGas(e.target.checked)}
+            />
+            <span>{t("eip7702.sponsorGas")}</span>
+          </label>
+          {sponsorGas ? (
+            <p className="eip7702-sponsor-hint">
+              {t("eip7702.sponsorGasHint")}
+            </p>
+          ) : (
+            <p className="eip7702-sponsor-hint">
+              {t("eip7702.sponsorOffHint")}
+            </p>
+          )}
+          {sponsorGas && !loggedIn && (
+            <div className="eip7702-login">
+              <p className="eip7702-sponsor-hint">{t("eip7702.needLogin")}</p>
+              <button
+                type="button"
+                onClick={() => void openConnectModal()}
+                className={
+                  "cta-button eip7702-btn-create" +
+                  (isConnecting ? " is-loading" : "")
+                }
+                disabled={isConnecting}
+              >
+                {isConnecting
+                  ? t("common.processing")
+                  : t("eip7702.loginToSponsor")}
+              </button>
+            </div>
+          )}
+          {sponsorGas && loggedIn && address && (
+            <p className="eip7702-sponsor-hint">
+              {t("eip7702.loggedInAs")}: {shortAddress(address)}
+            </p>
+          )}
+        </div>
         <div
           className={
             "eip7702-status" +
@@ -324,7 +461,10 @@ const EIP7702Page = () => {
           <button
             type="button"
             onClick={createEIP7702AccountHandler}
-            className="cta-button eip7702-btn-create"
+            className={
+              "cta-button eip7702-btn-create" +
+              (isCreating ? " is-loading" : "")
+            }
             disabled={!privateKey.trim() || isCreating || isRevoking}
           >
             {isCreating ? (
@@ -342,7 +482,10 @@ const EIP7702Page = () => {
             <button
               type="button"
               onClick={revokeEIP7702AccountHandler}
-              className="cta-button eip7702-btn-revoke"
+              className={
+                "cta-button eip7702-btn-revoke" +
+                (isRevoking ? " is-loading" : "")
+              }
               disabled={!privateKey.trim() || isCreating || isRevoking}
             >
               {isRevoking ? (

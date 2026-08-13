@@ -237,6 +237,13 @@ export const en = {
   "eip7702.privateKey": "Private key",
   "eip7702.delegatorAddress": "Delegated address (delegator)",
   "eip7702.enterDelegatorAddress": "Please enter delegated address",
+  "eip7702.sponsorGas": "Sponsor gas (server-side)",
+  "eip7702.sponsorGasHint": "Server pays gas (testnets only: sepolia/hoodi)",
+  "eip7702.sponsorOffHint": "Paid by the private-key account",
+  "eip7702.needLogin":
+    "Server-side gas sponsorship requires login. Connect your wallet to sign in",
+  "eip7702.loginToSponsor": "Connect wallet to log in",
+  "eip7702.loggedInAs": "Logged in",
   "eip7702.updateAccount": "Update EIP-7702 account",
   "eip7702.createAccount": "Create EIP-7702 account",
   "eip7702.revokeAccount": "Revoke EIP-7702 account",
@@ -260,6 +267,8 @@ export const en = {
   "eip7702.txPending": "Pending",
   "eip7702.txSuccess": "Success",
   "eip7702.txFailed": "Failed",
+  "eip7702.txTimeout":
+    "Transaction confirmation timed out (120s). Check the block explorer",
 
   "faucet.title": "Faucet Token",
   "faucet.subtitle": "Select chain and token to claim testnet tokens",
