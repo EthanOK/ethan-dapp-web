@@ -25,7 +25,6 @@ const getFulfillment_transactions = async (
     );
 
     transactions.push(transaction);
-    console.log("orderhash:" + orderhashs[i]);
   }
   return transactions;
 };
@@ -80,13 +79,10 @@ const getFulfillAvailableAdvancedOrders_datas = async (
       return null;
     }
 
-    console.log("OrderData:");
-    console.log(OrderData);
     const [orderHash, protocolAddress, currentPrice] = OrderData;
 
     await waitOneSecond();
-    console.log("getFulfillmentData params:");
-    console.log(orderHash, chainName, protocolAddress, fulfiller);
+
     const fulfillment = await getFulfillmentData(
       orderHash,
       chainName,
@@ -145,7 +141,6 @@ const getFulfillAvailableAdvancedOrders_datas = async (
     advancedOrders.push(advancedOrder);
   }
 
-  console.log("opensea orders total payment:" + currentPriceSum.toString());
   return [
     protocolAddress_,
     currentPriceSum.toString(),
@@ -183,13 +178,10 @@ const getFulfillAvailableOrders_data = async (
       return null;
     }
 
-    console.log("OrderData:");
-    console.log(OrderData);
     const [orderHash, protocolAddress, currentPrice] = OrderData;
 
     await waitOneSecond();
-    console.log("getFulfillmentData params:");
-    console.log(orderHash, chainName, protocolAddress, fulfiller);
+
     const fulfillment = await getFulfillmentData(
       orderHash,
       chainName,
@@ -245,7 +237,6 @@ const getFulfillAvailableOrders_data = async (
     orders.push(order);
   }
 
-  console.log("opensea orders total payment:" + currentPriceSum.toString());
   return [
     protocolAddress_,
     currentPriceSum.toString(),
@@ -268,22 +259,16 @@ const getFulfillment_order = async (
     return null;
   }
 
-  console.log("OrderData:");
-  console.log(OrderData);
   const [orderHash, protocolAddress, currentPrice] = OrderData;
 
   await waitOneSecond();
-  console.log(
-    "getFulfillmentData params:orderHash, chainName, protocolAddress, fulfiller"
-  );
-  console.log(orderHash, chainName, protocolAddress, fulfiller);
+
   const fulfillment = await getFulfillmentData(
     orderHash,
     chainName,
     protocolAddress,
     fulfiller
   );
-  console.log(fulfillment);
 
   const fulfillmentData = fulfillment.fulfillment_data;
   const order0 = fulfillmentData?.orders?.[0];
@@ -378,9 +363,6 @@ async function getOrderHash(
     return null;
   }
 
-  console.log("orders:");
-  console.log(orders);
-
   return [
     String(orders[0].order_hash),
     String(orders[0].protocol_address),
@@ -444,10 +426,8 @@ async function getFulfillmentData_transaction(
 
   const tx = response_data.fulfillment_data?.transaction;
   if (!tx) {
-    console.log("fulfillment_data.transaction is empty");
     return null;
   }
 
-  console.log(response_data);
   return tx;
 }

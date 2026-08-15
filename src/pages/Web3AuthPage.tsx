@@ -14,7 +14,6 @@ const Web3AuthPage = () => {
   const uiConsole = (...args: unknown[]) => {
     const str = stringifyJson(args?.length ? args : {}, 2);
     setConsoleOutput(str);
-    console.log(...args);
   };
 
   useEffect(() => {

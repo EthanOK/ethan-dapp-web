@@ -18,7 +18,6 @@ const getFulfillment_transaction = async (
     return "null";
   }
 
-  console.log("orderHash: " + order.orderHash);
   const fulfillment = await openseaSDK.api.generateFulfillmentData(
     accountAddress,
     order.orderHash,
@@ -33,8 +32,6 @@ const getFulfillment_transaction = async (
     return "null";
   }
 
-  console.log("orders");
-  console.log(fulfillment.fulfillment_data.orders);
   return fulfillment.fulfillment_data.transaction;
 };
 
@@ -65,7 +62,6 @@ const getFulfillment_order = async (
     return "null";
   }
 
-  console.log(order);
   return [
     order.protocolAddress,
     order.currentPrice,
@@ -184,7 +180,6 @@ const getFulfillAvailableAdvancedOrders_datas = async (
       return "orderHash is null";
     }
 
-    console.log("orderHash:" + order.orderHash);
     const fulfillment = await openseaSDK.api.generateFulfillmentData(
       accountAddress,
       order.orderHash,

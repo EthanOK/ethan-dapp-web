@@ -15,7 +15,6 @@ export const estimateTxFee = async (
 ): Promise<EstimateTxFeeResult> => {
   const feeData = await provider.getFeeData();
   const gasPrice = feeData.gasPrice ?? 0n;
-  console.log(`Gas Price: ${formatUnits(gasPrice, 9)} Gwei`);
 
   const estGas = await provider.estimateGas({
     from,
@@ -25,10 +24,7 @@ export const estimateTxFee = async (
     gasPrice
   });
 
-  console.log(`Gas Used: ${estGas.toString()}`);
-
   const estFees = estGas * gasPrice;
-  console.log(`Transaction Fee: ${formatEther(estFees)} Ether`);
 
   return {
     gasPrice: formatUnits(gasPrice, 9),

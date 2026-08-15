@@ -100,12 +100,10 @@ const BuyNFTPage = () => {
       const tx = result?.[1];
       if (message_ != null) setMessage(message_);
       if (tx?.wait) {
-        const rsult = await tx.wait();
-        if (rsult?.status === 1) console.log("Success!");
-        else console.log("Failure!");
+        await tx.wait();
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       alert(String(error));
     }
   };
@@ -143,12 +141,10 @@ const BuyNFTPage = () => {
       const tx = result?.[1];
       if (message_ != null) setMessage(message_);
       if (tx?.wait) {
-        const rsult = await tx.wait();
-        if (rsult?.status === 1) console.log("Success!");
-        else console.log("Failure!");
+        await tx.wait();
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

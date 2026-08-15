@@ -569,6 +569,92 @@
   display: block;
 }
 
+/*
+ * Optimistic "connected" pill — shown in the lazy chunk's Suspense fallback
+ * AND inside WalletControls until AppKit finishes rehydrating. Once the
+ * real <appkit-button> renders, this placeholder is replaced.
+ */
+.app-header-wallet-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px 0 8px;
+  min-width: 0;
+  font-family: var(--w3-font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  flex-shrink: 1;
+  overflow: hidden;
+  color: var(--w3-text);
+  /* Use the same elevated surface as the live account button reads as. */
+  background: var(--w3-bg-elevated);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  cursor: progress;
+}
+
+/* Don't fade — AppKit rehydration is short and the value here is real. */
+.app-header-wallet-pill:disabled {
+  opacity: 1;
+  background: var(--w3-bg-elevated);
+  border-color: var(--w3-border);
+  color: var(--w3-text);
+  cursor: progress;
+  transform: none;
+  box-shadow: none;
+}
+
+.app-header-wallet-pill-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--w3-gradient-accent);
+  box-shadow: 0 0 12px var(--w3-accent-glow);
+  position: relative;
+}
+.app-header-wallet-pill-avatar::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--w3-bg-elevated);
+}
+.app-header-wallet-pill-avatar::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: var(--w3-accent);
+  opacity: 0.85;
+}
+
+.app-header-wallet-pill-addr {
+  font-weight: 600;
+  color: var(--w3-text);
+  flex-shrink: 0;
+}
+
+.app-header-wallet-pill-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--w3-accent-soft);
+  color: var(--w3-accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Header locale menu */
 .app-header-locale-wrap {
   position: relative;
@@ -2629,6 +2715,18 @@ body.app-menu-open {
   .app-header-wallet-controls.is-connected .w3-connect-wrap appkit-button {
     width: auto;
     max-width: none;
+  }
+
+  /* Optimistic pill at narrow widths: keep address, drop the avatar glow
+     and let the pill shrink with the wallet container. */
+  .app-header-wallet-pill {
+    padding: 0 10px 0 6px;
+    gap: 6px;
+    max-width: 100%;
+  }
+  .app-header-wallet-pill-avatar {
+    width: 18px;
+    height: 18px;
   }
 
   .app-sidebar-overlay {

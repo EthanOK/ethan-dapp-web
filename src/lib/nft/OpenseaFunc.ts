@@ -141,7 +141,6 @@ const fulfillBasicOrder = async (
 
   let transactionData: FulfillmentTransaction | null | undefined;
   if (!contract_ || !tokenId_) {
-    console.log("contractAddress or tokenId is null");
     return;
   }
 
@@ -171,7 +170,6 @@ const fulfillBasicOrder = async (
       tokenId_
     );
     if (transactionData === null) {
-      console.log("transactionDatas is null");
       return;
     }
   } else if (chainId === 97) {
@@ -182,13 +180,11 @@ const fulfillBasicOrder = async (
       tokenId_
     );
     if (transactionData === null) {
-      console.log("transactionDatas is null");
       return;
     }
   }
   if (!isFulfillmentTransaction(transactionData)) return;
 
-  console.log(transactionData);
   const parameters = transactionData.input_data.parameters;
   const nftcontract = new Contract(
     transactionData.to,
@@ -196,7 +192,7 @@ const fulfillBasicOrder = async (
     signer
   ) as SeaportContract;
   const value = transactionData.value;
-  console.log(parameters);
+
   const result =
     await nftcontract.populateTransaction.fulfillBasicOrder(parameters);
   const inputData = result.data;
@@ -209,7 +205,6 @@ const fulfillBasicOrder = async (
   ).fulfillBasicOrder.staticCall(parameters, {
     value: BigInt(value.toString())
   });
-  console.log(resultData);
 
   const tx = await getNewTx(
     signer,
@@ -220,9 +215,8 @@ const fulfillBasicOrder = async (
   );
 
   if (tx !== null) {
-    console.log("fulfillBasicOrder... please await");
     const etherscanURL = await getScanURL();
-    console.log(`Please See: ${etherscanURL}/tx/${tx.hash}`);
+
     const message_ = `${etherscanURL}/tx/${tx.hash}`;
 
     return [message_, tx];
@@ -278,7 +272,6 @@ const fulfillOrder = async (
   }
 
   if (!isFulfillOrderTuple(orderdata)) {
-    console.log("orderdata invalid");
     return [null, null];
   }
 
@@ -289,8 +282,6 @@ const fulfillOrder = async (
     seaportAbi,
     signer
   ) as SeaportContract;
-  console.log("parameters:");
-  console.log(order);
 
   const fulfillerConduitKey =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -299,15 +290,13 @@ const fulfillOrder = async (
   ).fulfillOrder.staticCall(order, fulfillerConduitKey, {
     value: BigInt(value_wei.toString())
   });
-  console.log("call fulfillOrder result: " + callStaticReturn);
 
   const tx = await nftcontract.fulfillOrder(order, fulfillerConduitKey, {
     value: BigInt(value_wei.toString())
   });
 
-  console.log("fulfillOrder... please await");
   const etherscanURL = await getScanURL();
-  console.log(`Please See: ${etherscanURL}/tx/${tx.hash}`);
+
   const message_ = `${etherscanURL}/tx/${tx.hash}`;
   return [message_, tx];
 };
@@ -350,7 +339,6 @@ const fulfillBasicOrder_efficient = async (
       tokenId_
     );
     if (transactionData === null) {
-      console.log("transactionDatas is null");
       return;
     }
   } else if (chainId === 97) {
@@ -361,7 +349,6 @@ const fulfillBasicOrder_efficient = async (
       tokenId_
     );
     if (transactionData === null) {
-      console.log("transactionDatas is null");
       return;
     }
   }
@@ -379,14 +366,13 @@ const fulfillBasicOrder_efficient = async (
   ).fulfillBasicOrder_efficient_6GL6yc.staticCall(parameters, {
     value: BigInt(value.toString())
   });
-  console.log(resultData);
+
   const tx = await nftcontract.fulfillBasicOrder_efficient_6GL6yc(parameters, {
     value: BigInt(value.toString())
   });
 
-  console.log("fulfillBasicOrder_efficient... please await");
   const etherscanURL = await getScanURL();
-  console.log(`Please See: ${etherscanURL}/tx/${tx.hash}`);
+
   const message_ = `${etherscanURL}/tx/${tx.hash}`;
   return [message_, tx];
 };
@@ -397,7 +383,6 @@ const fulfillAvailableOrders = async (
   currentAccount: string
 ): Promise<TxMessageResult | undefined> => {
   const data = { contracts: contracts_, tokenIds: tokenIds_ };
-  console.log(data);
 
   const providerWeb3 = await getProvider();
   if (!providerWeb3) return;
@@ -466,7 +451,6 @@ const fulfillAvailableOrders = async (
       fulfillerConduitKey,
       maximumFulfilled
     ] = bundle;
-    console.log(orders);
   } else if (chainId === 97) {
     const bundle = await OrdersTest.getFulfillAvailableOrders_data(
       chainName_TBSC,
@@ -486,7 +470,6 @@ const fulfillAvailableOrders = async (
       fulfillerConduitKey,
       maximumFulfilled
     ] = bundle;
-    console.log(orders);
   } else {
     return [null, null];
   }
@@ -509,7 +492,7 @@ const fulfillAvailableOrders = async (
       value: BigInt(currentPriceSum.toString())
     }
   );
-  console.log("callstaticResult: " + callstaticResult);
+
   const tx = await nftcontract.fulfillAvailableOrders(
     orders,
     offerFulfillments,
@@ -520,9 +503,9 @@ const fulfillAvailableOrders = async (
       value: BigInt(currentPriceSum.toString())
     }
   );
-  console.log("fulfillAvailableOrders... please await");
+
   const etherscanURL = await getScanURL();
-  console.log(`Please See: ${etherscanURL}/tx/${tx.hash}`);
+
   const message_ = `${etherscanURL}/tx/${tx.hash}`;
   return [message_, tx];
 };
@@ -533,7 +516,7 @@ const fulfillAvailableAdvancedOrders = async (
   currentAccount: string
 ): Promise<TxMessageResult | null | undefined> => {
   const data = { contracts: contracts_, tokenIds: tokenIds_ };
-  console.log(data);
+
   const provider = await getProvider();
   if (!provider) return;
   const signer = withCustomGasPrice(
@@ -552,7 +535,6 @@ const fulfillAvailableAdvancedOrders = async (
   let maximumFulfilled: number;
 
   if (!contracts_.length || !tokenIds_.length) {
-    console.log("contractAddress or tokenIds is null");
     return;
   }
 
@@ -599,7 +581,6 @@ const fulfillAvailableAdvancedOrders = async (
         tokenIds_
       );
     if (Orders_datas === null) {
-      console.log("Orders_datas is null");
       return null;
     }
     [
@@ -621,7 +602,6 @@ const fulfillAvailableAdvancedOrders = async (
         tokenIds_
       );
     if (Orders_datas === null) {
-      console.log("Orders_datas is null");
       return null;
     }
     [
@@ -638,14 +618,6 @@ const fulfillAvailableAdvancedOrders = async (
     return [null, null];
   }
 
-  console.log("advancedOrders: ");
-  console.log(advancedOrders);
-  console.log("criteriaResolvers: ");
-  console.log(criteriaResolvers);
-  console.log("offerFulfillments: ");
-  console.log(offerFulfillments);
-  console.log("considerationFulfillments: ");
-  console.log(considerationFulfillments);
   const nftcontract = new Contract(
     protocolAddress,
     seaportAbi,
@@ -686,7 +658,6 @@ const fulfillAvailableAdvancedOrders = async (
       value: BigInt(currentPriceSum.toString())
     }
   );
-  console.log("callstaticResult: " + callstaticResult);
 
   const tx = await signer.sendTransaction({
     to: nftcontract.target,
@@ -694,9 +665,8 @@ const fulfillAvailableAdvancedOrders = async (
     value: BigInt(currentPriceSum.toString())
   });
 
-  console.log("fulfillAvailableAdvancedOrders... please await");
   const etherscanURL = await getScanURL();
-  console.log(`Please See: ${etherscanURL}/tx/${tx.hash}`);
+
   const message_ = `${etherscanURL}/tx/${tx.hash}`;
   return [message_, tx];
 };

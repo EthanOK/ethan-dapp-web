@@ -56,7 +56,7 @@ export async function createEIP7702Account(
     ...(nonce !== undefined ? { nonce } : {}),
     authorizationList: [auth as AuthorizationLike]
   });
-  console.log("已发送创建授权交易：", tx.hash);
+
   return tx.hash;
 }
 
@@ -67,12 +67,12 @@ export async function revokeEIP7702Account(signer: Signer): Promise<string> {
     address: ZeroAddress,
     nonce: currentNonce + 1
   });
-  console.log("已创建撤销授权");
+
   const tx = await signer.sendTransaction({
     type: 4,
     to: account,
     authorizationList: [revokeAuth]
   });
-  console.log("已发送撤销交易：", tx.hash);
+
   return tx.hash;
 }

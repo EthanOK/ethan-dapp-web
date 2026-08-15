@@ -100,6 +100,12 @@ export const modal = createAppKit({
   defaultNetwork: getDefaultNetwork(storedChainId),
   projectId: projectId_walletconnect ?? "",
   themeMode: getStoredAppTheme(),
+  // Official default account type: social logins land on the EOA account (no
+  // ERC-6492 wrapping while the smart account is undeployed). A user who
+  // explicitly switches to smart-account has that stored in
+  // `@appkit/preferred_account_types`, which wins over this default on init
+  // (ChainController: defaultTypes = { ...defaultAccountTypes, ...stored }).
+  defaultAccountTypes: { eip155: "eoa" },
   chainImages: {
     [mainnet.id]: FALLBACK_CHAIN_ICON,
     [sepolia.id]: FALLBACK_CHAIN_ICON,

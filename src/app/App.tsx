@@ -20,6 +20,7 @@ import {
   type AppLocale,
   type TranslationKey
 } from "@/i18n";
+import { readCachedSession, shortAddress } from "@/lib/wallet/cachedSession";
 
 function LogoMarkIcon() {
   return (
@@ -181,6 +182,70 @@ const prefetchSwapPage = () => {
   void import("@/pages/SwapPage");
 };
 
+/**
+ * Render the optimistic "connected" pill inside the Suspense fallback. WalletControls
+ * is lazy-loaded, so before its chunk finishes parsing the only thing the header
+ * can show is whatever we can read from localStorage synchronously. This avoids
+ * the "empty Network label" flash on a fresh page load.
+ */
+function WalletControlsFallback() {
+  const snapshot = readCachedSession();
+  return (
+    <div
+      className={
+        "app-header-wallet-controls" +
+        (snapshot.hasSession ? " is-connected" : "")
+      }
+    >
+      <label htmlFor="app-network" className="app-header-network-label">
+        Network
+      </label>
+      <div className="app-header-network-wrap">
+        <button
+          type="button"
+          id="app-network"
+          className="app-header-network-select"
+          aria-haspopup="listbox"
+          aria-expanded={false}
+          aria-label="Network"
+          disabled
+        >
+          Network
+        </button>
+      </div>
+      <div className="w3-connect-wrap">
+        {snapshot.hasSession && snapshot.address ? (
+          <button
+            type="button"
+            className="cta-button connect-wallet-button app-header-wallet-pill"
+            disabled
+            aria-busy="true"
+          >
+            <span className="app-header-wallet-pill-avatar" aria-hidden />
+            <span className="app-header-wallet-pill-addr">
+              {shortAddress(snapshot.address)}
+            </span>
+            {snapshot.balance && (
+              <span className="app-header-wallet-pill-balance">
+                {Number(snapshot.balance.balance).toFixed(3)}{" "}
+                {snapshot.balance.symbol}
+              </span>
+            )}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="cta-button connect-wallet-button"
+            disabled
+          >
+            Connect Wallet
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 if (typeof window !== "undefined") {
   (window as Window).Buffer =
     (window as Window).Buffer ?? require("buffer").Buffer;
@@ -204,6 +269,24 @@ function DocumentSurface() {
 function App() {
   useEffect(() => {
     prefetchSwapPage();
+    // Start downloading the wallet chunk on the first idle frame so the
+    // Suspense fallback above the header is barely visible after a refresh.
+    // WalletControls pulls in `@/app/Wallet` (createAppKit + adapters + viem),
+    // which is the slow part — kicking the import off early keeps the rest
+    // of the page interactive while we wait for AppKit to rehydrate.
+    if (typeof window === "undefined") return;
+    const prefetchWalletControls = () => {
+      void import("@/app/WalletControls");
+    };
+    const win = window as Window & {
+      requestIdleCallback?: (cb: () => void) => number;
+    };
+    if (typeof win.requestIdleCallback === "function") {
+      win.requestIdleCallback(prefetchWalletControls);
+      return;
+    }
+    const timerId = window.setTimeout(prefetchWalletControls, 0);
+    return () => window.clearTimeout(timerId);
   }, []);
 
   const { theme, toggleTheme } = useAppTheme();
@@ -305,13 +388,7 @@ function App() {
                 {theme === "dark" ? <ThemeSunIcon /> : <ThemeMoonIcon />}
               </span>
             </button>
-            <Suspense
-              fallback={
-                <div className="app-header-wallet-controls">
-                  <span className="app-header-network-label">Network</span>
-                </div>
-              }
-            >
+            <Suspense fallback={<WalletControlsFallback />}>
               <WalletControls />
             </Suspense>
           </div>

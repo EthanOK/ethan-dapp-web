@@ -29,10 +29,9 @@ export async function signSetAlias(
 
   try {
     const result = await signClient.alias(web3, address, { alias });
-    console.log("result:", result);
+
     return result;
   } catch (error) {
-    console.log("error:", error);
     return null;
   }
 }

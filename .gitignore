@@ -9,10 +9,9 @@
 /coverage
 
 # production
-# /build
+/build
 
 # misc
-.npmrc
 .env
 .DS_Store
 .env.local

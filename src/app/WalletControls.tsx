@@ -5,6 +5,7 @@ import { useReownWalletSync } from "@/hooks/useReownWalletSync";
 import { useHeaderChainId } from "@/hooks/useHeaderChainId";
 import { useOpenAppKitModal } from "@/hooks/useOpenAppKitModal";
 import { useI18n } from "@/i18n";
+import { readCachedSession, shortAddress } from "@/lib/wallet/cachedSession";
 
 const MOBILE_HEADER_MQ = "(max-width: 768px)";
 
@@ -63,7 +64,10 @@ function useMobileHeaderLayout() {
 function WalletControls() {
   const { t } = useI18n();
   const isMobileHeader = useMobileHeaderLayout();
-  const { address, isConnected, currentChainId } = useReownWalletSync();
+  // Captured synchronously on first render so the header can show an
+  // address+balance pill immediately while AppKit's session rehydration runs.
+  const [optimistic, setOptimistic] = useState(() => readCachedSession());
+  const { address, isConnected, currentChainId, status } = useReownWalletSync();
   const { chainId, handleHeaderNetworkChange } = useHeaderChainId({
     isConnected,
     address,
@@ -72,6 +76,15 @@ function WalletControls() {
   const { isConnecting, openConnectModal } = useOpenAppKitModal();
   const [networkPickerOpen, setNetworkPickerOpen] = useState(false);
   const networkMenuRef = useRef<HTMLDivElement>(null);
+
+  // When AppKit settles into "disconnected" (initial hydrate or explicit
+  // disconnect), the `useReownWalletSync` effect just wiped the optimistic
+  // cache. Re-read it so the header doesn't keep showing an old address.
+  useEffect(() => {
+    if (status === "disconnected") {
+      setOptimistic(readCachedSession());
+    }
+  }, [status]);
 
   useSyncAppKitTheme();
 
@@ -176,12 +189,33 @@ function WalletControls() {
         )}
       </div>
       <div className="w3-connect-wrap">
-        {isConnected ? (
+        {isConnected && address ? (
           <appkit-button
             balance={isMobileHeader ? "hide" : "show"}
             label={t("common.connectWallet")}
             style={{ display: "block", marginLeft: "auto" }}
           />
+        ) : optimistic.hasSession && optimistic.address ? (
+          <button
+            type="button"
+            className="cta-button connect-wallet-button app-header-wallet-pill"
+            // Disabled placeholder; once AppKit rehydrates the real
+            // <appkit-button> swaps in and becomes interactive.
+            disabled
+            aria-busy="true"
+            title={t("common.connecting")}
+          >
+            <span className="app-header-wallet-pill-avatar" aria-hidden />
+            <span className="app-header-wallet-pill-addr">
+              {shortAddress(optimistic.address)}
+            </span>
+            {!isMobileHeader && optimistic.balance && (
+              <span className="app-header-wallet-pill-balance">
+                {Number(optimistic.balance.balance).toFixed(3)}{" "}
+                {optimistic.balance.symbol}
+              </span>
+            )}
+          </button>
         ) : (
           <button
             type="button"
