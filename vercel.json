@@ -1,8 +1,8 @@
 {
   "version": 2,
   "outputDirectory": "build",
-  "installCommand": "echo skip install",
-  "buildCommand": "echo using prebuilt build directory",
+  "installCommand": "bun install",
+  "buildCommand": "bun run build",
   "rewrites": [
     {
       "source": "/(.*)",
