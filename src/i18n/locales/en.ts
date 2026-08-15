@@ -264,6 +264,7 @@ export const en = {
   "eip7702.checking": "Checking…",
   "eip7702.enterPkToCheck": "Enter a private key to check",
   "eip7702.lastTransaction": "Transaction",
+  "eip7702.aaTransactionHash": "AA Transaction Hash",
   "eip7702.txPending": "Pending",
   "eip7702.txSuccess": "Success",
   "eip7702.txFailed": "Failed",
@@ -276,13 +277,12 @@ export const en = {
   "eip7702.readinessChecking": "Checking…",
   "eip7702.readinessColAccount": "Account",
   "eip7702.readinessColSmart": "EIP-7702 Delegated",
+  "eip7702.readinessColSmartAccount": "Smart Account",
   "eip7702.readinessColChain": "Selected Chain",
   "eip7702.readinessColCaps": "Capabilities on selected chain",
   "eip7702.readinessYes": "Yes",
   "eip7702.readinessNo": "No",
   "eip7702.readinessNone": "None",
-  "eip7702.readinessUnsupported":
-    "The selected chain does not support batch transactions via 7702 / 5792. Please select a chain that supports it (Gnosis mainnet).",
   "eip7702.readinessBatchTitle": "Batch transactions (ERC-5792)",
   "eip7702.readinessTxnNo": "Txn No.",
   "eip7702.readinessSend": "Send",
@@ -296,6 +296,8 @@ export const en = {
   "eip7702.readinessBatchId": "Batch ID",
   "eip7702.readinessSuccess": "Success",
   "eip7702.readinessSuccessTx": "Batch sent. Tx {{hash}}",
+  "eip7702.readinessSubmittedPending":
+    "Batch submitted. Tx {{hash}} (confirmation pending)",
   "eip7702.readinessViewExplorer": "View on block explorer",
   "eip7702.readinessInvalidHex":
     "Value must be a valid wei number (hex string without 0x)",

@@ -32,7 +32,8 @@ function persistChainIdFromAppKit(currentChainId: string | number | undefined) {
  * App shell: SIWE login after connect, chain id persistence, Solana/BTC balance refresh.
  */
 export function useReownWalletSync() {
-  const { address, isConnected, status } = useAppKitAccount();
+  const { address, isConnected, status, embeddedWalletInfo } =
+    useAppKitAccount();
   const solanaAccount = useAppKitAccount({ namespace: "solana" });
   const bitcoinAccount = useAppKitAccount({ namespace: "bip122" });
   const { chainId: currentChainId, caipNetwork } = useAppKitNetwork();
@@ -268,6 +269,10 @@ export function useReownWalletSync() {
     solanaAccount,
     bitcoinAccount,
     currentChainId,
-    caipNetwork
+    caipNetwork,
+    /** "smartAccount" | "eoa" | undefined — AppKit's authoritative source. */
+    accountType: embeddedWalletInfo?.accountType,
+    /** Whether the smart account contract is deployed on the active chain. */
+    isSmartAccountDeployed: embeddedWalletInfo?.isSmartAccountDeployed
   };
 }

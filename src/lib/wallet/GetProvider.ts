@@ -86,6 +86,9 @@ type Eip1193Provider = { request: Eip1193Request };
 
 /** Raw EIP-1193 provider (has `.request`) from the AppKit store. */
 const getEip1193Provider = async (): Promise<Eip1193Provider | null> => {
+  // The embedded-wallet (AA) provider registers asynchronously — waiting here
+  // avoids returning null on a fresh page load before the frame is ready.
+  if (!(await waitForProviderReady())) return null;
   const reownProvider = store.eip155Provider as Eip1193Provider | undefined;
   if (reownProvider?.request) return reownProvider;
   return null;
