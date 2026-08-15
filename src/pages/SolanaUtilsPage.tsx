@@ -123,7 +123,7 @@ const SolanaUtilsContent = () => {
 
       setAccountSOLBalance(balance / LAMPORTS_PER_SOL);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -146,11 +146,6 @@ const SolanaUtilsContent = () => {
   const signSolanaMessageHandler = async () => {
     if (!publicKey) return;
     const account_Address = publicKey.toBase58();
-
-    console.log(
-      "Connected to Phantom wallet. Public key:",
-      publicKey.toBase58()
-    );
 
     localStorage.setItem("currentSolanaAccount", account_Address);
 
@@ -179,23 +174,17 @@ const SolanaUtilsContent = () => {
     } else {
       setMessage(signature_string);
 
-      console.log(signature_string.length);
-
       const verifyR = await verifySolanaSignature(
         signature_string,
         message,
         account_Address
       );
 
-      console.log(verifyR);
-
       const verifyR2 = await verifySolanaSignatureV2(
         signature_string,
         message,
         account_Address
       );
-
-      console.log(verifyR2);
     }
   };
 
@@ -227,7 +216,7 @@ const SolanaUtilsContent = () => {
         new PublicKey(currentSolanaAccount),
         2 * LAMPORTS_PER_SOL
       );
-      console.log(signature);
+
       toast.success(t("solana.airdropSuccess"));
       updateShowData();
       setShowAlert(true);
@@ -235,7 +224,7 @@ const SolanaUtilsContent = () => {
         setShowAlert(false);
       }, 2000);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error(t("solana.airdropFailure"));
       setShowAlert(true);
       setTimeout(() => {
@@ -330,7 +319,6 @@ const SolanaUtilsContent = () => {
         connection
       );
 
-      console.log(signature);
       if (signature === null) {
         toast.error(t("solana.sendFailure"));
         setTransferTx({ status: "failed" });
@@ -353,7 +341,7 @@ const SolanaUtilsContent = () => {
         setShowAlert(false);
       }, 2000);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       const rejected = isUserRejected(error);
       if (rejected) {
         toast(t("common.txRejected"));

@@ -23,7 +23,6 @@ const Web3AuthSolanaPage = () => {
   function uiConsole(...args) {
     const str = stringifyJson(args?.length ? args : {}, 2);
     setConsoleOutput(str);
-    console.log(...args);
   }
 
   const getConnnection = async (wallet) => {
@@ -83,7 +82,6 @@ const Web3AuthSolanaPage = () => {
       setSolanaWallet(sw);
       const conn = await getConnnection(sw);
       setConnection(conn);
-      console.log("solanaWallet", sw);
 
       if (web3auth.connected) {
         setLoggedIn(true);

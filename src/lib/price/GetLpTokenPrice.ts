@@ -17,7 +17,6 @@ const getTokenPrice = async (
     let rpc: string | undefined;
     let routerV2: string | undefined;
 
-    console.log(platform);
     if (platform === "1") {
       routerV2 = UniswapRouter;
       rpc = SupportChains.find((c) => Number(c.id) === 1)?.rpcUrls?.[0];
@@ -47,10 +46,9 @@ const getTokenPrice = async (
     const token1Price = formatUnits(amounts[1], decimals1);
     const pairPrice = `1 ${symbol0} = ${token1Price} ${symbol1}`;
 
-    console.log(pairPrice);
     return pairPrice;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return "error";
   }
 };

@@ -12,6 +12,7 @@ import {
 } from "ethers";
 import { getYunGouAddressAndParameters } from "@/lib/shared/Utils";
 import { getSignerAndChainId } from "@/lib/wallet/GetProvider";
+import { store } from "@/lib/wallet/Suscribers";
 import { order_data } from "@/fixtures/OrderDataYungou";
 import { Seaport } from "@opensea/seaport-js";
 import type {
@@ -48,7 +49,14 @@ function siweDomainAndUri(): { domain: string; uri: string } {
 export const signSiweMessage = async () => {
   try {
     const [signer_, chainId_] = await getSignerAndChainId();
-    if (!signer_ || !chainId_) return null;
+    if (!signer_ || !chainId_) {
+      // Previously returned null silently — log why (eip155 provider missing).
+      console.error(
+        "[SIWE] signer unavailable — store.eip155Provider:",
+        store.eip155Provider
+      );
+      return null;
+    }
     const signerAddress = await signer_.getAddress();
     const { domain, uri } = siweDomainAndUri();
     const now = new Date();
@@ -67,7 +75,33 @@ export const signSiweMessage = async () => {
     });
 
     const prepared = msg.prepareMessage();
-    const signature = await signer_.signMessage(prepared);
+
+    // The embedded wallet (Google/social login) can abort personal_sign around
+    // the connect-modal close. Retry transient failures a few times.
+    let signature: string | null = null;
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= 3 && !signature; attempt++) {
+      try {
+        signature = await signer_.signMessage(prepared);
+      } catch (error) {
+        if (isUserRejected(error)) {
+          toast.error(tGlobal("common.txRejected"));
+          return null;
+        }
+        lastError = error;
+        console.warn(`[SIWE] signMessage attempt ${attempt}/3 failed`, error);
+        if (attempt < 3) await new Promise((r) => setTimeout(r, 700 * attempt));
+      }
+    }
+    if (!signature) {
+      console.error("[SIWE] signMessage failed after retries", lastError);
+      return null;
+    }
+
+    // smartAccount personal_sign comes back ERC-6492 wrapped (undeployed
+    // account): the wrapped signature embeds factory + factoryCalldata + the
+    // EOA signature. Pass it through verbatim — the backend verifies via
+    // ERC-6492/1271.
     return { message: prepared, signature, siweMessage: msg };
   } catch (error: unknown) {
     if (isUserRejected(error)) {
@@ -97,7 +131,7 @@ const signEIP712Message = async (_signer: Signer, _chainId: number) => {
     const randNo = hexlify(randomBytes(8));
     const amount = hexlify(randomBytes(1));
     // Get signer address
-    console.log(signer_);
+
     const signerAddress = await signer_.getAddress();
 
     var message = {
@@ -107,7 +141,7 @@ const signEIP712Message = async (_signer: Signer, _chainId: number) => {
     };
 
     // TODO:_signTypedData
-    console.log("_signTypedData");
+
     const signature = await signer_.signTypedData(domainData, types, message);
 
     const recoveredAddress = verifyTypedData(
@@ -118,14 +152,12 @@ const signEIP712Message = async (_signer: Signer, _chainId: number) => {
     );
 
     if (recoveredAddress === signerAddress) {
-      console.log("签名验证成功！");
     } else {
-      console.log("签名验证失败！");
     }
     const params = { domainData, message, signature };
     return params;
   } catch (error: unknown) {
-    console.log(error);
+    console.error(error);
     if (isUserRejected(error)) {
       toast.error(tGlobal("common.txRejected"));
     }
@@ -134,22 +166,20 @@ const signEIP712Message = async (_signer: Signer, _chainId: number) => {
 };
 const signStringMessage = async (signer: Signer) => {
   // TODO: signMessage String
-  console.log("signMessage String");
+
   let messageString = "Hello, this is a String Message.";
 
   try {
     const signatureM = await signer.signMessage(messageString);
-    console.log(signatureM);
+
     const recoveredAddressString = verifyMessage(messageString, signatureM);
     const signerAddress = await signer.getAddress();
     if (recoveredAddressString === signerAddress) {
-      console.log("签名验证成功！");
     } else {
-      console.log("签名验证失败！");
     }
     return true;
   } catch (error: unknown) {
-    console.log(error);
+    console.error(error);
     if (isUserRejected(error)) {
       toast.error(tGlobal("common.txRejected"));
     }
@@ -162,26 +192,24 @@ const signStringMessage = async (signer: Signer) => {
 };
 const signHexDataMessage = async (signer: Signer, hexData: string) => {
   // TODO: signMessage with hex data
-  console.log("signMessage Hex data");
+
   // Convert hex data to byte array
-  console.log(hexData);
+
   // const hexData =
   //   "0xf6896007477ab25a659f87c4f8c5e3baac32547bf305e77aa57743046e10578b";
   const data = getBytes(hexData);
 
   try {
     const signatureHex = await signer.signMessage(data);
-    console.log(signatureHex);
+
     const signerAddress = await signer.getAddress();
     const recoveredAddressHex = verifyMessage(data, signatureHex);
     if (recoveredAddressHex === signerAddress) {
-      console.log("签名验证成功！");
     } else {
-      console.log("签名验证失败！");
     }
     return signatureHex;
   } catch (error: unknown) {
-    console.log(error);
+    console.error(error);
     if (isUserRejected(error)) {
       toast.error(tGlobal("common.txRejected"));
     }
@@ -221,10 +249,7 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
     ]
   };
 
-  console.log(message);
-
   // TODO:_signTypedData
-  console.log("_signTypedData");
 
   try {
     const orderSignature = await signer.signTypedData(
@@ -233,7 +258,6 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
       message as Record<string, unknown>
     );
 
-    console.log("orderSignature:" + orderSignature);
     let data = order_data;
 
     const system = await getSystemSignature(orderSignature, data);
@@ -246,7 +270,6 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
       message as Record<string, unknown>
     );
 
-    console.log("orderHash: " + orderHash);
     let result = {
       orderHash: orderHash,
       orderSignature: orderSignature,
@@ -255,7 +278,7 @@ const signEIP712YunGouMessage = async (signer: Signer, chainId: number) => {
     };
     return result;
   } catch (error: unknown) {
-    console.log(error);
+    console.error(error);
 
     if (isUserRejected(error)) {
       toast.error(tGlobal("common.txRejected"));
@@ -277,7 +300,6 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
     verifyingContract: "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC"
   };
 
-  console.log(domainData);
   //   struct BasicOrderParameters {
   //     OrderType orderType;
   //     address payable offerer;
@@ -433,10 +455,8 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
       "0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000",
     counter: BigInt("0")
   };
-  console.log(message);
 
   // TODO:_signTypedData
-  console.log("_signTypedData");
 
   try {
     const orderSignature = await signer.signTypedData(
@@ -445,18 +465,15 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
       message
     );
 
-    console.log("orderSignature:" + orderSignature);
-
     let orderHash = TypedDataEncoder.from(types).hash(message);
 
-    console.log("orderHash: " + orderHash);
     let result = {
       orderHash: orderHash,
       orderSignature: orderSignature
     };
     return result;
   } catch (error: unknown) {
-    console.log(error);
+    console.error(error);
     if (isUserRejected(error)) {
       toast.error(tGlobal("common.txRejected"));
     }
@@ -472,8 +489,6 @@ const signEIP712OpenSeaMessage = async (signer: Signer, chainId: number) => {
 const signBulkOrderOpenSeaMessage = async (signer: Signer, chainId: number) => {
   const seaport = new Seaport(signer as any);
   const domainData = await getSeaportDomainData(seaport, chainId);
-
-  console.log(domainData);
 
   const orders: OrderComponents[] = [];
 
@@ -624,7 +639,6 @@ const signCustomBulkOrderMessage = async (signer: Signer, chainId: number) => {
     // verify the signature
     const account = await signer.getAddress();
     const verified = await bulkOrder.verifyBulkOrder(ordersWithSign, account);
-    console.log("verified:", verified);
   } catch (error: unknown) {
     if (isUserRejected(error)) {
       toast.error(tGlobal("common.txRejected"));
@@ -662,14 +676,14 @@ const getSystemSignature = async (
     ];
 
     const encodedData = AbiCoder.defaultAbiCoder().encode(type, args);
-    console.log("encodedData:" + encodedData);
+
     const hashData = keccak256(encodedData);
     let binaryData_ = getBytes(hashData);
-    console.log("systemMassageHash:" + hashData);
+
     let signPromise_ = await signer.signMessage(binaryData_);
     return { signature: signPromise_, privateKey: signer.privateKey };
   } catch (error: unknown) {
-    console.log(error);
+    console.error(error);
     if (isUserRejected(error)) {
       toast.error(tGlobal("common.txRejected"));
     }

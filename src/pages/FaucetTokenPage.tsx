@@ -516,7 +516,7 @@ const FaucetTokenPage = () => {
       }
       return true;
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return false;
     }
   };

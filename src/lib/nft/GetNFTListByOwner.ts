@@ -38,7 +38,6 @@ export const getNFTListByOwner = async (
     pageKey = data.pageKey ?? null;
     if (data.ownedNfts) ownedNfts.push(...data.ownedNfts);
   }
-  console.log(ownedNfts.length);
 };
 
 export const getNFTListByOwnerAndContract = async (

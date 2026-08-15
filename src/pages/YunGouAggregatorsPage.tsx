@@ -88,7 +88,6 @@ const YunGouAggregatorsPage = () => {
         maximumFulfilled;
 
       if (!contractsValue || !tokenIdsValue) {
-        console.log("contractAddress or tokenIds is null");
         return;
       }
 
@@ -199,7 +198,7 @@ const YunGouAggregatorsPage = () => {
       setMessage(`${etherscan}/tx/${tx.hash}`);
       await tx.wait();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -236,7 +235,7 @@ const YunGouAggregatorsPage = () => {
       setMessage(`${etherscan}/tx/${tx.hash}`);
       await tx.wait();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -250,7 +249,7 @@ const YunGouAggregatorsPage = () => {
       setMessage(`${etherscan}/tx/${tx.hash}`);
       await tx.wait();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -263,7 +262,6 @@ const YunGouAggregatorsPage = () => {
     const yungou2_0 = new Contract(YunGou2_0, yunGou2_0Abi, signer);
     const orderHash = await yungou2_0.getOrderHash(parameters);
     const orderStatus = await yungou2_0.getOrderStatus(orderHash);
-    console.log("orderHash:", orderHash, "orderStatus:", orderStatus);
   };
 
   return (

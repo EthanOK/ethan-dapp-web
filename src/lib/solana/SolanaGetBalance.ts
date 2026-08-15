@@ -10,7 +10,7 @@ export const getSolBalance = async (
     balance = await connection.getBalance(new PublicKey(ownerAddress));
     return balance;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return balance;
   }
 };

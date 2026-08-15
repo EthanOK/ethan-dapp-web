@@ -64,7 +64,7 @@ const UtilsPage = () => {
         setEtherPrice(result.data.ethPrice);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -112,7 +112,7 @@ const UtilsPage = () => {
       );
       setLpTokenPrice(String(pairPrice ?? ""));
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

@@ -111,7 +111,7 @@ const WsolPageContent = () => {
           LAMPORTS_PER_SOL
       );
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -167,11 +167,11 @@ const WsolPageContent = () => {
           })
           .transaction();
         const tx = await sendPreparedTransaction(txTransaction, connection);
-        console.log(tx);
+
         toast.success(t("wsol.initSuccess"));
         updateShowData();
       } catch (error) {
-        console.log(error);
+        console.error(error);
         toast.error(t("wsol.initFailed"));
       }
     }
