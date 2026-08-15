@@ -1,1 +1,0 @@
-import{t as e}from"./SolanaStoreUtil-BfqeOKJ6.js";import{i as t}from"./react-N3LxRgmR.js";function n(){return{connection:t(e.state).connection}}export{n as t};

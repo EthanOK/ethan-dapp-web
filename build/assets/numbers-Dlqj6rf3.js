@@ -1,1 +1,0 @@
-var e=BigInt(`0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff`);BigInt(`0x8000000000000000000000000000000000000000000000000000000000000000`)*BigInt(-1);export{e as t};
