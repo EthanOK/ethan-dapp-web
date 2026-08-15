@@ -1,7 +1,7 @@
 {
   "version": 2,
   "outputDirectory": "build",
-  "installCommand": "bun install",
+  "installCommand": "bun install --ignore-scripts",
   "buildCommand": "bun run build",
   "rewrites": [
     {
