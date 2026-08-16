@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.7](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.6...v3.0.7) (2026-08-16)
+
+
+### Features
+
+* add EIP-5792 readiness + batch transactions to EIP7702 page ([cb6dbd2](https://github.com/EthanOK/ethan-bric-web/commit/cb6dbd2c4879481bf80e24335d2cfe4bd1b35b8e))
+* EIP-5792 AA batch confirmation + smart account display ([50bb549](https://github.com/EthanOK/ethan-bric-web/commit/50bb54910a6afce286ce08016acc3a7c93e3046d))
+* keep per-address login tokens so re-login skips signing ([ce529df](https://github.com/EthanOK/ethan-bric-web/commit/ce529dfd6e8ec075f7bae40172477b7b21af900b))
+* revamp EIP-7702 page with delegation status and production UI ([61a90f5](https://github.com/EthanOK/ethan-bric-web/commit/61a90f56b99726c19281a708744fb237d5ed9975))
+* revamp faucet page with single-panel UI and multicall3 batch data ([41e12fb](https://github.com/EthanOK/ethan-bric-web/commit/41e12fba7dc587967afff042aada68296381e650))
+* server-side gas sponsorship for EIP-7702 with login & RPC trims ([8eadf30](https://github.com/EthanOK/ethan-bric-web/commit/8eadf3084e058d6cc8982dd83a676064d7ad7428))
+
+
+### Bug Fixes
+
+* skip native build scripts on vercel install ([8412382](https://github.com/EthanOK/ethan-bric-web/commit/841238265fbe80eda4e58dfc698176e211c7c156))
+* treat zero allowance as valid result in ERC20 allowance checker ([42c08bd](https://github.com/EthanOK/ethan-bric-web/commit/42c08bd61bf43a7643a3c8fc59589a19366f75f0))
+* use GITHUB_TOKEN env for github packages auth ([0718ea4](https://github.com/EthanOK/ethan-bric-web/commit/0718ea47a9e156205969549867ef24b27c75d6e9))
+* wallet header refresh latency + default EOA account type ([376712b](https://github.com/EthanOK/ethan-bric-web/commit/376712b32a8b7700f5217af7817559be4147fee5))
+
 ### [3.0.6](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.5...v3.0.6) (2026-08-11)
 
 
