@@ -1,9 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import {
   getEip1193Provider,
+  getReadonlyProviderForChain,
   parseEvmChainIdFromStored
 } from "@/lib/wallet/GetProvider";
+import {
+  decodeMulticallResult,
+  multicall3Aggregate3StaticCall
+} from "@/lib/evm/Multicall3";
+import { fetchTokenBalancesMulticall } from "@/lib/swap/swapTokenMulticall";
+import { tokenBalanceKey, type TokenSide } from "@/lib/swap/swapTokenRules";
 import { useOpenAppKitModal } from "@/hooks/useOpenAppKitModal";
 import { hasValidSessionToken } from "@/lib/wallet/sessionToken";
 import {
@@ -13,7 +20,15 @@ import {
 } from "@/lib/evm/EIP7702Utils";
 import { EIP7702Delegator_Metamask } from "@/config/SystemConfiguration";
 import { SupportChains } from "@/config/ChainsConfig";
-import { JsonRpcProvider, Wallet, ZeroAddress } from "ethers";
+import {
+  formatUnits,
+  Interface,
+  isAddress,
+  JsonRpcProvider,
+  Wallet,
+  ZeroAddress
+} from "ethers";
+import erc20Abi from "@/abis/evm/erc20ABI.json";
 import { withCustomGasPrice } from "@/lib/evm/GasStrategy";
 import { getScanURL } from "@/lib/shared/Utils";
 import { relayEIP7702 } from "@/services/AuthApi";
@@ -24,6 +39,122 @@ import { toast } from "sonner";
 const BATCH_TXN_5792 = "atomic";
 /** Chainlist RPC/explorer registry used to resolve explorers for unknown chains. */
 const CHAINLIST_INFO_API = "https://chainlist.org/rpcs.json";
+
+/** Which kind of asset a batch row is transferring. */
+type TokenKind = "native" | "usdc" | "custom";
+
+interface BatchTx {
+  tokenKind: TokenKind;
+  /** ERC-20 contract address (only when tokenKind !== "native"). */
+  tokenAddress: string;
+  /** Display unit used when parsing amount for ERC-20 rows. */
+  tokenSymbol: string;
+  /** Decimal places; "wei"-style integers are still allowed and skip this. */
+  tokenDecimals: number;
+  /**
+   * Raw input. For `native` rows this MUST be a wei integer string (decimal or
+   * 0x-prefixed hex); for ERC-20 rows this is a human amount that gets
+   * converted via `parseAmountToWei`.
+   */
+  value: string;
+  to: string;
+}
+
+/**
+ * Canonical USDC contract addresses for chains the project actually tests on.
+ * Chains not listed here disable the `usdc` option in the picker and force the
+ * user to `custom` (no unverified address guesses baked into the codebase).
+ */
+const USDC_ADDRESSES: Record<number, string> = {
+  1: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+  8453: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+};
+
+/** Decimals for each USDC contract (6 for canonical Circle USDC). */
+const USDC_DECIMALS = 6;
+/** ethers Interface instance bound to the project's erc20ABI, for calldata encoding. */
+const ERC20_IFACE = new Interface(erc20Abi);
+
+/**
+ * Parse a human-readable amount like "1.5" or "100" into a bigint scaled to
+ * `decimals`. Returns `null` when the input is empty, non-numeric or has more
+ * fractional digits than the token supports.
+ */
+const parseAmountToWei = (raw: string, decimals: number): bigint | null => {
+  const s = raw.trim();
+  if (!s) return null;
+  if (!/^[0-9]+(\.[0-9]+)?$/.test(s)) return null;
+  const [intPart, fracPart = ""] = s.split(".");
+  if (fracPart.length > decimals) return null;
+  const padded = (fracPart + "0".repeat(decimals)).slice(0, decimals);
+  // Concatenate as a decimal string so we don't lose precision for big amounts.
+  const combined = (intPart === "" ? "0" : intPart) + padded;
+  if (!/^[0-9]+$/.test(combined)) return null;
+  return BigInt(combined);
+};
+
+/**
+ * Encode `transfer(to, amount)` calldata against an ERC-20 contract. `amount`
+ * is the smallest-unit integer (already scaled to the token's decimals).
+ */
+const encodeErc20Transfer = (to: string, amount: bigint): string => {
+  return ERC20_IFACE.encodeFunctionData("transfer", [to, amount]) as string;
+};
+
+/**
+ * Resolve the (tokenKind, amountBigInt, callTo, callData, valueHex) tuple for
+ * a batch row. Returns null on validation failure (toast caller decides).
+ */
+const buildCallForRow = (
+  row: BatchTx,
+  chainId: number,
+  helpers: {
+    usdcForChain: string | null;
+    isAddressOk: (s: string) => boolean;
+  }
+):
+  | {
+      callTo: string;
+      callValue: string;
+      callData: string | undefined;
+    }
+  | { error: string } => {
+  const to = row.to.trim();
+  if (!helpers.isAddressOk(to)) return { error: "address" };
+
+  if (row.tokenKind === "native") {
+    // Human-readable amount: "0.1" means 0.1 native token (18 decimals for
+    // every supported chain: ETH / BNB / OKB).
+    const amount = parseAmountToWei(row.value, 18);
+    if (amount === null) return { error: "amount" };
+    return {
+      callTo: to,
+      callValue: `0x${amount.toString(16)}`,
+      callData: undefined
+    };
+  }
+
+  // ERC-20 branch.
+  let tokenAddress = "";
+  let decimals = 18;
+  if (row.tokenKind === "usdc") {
+    if (!helpers.usdcForChain) return { error: "usdcUnsupported" };
+    tokenAddress = helpers.usdcForChain;
+    decimals = USDC_DECIMALS;
+  } else {
+    tokenAddress = row.tokenAddress.trim();
+    if (!helpers.isAddressOk(tokenAddress)) return { error: "token" };
+    const d = Number(row.tokenDecimals);
+    if (!Number.isInteger(d) || d < 0 || d > 36) return { error: "amount" };
+    decimals = d;
+  }
+
+  const amount = parseAmountToWei(row.value, decimals);
+  if (amount === null) return { error: "amount" };
+  const data = encodeErc20Transfer(to, amount);
+  return { callTo: tokenAddress, callValue: "0x0", callData: data };
+};
 
 /**
  * wallet_getCapabilities returns an object keyed by CAIP-2 chain id
@@ -158,9 +289,30 @@ const EIP7702Page = () => {
     isSmartAccount: false,
     supportAtomic: false
   });
-  const [batchTxs, setBatchTxs] = useState([
-    { to: "0xdC659bF818f5Bc99DC672C746850e2BEBbA7D87d", value: "0" },
-    { to: "0x72DAcE9babA0561934a00F012ea2Df5082cd9052", value: "0" }
+  // Native currency symbol of the active chain (BNB on BSC, OKB on X Layer,
+  // ETH on Ethereum/Sepolia/Base...). Falls back to "ETH" until readiness
+  // resolves the chain id.
+  const nativeTokenSymbol =
+    SupportChains.find(
+      (c) => Number(c.id) === Number.parseInt(readiness.chainIdHex, 16)
+    )?.nativeCurrency.symbol ?? "ETH";
+  const [batchTxs, setBatchTxs] = useState<BatchTx[]>([
+    {
+      tokenKind: "native",
+      tokenAddress: "",
+      tokenSymbol: "ETH",
+      tokenDecimals: 18,
+      to: "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2",
+      value: "0.01"
+    },
+    {
+      tokenKind: "native",
+      tokenAddress: "",
+      tokenSymbol: "ETH",
+      tokenDecimals: 18,
+      to: "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2",
+      value: "0.01"
+    }
   ]);
   const [processingTxn, setProcessingTxn] = useState(false);
   const [batchId, setBatchId] = useState("");
@@ -671,13 +823,49 @@ const EIP7702Page = () => {
       toast.error(t("common.connectWallet"));
       return;
     }
-    // Validate the two wei values (hex string without 0x, like the reference dapp).
-    for (const item of batchTxs) {
-      const v = item.value.trim().replace(/^0x/i, "");
-      if (v !== "" && !/^[0-9a-fA-F]+$/.test(v)) {
-        toast.error(t("eip7702.readinessInvalidHex"));
+    // Resolve the active chain -> decimal chainId (readiness.chainIdHex is hex).
+    const chainId =
+      readiness.chainIdHex === ""
+        ? null
+        : Number.parseInt(readiness.chainIdHex, 16);
+    if (chainId === null || Number.isNaN(chainId)) {
+      toast.error(t("error.chainIdRequired"));
+      return;
+    }
+    const usdcForChain = USDC_ADDRESSES[chainId] ?? null;
+    const isAddressOk = (s: string): boolean => {
+      try {
+        return isAddress(s);
+      } catch {
+        return false;
+      }
+    };
+    // Build each row's call. Validation errors map back to user-facing keys.
+    const errorKey: Record<string, string> = {
+      address: t("eip7702.readinessInvalidAddress"),
+      amount: t("eip7702.readinessInvalidAmount"),
+      token: t("eip7702.readinessInvalidToken"),
+      usdcUnsupported: t("eip7702.readinessUsdcUnsupported")
+    };
+    const builtCalls: Array<{
+      to: string;
+      value: string;
+      data?: string;
+    }> = [];
+    for (const row of batchTxs) {
+      const built = buildCallForRow(row, chainId, {
+        usdcForChain,
+        isAddressOk
+      });
+      if ("error" in built) {
+        toast.error(errorKey[built.error] ?? t("common.failedGeneric"));
         return;
       }
+      builtCalls.push({
+        to: built.callTo,
+        value: built.callValue,
+        ...(built.callData ? { data: built.callData } : {})
+      });
     }
     setExplorerUrl("");
     setTxHash("");
@@ -691,10 +879,7 @@ const EIP7702Page = () => {
         chainId: readiness.chainIdHex,
         from: address,
         atomicRequired: readiness.supportAtomic,
-        calls: batchTxs.map((item) => ({
-          to: item.to,
-          value: `0x${item.value.trim().replace(/^0x/i, "")}`
-        }))
+        calls: builtCalls
       };
       const res = (await provider.request({
         method: "wallet_sendCalls",
@@ -884,24 +1069,342 @@ const EIP7702Page = () => {
     }
   };
 
-  const handleBatchInputChange = (
+  const handleBatchInputChange = <K extends keyof BatchTx>(
     index: number,
-    key: "to" | "value",
-    v: string
+    key: K,
+    v: BatchTx[K]
   ) => {
     setBatchTxs((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [key]: v } : item))
     );
   };
 
+  /** Switch a row's token kind, restoring sane defaults when needed. */
   const handleAddBatchRow = () => {
-    setBatchTxs((prev) => [...prev, { to: "", value: "0" }]);
+    setBatchTxs((prev) => [
+      ...prev,
+      {
+        tokenKind: "native",
+        tokenAddress: "",
+        tokenSymbol: nativeTokenSymbol,
+        tokenDecimals: 18,
+        to: "",
+        value: "0.01"
+      }
+    ]);
   };
 
   const handleRemoveBatchRow = (index: number) => {
     setBatchTxs((prev) =>
       prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)
     );
+  };
+
+  // ---- Saved custom token list (per chain, persisted in localStorage) ----
+  // Tokens resolved on-chain can be pinned here so they show up directly in
+  // the per-row Token picker.
+  type SavedCustomToken = { address: string; symbol: string; decimals: number };
+  const CUSTOM_TOKENS_STORAGE_KEY = "EthanDapp.EIP7702.CustomTokens";
+  const loadCustomTokens = (): Record<number, SavedCustomToken[]> => {
+    try {
+      const raw = window.localStorage.getItem(CUSTOM_TOKENS_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  };
+  const [customTokens, setCustomTokens] =
+    useState<Record<number, SavedCustomToken[]>>(loadCustomTokens);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        CUSTOM_TOKENS_STORAGE_KEY,
+        JSON.stringify(customTokens, (_key, v) =>
+          typeof v === "bigint" ? Number(v) : v
+        )
+      );
+    } catch {
+      /* storage full / unavailable — ignore */
+    }
+  }, [customTokens]);
+
+  // ---- Token picker modal (bricswap-style: list + search-address + star) ----
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerRowIndex, setPickerRowIndex] = useState<number | null>(null);
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [pickerLookup, setPickerLookup] = useState<{
+    status: "loading" | "ok" | "error";
+    symbol?: string;
+    decimals?: number;
+  } | null>(null);
+
+  // Switching chain resets every row back to the new chain's native token.
+  const prevChainIdHexRef = useRef(readiness.chainIdHex);
+  useEffect(() => {
+    if (prevChainIdHexRef.current === readiness.chainIdHex) return;
+    prevChainIdHexRef.current = readiness.chainIdHex;
+    if (!readiness.chainIdHex) return;
+    setBatchTxs((prev) =>
+      prev.map((item) => ({
+        ...item,
+        tokenKind: "native",
+        tokenAddress: "",
+        tokenSymbol: nativeTokenSymbol,
+        tokenDecimals: 18
+      }))
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [readiness.chainIdHex]);
+
+  useEffect(() => {
+    if (!pickerOpen) {
+      setPickerSearch("");
+      setPickerLookup(null);
+      return;
+    }
+    const addr = pickerSearch.trim();
+    if (!isAddress(addr)) {
+      setPickerLookup(null);
+      return;
+    }
+    const chainId = Number.parseInt(readiness.chainIdHex, 16);
+    const provider = getReadonlyProviderForChain(chainId);
+    if (!provider) {
+      setPickerLookup({ status: "error" });
+      return;
+    }
+    setPickerLookup({ status: "loading" });
+    const timer = window.setTimeout(() => {
+      multicall3Aggregate3StaticCall(provider, [
+        {
+          target: addr,
+          allowFailure: true,
+          callData: ERC20_IFACE.encodeFunctionData("symbol")
+        },
+        {
+          target: addr,
+          allowFailure: true,
+          callData: ERC20_IFACE.encodeFunctionData("decimals")
+        }
+      ])
+        .then((res) => {
+          const symbol = decodeMulticallResult<string>(
+            ERC20_IFACE,
+            "symbol",
+            res[0]
+          );
+          const decimals = decodeMulticallResult<number>(
+            ERC20_IFACE,
+            "decimals",
+            res[1]
+          );
+          if (symbol === undefined || decimals === undefined) {
+            setPickerLookup({ status: "error" });
+            return;
+          }
+          setPickerLookup({
+            status: "ok",
+            symbol,
+            decimals: Number(decimals)
+          });
+        })
+        .catch(() => setPickerLookup({ status: "error" }));
+    }, 600);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickerOpen, pickerSearch, readiness.chainIdHex]);
+
+  // ---- Picker balances (native + ERC20 via Multicall3) ----
+  const [pickerBalances, setPickerBalances] = useState<
+    Record<string, bigint | null>
+  >({});
+
+  useEffect(() => {
+    if (!pickerOpen || !address) return;
+    const chainId = Number.parseInt(readiness.chainIdHex, 16);
+    if (!Number.isInteger(chainId)) return;
+    const owner = address;
+
+    // Build TokenSide list: native(ZeroAddress) + USDC + saved + lookup.
+    const sides: TokenSide[] = [
+      {
+        kind: "custom",
+        key: ZeroAddress.toLowerCase(),
+        tokenAddress: ZeroAddress,
+        symbol: nativeTokenSymbol,
+        decimals: 18,
+        name: nativeTokenSymbol
+      }
+    ];
+    const usdcAddr = USDC_ADDRESSES[chainId];
+    if (usdcAddr) {
+      sides.push({
+        kind: "custom",
+        key: usdcAddr.toLowerCase(),
+        tokenAddress: usdcAddr,
+        symbol: "USDC",
+        decimals: USDC_DECIMALS,
+        name: "USD Coin"
+      });
+    }
+    for (const tk of customTokens[chainId] ?? []) {
+      sides.push({
+        kind: "custom",
+        key: tk.address.toLowerCase(),
+        tokenAddress: tk.address,
+        symbol: tk.symbol,
+        decimals: Number(tk.decimals),
+        name: tk.symbol
+      });
+    }
+    if (pickerLookup?.status === "ok" && isAddress(pickerSearch.trim())) {
+      const a = pickerSearch.trim();
+      if (
+        !sides.some((s) => s.tokenAddress.toLowerCase() === a.toLowerCase())
+      ) {
+        sides.push({
+          kind: "custom",
+          key: a.toLowerCase(),
+          tokenAddress: a,
+          symbol: pickerLookup.symbol ?? "CUSTOM",
+          decimals: Number(pickerLookup.decimals ?? 18),
+          name: pickerLookup.symbol ?? "CUSTOM"
+        });
+      }
+    }
+
+    let cancelled = false;
+    fetchTokenBalancesMulticall(owner, sides, chainId)
+      .then((balances) => {
+        if (cancelled) return;
+        setPickerBalances((prev) => {
+          const next = { ...prev };
+          sides.forEach((side) => {
+            const key = tokenBalanceKey(side.tokenAddress);
+            next[`${chainId}:${key}:${owner.toLowerCase()}`] =
+              balances[key] ?? null;
+          });
+          return next;
+        });
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pickerOpen,
+    address,
+    readiness.chainIdHex,
+    customTokens,
+    pickerLookup?.status,
+    pickerSearch
+  ]);
+
+  /** Short human-readable balance: 4 fractional digits max. */
+  const formatPickerBalance = (
+    raw: bigint | null | undefined,
+    decimals: number
+  ): string => {
+    if (raw == null) return "—";
+    const s = formatUnits(raw, decimals);
+    const [intPart, fracPart = ""] = s.split(".");
+    const frac4 = fracPart.padEnd(4, "0").slice(0, 4).replace(/0+$/, "");
+    return frac4 ? `${intPart}.${frac4}` : intPart;
+  };
+
+  /** Fill the target row with a picked token and close the picker. */
+  const pickToken = (opt: {
+    kind: "native" | "usdc" | "custom";
+    address?: string;
+    symbol?: string;
+    decimals?: number;
+  }) => {
+    if (pickerRowIndex == null) return;
+    // Picking a resolved custom address auto-collects it (silent) if new.
+    if (opt.kind === "custom" && opt.address) {
+      const chainId = Number.parseInt(readiness.chainIdHex, 16);
+      if (Number.isInteger(chainId)) {
+        const exists = (customTokens[chainId] ?? []).some(
+          (tk) => tk.address.toLowerCase() === (opt.address ?? "").toLowerCase()
+        );
+        if (!exists) {
+          toggleSaveCustomToken(
+            opt.address,
+            opt.symbol ?? "CUSTOM",
+            Number(opt.decimals ?? 18),
+            true
+          );
+        }
+      }
+    }
+    setBatchTxs((prev) =>
+      prev.map((item, i) => {
+        if (i !== pickerRowIndex) return item;
+        if (opt.kind === "native") {
+          return {
+            ...item,
+            tokenKind: "native",
+            tokenAddress: "",
+            tokenSymbol: nativeTokenSymbol,
+            tokenDecimals: 18
+          };
+        }
+        if (opt.kind === "usdc") {
+          return {
+            ...item,
+            tokenKind: "usdc",
+            tokenAddress: "",
+            tokenSymbol: "USDC",
+            tokenDecimals: USDC_DECIMALS
+          };
+        }
+        return {
+          ...item,
+          tokenKind: "custom",
+          tokenAddress: opt.address ?? "",
+          tokenSymbol: opt.symbol ?? "CUSTOM",
+          tokenDecimals: Number(opt.decimals ?? 18)
+        };
+      })
+    );
+    setPickerOpen(false);
+  };
+
+  /** Add / remove a resolved token to the saved list for the active chain. */
+  const toggleSaveCustomToken = (
+    address: string,
+    symbol: string,
+    decimals: number,
+    silent = false
+  ) => {
+    const chainId = Number.parseInt(readiness.chainIdHex, 16);
+    if (!Number.isInteger(chainId)) return;
+    let willAdd = false;
+    setCustomTokens((prev) => {
+      const list = prev[chainId] ?? [];
+      const exists = list.some(
+        (tk) => tk.address.toLowerCase() === address.toLowerCase()
+      );
+      willAdd = !exists;
+      const next = exists
+        ? list.filter(
+            (tk) => tk.address.toLowerCase() !== address.toLowerCase()
+          )
+        : [...list, { address, symbol, decimals: Number(decimals) }];
+      return { ...prev, [chainId]: next };
+    });
+    if (!silent) {
+      if (willAdd) {
+        toast.success(t("eip7702.readinessTokenAdded"));
+      } else {
+        toast.info(t("eip7702.readinessTokenRemoved"));
+      }
+    }
   };
 
   /** Logged in = wallet connected and a valid (per-address) token exists. */
@@ -1199,53 +1702,103 @@ const EIP7702Page = () => {
                   <div className="eip7702-batch-table">
                     <div className="eip7702-batch-head">
                       <span>{t("eip7702.readinessTxnNo")}</span>
-                      <span></span>
-                      <span>{t("eip7702.readinessValue")}</span>
+                      <span>{t("eip7702.readinessToken")}</span>
+                      <span>
+                        {t("eip7702.readinessValue")}
+                        <span className="eip7702-batch-token-hint">
+                          {` (${t("eip7702.readinessAmount")})`}
+                        </span>
+                      </span>
                       <span></span>
                       <span>{t("eip7702.readinessAddress")}</span>
                       <span></span>
                     </div>
-                    {batchTxs.map((item, index) => (
-                      <div className="eip7702-batch-row" key={index}>
-                        <span>{index + 1}.</span>
-                        <span>{t("eip7702.readinessSend")}</span>
-                        <input
-                          className="eip7702-batch-input eip7702-batch-value"
-                          type="text"
-                          value={item.value}
-                          onChange={(e) =>
-                            handleBatchInputChange(
-                              index,
-                              "value",
-                              e.target.value
-                            )
-                          }
-                          placeholder="0"
-                          spellCheck={false}
-                        />
-                        <span>{t("eip7702.readinessTo")}</span>
-                        <input
-                          className="eip7702-batch-input eip7702-batch-address"
-                          type="text"
-                          value={item.to}
-                          onChange={(e) =>
-                            handleBatchInputChange(index, "to", e.target.value)
-                          }
-                          placeholder="0x..."
-                          spellCheck={false}
-                        />
-                        <button
-                          type="button"
-                          className="eip7702-batch-remove"
-                          onClick={() => handleRemoveBatchRow(index)}
-                          disabled={batchTxs.length <= 1}
-                          aria-label={t("eip7702.readinessRemoveRow")}
-                          title={t("eip7702.readinessRemoveRow")}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+                    {batchTxs.map((item, index) => {
+                      const chainIdNum =
+                        readiness.chainIdHex !== ""
+                          ? Number.parseInt(readiness.chainIdHex, 16)
+                          : Number.NaN;
+                      const usdcSupportedOnChain =
+                        readiness.chainIdHex !== "" &&
+                        Boolean(
+                          USDC_ADDRESSES[
+                            Number.parseInt(readiness.chainIdHex, 16)
+                          ]
+                        );
+                      const placeholder = "0.0";
+                      const rowTokenSymbol =
+                        item.tokenKind === "native"
+                          ? nativeTokenSymbol
+                          : item.tokenKind === "usdc"
+                            ? "USDC"
+                            : item.tokenSymbol.trim() || "Token";
+                      return (
+                        <div className="eip7702-batch-row" key={index}>
+                          <span>{index + 1}.</span>
+                          <button
+                            type="button"
+                            className="eip7702-batch-token-chip"
+                            onClick={() => {
+                              setPickerRowIndex(index);
+                              setPickerSearch("");
+                              setPickerOpen(true);
+                            }}
+                            title={t("eip7702.readinessToken")}
+                            aria-label={t("eip7702.readinessToken")}
+                          >
+                            <span className="eip7702-batch-token-chip-avatar">
+                              {rowTokenSymbol.slice(0, 2).toUpperCase()}
+                            </span>
+                            <span className="eip7702-batch-token-chip-label">
+                              {rowTokenSymbol}
+                            </span>
+                            <span
+                              className="eip7702-batch-token-chip-chevron"
+                              aria-hidden
+                            />
+                          </button>
+                          <input
+                            className="eip7702-batch-input eip7702-batch-value"
+                            type="text"
+                            value={item.value}
+                            onChange={(e) =>
+                              handleBatchInputChange(
+                                index,
+                                "value",
+                                e.target.value
+                              )
+                            }
+                            placeholder={placeholder}
+                            spellCheck={false}
+                          />
+                          <span>{t("eip7702.readinessTo")}</span>
+                          <input
+                            className="eip7702-batch-input eip7702-batch-address"
+                            type="text"
+                            value={item.to}
+                            onChange={(e) =>
+                              handleBatchInputChange(
+                                index,
+                                "to",
+                                e.target.value
+                              )
+                            }
+                            placeholder="0x..."
+                            spellCheck={false}
+                          />
+                          <button
+                            type="button"
+                            className="eip7702-batch-remove"
+                            onClick={() => handleRemoveBatchRow(index)}
+                            disabled={batchTxs.length <= 1}
+                            aria-label={t("eip7702.readinessRemoveRow")}
+                            title={t("eip7702.readinessRemoveRow")}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="eip7702-batch-actions">
                     <div className="eip7702-batch-actions-top">
@@ -1340,6 +1893,276 @@ const EIP7702Page = () => {
           </>
         )}
       </section>
+      {pickerOpen &&
+        (() => {
+          const pickerChainId =
+            readiness.chainIdHex !== ""
+              ? Number.parseInt(readiness.chainIdHex, 16)
+              : Number.NaN;
+          const ownerKey = address?.toLowerCase();
+          const usdcSupported =
+            Number.isInteger(pickerChainId) &&
+            Boolean(USDC_ADDRESSES[pickerChainId]);
+          const savedTokens = Number.isInteger(pickerChainId)
+            ? (customTokens[pickerChainId] ?? [])
+            : [];
+          const lookupAddr = pickerSearch.trim();
+          const lookupSaved =
+            Number.isInteger(pickerChainId) &&
+            savedTokens.some(
+              (tk) => tk.address.toLowerCase() === lookupAddr.toLowerCase()
+            );
+          const q = pickerSearch.trim().toLowerCase();
+          const includes = (s: string) => !q || s.toLowerCase().includes(q);
+          const showNative = includes(nativeTokenSymbol);
+          const showUsdc = usdcSupported && includes("USDC");
+          return (
+            <div
+              className="eip7702-token-modal-overlay"
+              onClick={() => setPickerOpen(false)}
+            >
+              <div
+                className="eip7702-token-modal eip7702-picker"
+                role="dialog"
+                aria-modal="true"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="eip7702-token-modal-head">
+                  <h3>{t("eip7702.readinessToken")}</h3>
+                  <button
+                    type="button"
+                    className="eip7702-token-modal-close"
+                    onClick={() => setPickerOpen(false)}
+                    aria-label={t("eip7702.readinessTokenCancel")}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="eip7702-picker-search">
+                  <input
+                    className="eip7702-picker-search-input"
+                    type="text"
+                    value={pickerSearch}
+                    onChange={(e) => setPickerSearch(e.target.value)}
+                    placeholder={t("eip7702.readinessPickerSearch")}
+                    spellCheck={false}
+                    autoFocus
+                  />
+                </div>
+                <ul className="eip7702-picker-list">
+                  {showNative && (
+                    <li>
+                      <div className="eip7702-picker-row">
+                        <span
+                          className="eip7702-picker-star-spacer"
+                          aria-hidden
+                        />
+                        <button
+                          type="button"
+                          className="eip7702-picker-main"
+                          onClick={() => pickToken({ kind: "native" })}
+                        >
+                          <span className="eip7702-picker-avatar">
+                            {nativeTokenSymbol.slice(0, 2).toUpperCase()}
+                          </span>
+                          <span className="eip7702-picker-info">
+                            <span className="eip7702-picker-symbol">
+                              {nativeTokenSymbol}
+                            </span>
+                            <span className="eip7702-picker-desc">
+                              {t("eip7702.readinessNativeDesc")}
+                              {" · "}
+                              {SupportChains.find(
+                                (c) => Number(c.id) === pickerChainId
+                              )?.chainName ?? `Chain ${pickerChainId}`}
+                            </span>
+                          </span>
+                          <span className="eip7702-picker-balance">
+                            {formatPickerBalance(
+                              pickerBalances[
+                                `${pickerChainId}:${ZeroAddress.toLowerCase()}:${ownerKey}`
+                              ],
+                              18
+                            )}
+                          </span>
+                        </button>
+                      </div>
+                    </li>
+                  )}
+                  {showUsdc && usdcSupported && (
+                    <li>
+                      <div className="eip7702-picker-row">
+                        <span
+                          className="eip7702-picker-star-spacer"
+                          aria-hidden
+                        />
+                        <button
+                          type="button"
+                          className="eip7702-picker-main"
+                          onClick={() => pickToken({ kind: "usdc" })}
+                        >
+                          <span className="eip7702-picker-avatar">US</span>
+                          <span className="eip7702-picker-info">
+                            <span className="eip7702-picker-symbol">USDC</span>
+                            <span
+                              className="eip7702-picker-desc"
+                              title={USDC_ADDRESSES[pickerChainId]}
+                            >
+                              {USDC_ADDRESSES[pickerChainId].slice(0, 6)}…
+                              {USDC_ADDRESSES[pickerChainId].slice(-4)}
+                            </span>
+                          </span>
+                          <span className="eip7702-picker-balance">
+                            {formatPickerBalance(
+                              pickerBalances[
+                                `${pickerChainId}:${USDC_ADDRESSES[pickerChainId].toLowerCase()}:${ownerKey}`
+                              ],
+                              USDC_DECIMALS
+                            )}
+                          </span>
+                        </button>
+                      </div>
+                    </li>
+                  )}
+                  {savedTokens
+                    .filter((tk) => includes(tk.symbol))
+                    .map((tk) => (
+                      <li key={tk.address}>
+                        <div className="eip7702-picker-row">
+                          <button
+                            type="button"
+                            className="eip7702-picker-star is-saved"
+                            onClick={() =>
+                              toggleSaveCustomToken(
+                                tk.address,
+                                tk.symbol,
+                                tk.decimals
+                              )
+                            }
+                            title={t("eip7702.readinessTokenRemoveFromList")}
+                            aria-label={t(
+                              "eip7702.readinessTokenRemoveFromList"
+                            )}
+                          >
+                            ★
+                          </button>
+                          <button
+                            type="button"
+                            className="eip7702-picker-main"
+                            onClick={() =>
+                              pickToken({
+                                kind: "custom",
+                                address: tk.address,
+                                symbol: tk.symbol,
+                                decimals: tk.decimals
+                              })
+                            }
+                          >
+                            <span className="eip7702-picker-avatar">
+                              {tk.symbol.slice(0, 2).toUpperCase()}
+                            </span>
+                            <span className="eip7702-picker-info">
+                              <span className="eip7702-picker-symbol">
+                                {tk.symbol}
+                              </span>
+                              <span className="eip7702-picker-desc">
+                                {tk.address.slice(0, 6)}…{tk.address.slice(-4)}
+                              </span>
+                            </span>
+                            <span className="eip7702-picker-balance">
+                              {formatPickerBalance(
+                                pickerBalances[
+                                  `${pickerChainId}:${tk.address.toLowerCase()}:${ownerKey}`
+                                ],
+                                Number(tk.decimals)
+                              )}
+                            </span>
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  {pickerLookup?.status === "loading" && (
+                    <li className="eip7702-picker-status">
+                      {t("eip7702.readinessTokenQuerying")}
+                    </li>
+                  )}
+                  {pickerLookup?.status === "error" && (
+                    <li className="eip7702-picker-status is-error">
+                      {t("eip7702.readinessTokenQueryFailed")}
+                    </li>
+                  )}
+                  {pickerLookup?.status === "ok" && (
+                    <li>
+                      <div className="eip7702-picker-row">
+                        <button
+                          type="button"
+                          className={`eip7702-picker-star${
+                            lookupSaved ? " is-saved" : ""
+                          }`}
+                          onClick={() =>
+                            toggleSaveCustomToken(
+                              lookupAddr,
+                              pickerLookup.symbol ?? "",
+                              Number(pickerLookup.decimals ?? 18)
+                            )
+                          }
+                          title={
+                            lookupSaved
+                              ? t("eip7702.readinessTokenRemoveFromList")
+                              : t("eip7702.readinessTokenAddToList")
+                          }
+                          aria-label={
+                            lookupSaved
+                              ? t("eip7702.readinessTokenRemoveFromList")
+                              : t("eip7702.readinessTokenAddToList")
+                          }
+                        >
+                          {lookupSaved ? "★" : "☆"}
+                        </button>
+                        <button
+                          type="button"
+                          className="eip7702-picker-main"
+                          onClick={() =>
+                            pickToken({
+                              kind: "custom",
+                              address: lookupAddr,
+                              symbol: pickerLookup.symbol ?? "CUSTOM",
+                              decimals: Number(pickerLookup.decimals ?? 18)
+                            })
+                          }
+                        >
+                          <span className="eip7702-picker-avatar">
+                            {(pickerLookup.symbol ?? "TO")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </span>
+                          <span className="eip7702-picker-info">
+                            <span className="eip7702-picker-symbol">
+                              {pickerLookup.symbol ?? "CUSTOM"}
+                            </span>
+                            <span className="eip7702-picker-desc">
+                              {lookupAddr.slice(0, 6)}…{lookupAddr.slice(-4)}
+                              {" · "}
+                              {String(pickerLookup.decimals ?? "")}
+                            </span>
+                          </span>
+                          <span className="eip7702-picker-balance">
+                            {formatPickerBalance(
+                              pickerBalances[
+                                `${pickerChainId}:${lookupAddr.toLowerCase()}:${ownerKey}`
+                              ],
+                              Number(pickerLookup.decimals ?? 18)
+                            )}
+                          </span>
+                        </button>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 };
