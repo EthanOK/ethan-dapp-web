@@ -34,28 +34,27 @@ const findCapabilitiesEntry = (
   caps: Record<string, Record<string, unknown>> | undefined,
   chainIdHex: string
 ): Record<string, unknown> | null => {
-  if (!caps) return null;
-  const chainId = parseEvmChainIdFromStored(chainIdHex);
-  // 1) exact key match
-  if (caps[chainIdHex]) return caps[chainIdHex];
-  // 2) numeric / CAIP-2 normalized match
-  const candidates = [
-    String(chainId),
-    `eip155:${chainId}`,
-    `0x${Number(chainId).toString(16)}`
-  ];
+  if (!caps || Object.keys(caps).length === 0) return null;
+  // Build every reasonable key form so we match no matter what shape the
+  // wallet returns (hex "0x1", CAIP "eip155:1", decimal "1", or lowercased
+  // variants). Reown's embedded wallet has been observed to return all of
+  // these at different times.
+  const numeric = Number.parseInt(chainIdHex, 16);
+  const candidates = new Set<string>(
+    [
+      chainIdHex,
+      chainIdHex.toLowerCase(),
+      String(numeric),
+      `eip155:${numeric}`,
+      `0x${numeric.toString(16)}`
+    ]
+      .filter((s) => s && s !== "NaN" && s !== "eip155:NaN")
+      .map((s) => s.toLowerCase().replace(/^eip155:/, ""))
+  );
   for (const key of Object.keys(caps)) {
-    const normalized = key.replace(/^eip155:/, "").toLowerCase();
-    if (candidates.map((c) => c.toLowerCase()).includes(normalized)) {
-      return caps[key];
-    }
-    if (normalized === chainIdHex.toLowerCase().replace(/^0x/, "")) {
-      return caps[key];
-    }
+    const normalized = key.toLowerCase().replace(/^eip155:/, "");
+    if (candidates.has(normalized)) return caps[key];
   }
-  // 3) fall back to the first entry if exactly one exists
-  const keys = Object.keys(caps);
-  if (keys.length === 1) return caps[keys[0]];
   return null;
 };
 
@@ -119,7 +118,8 @@ const chainJsonRpcProviders = new Map<number, JsonRpcProvider>();
 
 const EIP7702Page = () => {
   const { t } = useI18n();
-  const { address, isConnected } = useAppKitAccount();
+  const { address, isConnected, embeddedWalletInfo } = useAppKitAccount();
+  const accountType = embeddedWalletInfo?.accountType;
   const { chainId: appKitChainId } = useAppKitNetwork();
   const { isConnecting, openConnectModal } = useOpenAppKitModal();
   const [privateKey, setPrivateKey] = useState("");
@@ -146,6 +146,8 @@ const EIP7702Page = () => {
     capabilities: string[];
     /** EIP-7702 delegation target (parsed from 0xef0100 || address), null if none. */
     delegation: string | null;
+    /** True when the account has contract code that is NOT an EIP-7702 delegation. */
+    isSmartAccount: boolean;
     supportAtomic: boolean;
   }>({
     checking: false,
@@ -153,6 +155,7 @@ const EIP7702Page = () => {
     chainName: "",
     capabilities: [],
     delegation: null,
+    isSmartAccount: false,
     supportAtomic: false
   });
   const [batchTxs, setBatchTxs] = useState([
@@ -163,6 +166,9 @@ const EIP7702Page = () => {
   const [batchId, setBatchId] = useState("");
   const [txHash, setTxHash] = useState("");
   const [explorerUrl, setExplorerUrl] = useState("");
+  const [batchStatus, setBatchStatus] = useState<
+    "pending" | "success" | "failed" | null
+  >(null);
 
   /** 连接或切链后重新检测 ERC-5792 能力(app-network-changed 由头部切链触发)。 */
   useEffect(() => {
@@ -173,6 +179,7 @@ const EIP7702Page = () => {
         chainName: "",
         capabilities: [],
         delegation: null,
+        isSmartAccount: false,
         supportAtomic: false
       });
       setExplorerUrl("");
@@ -186,12 +193,22 @@ const EIP7702Page = () => {
         if (!provider || cancelled) return;
         // Raw EIP-1193 request — no ethers BrowserProvider, so no cached-
         // network NETWORK_ERROR after a wallet chain switch.
-        const currChainId = (await provider.request({
+        // eth_chainId should return a 0x-hex string per EIP-1193, but Reown's
+        // embedded wallet returns a decimal number. Normalize both to hex so
+        // downstream matching (findCapabilitiesEntry) and display work.
+        const rawChainId = (await provider.request({
           method: "eth_chainId"
-        })) as string;
+        })) as string | number;
+        const currChainId =
+          typeof rawChainId === "string"
+            ? rawChainId
+            : `0x${Number(rawChainId).toString(16)}`;
         setReadiness((prev) => ({ ...prev, checking: true }));
         const currCapabilities = (await provider.request({
           method: "wallet_getCapabilities",
+          // ERC-5792 spec: params?: [Address] | [Address, Hex[]]. Reown's
+          // zod schema mis-types this as a flat array and logs a harmless
+          // "invalid_union" warning, but it still returns capabilities.
           params: [address, [currChainId]]
         })) as Record<string, Record<string, unknown>> | undefined;
         const eoaCode = (await provider.request({
@@ -205,17 +222,25 @@ const EIP7702Page = () => {
         );
         const entry = findCapabilitiesEntry(currCapabilities, currChainId);
         const keys = entry ? Object.keys(entry) : [];
+        const delegation = parseEIP7702Delegation(eoaCode);
+        // Source of truth for smart account vs EOA is AppKit's `accountType`,
+        // not `eth_getCode`: a smart account is often counterfactual / not yet
+        // deployed on the active chain, so its on-chain code is "0x" and
+        // would be misreported as EOA. AppKit knows the wallet's chosen
+        // account type from `user.preferredAccountType`.
+        const isSmartAccount = accountType === "smartAccount";
         setReadiness({
           checking: false,
           chainIdHex: currChainId,
           chainName: chainEntry?.chainName ?? "",
           capabilities: keys.length > 0 ? keys : ["None"],
-          delegation: parseEIP7702Delegation(eoaCode),
+          delegation,
+          isSmartAccount,
           supportAtomic: keys.includes(BATCH_TXN_5792)
         });
       } catch (error) {
+        console.error("[readiness] check failed:", error);
         if (!cancelled) {
-          console.error("Readiness check failed:", error);
           setReadiness((prev) => ({ ...prev, checking: false }));
         }
       }
@@ -555,6 +580,90 @@ const EIP7702Page = () => {
     }
   };
 
+  /**
+   * Wait for a submitted batch to reach a terminal on-chain state.
+   *
+   * Reown's embedded (smart-account) wallet returns a raw UserOperation hash
+   * from wallet_sendCalls, not a chain transaction hash — so a plain
+   * eth_getTransactionReceipt on that string returns null forever. Query
+   * wallet_getCallsStatus first (ERC-5792, implemented by the Reown frame),
+   * falling back to eth_getTransactionReceipt for EOA wallets. Returns the
+   * final status plus the real transaction hash when available.
+   */
+  const waitForConfirmation = async (
+    provider: {
+      request: (args: {
+        method: string;
+        params?: unknown[];
+      }) => Promise<unknown>;
+    },
+    userOpHash: string
+  ): Promise<{
+    status: "confirmed" | "failed" | "timeout";
+    txHash: string;
+  }> => {
+    const MAX_POLLS = 60;
+    for (let polls = 0; polls < MAX_POLLS; polls += 1) {
+      try {
+        const status = (await provider.request({
+          method: "wallet_getCallsStatus",
+          params: [userOpHash]
+        })) as {
+          status?: string | number;
+          receipts?: Array<{ transactionHash?: string }>;
+        };
+        const s = String(status.status ?? "").toLowerCase();
+        const txHash = status.receipts?.[0]?.transactionHash;
+        if (s === "0x2" || s === "confirmed" || txHash) {
+          return { status: "confirmed", txHash: txHash ?? userOpHash };
+        }
+        if (s === "0x3" || s === "failed") {
+          return { status: "failed", txHash: txHash ?? userOpHash };
+        }
+        // still pending — keep polling via wallet_getCallsStatus.
+        await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      } catch (error) {
+        // Reown's wallet_getCallsStatus throws while the UserOperation is
+        // still in-flight: "User Operation receipt ... could not be found.
+        // The User Operation may not have been processed yet." That's a
+        // PENDING signal, not an unsupported-method error — keep polling it.
+        const msg = String(
+          (error as { message?: string })?.message ?? ""
+        ).toLowerCase();
+        if (
+          msg.includes("could not be found") ||
+          msg.includes("not been processed") ||
+          msg.includes("not found")
+        ) {
+          await new Promise((r) => setTimeout(r, 1000));
+          continue;
+        }
+        // Any other error (e.g. EOA wallet without wallet_getCallsStatus)
+        // → fall through to the plain tx receipt below.
+      }
+      try {
+        const receipt = (await provider.request({
+          method: "eth_getTransactionReceipt",
+          params: [userOpHash]
+        })) as { status?: string | number } | null;
+        if (receipt) {
+          const s = String(receipt.status ?? "").toLowerCase();
+          if (s === "0x1" || s === "1") {
+            return { status: "confirmed", txHash: userOpHash };
+          }
+          if (s === "0x0" || s === "0") {
+            return { status: "failed", txHash: userOpHash };
+          }
+        }
+      } catch {
+        // RPC hiccup — keep polling.
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    return { status: "timeout", txHash: userOpHash };
+  };
+
   /** ERC-5792: submit a batch of two calls and poll wallet_getCallsStatus. */
   const handleSendCalls = async () => {
     const provider = await getEip1193Provider();
@@ -575,6 +684,7 @@ const EIP7702Page = () => {
     setProcessingTxn(true);
     setBatchId("");
     setExplorerUrl("");
+    setBatchStatus("pending");
     try {
       const sendParams = {
         version: "2.0.0",
@@ -589,7 +699,66 @@ const EIP7702Page = () => {
       const res = (await provider.request({
         method: "wallet_sendCalls",
         params: [sendParams]
-      })) as { id: string };
+      })) as { id: string } | string;
+
+      // 兼容两种返回:标准 ERC-5792 返回 { id },但 Reown 内嵌钱包(AA)直接
+      // 返回 UserOperation hash 字符串。这个字符串本身不是链上交易 hash
+      // (普通 eth_getTransactionReceipt 查不到),要用 wallet_getCallsStatus
+      // 确认,并从中取真正的 bundle transaction hash。
+      if (typeof res === "string") {
+        const userOpHash = res.startsWith("0x") ? res : `0x${res}`;
+        setTxHash(userOpHash);
+        const base = await resolveExplorerBase(readiness.chainIdHex);
+        if (base) setExplorerUrl(`${base}/tx/${userOpHash}`);
+
+        const { status, txHash } = await waitForConfirmation(
+          provider,
+          userOpHash
+        );
+        if (status === "failed") {
+          setBatchStatus("failed");
+          toast.error(t("common.txFailed"));
+          setProcessingTxn(false);
+          return;
+        }
+
+        const eoaCode = (await provider.request({
+          method: "eth_getCode",
+          params: [address, "latest"]
+        })) as string;
+        setReadiness((prev) => ({
+          ...prev,
+          delegation: parseEIP7702Delegation(eoaCode)
+        }));
+        // Page shows the AA Transaction Hash (UserOperation hash), but the
+        // "View transaction" link should open the real chain tx hash (bundle
+        // transaction hash) so it resolves to a normal transaction page.
+        setBatchStatus(status === "timeout" ? "pending" : "success");
+        const txUrl0 = explorerUrlForToast(txHash || userOpHash);
+        toast.success(
+          status === "timeout"
+            ? t("eip7702.readinessSubmittedPending", {
+                hash: shortHash(txHash || userOpHash)
+              })
+            : t("eip7702.readinessSuccessTx", {
+                hash: shortHash(txHash || userOpHash)
+              }),
+          {
+            ...(txUrl0
+              ? {
+                  action: {
+                    label: t("common.viewTransaction"),
+                    onClick: () =>
+                      window.open(txUrl0, "_blank", "noopener,noreferrer")
+                  }
+                }
+              : {})
+          }
+        );
+        setProcessingTxn(false);
+        return;
+      }
+
       setBatchId(res.id);
 
       // Some MetaMask builds return the full status (status: 200 + receipts)
@@ -626,6 +795,7 @@ const EIP7702Page = () => {
               : {})
           }
         );
+        setBatchStatus("success");
         setProcessingTxn(false);
         return;
       }
@@ -684,15 +854,18 @@ const EIP7702Page = () => {
               }
             );
             clearInterval(int);
+            setBatchStatus("success");
             setProcessingTxn(false);
           } else if (s === "0x3" || s === "failed") {
             toast.error(t("common.txFailed"));
             clearInterval(int);
+            setBatchStatus("failed");
             setProcessingTxn(false);
           } else if (polls >= MAX_POLLS) {
             // Stop polling after ~60s even if the wallet never reports a
             // terminal status; the batch may still be pending onchain.
             clearInterval(int);
+            setBatchStatus("pending");
             setProcessingTxn(false);
           }
           // 0x1 / pending → keep polling
@@ -981,12 +1154,26 @@ const EIP7702Page = () => {
               </div>
               <div className="eip7702-readiness-row">
                 <span className="eip7702-readiness-label">
+                  {t("eip7702.readinessColSmartAccount")}
+                </span>
+                <span className="eip7702-readiness-value">
+                  {readiness.checking
+                    ? t("eip7702.readinessChecking")
+                    : readiness.isSmartAccount
+                      ? t("eip7702.readinessYes")
+                      : t("eip7702.readinessNo")}
+                </span>
+              </div>
+              <div className="eip7702-readiness-row">
+                <span className="eip7702-readiness-label">
                   {t("eip7702.readinessColChain")}
                 </span>
                 <span className="eip7702-readiness-value">
                   {readiness.checking
                     ? t("eip7702.readinessChecking")
-                    : `${Number(readiness.chainIdHex) || ""} - ${readiness.chainName}`}
+                    : readiness.chainIdHex
+                      ? `${parseInt(readiness.chainIdHex, 16)} - ${readiness.chainName}`
+                      : "-"}
                 </span>
               </div>
               <div className="eip7702-readiness-row">
@@ -1004,11 +1191,6 @@ const EIP7702Page = () => {
             </div>
 
             <div className="eip7702-readiness-body">
-              {!readiness.checking && !readiness.supportAtomic && (
-                <p className="eip7702-sponsor-hint">
-                  {t("eip7702.readinessUnsupported")}
-                </p>
-              )}
               {!readiness.checking && (
                 <>
                   <h4 className="eip7702-readiness-batch-title">
@@ -1111,11 +1293,24 @@ const EIP7702Page = () => {
                       <div className="eip7702-tx">
                         <div className="eip7702-tx-head">
                           <span className="eip7702-tx-label">
-                            {t("eip7702.lastTransaction")}
+                            {accountType === "smartAccount"
+                              ? t("eip7702.aaTransactionHash")
+                              : t("eip7702.lastTransaction")}
                           </span>
-                          <span className="eip7702-tx-status is-success">
-                            {t("eip7702.readinessSuccess")}
-                          </span>
+                          {batchStatus && (
+                            <span
+                              className={"eip7702-tx-status is-" + batchStatus}
+                            >
+                              {batchStatus === "pending" && (
+                                <span className="eip7702-tx-dot" aria-hidden />
+                              )}
+                              {batchStatus === "pending"
+                                ? t("eip7702.txPending")
+                                : batchStatus === "success"
+                                  ? t("eip7702.txSuccess")
+                                  : t("eip7702.txFailed")}
+                            </span>
+                          )}
                         </div>
                         {explorerUrl ? (
                           <a
