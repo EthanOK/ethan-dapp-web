@@ -370,6 +370,19 @@ export const zhTW: Record<TranslationKey, string> = {
   "buyNft.invalidAddress": "地址錯誤",
   "buyNft.connectWallet": "請先連接錢包",
 
+  "tools.title": "Tools",
+  "tools.subtitle": "從 BIP39 助記詞派生 BTC、ETH、SOL 地址",
+  "tools.warning":
+    "請勿在不信任的環境中貼上真實助記詞。派生僅在瀏覽器本機完成。",
+  "tools.mnemonic": "助記詞",
+  "tools.mnemonicPlaceholder": "word1 word2 word3 …（12 或 24 個單詞）",
+  "tools.derive": "派生地址",
+  "tools.btc": "BTC（Native SegWit）",
+  "tools.eth": "ETH",
+  "tools.sol": "SOL",
+  "tools.error.empty": "請輸入助記詞",
+  "tools.error.invalid": "無效的 BIP39 助記詞",
+
   "utils.title": "工具",
   "utils.subtitle":
     "簽章十六進位資料、IPFS URL、gas、SqrtPriceX96、LP 價格、合約地址",
@@ -710,6 +723,7 @@ export const zhTW: Record<TranslationKey, string> = {
   "nav.signEip712": "Sign EIP712",
   "nav.eip7702": "EIP7702",
   "nav.utils": "工具",
+  "nav.tools": "Tools",
   "nav.erc6551": "ERC6551",
   "nav.web3Auth": "Web3Auth",
   "nav.web3AuthSolana": "Web3Auth Solana",

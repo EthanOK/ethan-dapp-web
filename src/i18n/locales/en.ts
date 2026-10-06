@@ -386,6 +386,19 @@ export const en = {
   "buyNft.invalidAddress": "地址错误",
   "buyNft.connectWallet": "请先连接钱包",
 
+  "tools.title": "Tools",
+  "tools.subtitle": "Derive BTC, ETH, and SOL addresses from a BIP39 mnemonic",
+  "tools.warning":
+    "Never paste a real mnemonic in an untrusted environment. Derivation runs locally in your browser.",
+  "tools.mnemonic": "Mnemonic",
+  "tools.mnemonicPlaceholder": "word1 word2 word3 … (12 or 24 words)",
+  "tools.derive": "Derive addresses",
+  "tools.btc": "BTC (Native SegWit)",
+  "tools.eth": "ETH",
+  "tools.sol": "SOL",
+  "tools.error.empty": "Please enter a mnemonic phrase",
+  "tools.error.invalid": "Invalid BIP39 mnemonic",
+
   "utils.title": "Utils",
   "utils.subtitle":
     "Sign hex data, IPFS URLs, gas, SqrtPriceX96, LP price, contract address",
@@ -735,6 +748,7 @@ export const en = {
   "nav.signEip712": "Sign EIP712",
   "nav.eip7702": "EIP7702",
   "nav.utils": "Utils",
+  "nav.tools": "Tools",
   "nav.erc6551": "ERC6551",
   "nav.web3Auth": "Web3Auth",
   "nav.web3AuthSolana": "Web3Auth Solana",

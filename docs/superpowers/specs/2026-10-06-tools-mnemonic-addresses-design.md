@@ -46,13 +46,12 @@ src/i18n/locales/{en,zh-CN,zh-TW}.ts             # copy
 | `@scure/bip39` | Validate mnemonic, mnemonic → seed |
 | `@scure/bip32` | secp256k1 HD for BTC |
 | `@scure/btc-signer` | P2WPKH address encoding |
-| `@scure/slip10` | ed25519 HD for Solana |
+| `ed25519-hd-key` | ed25519 HD for Solana (Phantom-compatible; `@scure/slip10` is unavailable on npm) |
 
 Existing packages reused:
 
-- `ethers` v6 — `HDNodeWallet.fromPhrase` for ETH
+- `ethers` v6 — `HDNodeWallet.fromPhrase` for ETH; `hexlify` for seed hex
 - `@solana/web3.js` — `Keypair` / `PublicKey` encoding for SOL
-- `@noble/ed25519` — available if needed alongside slip10
 
 ### Derivation paths (fixed)
 

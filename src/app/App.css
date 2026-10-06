@@ -1341,6 +1341,29 @@
   line-height: 1.45;
 }
 
+.tools-error {
+  margin: 0 0 12px;
+  color: var(--w3-danger);
+  font-size: 0.88rem;
+}
+
+.tools-address-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.tools-address-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.tools-copy-btn {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+
 .eip7702-security-note {
   margin: 10px 0 0;
   padding: 10px 12px;

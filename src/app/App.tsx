@@ -169,6 +169,7 @@ const LayerZeroOFTBridgePage = lazy(
   () => import("@/pages/LayerZeroOFTBridgePage")
 );
 const UtilsPage = lazy(() => import("@/pages/UtilsPage"));
+const ToolsPage = lazy(() => import("@/pages/ToolsPage"));
 const ERC6551Page = lazy(() => import("@/pages/ERC6551Page"));
 const EIP7702Page = lazy(() => import("@/pages/EIP7702Page"));
 const EstimateTxFeePage = lazy(() => import("@/pages/EstimateTxFeePage"));
@@ -312,6 +313,7 @@ function App() {
     { titleKey: "nav.signEip712", linkTo: "/signEIP712" },
     { titleKey: "nav.eip7702", linkTo: "/eip7702" },
     { titleKey: "nav.utils", linkTo: "/utils" },
+    { titleKey: "nav.tools", linkTo: "/tools" },
     { titleKey: "nav.erc6551", linkTo: "/erc6551" },
     { titleKey: "nav.web3Auth", linkTo: "/web3Auth" },
     { titleKey: "nav.web3AuthSolana", linkTo: "/web3AuthSolana" }
@@ -516,6 +518,7 @@ function App() {
                   element={<LayerZeroOFTBridgePage />}
                 />
                 <Route path="/utils" element={<UtilsPage />} />
+                <Route path="/tools" element={<ToolsPage />} />
                 <Route path="/erc6551" element={<ERC6551Page />} />
                 <Route path="/eip7702" element={<EIP7702Page />} />
                 <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
