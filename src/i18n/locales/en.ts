@@ -386,6 +386,33 @@ export const en = {
   "buyNft.invalidAddress": "地址错误",
   "buyNft.connectWallet": "请先连接钱包",
 
+  "tools.title": "Mnemonic",
+  "tools.subtitle":
+    "Derive BTC, ETH, SOL, and TRON addresses from a BIP39 mnemonic",
+  "tools.warning":
+    "Never paste a real mnemonic in an untrusted environment. Derivation runs locally in your browser.",
+  "tools.mnemonic": "Mnemonic",
+  "tools.mnemonicPlaceholder": "word1 word2 word3 … (12 or 24 words)",
+  "tools.derive": "Derive addresses",
+  "tools.generate": "Random mnemonic",
+  "tools.wordCount": "Words",
+  "tools.localNote":
+    "Random words come from this device's secure random source — never uploaded, never saved.",
+  "tools.btc": "Bitcoin",
+  "tools.btcTypeLabel": "Bitcoin address type",
+  "tools.btcType.legacy": "Legacy",
+  "tools.btcType.nested": "Nested SegWit",
+  "tools.btcType.native": "Native SegWit",
+  "tools.btcType.taproot": "Taproot",
+  "tools.eth": "Ethereum",
+  "tools.sol": "Solana",
+  "tools.tron": "TRON",
+  "tools.qrCode": "Show QR code",
+  "tools.qrHint": "Scan this QR code to share the address",
+  "tools.error.empty": "Please enter a mnemonic phrase",
+  "tools.error.invalid": "Invalid BIP39 mnemonic",
+  "tools.error.noCrypto": "This browser cannot provide a secure random source",
+
   "utils.title": "Utils",
   "utils.subtitle":
     "Sign hex data, IPFS URLs, gas, SqrtPriceX96, LP price, contract address",
@@ -735,6 +762,8 @@ export const en = {
   "nav.signEip712": "Sign EIP712",
   "nav.eip7702": "EIP7702",
   "nav.utils": "Utils",
+  "nav.tools": "Tools",
+  "nav.mnemonic": "Mnemonic",
   "nav.erc6551": "ERC6551",
   "nav.web3Auth": "Web3Auth",
   "nav.web3AuthSolana": "Web3Auth Solana",

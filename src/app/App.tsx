@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   NavLink,
+  Navigate,
   useLocation
 } from "react-router-dom";
 import "@/app/App.css";
@@ -169,6 +170,7 @@ const LayerZeroOFTBridgePage = lazy(
   () => import("@/pages/LayerZeroOFTBridgePage")
 );
 const UtilsPage = lazy(() => import("@/pages/UtilsPage"));
+const ToolsPage = lazy(() => import("@/pages/ToolsPage"));
 const ERC6551Page = lazy(() => import("@/pages/ERC6551Page"));
 const EIP7702Page = lazy(() => import("@/pages/EIP7702Page"));
 const EstimateTxFeePage = lazy(() => import("@/pages/EstimateTxFeePage"));
@@ -322,6 +324,10 @@ function App() {
     { titleKey: "nav.wsol", linkTo: "/wsolSolana" }
   ];
 
+  const toolsNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
+    { titleKey: "nav.mnemonic", linkTo: "/tools/mnemonic" }
+  ];
+
   return (
     <Router>
       <DocumentSurface />
@@ -462,6 +468,23 @@ function App() {
                   </NavLink>
                 ))}
               </div>
+              <div className="sidebar-section">
+                <div className="sidebar-section-title">{t("nav.tools")}</div>
+                {toolsNavItems.map((item) => (
+                  <NavLink
+                    key={item.linkTo}
+                    to={item.linkTo}
+                    className={({ isActive }) =>
+                      "sidebar-link" + (isActive ? " active" : "")
+                    }
+                    onClick={closeSidebarOnMobile}
+                  >
+                    <span className="sidebar-link-text">
+                      {t(item.titleKey)}
+                    </span>
+                  </NavLink>
+                ))}
+              </div>
             </nav>
             <button
               type="button"
@@ -516,6 +539,12 @@ function App() {
                   element={<LayerZeroOFTBridgePage />}
                 />
                 <Route path="/utils" element={<UtilsPage />} />
+                {/* Legacy path — keep old /tools links working */}
+                <Route
+                  path="/tools"
+                  element={<Navigate to="/tools/mnemonic" replace />}
+                />
+                <Route path="/tools/mnemonic" element={<ToolsPage />} />
                 <Route path="/erc6551" element={<ERC6551Page />} />
                 <Route path="/eip7702" element={<EIP7702Page />} />
                 <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
