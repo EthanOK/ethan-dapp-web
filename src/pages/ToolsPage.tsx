@@ -10,6 +10,7 @@ import { SolanaIcon } from "@/components/icons/SolanaIcon";
 import { TronIcon } from "@/components/icons/TronIcon";
 import {
   BITCOIN_ADDRESS_TYPES,
+  MnemonicDeriveError,
   deriveAddressesFromMnemonic,
   generateMnemonic,
   type BitcoinAddressType,
@@ -55,7 +56,7 @@ const ToolsPage = () => {
     try {
       setAddresses(deriveAddressesFromMnemonic(value));
     } catch (err: unknown) {
-      const code = err instanceof Error ? err.message : "invalid";
+      const code = err instanceof MnemonicDeriveError ? err.code : "invalid";
       setError(
         code === "empty" ? t("tools.error.empty") : t("tools.error.invalid")
       );
@@ -73,9 +74,14 @@ const ToolsPage = () => {
       generatedRef.current = phrase;
       setMnemonic(phrase);
       runDerive(phrase);
-    } catch {
+    } catch (err: unknown) {
       setAddresses(null);
-      setError(t("tools.error.noCrypto"));
+      // Only a missing CSPRNG means "no crypto"; anything else is a bad phrase.
+      setError(
+        err instanceof MnemonicDeriveError && err.code === "no-crypto"
+          ? t("tools.error.noCrypto")
+          : t("tools.error.invalid")
+      );
     }
   };
 
@@ -87,6 +93,20 @@ const ToolsPage = () => {
     applyGenerated(DEFAULT_STRENGTH);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Escape closes the QR modal; the overlay itself is mouse-only.
+  useEffect(() => {
+    if (qrChain === null) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setQrChain(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [qrChain]);
 
   const deriveHandler = () => runDerive(mnemonic);
 
@@ -160,7 +180,14 @@ const ToolsPage = () => {
           <textarea
             id="tools-mnemonic"
             value={mnemonic}
-            onChange={(e) => setMnemonic(e.target.value)}
+            onChange={(e) => {
+              setMnemonic(e.target.value);
+              // Any edit invalidates the list below. Keeping the old result
+              // visible next to a changed phrase risks the user copying an
+              // address that belongs to the previous mnemonic.
+              setAddresses(null);
+              setError(null);
+            }}
             placeholder={t("tools.mnemonicPlaceholder")}
             rows={4}
             spellCheck={false}
