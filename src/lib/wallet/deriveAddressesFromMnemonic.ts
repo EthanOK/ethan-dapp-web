@@ -9,15 +9,8 @@ import { getAddress, NETWORK } from "@scure/btc-signer";
 import { p2sh, p2wpkh } from "@scure/btc-signer/payment.js";
 import { Keypair } from "@solana/web3.js";
 import { derivePath } from "ed25519-hd-key";
-import {
-  HDNodeWallet,
-  SigningKey,
-  computeAddress,
-  concat,
-  encodeBase58,
-  hexlify,
-  sha256
-} from "ethers";
+import { HDNodeWallet, hexlify } from "ethers";
+import { privateKeyToTronAddress } from "@/lib/tron/address";
 
 /** Standard single-signature Bitcoin address formats, in rough wallet-support order. */
 export type BitcoinAddressType = "legacy" | "nested" | "native" | "taproot";
@@ -43,11 +36,28 @@ export const BITCOIN_ADDRESS_TYPES = Object.keys(
   BTC_PATHS
 ) as BitcoinAddressType[];
 
+const ETH_PATH = "m/44'/60'/0'/0/0";
 const SOL_PATH = "m/44'/501'/0'/0'";
 const TRON_PATH = "m/44'/195'/0'/0/0";
 
 /** BIP39 entropy size in bits: 128 → 12 words, 256 → 24 words. */
 export type MnemonicStrength = 128 | 256;
+
+/**
+ * Machine-readable reason a derivation failed. Callers branch on `code`
+ * instead of parsing message text, so wording can change freely.
+ */
+export type DeriveErrorCode = "empty" | "invalid" | "no-crypto";
+
+export class MnemonicDeriveError extends Error {
+  readonly code: DeriveErrorCode;
+
+  constructor(code: DeriveErrorCode) {
+    super(code);
+    this.name = "MnemonicDeriveError";
+    this.code = code;
+  }
+}
 
 function normalizeMnemonic(mnemonic: string): string {
   return mnemonic.trim().split(/\s+/).filter(Boolean).join(" ").toLowerCase();
@@ -64,30 +74,11 @@ function normalizeMnemonic(mnemonic: string): string {
 export function generateMnemonic(strength: MnemonicStrength = 128): string {
   const random = globalThis.crypto;
   if (typeof random?.getRandomValues !== "function") {
-    throw new Error("no-crypto");
+    throw new MnemonicDeriveError("no-crypto");
   }
   const entropy = new Uint8Array(strength / 8);
   random.getRandomValues(entropy);
   return entropyToMnemonic(entropy, wordlist);
-}
-
-/**
- * TRON address = base58check(0x41 ‖ keccak256(uncompressedPubKey[1..])[12..32])
- *
- * Same 20-byte body as an Ethereum address (EVM-style keccak of the uncompressed
- * public key), but prefixed with the TRON mainnet byte `0x41` and Base58Check
- * encoded instead of hex.
- */
-function toTronAddress(privateKey: Uint8Array): string {
-  // computeAddress() == keccak256(uncompressedPubKey[1..]).slice(-20), EIP-55 checksummed
-  const body = computeAddress(new SigningKey(hexlify(privateKey)))
-    .slice(2)
-    .toLowerCase();
-
-  const payload = concat(["0x41", `0x${body}`]);
-  const checksum = sha256(sha256(payload)).slice(2, 10);
-
-  return encodeBase58(concat([payload, `0x${checksum}`]));
 }
 
 /** Maps the user-facing format to `getAddress`'s script-type tag. */
@@ -101,25 +92,25 @@ const BTC_GET_ADDRESS_TYPE: Record<
 };
 
 /**
- * Derive one Bitcoin address format from the master seed.
+ * Derive one Bitcoin address format from the master key.
  *
  * `getAddress` covers P2PKH / P2WPKH / P2TR directly (all with the compressed
  * ECDSA or x-only key of the derived path). Nested SegWit is P2WPKH wrapped in
  * P2SH, so it is composed from `p2wpkh` + `p2sh` instead.
+ *
+ * Takes the master key rather than the seed so callers derive every format
+ * (and TRON) from one `fromMasterSeed` instead of re-hashing the seed each time.
  */
-function deriveBitcoinAddress(
-  seed: Uint8Array,
-  type: BitcoinAddressType
-): string {
-  const node = HDKey.fromMasterSeed(seed).derive(BTC_PATHS[type]);
+function deriveBitcoinAddress(master: HDKey, type: BitcoinAddressType): string {
+  const node = master.derive(BTC_PATHS[type]);
   if (!node.privateKey || !node.publicKey) {
-    throw new Error("invalid");
+    throw new MnemonicDeriveError("invalid");
   }
 
   if (type === "nested") {
     const nested = p2sh(p2wpkh(node.publicKey, NETWORK), NETWORK).address;
     if (!nested) {
-      throw new Error("invalid");
+      throw new MnemonicDeriveError("invalid");
     }
     return nested;
   }
@@ -137,32 +128,35 @@ export function deriveAddressesFromMnemonic(
 ): DerivedAddresses {
   const normalized = normalizeMnemonic(mnemonic);
   if (!normalized) {
-    throw new Error("empty");
+    throw new MnemonicDeriveError("empty");
   }
   if (!validateMnemonic(normalized, wordlist)) {
-    throw new Error("invalid");
+    throw new MnemonicDeriveError("invalid");
   }
 
+  // BIP39 seed derivation (PBKDF2) is the slowest step here, so it runs once
+  // and feeds every tree below — BTC/TRON via `master`, ETH via `fromSeed`
+  // instead of `fromPhrase` (which would re-run PBKDF2), and SOL via ed25519.
   const seed = mnemonicToSeedSync(normalized);
+  const master = HDKey.fromMasterSeed(seed);
 
   const btc = Object.fromEntries(
     BITCOIN_ADDRESS_TYPES.map((type) => [
       type,
-      deriveBitcoinAddress(seed, type)
+      deriveBitcoinAddress(master, type)
     ])
   ) as BitcoinAddresses;
 
-  const ethWallet = HDNodeWallet.fromPhrase(normalized);
-  const eth = ethWallet.address;
+  const eth = HDNodeWallet.fromSeed(seed).derivePath(ETH_PATH).address;
 
   const { key: solSeed } = derivePath(SOL_PATH, hexlify(seed).slice(2));
   const sol = Keypair.fromSeed(solSeed).publicKey.toBase58();
 
-  const tronNode = HDKey.fromMasterSeed(seed).derive(TRON_PATH);
+  const tronNode = master.derive(TRON_PATH);
   if (!tronNode.privateKey) {
-    throw new Error("invalid");
+    throw new MnemonicDeriveError("invalid");
   }
-  const tron = toTronAddress(tronNode.privateKey);
+  const tron = privateKeyToTronAddress(tronNode.privateKey);
 
   return { btc, eth, sol, tron };
 }
