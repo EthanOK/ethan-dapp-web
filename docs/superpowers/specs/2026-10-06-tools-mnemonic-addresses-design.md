@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-06  
 **Status:** Approved (brainstorming)  
-**Route:** `/tools/mnemonic`
+**Route:** `/mnemonic`
 
 ## Summary
 
@@ -10,7 +10,7 @@ Add a new **Mnemonic** page (under the top-level **Tools** section) where the us
 
 ## Goals
 
-- New route `/tools/mnemonic` with sidebar entry (item **Mnemonic** inside the top-level **Tools** section, which is a sibling of Ethereum / Solana). `/tools` redirects here
+- New route `/mnemonic` with sidebar entry (item **Mnemonic** inside the top-level **Tools** section, which is a sibling of Ethereum / Solana)
 - Input: BIP39 mnemonic phrase — typed/pasted by the user, or generated locally
 - Generate: 12-word (128-bit) or 24-word (256-bit) phrase from `crypto.getRandomValues`
 - Output: one address row per chain (no private keys, no seed display)
@@ -38,7 +38,7 @@ Add a new **Mnemonic** page (under the top-level **Tools** section) where the us
 Thin page + pure derivation helper (matches existing `pages/` + `lib/` patterns).
 
 ```
-src/pages/ToolsPage.tsx                          # UI
+src/pages/MnemonicPage.tsx                          # UI
 src/lib/wallet/deriveAddressesFromMnemonic.ts    # derive + generate helpers (pure)
 src/app/App.tsx                                  # lazy route + sidebar link
 src/i18n/locales/{en,zh-CN,zh-TW}.ts             # copy
@@ -151,7 +151,7 @@ Follow existing utility page styling (form card, inputs, button).
 
 ## Navigation & i18n
 
-- Sidebar: top-level **Tools** section (sibling of Ethereum / Solana), not nested under Ethereum; its single item links to `/tools/mnemonic`
+- Sidebar: top-level **Tools** section (sibling of Ethereum / Solana), not nested under Ethereum; its single item links to `/mnemonic`
 - Keys (minimum):
   - `nav.tools` (section title), `nav.mnemonic` (sidebar item)
   - `tools.title`, `tools.subtitle`, `tools.warning`
@@ -186,7 +186,7 @@ Labels: section title `nav.tools` is **Tools** in all three locales (consistent 
 
 ## Acceptance criteria
 
-1. Sidebar link opens `/tools/mnemonic`
+1. Sidebar link opens `/mnemonic`
 2. Valid BIP39 mnemonic yields one address per chain: BTC in the selected format, ETH (`0x…`), SOL (base58), TRON (`T…`)
 3. Invalid mnemonic shows a clear error and clears results
 4. Same mnemonic matches common wallets: MetaMask (ETH), Phantom (SOL), TronLink (TRON), and for BTC — Electrum/`bitcoinjs-lib` for Legacy, Nested SegWit, Native SegWit, and Taproot account 0
@@ -195,7 +195,7 @@ Labels: section title `nav.tools` is **Tools** in all three locales (consistent 
 7. All seven derived addresses match the known-answer table above
 8. **Random mnemonic** produces a valid phrase of the selected length (12 / 24 words), all words from the English wordlist, and deriving it succeeds immediately
 9. Repeating the action yields different phrases (no cached/reused entropy)
-10. The module graph of `ToolsPage` + `deriveAddressesFromMnemonic` contains no `fetch` / `XMLHttpRequest` / storage call
+10. The module graph of `MnemonicPage` + `deriveAddressesFromMnemonic` contains no `fetch` / `XMLHttpRequest` / storage call
 11. On first load the textarea already holds a valid locally generated phrase (12 words) with results shown, with no user action required
 12. Switching between `12` and `24` re-rolls the phrase to the new length while the field holds a page-generated phrase, and leaves an edited phrase untouched
 13. Changing the Bitcoin format select swaps the row's address, its copy value and its QR payload together; the row prefix matches the format (`1` / `3` / `bc1q` / `bc1p`)
@@ -204,4 +204,4 @@ Labels: section title `nav.tools` is **Tools** in all three locales (consistent 
 
 - Prefer `@scure/*` over heavy `bitcoinjs-lib` / `bip39` stacks
 - Keep derivation logic out of the React component for testability
-- Page CSS: reuse global form styles if sufficient; add `ToolsPage.css` only if needed
+- Page CSS: reuse global form styles if sufficient; add `MnemonicPage.css` only if needed
