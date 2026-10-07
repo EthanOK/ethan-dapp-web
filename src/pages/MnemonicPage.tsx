@@ -34,7 +34,7 @@ const CHAIN_ROWS: { key: ChainKey; Icon: ComponentType<ChainIconProps> }[] = [
   { key: "tron", Icon: TronIcon }
 ];
 
-const ToolsPage = () => {
+const MnemonicPage = () => {
   const { t } = useI18n();
   const [mnemonic, setMnemonic] = useState("");
   const [strength, setStrength] = useState<MnemonicStrength>(DEFAULT_STRENGTH);
@@ -391,4 +391,4 @@ const ToolsPage = () => {
   );
 };
 
-export default ToolsPage;
+export default MnemonicPage;

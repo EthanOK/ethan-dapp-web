@@ -4,7 +4,6 @@ import {
   Routes,
   Route,
   NavLink,
-  Navigate,
   useLocation
 } from "react-router-dom";
 import "@/app/App.css";
@@ -170,7 +169,7 @@ const LayerZeroOFTBridgePage = lazy(
   () => import("@/pages/LayerZeroOFTBridgePage")
 );
 const UtilsPage = lazy(() => import("@/pages/UtilsPage"));
-const ToolsPage = lazy(() => import("@/pages/ToolsPage"));
+const MnemonicPage = lazy(() => import("@/pages/MnemonicPage"));
 const ERC6551Page = lazy(() => import("@/pages/ERC6551Page"));
 const EIP7702Page = lazy(() => import("@/pages/EIP7702Page"));
 const EstimateTxFeePage = lazy(() => import("@/pages/EstimateTxFeePage"));
@@ -315,17 +314,17 @@ function App() {
     { titleKey: "nav.eip7702", linkTo: "/eip7702" },
     { titleKey: "nav.utils", linkTo: "/utils" },
     { titleKey: "nav.erc6551", linkTo: "/erc6551" },
-    { titleKey: "nav.web3Auth", linkTo: "/web3Auth" },
-    { titleKey: "nav.web3AuthSolana", linkTo: "/web3AuthSolana" }
+    { titleKey: "nav.web3Auth", linkTo: "/web3Auth" }
   ];
 
   const solanaNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
     { titleKey: "nav.solanaUtils", linkTo: "/solanaUtils" },
-    { titleKey: "nav.wsol", linkTo: "/wsolSolana" }
+    { titleKey: "nav.wsol", linkTo: "/wsolSolana" },
+    { titleKey: "nav.web3AuthSolana", linkTo: "/web3AuthSolana" }
   ];
 
   const toolsNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
-    { titleKey: "nav.mnemonic", linkTo: "/tools/mnemonic" }
+    { titleKey: "nav.mnemonic", linkTo: "/mnemonic" }
   ];
 
   return (
@@ -506,10 +505,12 @@ function App() {
           <main className="app-main">
             <Suspense fallback={null}>
               <Routes>
+                {/* Ethereum — mirrors the sidebar's Ethereum section.
+                    Market/NFT/IPFS routes live here too; they are EVM or
+                    chain-agnostic and are not listed in the sidebar. */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/markets" element={<MarketListPage />} />
                 <Route path="/market" element={<MarketChartPage />} />
-                <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
                 <Route path="/ens" element={<ENSPage />} />
                 <Route path="/getCollection" element={<GetCollectionPage />} />
                 <Route
@@ -539,21 +540,19 @@ function App() {
                   element={<LayerZeroOFTBridgePage />}
                 />
                 <Route path="/utils" element={<UtilsPage />} />
-                {/* Legacy path — keep old /tools links working */}
-                <Route
-                  path="/tools"
-                  element={<Navigate to="/tools/mnemonic" replace />}
-                />
-                <Route path="/tools/mnemonic" element={<ToolsPage />} />
                 <Route path="/erc6551" element={<ERC6551Page />} />
                 <Route path="/eip7702" element={<EIP7702Page />} />
                 <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
                 <Route path="/web3Auth" element={<Web3AuthPage />} />
+                {/* Solana */}
+                <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
+                <Route path="/wsolSolana" element={<WsolPage />} />
                 <Route
                   path="/web3AuthSolana"
                   element={<Web3AuthSolanaPage />}
                 />
-                <Route path="/wsolSolana" element={<WsolPage />} />
+                {/* Tools */}
+                <Route path="/mnemonic" element={<MnemonicPage />} />
               </Routes>
             </Suspense>
           </main>
