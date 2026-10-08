@@ -1,154 +1,168 @@
-/* Web3 — On-Chain Terminal design system */
-@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap");
+/* Design system — dark data console
+ * Skeleton: Linear (canvas / surface ladder / hairline / radius / spacing)
+ * Accent: Kraken purple, split into solid + text tiers
+ * Trading semantics: retained from the previous system (up/down)
+ */
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 :root {
-  /* Void palette */
-  --w3-bg-deep: #030306;
-  --w3-bg-main: #07070d;
-  --w3-bg-card: #0d0d14;
-  --w3-bg-elevated: #12121c;
-  --w3-bg-hover: #181824;
+  /* Canvas & surface ladder — lifted off pure black to cut halation */
+  --w3-bg-deep: #0a0b0e;
+  --w3-bg-main: #121317;
+  --w3-bg-card: #17191d;
+  --w3-bg-elevated: #1c1e23;
+  --w3-bg-hover: #22252a;
 
-  /* Borders & glass */
-  --w3-border: rgba(148, 163, 184, 0.1);
-  --w3-border-accent: rgba(0, 229, 255, 0.38);
-  --w3-border-focus: rgba(0, 229, 255, 0.65);
-  --w3-glass: rgba(13, 13, 20, 0.78);
-  --w3-glass-strong: rgba(7, 7, 13, 0.92);
+  /* Hairlines & glass */
+  --w3-border: #26292f;
+  --w3-border-accent: rgba(113, 50, 245, 0.45);
+  --w3-border-focus: rgba(179, 157, 255, 0.65);
+  --w3-glass: rgba(18, 19, 23, 0.82);
+  --w3-glass-strong: rgba(10, 11, 14, 0.94);
 
-  /* Accent — electric cyan */
-  --w3-accent: #00e5ff;
-  --w3-accent-dim: #0891b2;
-  --w3-accent-glow: rgba(0, 229, 255, 0.22);
-  --w3-accent-soft: rgba(0, 229, 255, 0.1);
+  /* Accent — Kraken purple, two tiers
+   * solid (#7132f5): button fills, chips, borders — white type on it is 6.0:1
+   * text  (#b39dff): links, labels, icons on dark — 9.1:1
+   * The solid tier is only 3.4:1 on this canvas and must never be used for type.
+   */
+  --w3-accent: #7132f5;
+  --w3-accent-text: #b39dff;
+  --w3-accent-dim: #5741d8;
+  /* Foreground on any accent-filled surface — white in both themes,
+   * because the fill stays chromatic (purple / green / red) either way. */
+  --w3-on-accent: #ffffff;
+  --w3-accent-glow: rgba(113, 50, 245, 0.18);
+  --w3-accent-soft: rgba(113, 50, 245, 0.16);
 
-  /* Secondary — chain amber (sparing highlights) */
+  /* Secondary — warning only (amber kept for caution states, never emphasis) */
   --w3-secondary: #fbbf24;
   --w3-secondary-dim: #d97706;
 
   /* Semantic */
-  --w3-success: #10b981;
-  --w3-success-soft: rgba(16, 185, 129, 0.14);
-  --w3-danger: #f43f5e;
-  --w3-danger-soft: rgba(244, 63, 94, 0.14);
+  --w3-success: #0ecb81;
+  --w3-success-soft: rgba(14, 203, 129, 0.14);
+  --w3-danger: #f6465d;
+  --w3-danger-soft: rgba(246, 70, 93, 0.14);
+  --w3-warning: #fbbf24;
+  --w3-warning-soft: rgba(251, 191, 36, 0.14);
 
   /* Text */
-  --w3-text: #e8edf5;
-  --w3-text-muted: #94a3b8;
-  --w3-text-dim: #64748b;
+  --w3-text: #f7f8f8;
+  --w3-text-muted: #d0d6e0;
+  --w3-text-dim: #8a8f98;
 
   /* Typography */
   --w3-font-display: "Chakra Petch", ui-sans-serif, sans-serif;
-  --w3-font-sans: "DM Sans", ui-sans-serif, sans-serif;
+  --w3-font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --w3-font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   /* Shape */
-  --w3-radius-sm: 6px;
-  --w3-radius: 10px;
-  --w3-radius-lg: 14px;
-  --w3-radius-xl: 18px;
+  --w3-radius-sm: 4px;
+  --w3-radius: 8px;
+  --w3-radius-lg: 12px;
+  --w3-radius-xl: 16px;
 
-  /* Depth */
+  /* Depth — surface ladder carries hierarchy, shadows stay whisper-level */
   --w3-shadow-glow: 0 0 28px var(--w3-accent-glow);
   --w3-shadow-md: 0 12px 40px rgba(0, 0, 0, 0.45);
   --w3-shadow-panel:
-    0 0 0 1px rgba(0, 229, 255, 0.06) inset, 0 16px 48px rgba(0, 0, 0, 0.35);
+    0 0 0 1px rgba(113, 50, 245, 0.06) inset, 0 16px 48px rgba(0, 0, 0, 0.35);
   --w3-card-shadow: var(--w3-shadow-panel);
 
-  --w3-header-bg: rgba(7, 7, 13, 0.88);
-  --w3-sidebar-bg: rgba(7, 7, 13, 0.72);
-  --w3-sidebar-active-bg: rgba(0, 229, 255, 0.08);
-  --w3-scrollbar-track: #07070d;
-  --w3-scrollbar-thumb: #252532;
-  --w3-scrollbar-thumb-hover: #353545;
+  --w3-header-bg: rgba(10, 11, 14, 0.88);
+  --w3-sidebar-bg: #0a0b0e;
+  --w3-sidebar-active-bg: rgba(113, 50, 245, 0.16);
+  --w3-scrollbar-track: #121317;
+  --w3-scrollbar-thumb: #26292f;
+  --w3-scrollbar-thumb-hover: #3a3e45;
 
   /* Light plate so black/transparent CoinGecko logos stay visible on dark UI */
   --w3-token-icon-bg: #f8fafc;
 
-  --w3-gradient-accent: linear-gradient(135deg, #00e5ff 0%, #06b6d4 100%);
+  --w3-gradient-accent: linear-gradient(135deg, #7132f5 0%, #5741d8 100%);
   --w3-gradient-text: linear-gradient(
     120deg,
-    #e8edf5 0%,
-    #00e5ff 45%,
-    #67e8f9 100%
+    #f7f8f8 0%,
+    #b39dff 45%,
+    #7132f5 100%
   );
 }
 
 html[data-theme="light"] {
-  --w3-bg-deep: #eef2f7;
-  --w3-bg-main: #e8edf3;
+  --w3-bg-deep: #f5f6f6;
+  --w3-bg-main: #ffffff;
   --w3-bg-card: #ffffff;
-  --w3-bg-elevated: #ffffff;
-  --w3-bg-hover: #f1f5f9;
+  --w3-bg-elevated: #fafafa;
+  --w3-bg-hover: #f1f2f4;
 
-  --w3-border: rgba(15, 23, 42, 0.09);
-  --w3-border-accent: rgba(6, 182, 212, 0.45);
-  --w3-border-focus: rgba(6, 182, 212, 0.65);
-  --w3-glass: rgba(255, 255, 255, 0.82);
-  --w3-glass-strong: rgba(248, 250, 252, 0.94);
+  --w3-border: #dedee5;
+  --w3-border-accent: rgba(91, 30, 207, 0.45);
+  --w3-border-focus: rgba(91, 30, 207, 0.65);
+  --w3-glass: rgba(255, 255, 255, 0.85);
+  --w3-glass-strong: rgba(248, 250, 252, 0.95);
 
-  --w3-accent: #0891b2;
-  --w3-accent-dim: #0e7490;
-  --w3-accent-glow: rgba(6, 182, 212, 0.16);
-  --w3-accent-soft: rgba(6, 182, 212, 0.1);
+  /* On light surfaces the purple deepens instead of lightening */
+  --w3-accent: #5b1ecf;
+  --w3-accent-text: #5b1ecf;
+  --w3-accent-dim: #5741d8;
+  --w3-on-accent: #ffffff;
+  --w3-accent-glow: rgba(91, 30, 207, 0.16);
+  --w3-accent-soft: rgba(91, 30, 207, 0.1);
 
-  --w3-secondary: #d97706;
-  --w3-secondary-dim: #b45309;
+  --w3-secondary: #b45309;
+  --w3-secondary-dim: #92400e;
 
   --w3-success: #047857;
-  --w3-success-soft: rgba(16, 185, 129, 0.12);
+  --w3-success-soft: rgba(14, 203, 129, 0.12);
   --w3-danger: #be123c;
-  --w3-danger-soft: rgba(244, 63, 94, 0.1);
+  --w3-danger-soft: rgba(246, 70, 93, 0.1);
+  --w3-warning: #b45309;
+  --w3-warning-soft: rgba(251, 191, 36, 0.18);
 
-  --w3-text: #0f172a;
-  --w3-text-muted: #64748b;
-  --w3-text-dim: #94a3b8;
+  --w3-text: #101114;
+  --w3-text-muted: #686b82;
+  --w3-text-dim: #9497a9;
 
-  --w3-header-bg: rgba(248, 250, 252, 0.9);
-  --w3-sidebar-bg: rgba(241, 245, 249, 0.88);
-  --w3-sidebar-active-bg: rgba(6, 182, 212, 0.1);
+  --w3-header-bg: rgba(255, 255, 255, 0.9);
+  --w3-sidebar-bg: #f5f6f6;
+  --w3-sidebar-active-bg: rgba(91, 30, 207, 0.1);
   --w3-card-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
+    0 1px 2px rgba(16, 17, 20, 0.04), 0 12px 32px rgba(16, 17, 20, 0.08);
   --w3-shadow-panel: var(--w3-card-shadow);
-  --w3-scrollbar-track: #e2e8f0;
-  --w3-scrollbar-thumb: #cbd5e1;
-  --w3-scrollbar-thumb-hover: #94a3b8;
+  --w3-shadow-glow: 0 0 24px var(--w3-accent-glow);
+  --w3-scrollbar-track: #ececf1;
+  --w3-scrollbar-thumb: #d3d6dd;
+  --w3-scrollbar-thumb-hover: #9497a9;
 
   --w3-token-icon-bg: #ffffff;
 
-  --w3-gradient-accent: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  --w3-gradient-accent: linear-gradient(135deg, #7132f5 0%, #5b1ecf 100%);
   --w3-gradient-text: linear-gradient(
     120deg,
-    #0f172a 0%,
-    #0891b2 50%,
-    #06b6d4 100%
+    #101114 0%,
+    #5b1ecf 50%,
+    #7132f5 100%
   );
 }
 
 html[data-theme="light"] body {
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 52%, #e6edf5 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f6f6 52%, #eceef1 100%);
 }
 
 html[data-theme="light"] body::before {
   background-image:
-    linear-gradient(rgba(6, 182, 212, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(91, 30, 207, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 30, 207, 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
   opacity: 0.5;
 }
 
 html[data-theme="light"] body::after {
-  background:
-    radial-gradient(
-      ellipse 70% 45% at 50% -10%,
-      rgba(6, 182, 212, 0.1),
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse 40% 30% at 100% 40%,
-      rgba(6, 182, 212, 0.05),
-      transparent 55%
-    );
+  background: radial-gradient(
+    ellipse 70% 45% at 50% -10%,
+    rgba(91, 30, 207, 0.1),
+    transparent 60%
+  );
 }
 
 html[data-theme="light"] .feature-panel,
@@ -222,14 +236,14 @@ body {
   min-height: 100vh;
 }
 
-/* Terminal grid */
+/* Terminal grid — kept, dialled down from 0.035 to 0.02 */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 229, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 229, 255, 0.035) 1px, transparent 1px);
+    linear-gradient(rgba(113, 50, 245, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(113, 50, 245, 0.02) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -261,27 +275,16 @@ html[data-theme="light"][data-surface="markets"] .app-main {
   background: var(--w3-bg-main);
 }
 
-/* Ambient glow orbs */
+/* Ambient glow — collapsed from three cyan orbs to one top purple wash */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(
-      ellipse 75% 50% at 50% -15%,
-      rgba(0, 229, 255, 0.14),
-      transparent 58%
-    ),
-    radial-gradient(
-      ellipse 45% 35% at 100% 45%,
-      rgba(6, 182, 212, 0.07),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 35% 25% at 0% 85%,
-      rgba(0, 229, 255, 0.05),
-      transparent 50%
-    );
+  background: radial-gradient(
+    ellipse 75% 50% at 50% -15%,
+    rgba(113, 50, 245, 0.14),
+    transparent 58%
+  );
   pointer-events: none;
   z-index: 0;
 }
@@ -304,11 +307,11 @@ code {
   letter-spacing: 0.02em;
 }
 
-/* Shared glass panel utility */
+/* Shared glass panel utility — reserved for floating layers only */
 .w3-glass-panel {
   background: var(--w3-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--w3-border);
   box-shadow: var(--w3-shadow-panel);
 }

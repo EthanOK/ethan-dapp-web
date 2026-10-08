@@ -206,7 +206,7 @@ export async function ensurePermit2TokenApproval(params: {
   return reset ? { reset, approve } : { approve };
 }
 
-/** EIP-712 Permit2 signature for ERC20 input; native tokens skip signing. */
+/** EIP712 Permit2 signature for ERC20 input; native tokens skip signing. */
 export async function signSwapPermit2(params: {
   chain: SwapChainDefinition;
   signer: Signer;

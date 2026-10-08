@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
   NavLink,
   useLocation
 } from "react-router-dom";
@@ -11,16 +12,14 @@ import { Toaster } from "sonner";
 // Import the light hooks directly (not via the `@/hooks` barrel) so the eager
 // App graph never reaches the wallet hooks → `@/app/Wallet` → `createAppKit`.
 // The wallet stack is loaded lazily through `<WalletControls />` below.
-import { useAppTheme } from "@/hooks/useAppTheme";
 import { useResponsiveSidebar } from "@/hooks/useResponsiveSidebar";
-import {
-  useI18n,
-  APP_LOCALES,
-  getLocaleLabelKey,
-  type AppLocale,
-  type TranslationKey
-} from "@/i18n";
+import { useI18n } from "@/i18n";
 import { readCachedSession, shortAddress } from "@/lib/wallet/cachedSession";
+import { NAV_GROUPS } from "@/app/navigation";
+import { NavIcon } from "@/app/navIcons";
+import CommandPalette, { MOD_KEY } from "@/app/CommandPalette";
+import ThemeToggle from "@/app/ThemeToggle";
+import LanguageMenu from "@/app/LanguageMenu";
 
 function LogoMarkIcon() {
   return (
@@ -41,110 +40,6 @@ function LogoMarkIcon() {
   );
 }
 
-function ThemeSunIcon() {
-  return (
-    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.75" />
-      <path
-        d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4l1.4-1.4M17 7l1.4-1.4"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function ThemeMoonIcon() {
-  return (
-    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M12 3a9 9 0 1 0 9 9 7.2 7.2 0 0 1-9-9z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function LocaleGlobeIcon() {
-  return (
-    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M2 12h20" stroke="currentColor" strokeWidth="1.75" />
-      <path
-        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-      />
-    </svg>
-  );
-}
-
-function HeaderLocaleMenu() {
-  const { locale, setLocale, t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const timerId = window.setTimeout(() => {
-      document.addEventListener("pointerdown", onPointerDown);
-    }, 0);
-    return () => {
-      window.clearTimeout(timerId);
-      document.removeEventListener("pointerdown", onPointerDown);
-    };
-  }, [open]);
-
-  const selectLocale = (next: AppLocale) => {
-    setLocale(next);
-    setOpen(false);
-  };
-
-  return (
-    <div className="app-header-locale-wrap" ref={menuRef}>
-      <button
-        type="button"
-        className="app-header-locale-toggle"
-        onClick={() => setOpen((value) => !value)}
-        title={t("locale.language")}
-        aria-label={t("locale.language")}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-      >
-        <span className="app-header-locale-icon" aria-hidden>
-          <LocaleGlobeIcon />
-        </span>
-      </button>
-      {open && (
-        <div
-          className="app-header-locale-menu"
-          role="listbox"
-          aria-label={t("locale.language")}
-        >
-          {APP_LOCALES.map((code) => (
-            <button
-              key={code}
-              type="button"
-              role="option"
-              aria-selected={locale === code}
-              className={
-                "app-header-locale-option" +
-                (locale === code ? " is-active" : "")
-              }
-              onClick={() => selectLocale(code)}
-            >
-              {t(getLocaleLabelKey(code))}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 const HomePage = lazy(() => import("@/pages/HomePage"));
 const MarketChartPage = lazy(() => import("@/pages/MarketChartPage"));
 const MarketListPage = lazy(() => import("@/pages/MarketListPage"));
@@ -154,7 +49,6 @@ const GetCollectionPage = lazy(() => import("@/pages/GetCollectionPage"));
 const YunGouAggregatorsPage = lazy(
   () => import("@/pages/YunGouAggregatorsPage")
 );
-const SignEIP712Page = lazy(() => import("@/pages/SignEIP712Page"));
 const GetOpenSeaDataPage = lazy(() => import("@/pages/GetOpenSeaDataPage"));
 const BuyNFTPage = lazy(() => import("@/pages/BuyNFTPage"));
 const GetIPFSPage = lazy(() => import("@/pages/GetIPFSPage"));
@@ -168,7 +62,13 @@ const ERC20AllowancePage = lazy(() => import("@/pages/ERC20AllowancePage"));
 const LayerZeroOFTBridgePage = lazy(
   () => import("@/pages/LayerZeroOFTBridgePage")
 );
-const UtilsPage = lazy(() => import("@/pages/UtilsPage"));
+const SignTool = lazy(() => import("@/pages/utils/SignTool"));
+const GasTool = lazy(() => import("@/pages/utils/GasTool"));
+const PriceTool = lazy(() => import("@/pages/utils/PriceTool"));
+const IpfsTool = lazy(() => import("@/pages/utils/IpfsTool"));
+const ContractAddressTool = lazy(
+  () => import("@/pages/utils/ContractAddressTool")
+);
 const MnemonicPage = lazy(() => import("@/pages/MnemonicPage"));
 const ERC6551Page = lazy(() => import("@/pages/ERC6551Page"));
 const EIP7702Page = lazy(() => import("@/pages/EIP7702Page"));
@@ -290,7 +190,6 @@ function App() {
     return () => window.clearTimeout(timerId);
   }, []);
 
-  const { theme, toggleTheme } = useAppTheme();
   const { t } = useI18n();
   const {
     isSidebarOpen,
@@ -298,34 +197,23 @@ function App() {
     closeSidebarOnMobile,
     setIsSidebarOpen
   } = useResponsiveSidebar();
+  // Theme state lives in <ThemeToggle />; it is always mounted in the header,
+  // so `data-theme` stays in sync from the first paint. The locale picker is a
+  // separate control next to it.
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
-  const ethNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
-    { titleKey: "nav.home", linkTo: "/" },
-    { titleKey: "nav.markets", linkTo: "/markets" },
-    { titleKey: "nav.bricswap", linkTo: "/bricswap" },
-    { titleKey: "nav.estimateTxFee", linkTo: "/estimateTxFee" },
-    { titleKey: "nav.createTransaction", linkTo: "/createTransaction" },
-    { titleKey: "nav.erc20Allowance", linkTo: "/erc20Allowance" },
-    { titleKey: "nav.oftBridge", linkTo: "/layerzeroOftBridge" },
-    { titleKey: "nav.faucet", linkTo: "/faucet" },
-    { titleKey: "nav.burn", linkTo: "/burn" },
-    { titleKey: "nav.ens", linkTo: "/ens" },
-    { titleKey: "nav.signEip712", linkTo: "/signEIP712" },
-    { titleKey: "nav.eip7702", linkTo: "/eip7702" },
-    { titleKey: "nav.utils", linkTo: "/utils" },
-    { titleKey: "nav.erc6551", linkTo: "/erc6551" },
-    { titleKey: "nav.web3Auth", linkTo: "/web3Auth" }
-  ];
-
-  const solanaNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
-    { titleKey: "nav.solanaUtils", linkTo: "/solanaUtils" },
-    { titleKey: "nav.wsol", linkTo: "/wsolSolana" },
-    { titleKey: "nav.web3AuthSolana", linkTo: "/web3AuthSolana" }
-  ];
-
-  const toolsNavItems: { titleKey: TranslationKey; linkTo: string }[] = [
-    { titleKey: "nav.mnemonic", linkTo: "/mnemonic" }
-  ];
+  // ⌘K / Ctrl+K toggles the page launcher. Bound on window rather than on an
+  // element so it still fires while focus sits inside a page form.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((value) => !value);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <Router>
@@ -372,27 +260,26 @@ function App() {
               </span>
             </NavLink>
           </div>
-          <div className="app-header-right">
-            <HeaderLocaleMenu />
+          <div className="app-header-center">
             <button
               type="button"
-              className="app-header-theme-toggle"
-              onClick={toggleTheme}
-              title={
-                theme === "dark"
-                  ? t("theme.switchToLight")
-                  : t("theme.switchToDark")
-              }
-              aria-label={
-                theme === "dark"
-                  ? t("theme.switchToLight")
-                  : t("theme.switchToDark")
-              }
+              className="app-search-trigger"
+              onClick={() => setPaletteOpen(true)}
+              aria-label={t("command.openSearch")}
+              title={t("command.openSearch")}
             >
-              <span className="app-header-theme-icon" aria-hidden>
-                {theme === "dark" ? <ThemeSunIcon /> : <ThemeMoonIcon />}
+              <span className="app-search-trigger-icon" aria-hidden>
+                <NavIcon name="search" size={15} />
               </span>
+              <span className="app-search-trigger-label">
+                {t("command.openSearch")}
+              </span>
+              <kbd className="app-search-trigger-kbd">{MOD_KEY}K</kbd>
             </button>
+          </div>
+          <div className="app-header-right">
+            <ThemeToggle />
+            <LanguageMenu />
             <Suspense fallback={<WalletControlsFallback />}>
               <WalletControls />
             </Suspense>
@@ -426,64 +313,39 @@ function App() {
               </button>
             </div>
             <nav className="sidebar-nav">
-              <div className="sidebar-section">
-                <div className="sidebar-section-title">{t("nav.ethereum")}</div>
-                {ethNavItems.map((item) => (
-                  <NavLink
-                    key={item.linkTo}
-                    to={item.linkTo}
-                    className={({ isActive }) =>
-                      "sidebar-link" + (isActive ? " active" : "")
-                    }
-                    end={item.linkTo === "/"}
-                    onClick={closeSidebarOnMobile}
-                    onMouseEnter={
-                      item.linkTo === "/bricswap" ? prefetchSwapPage : undefined
-                    }
-                    onFocus={
-                      item.linkTo === "/bricswap" ? prefetchSwapPage : undefined
-                    }
-                  >
-                    <span className="sidebar-link-text">
-                      {t(item.titleKey)}
-                    </span>
-                  </NavLink>
-                ))}
-              </div>
-              <div className="sidebar-section">
-                <div className="sidebar-section-title">{t("nav.solana")}</div>
-                {solanaNavItems.map((item) => (
-                  <NavLink
-                    key={item.linkTo}
-                    to={item.linkTo}
-                    className={({ isActive }) =>
-                      "sidebar-link" + (isActive ? " active" : "")
-                    }
-                    onClick={closeSidebarOnMobile}
-                  >
-                    <span className="sidebar-link-text">
-                      {t(item.titleKey)}
-                    </span>
-                  </NavLink>
-                ))}
-              </div>
-              <div className="sidebar-section">
-                <div className="sidebar-section-title">{t("nav.tools")}</div>
-                {toolsNavItems.map((item) => (
-                  <NavLink
-                    key={item.linkTo}
-                    to={item.linkTo}
-                    className={({ isActive }) =>
-                      "sidebar-link" + (isActive ? " active" : "")
-                    }
-                    onClick={closeSidebarOnMobile}
-                  >
-                    <span className="sidebar-link-text">
-                      {t(item.titleKey)}
-                    </span>
-                  </NavLink>
-                ))}
-              </div>
+              {NAV_GROUPS.map((group) => (
+                <div className="sidebar-section" key={group.id}>
+                  {group.titleKey && (
+                    <div className="sidebar-section-title">
+                      {t(group.titleKey)}
+                    </div>
+                  )}
+                  {group.items.map((item) => (
+                    <NavLink
+                      key={item.id}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        "sidebar-link" + (isActive ? " active" : "")
+                      }
+                      end={item.to === "/"}
+                      onClick={closeSidebarOnMobile}
+                      onMouseEnter={
+                        item.id === "bricswap" ? prefetchSwapPage : undefined
+                      }
+                      onFocus={
+                        item.id === "bricswap" ? prefetchSwapPage : undefined
+                      }
+                    >
+                      <span className="sidebar-link-icon" aria-hidden>
+                        <NavIcon name={item.id} size={16} />
+                      </span>
+                      <span className="sidebar-link-text">
+                        {t(item.titleKey)}
+                      </span>
+                    </NavLink>
+                  ))}
+                </div>
+              ))}
             </nav>
             <button
               type="button"
@@ -505,9 +367,9 @@ function App() {
           <main className="app-main">
             <Suspense fallback={null}>
               <Routes>
-                {/* Ethereum — mirrors the sidebar's Ethereum section.
-                    Market/NFT/IPFS routes live here too; they are EVM or
-                    chain-agnostic and are not listed in the sidebar. */}
+                {/* Every route the app serves. `NAV_GROUPS` pins a subset in
+                    the sidebar and ⌘K; the remaining routes are abandoned and
+                    deliberately linked from nowhere (see navigation.ts). */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/markets" element={<MarketListPage />} />
                 <Route path="/market" element={<MarketChartPage />} />
@@ -517,7 +379,12 @@ function App() {
                   path="/yunGouAggregators"
                   element={<YunGouAggregatorsPage />}
                 />
-                <Route path="/signEIP712" element={<SignEIP712Page />} />
+                {/* EIP712 signing moved into the Sign tool; keep the old
+                    address working for bookmarks and shared links. */}
+                <Route
+                  path="/signEIP712"
+                  element={<Navigate to="/signature" replace />}
+                />
                 <Route
                   path="/getOpenSeaData"
                   element={<GetOpenSeaDataPage />}
@@ -539,7 +406,14 @@ function App() {
                   path="/layerzeroOftBridge"
                   element={<LayerZeroOFTBridgePage />}
                 />
-                <Route path="/utils" element={<UtilsPage />} />
+                <Route path="/signature" element={<SignTool />} />
+                <Route path="/gasFee" element={<GasTool />} />
+                <Route path="/tokenPrice" element={<PriceTool />} />
+                <Route path="/ipfsGateway" element={<IpfsTool />} />
+                <Route
+                  path="/contractAddress"
+                  element={<ContractAddressTool />}
+                />
                 <Route path="/erc6551" element={<ERC6551Page />} />
                 <Route path="/eip7702" element={<EIP7702Page />} />
                 <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
@@ -557,6 +431,10 @@ function App() {
             </Suspense>
           </main>
         </div>
+        <CommandPalette
+          open={paletteOpen}
+          onClose={() => setPaletteOpen(false)}
+        />
       </div>
     </Router>
   );

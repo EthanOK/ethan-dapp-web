@@ -171,13 +171,13 @@
 }
 
 .swap-market-info-change-pill.up {
-  color: var(--w3-success, #22c55e);
-  background: color-mix(in srgb, var(--w3-success, #22c55e) 14%, transparent);
+  color: var(--w3-success);
+  background: color-mix(in srgb, var(--w3-success) 14%, transparent);
 }
 
 .swap-market-info-change-pill.down {
-  color: var(--w3-danger, #ef4444);
-  background: color-mix(in srgb, var(--w3-danger, #ef4444) 14%, transparent);
+  color: var(--w3-danger);
+  background: color-mix(in srgb, var(--w3-danger) 14%, transparent);
 }
 
 .swap-market-info-stats {
@@ -270,7 +270,7 @@
 }
 
 .swap-market-info-contract-link:hover {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   text-decoration: underline;
 }
 
@@ -285,7 +285,7 @@
   border: none;
   border-radius: calc(var(--w3-radius-sm) - 2px);
   background: color-mix(in srgb, var(--w3-accent) 12%, transparent);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   cursor: pointer;
   transition:
     color 0.12s,

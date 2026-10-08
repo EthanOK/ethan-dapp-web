@@ -348,7 +348,7 @@ const FaucetTokenPage = () => {
   }, [tokenPickerOpen]);
 
   const chainMenuRef = useRef<HTMLDivElement>(null);
-  // Close chain dropdown on outside click (same pattern as HeaderLocaleMenu).
+  // Close chain dropdown on outside click (same pattern as the header menus).
   useEffect(() => {
     if (!chainPickerOpen) return;
     const onPointerDown = (event: PointerEvent) => {
