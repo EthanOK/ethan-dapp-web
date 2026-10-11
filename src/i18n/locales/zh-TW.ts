@@ -418,6 +418,7 @@ export const zhTW: Record<TranslationKey, string> = {
   "utils.token0": "Token0",
   "utils.token1": "Token1",
   "utils.lpPrice": "LP 價格：",
+  "utils.flipRate": "切換方向",
   "utils.contractSection": "計算合約地址",
   "utils.nonce": "Nonce",
   "utils.getContractAddress": "計算地址",

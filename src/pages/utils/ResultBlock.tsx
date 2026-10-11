@@ -24,11 +24,20 @@ const RESULT_PRE: CSSProperties = {
 export default function ResultBlock({
   value,
   sub,
-  emphasis = false
+  emphasis = false,
+  onToggle,
+  toggleTitle
 }: {
   value: string;
   sub?: string;
   emphasis?: boolean;
+  /**
+   * Swap the value for its counterpart where one exists — an inverse rate, a
+   * different unit. Rendered as an extra action next to Copy, on the
+   * emphasised frame only.
+   */
+  onToggle?: () => void;
+  toggleTitle?: string;
 }) {
   const { t } = useI18n();
   // Tools start with no result; the block appears once there is one.
@@ -62,18 +71,31 @@ export default function ResultBlock({
   if (emphasis) {
     return (
       <div className="result-emphasis">
-        <div>
+        <div className="result-emphasis-body">
           <div className="result-emphasis-value">{value}</div>
           {sub ? <div className="result-emphasis-sub">{sub}</div> : null}
         </div>
-        <button
-          type="button"
-          onClick={copy}
-          className="mini-action-button"
-          title={t("common.copyResult")}
-        >
-          {t("common.copy")}
-        </button>
+        <div className="result-emphasis-actions">
+          {onToggle ? (
+            <button
+              type="button"
+              onClick={onToggle}
+              className="mini-action-button"
+              title={toggleTitle}
+              aria-label={toggleTitle}
+            >
+              ⇄
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={copy}
+            className="mini-action-button"
+            title={t("common.copyResult")}
+          >
+            {t("common.copy")}
+          </button>
+        </div>
       </div>
     );
   }

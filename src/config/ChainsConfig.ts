@@ -41,7 +41,10 @@ export const SupportChains: ChainConfig[] = [
     chainId: "0x38",
     name: "BSC",
     chainName: "Binance Smart Chain",
-    rpcUrls: ["https://bsc-dataseed.binance.org/"],
+    rpcUrls: [
+      "https://bsc-dataseed.bnbchain.org",
+      "https://bsc-rpc.publicnode.com"
+    ],
     nativeCurrency: { name: "Binance Coin", symbol: "BNB", decimals: 18 },
     blockExplorerUrls: ["https://bscscan.com"]
   },

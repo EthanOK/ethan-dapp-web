@@ -418,6 +418,7 @@ export const zhCN: Record<TranslationKey, string> = {
   "utils.token0": "Token0",
   "utils.token1": "Token1",
   "utils.lpPrice": "LP 价格：",
+  "utils.flipRate": "切换方向",
   "utils.contractSection": "计算合约地址",
   "utils.nonce": "Nonce",
   "utils.getContractAddress": "计算地址",

@@ -436,6 +436,7 @@ export const en = {
   "utils.token0": "Token0",
   "utils.token1": "Token1",
   "utils.lpPrice": "LP Price:",
+  "utils.flipRate": "Flip rate",
   "utils.contractSection": "Calculate Contract Address",
   "utils.nonce": "Nonce",
   "utils.getContractAddress": "Calculate Address",
