@@ -33,7 +33,7 @@
   gap: 12px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--w3-border);
-  background: color-mix(in srgb, #f59e0b 7%, var(--swap-inset));
+  background: color-mix(in srgb, var(--w3-warning) 7%, var(--swap-inset));
 }
 
 .swap-chain-banner-text {
@@ -51,7 +51,7 @@
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--w3-accent) 45%, var(--w3-border));
   background: color-mix(in srgb, var(--w3-accent) 10%, transparent);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-size: 0.72rem;
   font-weight: 600;
   font-family: var(--w3-font-sans);
@@ -73,7 +73,7 @@
 }
 
 .swap-chain-banner--unavailable {
-  background: color-mix(in srgb, #ef4444 8%, var(--swap-inset));
+  background: color-mix(in srgb, var(--w3-danger) 8%, var(--swap-inset));
 }
 
 /* ---- Card shell ---- */
@@ -123,7 +123,7 @@
 .swap-slippage-trigger:hover,
 .swap-slippage-trigger.is-active {
   border-color: var(--w3-border-accent);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   background: color-mix(in srgb, var(--w3-accent) 8%, transparent);
 }
 
@@ -251,7 +251,7 @@
   font-size: 0.78rem;
   font-weight: 600;
   font-family: var(--w3-font-mono);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .swap-settings-hint {
@@ -290,9 +290,9 @@
 }
 
 .swap-slippage-pill.is-active {
-  border-color: var(--w3-accent);
+  border-color: var(--w3-accent-text);
   background: color-mix(in srgb, var(--w3-accent) 12%, transparent);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .swap-fields {
@@ -422,7 +422,7 @@
 
 .swap-token-chip:focus-visible {
   outline: none;
-  border-color: var(--w3-accent);
+  border-color: var(--w3-accent-text);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--w3-accent) 22%, transparent);
 }
 
@@ -443,7 +443,7 @@
   font-size: 0.55rem;
   font-weight: 800;
   color: #fff;
-  background: color-mix(in srgb, var(--w3-accent) 55%, #334155);
+  background: color-mix(in srgb, var(--w3-accent) 55%, var(--w3-bg-card));
   flex-shrink: 0;
 }
 
@@ -485,7 +485,7 @@
   border-radius: 999px;
   border: none;
   background: color-mix(in srgb, var(--w3-accent) 16%, transparent);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -513,7 +513,7 @@
   border-radius: 10px;
   border: 1px solid var(--w3-border);
   background: var(--w3-bg-card);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
@@ -527,7 +527,7 @@
 
 .swap-flip-btn:hover {
   transform: rotate(180deg);
-  border-color: var(--w3-accent);
+  border-color: var(--w3-accent-text);
   background: color-mix(in srgb, var(--w3-accent) 10%, var(--w3-bg-card));
   box-shadow: 0 0 20px var(--w3-accent-glow);
 }
@@ -595,7 +595,7 @@
 }
 
 .swap-quote-row.highlight span:last-child {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-weight: 600;
 }
 
@@ -643,7 +643,7 @@
 }
 
 .swap-refresh-btn:hover:not(:disabled) {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   border-color: var(--w3-border-accent);
 }
 
@@ -658,9 +658,9 @@
   margin: 0;
   padding: 10px 16px;
   font-size: 0.78rem;
-  color: #fca5a5;
-  background: rgba(239, 68, 68, 0.08);
-  border-top: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--w3-danger);
+  background: color-mix(in srgb, var(--w3-danger) 8%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--w3-danger) 20%, transparent);
 }
 
 .swap-actions {

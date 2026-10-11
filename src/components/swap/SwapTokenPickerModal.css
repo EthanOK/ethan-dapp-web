@@ -216,8 +216,8 @@
 }
 
 .swap-picker-tab.is-active {
-  border-color: var(--w3-accent);
-  color: var(--w3-accent);
+  border-color: var(--w3-accent-text);
+  color: var(--w3-accent-text);
   background: color-mix(in srgb, var(--w3-accent) 10%, var(--w3-bg-elevated));
 }
 
@@ -266,9 +266,9 @@
 }
 
 .swap-picker-network-badge.is-active {
-  border-color: var(--w3-accent);
+  border-color: var(--w3-accent-text);
   background: color-mix(in srgb, var(--w3-accent) 10%, transparent);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .swap-picker-network-badge:disabled {
@@ -354,12 +354,12 @@
 }
 
 .swap-picker-favorite:hover {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   background: color-mix(in srgb, var(--w3-accent) 8%, transparent);
 }
 
 .swap-picker-favorite.is-active {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .swap-picker-row-main {
@@ -502,12 +502,12 @@
 
 .swap-picker-meta.up .swap-picker-unit-price,
 .swap-picker-meta.up .swap-picker-change {
-  color: #4ade80;
+  color: var(--w3-success);
 }
 
 .swap-picker-meta.down .swap-picker-unit-price,
 .swap-picker-meta.down .swap-picker-change {
-  color: #f87171;
+  color: var(--w3-danger);
 }
 
 .swap-picker-balance-col {
@@ -547,7 +547,7 @@
   width: 14px;
   flex-shrink: 0;
   margin-right: 4px;
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-size: 0.85rem;
   font-weight: 700;
   line-height: 1;
@@ -565,7 +565,7 @@
 }
 
 .swap-picker-error {
-  color: #fca5a5;
+  color: var(--w3-danger);
 }
 
 @keyframes swap-picker-pulse {

@@ -5,7 +5,12 @@ import {
   useCallback,
   type ReactNode
 } from "react";
-import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import {
+  useSearchParams,
+  useNavigate,
+  useLocation,
+  Navigate
+} from "react-router-dom";
 import {
   createChart,
   IChartApi,
@@ -637,21 +642,28 @@ interface CrosshairTip {
   flipLeft: boolean;
 }
 
-const MARKETCHART_GREEN = "#3da35d";
-const MARKETCHART_GREEN_LIGHT = "#2d8f4e";
+/* Chart colors mirror the --w3-* tokens. lightweight-charts paints to canvas and
+ * cannot read CSS variables, so these stay as literals — keep them in sync with
+ * src/index.css when the palette changes. */
+const MARKETCHART_GREEN = "#0ecb81";
+const MARKETCHART_GREEN_LIGHT = "#047857";
+const MARKETCHART_RED = "#f6465d";
+const MARKETCHART_RED_LIGHT = "#be123c";
 const MARKETCHART_RIGHT_OFFSET = 5;
 
 function getChartColors() {
   const dark = isDarkMode();
   const priceLineColor = dark ? MARKETCHART_GREEN : MARKETCHART_GREEN_LIGHT;
   return {
-    textColor: dark ? "#94a3b8" : "#64748b",
-    gridColor: dark ? "#1f2226" : "rgba(0,0,0,0.06)",
-    bgColor: dark ? "#0b0e11" : "#ffffff",
+    textColor: dark ? "#8a8f98" : "#686b82",
+    gridColor: dark ? "#26292f" : "rgba(0,0,0,0.06)",
+    bgColor: dark ? "#0a0b0e" : "#ffffff",
     priceLineColor,
-    topColor: dark ? "rgba(61, 163, 93, 0.22)" : "rgba(45, 143, 78, 0.15)",
-    bottomColor: dark ? "rgba(61, 163, 93, 0)" : "rgba(45, 143, 78, 0)",
-    volumeColor: dark ? "rgba(251,191,36,0.5)" : "rgba(217,119,6,0.4)"
+    topColor: dark ? "rgba(14, 203, 129, 0.22)" : "rgba(4, 120, 87, 0.15)",
+    bottomColor: dark ? "rgba(14, 203, 129, 0)" : "rgba(4, 120, 87, 0)",
+    volumeColor: dark ? "rgba(251,191,36,0.5)" : "rgba(180,83,9,0.4)",
+    upColor: dark ? MARKETCHART_GREEN : MARKETCHART_GREEN_LIGHT,
+    downColor: dark ? MARKETCHART_RED : MARKETCHART_RED_LIGHT
   };
 }
 
@@ -814,7 +826,7 @@ const MarketChartPage = () => {
           lineStyle: 2,
           axisLabelVisible: !ui.useCenteredPriceLabel,
           axisLabelColor: lineColors.priceLineColor,
-          axisLabelTextColor: isDarkMode() ? "#0b0e11" : "#ffffff",
+          axisLabelTextColor: isDarkMode() ? "#0a0b0e" : "#ffffff",
           title: ""
         });
       }
@@ -1012,13 +1024,14 @@ const MarketChartPage = () => {
     }
 
     if (isCandlestick) {
+      const kColors = getChartColors();
       const cs = chart.addSeries(CandlestickSeries, {
-        upColor: "#3da35d",
-        downColor: "#ef4444",
-        borderUpColor: "#3da35d",
-        borderDownColor: "#ef4444",
-        wickUpColor: "#3da35d",
-        wickDownColor: "#ef4444",
+        upColor: kColors.upColor,
+        downColor: kColors.downColor,
+        borderUpColor: kColors.upColor,
+        borderDownColor: kColors.downColor,
+        wickUpColor: kColors.upColor,
+        wickDownColor: kColors.downColor,
         lastValueVisible: false,
         priceLineVisible: false,
         priceFormat: {
@@ -1298,7 +1311,7 @@ const MarketChartPage = () => {
           lineStyle: 2,
           axisLabelVisible: !ui.useCenteredPriceLabel,
           axisLabelColor: lineColors.priceLineColor,
-          axisLabelTextColor: isDarkMode() ? "#0b0e11" : "#ffffff",
+          axisLabelTextColor: isDarkMode() ? "#0a0b0e" : "#ffffff",
           title: ""
         });
       }
@@ -1310,13 +1323,14 @@ const MarketChartPage = () => {
         timeScale.setVisibleLogicalRange(visibleRange);
       }
 
+      const kColors = getChartColors();
       candlestickSeriesRef.current.applyOptions({
-        upColor: "#3da35d",
-        downColor: "#ef4444",
-        borderUpColor: "#3da35d",
-        borderDownColor: "#ef4444",
-        wickUpColor: "#3da35d",
-        wickDownColor: "#ef4444"
+        upColor: kColors.upColor,
+        downColor: kColors.downColor,
+        borderUpColor: kColors.upColor,
+        borderDownColor: kColors.downColor,
+        wickUpColor: kColors.upColor,
+        wickDownColor: kColors.downColor
       });
 
       if (data.length > 0) {
@@ -1642,12 +1656,11 @@ const MarketChartPage = () => {
     };
   }, []);
 
+  // `/market` is only reached from the markets list, which supplies both
+  // `?coinId=` and route state. A bare visit (typed URL, stale bookmark) has
+  // nothing to chart, so bounce to the list rather than showing an error.
   if (!coinId) {
-    return (
-      <div className="marketchart-page main-app">
-        <div className="marketchart-error">{t("marketChart.invalidCoin")}</div>
-      </div>
-    );
+    return <Navigate to="/markets" replace />;
   }
 
   const chartTypeLabel =

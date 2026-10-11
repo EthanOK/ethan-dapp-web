@@ -1,9 +1,9 @@
 /* Swap transaction success toast — matches SwapPage card aesthetic */
 
 .swap-tx-toast {
-  --swap-tx-success: #34d399;
-  --swap-tx-success-dim: #059669;
-  --swap-tx-success-glow: rgba(52, 211, 153, 0.16);
+  --swap-tx-success: var(--w3-success);
+  --swap-tx-success-dim: var(--w3-success);
+  --swap-tx-success-glow: color-mix(in srgb, var(--w3-success) 16%, transparent);
 
   position: relative;
   display: flex;
@@ -159,7 +159,7 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--w3-accent) 12%, var(--w3-bg-card));
   border: 1px solid color-mix(in srgb, var(--w3-accent) 24%, var(--w3-border));
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -263,12 +263,12 @@
 }
 
 [data-theme="light"] .swap-tx-toast {
-  --swap-tx-success: #059669;
-  --swap-tx-success-dim: #047857;
-  --swap-tx-success-glow: rgba(5, 150, 105, 0.1);
+  --swap-tx-success: var(--w3-success);
+  --swap-tx-success-dim: var(--w3-success);
+  --swap-tx-success-glow: color-mix(in srgb, var(--w3-success) 10%, transparent);
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--w3-text) 4%, transparent) inset,
-    0 10px 30px rgba(15, 23, 42, 0.08),
+    0 10px 30px color-mix(in srgb, var(--w3-bg-deep) 8%, transparent),
     0 0 0 1px color-mix(in srgb, var(--swap-tx-success) 6%, transparent);
 }
 

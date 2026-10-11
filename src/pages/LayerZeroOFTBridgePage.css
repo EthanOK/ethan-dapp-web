@@ -1,8 +1,8 @@
 /* LayerZero OFT bridge — relay-style layout, theme vars only */
 
 .lz-bridge {
-  --lz-rail: rgba(34, 211, 238, 0.12);
-  --lz-amber: #fbbf24;
+  --lz-rail: color-mix(in srgb, var(--w3-accent-text) 12%, transparent);
+  --lz-amber: var(--w3-warning);
 }
 
 .lz-bridge-hero-note {
@@ -14,7 +14,7 @@
 }
 
 .lz-bridge-hero-note a {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   text-decoration: none;
   border-bottom: 1px solid var(--w3-border-accent);
 }
@@ -54,7 +54,7 @@
   padding-bottom: 22px;
   font-family: var(--w3-font-mono);
   font-size: 1.35rem;
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   text-shadow: 0 0 18px var(--w3-accent-glow);
 }
 
@@ -76,7 +76,7 @@
   padding: 0 14px 4px;
   background: linear-gradient(
     180deg,
-    rgba(34, 211, 238, 0.04) 0%,
+    color-mix(in srgb, var(--w3-accent-text) 4%, transparent) 0%,
     var(--w3-bg-card) 100%
   );
 }
@@ -104,7 +104,7 @@
   content: "▸ ";
   display: inline-block;
   margin-right: 6px;
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-size: 0.75em;
   transform: translateY(-1px);
 }
@@ -124,7 +124,7 @@
 
 .lz-bridge-scan-after-btn {
   font-size: 0.9rem;
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   text-decoration: none;
   border-bottom: 1px solid var(--w3-border-accent);
   font-family: var(--w3-font-mono);
@@ -147,7 +147,7 @@
 }
 
 .lz-bridge-tx-hash-inline:hover {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   border-bottom-color: var(--w3-border-accent);
 }
 
@@ -157,7 +157,7 @@
   background: linear-gradient(
     135deg,
     var(--w3-bg-card) 0%,
-    rgba(34, 211, 238, 0.04) 100%
+    color-mix(in srgb, var(--w3-accent-text) 4%, transparent) 100%
   );
   padding: 14px 16px;
   box-shadow: inset 0 1px 0 var(--lz-rail);

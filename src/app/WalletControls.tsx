@@ -1,13 +1,23 @@
-import { useEffect, useRef, useState } from "react";
-import { headerNetworksAll, modal } from "@/app/Wallet";
+import { useEffect, useState } from "react";
+import {
+  displayNameForNetwork,
+  headerNetworkGroups,
+  headerNetworksAll,
+  modal
+} from "@/app/Wallet";
 import HeaderGasStatus from "@/app/HeaderGasStatus";
 import { useReownWalletSync } from "@/hooks/useReownWalletSync";
 import { useHeaderChainId } from "@/hooks/useHeaderChainId";
 import { useOpenAppKitModal } from "@/hooks/useOpenAppKitModal";
+import { useOutsideDismiss } from "@/hooks/useOutsideDismiss";
 import { useI18n } from "@/i18n";
 import { readCachedSession, shortAddress } from "@/lib/wallet/cachedSession";
+import { NavIcon } from "@/app/navIcons";
 
-const MOBILE_HEADER_MQ = "(max-width: 768px)";
+// Widened from 768px: once the network selector and gas badge are in play the
+// 768–900px range is the tightest part of the header, so it also uses the
+// compact "Connect" label and hides the balance inside <appkit-button>.
+const MOBILE_HEADER_MQ = "(max-width: 900px)";
 
 /** Keep AppKit modal/button theme in sync with the app theme (data-theme attr). */
 function useSyncAppKitTheme() {
@@ -75,7 +85,9 @@ function WalletControls() {
   });
   const { isConnecting, openConnectModal } = useOpenAppKitModal();
   const [networkPickerOpen, setNetworkPickerOpen] = useState(false);
-  const networkMenuRef = useRef<HTMLDivElement>(null);
+  const networkMenuRef = useOutsideDismiss(networkPickerOpen, () =>
+    setNetworkPickerOpen(false)
+  );
 
   // When AppKit settles into "disconnected" (initial hydrate or explicit
   // disconnect), the `useReownWalletSync` effect just wiped the optimistic
@@ -88,23 +100,6 @@ function WalletControls() {
 
   useSyncAppKitTheme();
 
-  // Close network menu on outside click (same pattern as HeaderLocaleMenu).
-  useEffect(() => {
-    if (!networkPickerOpen) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!networkMenuRef.current?.contains(event.target as Node)) {
-        setNetworkPickerOpen(false);
-      }
-    };
-    const timerId = window.setTimeout(() => {
-      document.addEventListener("pointerdown", onPointerDown);
-    }, 0);
-    return () => {
-      window.clearTimeout(timerId);
-      document.removeEventListener("pointerdown", onPointerDown);
-    };
-  }, [networkPickerOpen]);
-
   const currentNetworkName = (() => {
     if (chainId == null) return null;
     const found = headerNetworksAll.find(
@@ -112,7 +107,7 @@ function WalletControls() {
         (n as { caipNetworkId?: string }).caipNetworkId === String(chainId) ||
         String((n as { id?: string | number }).id) === String(chainId)
     );
-    return found?.name ?? null;
+    return found ? displayNameForNetwork(found) : null;
   })();
 
   const handleNetworkSelect = (value: string) => {
@@ -141,52 +136,79 @@ function WalletControls() {
       <label htmlFor="app-network" className="app-header-network-label">
         Network
       </label>
-      <HeaderGasStatus chainId={String(chainId ?? "")} />
-      <div className="app-header-network-wrap" ref={networkMenuRef}>
-        <button
-          type="button"
-          id="app-network"
-          className="app-header-network-select"
-          onClick={() => setNetworkPickerOpen((value) => !value)}
-          aria-haspopup="listbox"
-          aria-expanded={networkPickerOpen}
-          aria-label="Network"
-        >
-          {currentNetworkName ?? "Network"}
-        </button>
-        {networkPickerOpen && (
-          <div
-            className="app-header-network-menu"
-            role="listbox"
+      {/* Gas + network share one capsule so the header right side reads as a
+          single wallet cluster instead of three separate controls. */}
+      <div className="app-header-network-cluster">
+        <HeaderGasStatus chainId={String(chainId ?? "")} />
+        <div className="app-header-network-wrap" ref={networkMenuRef}>
+          <button
+            type="button"
+            id="app-network"
+            className={
+              "app-header-network-select" +
+              (networkPickerOpen ? " is-open" : "")
+            }
+            onClick={() => setNetworkPickerOpen((value) => !value)}
+            aria-haspopup="listbox"
+            aria-expanded={networkPickerOpen}
             aria-label="Network"
           >
-            {headerNetworksAll.map((network) => {
-              const value = String(
-                (
-                  network as {
-                    caipNetworkId?: string;
-                    id?: string | number;
-                  }
-                ).caipNetworkId ?? (network as { id?: string | number }).id
-              );
-              const active = String(chainId ?? "") === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  role="option"
-                  aria-selected={active}
-                  className={
-                    "app-header-network-option" + (active ? " is-active" : "")
-                  }
-                  onClick={() => handleNetworkSelect(value)}
+            <span className="app-header-network-dot" aria-hidden />
+            <span className="app-header-network-name">
+              {currentNetworkName ?? "Network"}
+            </span>
+            <span className="app-header-network-chevron" aria-hidden>
+              <NavIcon name="chevron" size={12} />
+            </span>
+          </button>
+          {networkPickerOpen && (
+            <div
+              className="app-header-network-menu"
+              role="listbox"
+              aria-label="Network"
+            >
+              {headerNetworkGroups.map((group) => (
+                <div
+                  key={group.key}
+                  className="app-header-network-group"
+                  role="group"
+                  aria-label={t(`common.${group.key}`)}
                 >
-                  {network.name}
-                </button>
-              );
-            })}
-          </div>
-        )}
+                  <div className="app-header-network-group-label">
+                    {t(`common.${group.key}`)}
+                  </div>
+                  {group.networks.map((network) => {
+                    const value = String(
+                      (
+                        network as {
+                          caipNetworkId?: string;
+                          id?: string | number;
+                        }
+                      ).caipNetworkId ??
+                        (network as { id?: string | number }).id
+                    );
+                    const active = String(chainId ?? "") === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        role="option"
+                        aria-selected={active}
+                        className={
+                          "app-header-network-option" +
+                          (active ? " is-active" : "")
+                        }
+                        onClick={() => handleNetworkSelect(value)}
+                      >
+                        {displayNameForNetwork(network)}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <div className="w3-connect-wrap">
         {isConnected && address ? (

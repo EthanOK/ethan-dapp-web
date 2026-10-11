@@ -50,7 +50,7 @@ export const SupportChains: ChainConfig[] = [
     chainId: "0x61",
     name: "TBSC",
     chainName: "Binance Smart Chain Testnet",
-    rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
+    rpcUrls: ["https://bsc-testnet-rpc.publicnode.com"],
     nativeCurrency: { name: "Binance Testnet", symbol: "BNB", decimals: 18 },
     blockExplorerUrls: ["https://testnet.bscscan.com"]
   },
@@ -62,6 +62,15 @@ export const SupportChains: ChainConfig[] = [
     rpcUrls: ["https://mainnet.base.org"],
     nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     blockExplorerUrls: ["https://basescan.org"]
+  },
+  {
+    id: "84532",
+    chainId: "0x14a34",
+    name: "Base Sepolia",
+    chainName: "Base Sepolia Testnet",
+    rpcUrls: ["https://sepolia.base.org"],
+    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+    blockExplorerUrls: ["https://sepolia.basescan.org"]
   },
   {
     id: "196",

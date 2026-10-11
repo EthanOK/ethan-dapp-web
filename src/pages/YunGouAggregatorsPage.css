@@ -20,7 +20,7 @@
 }
 
 .yg-hero .hero-accent {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .yg-hero p {
@@ -106,7 +106,7 @@
 }
 
 .yg-tx-link a {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-family: var(--w3-font-mono);
   font-size: 0.9rem;
   word-break: break-all;
