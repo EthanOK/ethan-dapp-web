@@ -9,19 +9,34 @@
 }
 
 /* ----- Header ----- */
+/* Three columns: brand | search | settings + wallet.
+   Fixed 56px (was 64px, content-driven) to match the denser Kraken-style
+   data console; the two side columns are 1fr so the search stays centred. */
 .app-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  display: flex;
+  display: grid;
+  /* minmax(0, …) — a bare 1fr keeps the column's min-content width, so the
+     wallet cluster used to push past the viewport and clip the connect
+     button. With minmax(0, …) the side columns are allowed to shrink. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
+  gap: 12px;
+  height: 56px;
+  padding: 0 14px;
   background: var(--w3-header-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--w3-border);
-  box-shadow: 0 1px 0 rgba(0, 229, 255, 0.06);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--w3-accent) 6%, transparent);
+}
+
+.app-header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
 }
 
 .app-header::after {
@@ -34,7 +49,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 229, 255, 0.45) 50%,
+    color-mix(in srgb, var(--w3-accent) 45%, transparent) 50%,
     transparent 100%
   );
   opacity: 0.65;
@@ -44,7 +59,8 @@
 .app-header-left {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
+  min-width: 0;
 }
 
 /* Mobile: header menu button (re-open sidebar when collapsed) */
@@ -68,7 +84,7 @@
 }
 
 .app-header-menu-btn:hover {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   border-color: var(--w3-border-accent);
   background: var(--w3-bg-hover);
 }
@@ -109,7 +125,7 @@
 }
 
 .app-header-menu-btn.is-open {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   border-color: var(--w3-border-accent);
   background: var(--w3-sidebar-active-bg);
 }
@@ -128,7 +144,7 @@
 }
 
 .app-logo:hover {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .app-logo-mark {
@@ -140,8 +156,8 @@
   border-radius: var(--w3-radius-sm);
   border: 1px solid var(--w3-border-accent);
   background: var(--w3-accent-soft);
-  color: var(--w3-accent);
-  box-shadow: 0 0 16px rgba(0, 229, 255, 0.12);
+  color: var(--w3-accent-text);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--w3-accent) 12%, transparent);
   flex-shrink: 0;
 }
 
@@ -154,16 +170,24 @@
 }
 
 .app-logo-accent {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 /* Wallet and network info */
 .app-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 8px;
   min-width: 0;
-  flex-shrink: 0;
+  /* Shrinkable: the wallet cluster must be able to give up width (declared
+     below via the responsive ladder) instead of overflowing the header. */
+  flex-shrink: 1;
+  /* A query container, so the ladder can key off this column's own width:
+     the search box takes a share of the header, so the column and the viewport
+     are not the same thing (1440px viewport, ~535px column). */
+  container-type: inline-size;
+  container-name: header-right;
 }
 
 .app-header-wallet-controls {
@@ -205,17 +229,17 @@
 
 .app-header-gas-badge.is-low .app-header-gas-value,
 .app-header-gas-badge.is-low .app-header-gas-value-num {
-  color: #4ade80;
+  color: var(--w3-success);
 }
 
 .app-header-gas-badge.is-medium .app-header-gas-value,
 .app-header-gas-badge.is-medium .app-header-gas-value-num {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .app-header-gas-badge.is-high .app-header-gas-value,
 .app-header-gas-badge.is-high .app-header-gas-value-num {
-  color: #fbbf24;
+  color: var(--w3-warning);
 }
 
 .app-header-gas-wrap:hover .app-header-gas-badge,
@@ -224,7 +248,7 @@
 .app-header-gas-badge:focus-visible {
   border-color: var(--w3-border-accent);
   background: var(--w3-bg-hover);
-  box-shadow: 0 0 14px rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--w3-accent) 10%, transparent);
 }
 
 .app-header-gas-badge:focus {
@@ -246,7 +270,7 @@
 
 .app-header-gas-wrap:hover .app-header-gas-icon,
 .app-header-gas-wrap:focus-within .app-header-gas-icon {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   opacity: 1;
 }
 
@@ -263,15 +287,15 @@
 }
 
 .app-header-gas-badge.is-low .app-header-gas-tier {
-  color: #4ade80;
+  color: var(--w3-success);
 }
 
 .app-header-gas-badge.is-medium .app-header-gas-tier {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .app-header-gas-badge.is-high .app-header-gas-tier {
-  color: #fbbf24;
+  color: var(--w3-warning);
 }
 
 .app-header-gas-label {
@@ -299,8 +323,8 @@
   box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.12),
     0 16px 40px rgba(0, 0, 0, 0.28),
-    0 0 0 1px rgba(0, 229, 255, 0.06),
-    0 0 24px rgba(0, 229, 255, 0.08);
+    0 0 0 1px color-mix(in srgb, var(--w3-accent) 6%, transparent),
+    0 0 24px color-mix(in srgb, var(--w3-accent) 8%, transparent);
   pointer-events: auto;
   opacity: 0;
   visibility: hidden;
@@ -336,7 +360,7 @@
   border-bottom: 1px solid var(--w3-border);
   background: linear-gradient(
     180deg,
-    rgba(0, 229, 255, 0.04) 0%,
+    color-mix(in srgb, var(--w3-accent) 4%, transparent) 0%,
     transparent 100%
   );
 }
@@ -375,18 +399,18 @@
 }
 
 .app-header-gas-speed-option.is-selected {
-  background: rgba(0, 229, 255, 0.06);
-  border-color: rgba(0, 229, 255, 0.28);
+  background: color-mix(in srgb, var(--w3-accent) 6%, transparent);
+  border-color: color-mix(in srgb, var(--w3-accent) 28%, transparent);
 }
 
 .app-header-gas-speed-option.is-low.is-selected {
-  background: rgba(74, 222, 128, 0.08);
-  border-color: rgba(74, 222, 128, 0.28);
+  background: color-mix(in srgb, var(--w3-success) 8%, transparent);
+  border-color: color-mix(in srgb, var(--w3-success) 28%, transparent);
 }
 
 .app-header-gas-speed-option.is-high.is-selected {
-  background: rgba(251, 191, 36, 0.08);
-  border-color: rgba(251, 191, 36, 0.28);
+  background: color-mix(in srgb, var(--w3-warning) 8%, transparent);
+  border-color: color-mix(in srgb, var(--w3-warning) 28%, transparent);
 }
 
 .app-header-gas-speed-label {
@@ -410,7 +434,7 @@
 }
 
 .app-header-gas-speed-option.is-low .app-header-gas-speed-label::before {
-  background: #4ade80;
+  background: var(--w3-success);
   opacity: 1;
 }
 
@@ -420,7 +444,7 @@
 }
 
 .app-header-gas-speed-option.is-high .app-header-gas-speed-label::before {
-  background: #fbbf24;
+  background: var(--w3-warning);
   opacity: 1;
 }
 
@@ -433,15 +457,15 @@
 }
 
 .app-header-gas-speed-option.is-selected .app-header-gas-speed-value {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .app-header-gas-speed-option.is-low.is-selected .app-header-gas-speed-value {
-  color: #4ade80;
+  color: var(--w3-success);
 }
 
 .app-header-gas-speed-option.is-high.is-selected .app-header-gas-speed-value {
-  color: #fbbf24;
+  color: var(--w3-warning);
 }
 
 .app-header-gas-speed-unit {
@@ -470,7 +494,7 @@
   margin-top: 4px;
   padding-top: 10px;
   border-top: 1px solid var(--w3-border);
-  background: rgba(0, 229, 255, 0.03);
+  background: color-mix(in srgb, var(--w3-accent) 3%, transparent);
 }
 
 .app-header-gas-tooltip-label {
@@ -493,24 +517,24 @@
 }
 
 .app-header-gas-tooltip-row.is-base .app-header-gas-tooltip-label::before {
-  background: #94a3b8;
+  background: var(--w3-text-muted);
   opacity: 0.9;
 }
 
 .app-header-gas-tooltip-row.is-priority .app-header-gas-tooltip-label::before {
-  background: #a78bfa;
+  background: var(--w3-accent-text);
   opacity: 0.9;
 }
 
 .app-header-gas-tooltip-row.is-maxbase .app-header-gas-tooltip-label::before {
-  background: #fbbf24;
+  background: var(--w3-warning);
   opacity: 0.9;
 }
 
 .app-header-gas-tooltip-row.is-total .app-header-gas-tooltip-label::before {
   background: var(--w3-accent);
   opacity: 1;
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.45);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--w3-accent) 45%, transparent);
 }
 
 .app-header-gas-tooltip-value {
@@ -522,7 +546,7 @@
 }
 
 .app-header-gas-tooltip-row.is-total .app-header-gas-tooltip-value {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .app-header-gas-tooltip-unit {
@@ -646,7 +670,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--w3-accent-soft);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-size: 0.72rem;
   font-weight: 600;
   flex-shrink: 1;
@@ -655,154 +679,19 @@
   text-overflow: ellipsis;
 }
 
-/* Header locale menu */
-.app-header-locale-wrap {
-  position: relative;
-  z-index: 1201;
-}
-
-.app-header-locale-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 1px solid var(--w3-border);
-  border-radius: var(--w3-radius-sm);
-  background: var(--w3-bg-card);
-  color: var(--w3-text);
-  cursor: pointer;
-  position: relative;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    border-color 0.2s,
-    color 0.2s,
-    background 0.2s;
-}
-
-.app-header-locale-toggle:focus {
-  outline: none;
-}
-
-.app-header-locale-toggle:focus-visible {
-  outline: 2px solid var(--w3-border-accent);
-  outline-offset: 1px;
-}
-
-.app-header-locale-toggle:hover {
-  border-color: var(--w3-border-accent);
-  color: var(--w3-accent);
-  background: var(--w3-bg-hover);
-}
-
-.app-header-locale-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
-}
-
-.app-header-locale-icon svg {
-  display: block;
-}
-
-.app-header-locale-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 1200;
-  min-width: 148px;
-  padding: 4px;
-  border: 1px solid var(--w3-border);
-  border-radius: var(--w3-radius-sm);
-  background: var(--w3-bg-elevated);
-  box-shadow: var(--w3-shadow-md, 0 8px 24px rgba(0, 0, 0, 0.18));
-}
-
-.app-header-locale-option {
-  display: block;
-  width: 100%;
-  padding: 8px 12px;
-  border: none;
-  border-radius: calc(var(--w3-radius-sm) - 2px);
-  background: transparent;
-  color: var(--w3-text);
-  font-family: var(--w3-font-sans);
-  font-size: 0.82rem;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-
-.app-header-locale-option:hover {
-  background: var(--w3-bg-hover);
-  color: var(--w3-accent);
-}
-
-.app-header-locale-option.is-active {
-  background: var(--w3-bg-hover);
-  color: var(--w3-accent);
-  font-weight: 600;
-}
-
-/* Header theme toggle */
-.app-header-theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin-right: 0;
-  padding: 0;
-  border: 1px solid var(--w3-border);
-  border-radius: var(--w3-radius-sm);
-  background: var(--w3-bg-card);
-  color: var(--w3-text);
-  cursor: pointer;
-  position: relative;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    border-color 0.2s,
-    background 0.2s;
-}
-
-.app-header-theme-toggle:focus {
-  outline: none;
-}
-
-.app-header-theme-toggle:focus-visible {
-  outline: 2px solid var(--w3-border-accent);
-  outline-offset: 1px;
-}
-
-.app-header-theme-toggle:hover {
-  border-color: var(--w3-border-accent);
-  background: var(--w3-bg-hover);
-  color: var(--w3-accent);
-}
-
-.app-header-theme-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--w3-text-muted);
-  transition: color 0.2s;
-}
-
-.app-header-theme-toggle:hover .app-header-theme-icon {
-  color: var(--w3-accent);
-}
-
+/* Visually hidden: the current network is already printed on the selector
+   button, so this label only needs to exist for screen readers. It used to
+   render as visible "Network" text and ate ~70px of header width. */
 .app-header-network-label {
-  font-size: 0.75rem;
-  color: var(--w3-text-muted);
-  margin-right: 8px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
   white-space: nowrap;
+  border: 0;
 }
 
 .app-header-network-select {
@@ -849,6 +738,22 @@
   background: var(--w3-bg-elevated);
   box-shadow: var(--w3-shadow-md, 0 8px 24px rgba(0, 0, 0, 0.18));
 }
+/* Mainnets and testnets are separate groups, so the split is visible rather
+   than implied by the order of a flat list. */
+.app-header-network-group + .app-header-network-group {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--w3-border);
+}
+.app-header-network-group-label {
+  padding: 8px 12px 4px;
+  color: var(--w3-text-dim);
+  font-family: var(--w3-font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 .app-header-network-option {
   display: block;
   width: 100%;
@@ -867,11 +772,11 @@
 }
 .app-header-network-option:hover {
   background: var(--w3-bg-hover);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 .app-header-network-option.is-active {
   background: var(--w3-bg-hover);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-weight: 600;
 }
 
@@ -908,11 +813,11 @@
 }
 .faucet-chain-select-option:hover {
   background: var(--w3-bg-hover);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 .faucet-chain-select-option.is-active {
   background: var(--w3-bg-hover);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-weight: 600;
 }
 
@@ -948,10 +853,10 @@
   height: 100%;
   background: linear-gradient(
     180deg,
-    rgba(0, 229, 255, 0.35) 0%,
+    color-mix(in srgb, var(--w3-accent) 35%, transparent) 0%,
     transparent 35%,
     transparent 65%,
-    rgba(0, 229, 255, 0.15) 100%
+    color-mix(in srgb, var(--w3-accent) 15%, transparent) 100%
   );
   pointer-events: none;
 }
@@ -995,7 +900,7 @@
 }
 
 .sidebar-collapse-tab:hover {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   background: var(--w3-bg-hover);
 }
 
@@ -1050,11 +955,11 @@
 }
 
 .sidebar-link.active {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   background: var(--w3-sidebar-active-bg);
   box-shadow:
     inset 3px 0 0 var(--w3-accent),
-    0 0 20px rgba(0, 229, 255, 0.06);
+    0 0 20px color-mix(in srgb, var(--w3-accent) 6%, transparent);
 }
 
 .sidebar-link-text {
@@ -1083,7 +988,7 @@
   border: 1px solid var(--w3-border-accent);
   border-radius: var(--w3-radius);
   min-width: 200px;
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-size: 0.9rem;
   font-family: var(--w3-font-display);
   font-weight: 600;
@@ -1099,7 +1004,7 @@
 }
 
 .cta-button:hover:not(:disabled) {
-  background: rgba(0, 229, 255, 0.16);
+  background: color-mix(in srgb, var(--w3-accent) 16%, transparent);
   box-shadow: var(--w3-shadow-glow);
   transform: translateY(-1px);
 }
@@ -1116,21 +1021,21 @@
 
 .connect-wallet-button {
   background: var(--w3-gradient-accent);
-  color: #030306;
+  color: var(--w3-on-accent);
   border: none;
   font-weight: 700;
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--w3-accent) 25%, transparent);
 }
 
 .disconnect-wallet-button {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: color-mix(in srgb, var(--w3-danger) 20%, transparent);
+  color: var(--w3-danger);
+  border: 1px solid color-mix(in srgb, var(--w3-danger) 40%, transparent);
 }
 
 .mint-nft-button {
-  background: rgba(34, 211, 238, 0.15);
-  color: var(--w3-accent);
+  background: color-mix(in srgb, var(--w3-accent-text) 15%, transparent);
+  color: var(--w3-accent-text);
   border: 1px solid var(--w3-border-accent);
 }
 
@@ -1222,8 +1127,9 @@
 .mini-action-button:hover:not(:disabled) {
   border-color: var(--w3-border-accent);
   background: var(--w3-bg-hover);
-  color: var(--w3-accent);
-  box-shadow: 0 0 14px rgba(34, 211, 238, 0.12);
+  color: var(--w3-accent-text);
+  box-shadow: 0 0 14px
+    color-mix(in srgb, var(--w3-accent-text) 12%, transparent);
 }
 
 .mini-action-button:disabled {
@@ -1266,12 +1172,12 @@
 }
 
 .feature-actions-row::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.18);
+  background: color-mix(in srgb, var(--w3-text-muted) 18%, transparent);
   border-radius: 999px;
 }
 
 .feature-actions-row::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.28);
+  background: color-mix(in srgb, var(--w3-text-muted) 28%, transparent);
 }
 
 .feature-actions-row .cta-button {
@@ -1399,7 +1305,7 @@
 }
 
 .tools-generate-btn:hover {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   border-color: var(--w3-border-accent);
 }
 
@@ -1572,7 +1478,7 @@
 .tools-qr-code-box {
   margin: 4px 0 20px;
   padding: 22px 20px 20px;
-  background: #f3f3f5;
+  background: var(--w3-token-icon-bg);
   border-radius: 22px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow:
@@ -1675,8 +1581,8 @@
   margin: 10px 0 0;
   padding: 10px 12px;
   border-radius: var(--w3-radius-sm);
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: color-mix(in srgb, var(--w3-warning) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-warning) 25%, transparent);
   color: var(--w3-text-muted);
   font-size: 0.82rem;
   line-height: 1.55;
@@ -1731,8 +1637,8 @@
   margin-top: 12px;
   padding: 5px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid color-mix(in srgb, var(--w3-text-muted) 20%, transparent);
+  background: color-mix(in srgb, var(--w3-text-muted) 6%, transparent);
   font-size: 0.78rem;
   color: var(--w3-text-muted);
 }
@@ -1740,7 +1646,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #4ade80;
+  background: var(--w3-success);
   flex-shrink: 0;
 }
 .eip7702-panel {
@@ -1765,12 +1671,12 @@
   margin: 18px 0;
 }
 .eip7702-status.is-delegated {
-  background: rgba(74, 222, 128, 0.06);
-  border: 1px solid rgba(74, 222, 128, 0.25);
+  background: color-mix(in srgb, var(--w3-success) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-success) 25%, transparent);
 }
 .eip7702-status.is-none {
-  background: rgba(148, 163, 184, 0.05);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: color-mix(in srgb, var(--w3-text-muted) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-text-muted) 18%, transparent);
 }
 .eip7702-status-label {
   font-size: 0.72rem;
@@ -1782,7 +1688,7 @@
 .eip7702-status-value {
   font-family: var(--w3-font-mono);
   font-size: 0.85rem;
-  color: #4ade80;
+  color: var(--w3-success);
   word-break: break-all;
   text-align: right;
   min-width: 0;
@@ -1797,8 +1703,8 @@
   margin: 16px 0 4px;
   padding: 12px 16px;
   border-radius: var(--w3-radius);
-  background: rgba(148, 163, 184, 0.05);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: color-mix(in srgb, var(--w3-text-muted) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-text-muted) 18%, transparent);
 }
 .eip7702-sponsor-toggle {
   display: inline-flex;
@@ -1812,7 +1718,7 @@
 .eip7702-sponsor-toggle input {
   width: 16px;
   height: 16px;
-  accent-color: #534ab7;
+  accent-color: var(--w3-accent);
   cursor: pointer;
 }
 .eip7702-sponsor-hint {
@@ -1842,7 +1748,7 @@
 .eip7702-btn-create {
   background: var(--w3-gradient-accent);
   border: none;
-  color: #030306;
+  color: var(--w3-on-accent);
 }
 .eip7702-btn-create:hover:not(:disabled) {
   background: var(--w3-gradient-accent);
@@ -1850,13 +1756,13 @@
   box-shadow: var(--w3-shadow-glow);
 }
 .eip7702-btn-revoke {
-  background: rgba(244, 63, 94, 0.12);
-  border: 1px solid rgba(244, 63, 94, 0.4);
-  color: #f43f5e;
+  background: color-mix(in srgb, var(--w3-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-danger) 40%, transparent);
+  color: var(--w3-danger);
 }
 .eip7702-btn-revoke:hover:not(:disabled) {
-  background: rgba(244, 63, 94, 0.2);
-  border-color: rgba(244, 63, 94, 0.6);
+  background: color-mix(in srgb, var(--w3-danger) 20%, transparent);
+  border-color: color-mix(in srgb, var(--w3-danger) 60%, transparent);
   box-shadow: none;
 }
 /* Highlight whichever action button is currently executing (overrides the
@@ -1869,17 +1775,17 @@
 }
 .cta-button.eip7702-btn-create.is-loading:disabled {
   background: var(--w3-gradient-accent);
-  color: #030306;
+  color: var(--w3-on-accent);
   border: none;
   box-shadow:
-    0 0 0 3px rgba(83, 74, 183, 0.45),
+    0 0 0 3px color-mix(in srgb, var(--w3-accent) 45%, transparent),
     var(--w3-shadow-glow);
 }
 .cta-button.eip7702-btn-revoke.is-loading:disabled {
-  background: rgba(244, 63, 94, 0.85);
-  border-color: #f43f5e;
+  background: color-mix(in srgb, var(--w3-danger) 85%, transparent);
+  border-color: var(--w3-danger);
   color: #fff;
-  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.45);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--w3-danger) 45%, transparent);
 }
 @keyframes eip7702-loading-glow {
   0%,
@@ -1899,8 +1805,8 @@
   width: 100%;
   box-sizing: border-box;
   border-radius: var(--w3-radius-sm);
-  background: rgba(34, 211, 238, 0.05);
-  border: 1px solid rgba(34, 211, 238, 0.18);
+  background: color-mix(in srgb, var(--w3-accent-text) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-accent-text) 18%, transparent);
   font-size: 0.78rem;
 }
 .eip7702-tx-head {
@@ -1915,7 +1821,7 @@
   white-space: nowrap;
 }
 .eip7702-tx-hash {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-family: var(--w3-font-mono);
   font-size: 0.82rem;
   word-break: break-all;
@@ -1942,16 +1848,16 @@
   animation: eip7702-pulse 1.4s ease-in-out infinite;
 }
 .eip7702-tx-status.is-pending {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--w3-warning) 15%, transparent);
+  color: var(--w3-warning);
 }
 .eip7702-tx-status.is-success {
-  background: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
+  background: color-mix(in srgb, var(--w3-success) 15%, transparent);
+  color: var(--w3-success);
 }
 .eip7702-tx-status.is-failed {
-  background: rgba(244, 63, 94, 0.15);
-  color: #f43f5e;
+  background: color-mix(in srgb, var(--w3-danger) 15%, transparent);
+  color: var(--w3-danger);
 }
 @keyframes eip7702-pulse {
   0%,
@@ -1981,7 +1887,8 @@
   padding: 10px 14px;
 }
 .eip7702-readiness-row + .eip7702-readiness-row {
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid
+    color-mix(in srgb, var(--w3-text-muted) 12%, transparent);
 }
 .eip7702-readiness-label {
   font-size: 0.72rem;
@@ -1999,7 +1906,7 @@
   min-width: 0;
 }
 .eip7702-readiness-caps {
-  color: #4ade80;
+  color: var(--w3-success);
 }
 .eip7702-readiness-body {
   display: flex;
@@ -2026,14 +1933,15 @@
   font-size: 0.78rem;
 }
 .eip7702-batch-head {
-  background: rgba(148, 163, 184, 0.06);
+  background: color-mix(in srgb, var(--w3-text-muted) 6%, transparent);
   color: var(--w3-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 0.68rem;
 }
 .eip7702-batch-row + .eip7702-batch-row {
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid
+    color-mix(in srgb, var(--w3-text-muted) 12%, transparent);
 }
 .eip7702-batch-token-hint {
   text-transform: none;
@@ -2060,7 +1968,8 @@
   gap: 8px;
   margin-top: 6px;
   padding-top: 8px;
-  border-top: 1px dashed rgba(148, 163, 184, 0.15);
+  border-top: 1px dashed
+    color-mix(in srgb, var(--w3-text-muted) 15%, transparent);
 }
 .eip7702-batch-token-decimals {
   text-align: center;
@@ -2077,22 +1986,22 @@
   color: var(--w3-text-muted);
 }
 .eip7702-batch-token-status.is-loading {
-  color: #f59e0b;
+  color: var(--w3-warning);
 }
 .eip7702-batch-token-status.is-ok {
-  color: #10b981;
+  color: var(--w3-success);
 }
 .eip7702-batch-token-status.is-error {
-  color: #f43f5e;
+  color: var(--w3-danger);
 }
 .eip7702-batch-token-readonly {
   display: inline-flex;
   align-items: center;
   padding: 6px 10px;
-  border: 1px dashed rgba(16, 185, 129, 0.35);
+  border: 1px dashed color-mix(in srgb, var(--w3-success) 35%, transparent);
   border-radius: 8px;
-  background: rgba(16, 185, 129, 0.06);
-  color: #10b981;
+  background: color-mix(in srgb, var(--w3-success) 6%, transparent);
+  color: var(--w3-success);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -2107,22 +2016,22 @@
   font-size: 0.68rem;
   line-height: 1.4;
   border-radius: 999px;
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  border: 1px solid color-mix(in srgb, var(--w3-success) 40%, transparent);
+  background: color-mix(in srgb, var(--w3-success) 10%, transparent);
+  color: var(--w3-success);
   cursor: pointer;
 }
 .eip7702-batch-token-save:hover {
-  background: rgba(16, 185, 129, 0.2);
+  background: color-mix(in srgb, var(--w3-success) 20%, transparent);
 }
 .eip7702-batch-token-save.is-saved {
-  background: #10b981;
-  border-color: #10b981;
+  background: var(--w3-success);
+  border-color: var(--w3-success);
   color: #fff;
 }
 .eip7702-batch-token-save.is-saved:hover {
-  background: #0ea271;
-  border-color: #0ea271;
+  background: var(--w3-success);
+  border-color: var(--w3-success);
 }
 /* Add-token confirmation modal */
 .eip7702-token-modal-overlay {
@@ -2176,7 +2085,7 @@
 .eip7702-token-modal-symbol {
   font-size: 1.4rem;
   font-weight: 800;
-  color: #10b981;
+  color: var(--w3-success);
   text-align: center;
   padding: 8px 0 12px;
 }
@@ -2187,7 +2096,8 @@
   gap: 12px;
   padding: 7px 0;
   font-size: 0.78rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid
+    color-mix(in srgb, var(--w3-text-muted) 12%, transparent);
 }
 .eip7702-token-modal-row > span {
   color: var(--w3-text-muted);
@@ -2206,7 +2116,8 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 12px 16px 16px;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid
+    color-mix(in srgb, var(--w3-text-muted) 12%, transparent);
 }
 .eip7702-token-modal-cancel,
 .eip7702-token-modal-confirm {
@@ -2223,13 +2134,13 @@
   background: var(--w3-bg-hover);
 }
 .eip7702-token-modal-confirm {
-  background: #10b981;
-  border-color: #10b981;
+  background: var(--w3-success);
+  border-color: var(--w3-success);
   color: #fff;
 }
 .eip7702-token-modal-confirm:hover {
-  background: #0ea271;
-  border-color: #0ea271;
+  background: var(--w3-success);
+  border-color: var(--w3-success);
 }
 /* Token chip button (bricswap-style) */
 .eip7702-batch-token-chip {
@@ -2239,7 +2150,7 @@
   width: 100%;
   max-width: 160px;
   padding: 5px 10px 5px 6px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid color-mix(in srgb, var(--w3-text-muted) 25%, transparent);
   border-radius: 999px;
   background: var(--w3-bg-elevated);
   color: var(--w3-text);
@@ -2251,8 +2162,8 @@
     background 0.15s;
 }
 .eip7702-batch-token-chip:hover {
-  border-color: rgba(16, 185, 129, 0.5);
-  background: rgba(16, 185, 129, 0.08);
+  border-color: color-mix(in srgb, var(--w3-success) 50%, transparent);
+  background: color-mix(in srgb, var(--w3-success) 8%, transparent);
 }
 .eip7702-batch-token-chip-avatar {
   flex-shrink: 0;
@@ -2262,7 +2173,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #10b981;
+  background: var(--w3-success);
   color: #fff;
   font-size: 0.6rem;
   font-weight: 700;
@@ -2300,7 +2211,7 @@
   outline: none;
 }
 .eip7702-picker-search-input:focus {
-  border-color: rgba(16, 185, 129, 0.5);
+  border-color: color-mix(in srgb, var(--w3-success) 50%, transparent);
 }
 .eip7702-picker-list {
   list-style: none;
@@ -2323,13 +2234,13 @@
   height: 32px;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: var(--w3-text-muted);
   font-size: 0.95rem;
   cursor: pointer;
   padding: 0;
 }
 .eip7702-picker-star.is-saved {
-  color: #f59e0b;
+  color: var(--w3-warning);
 }
 .eip7702-picker-star:disabled {
   cursor: default;
@@ -2359,7 +2270,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #10b981;
+  background: var(--w3-success);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -2394,7 +2305,7 @@
   color: var(--w3-text-muted);
 }
 .eip7702-picker-status.is-error {
-  color: #f43f5e;
+  color: var(--w3-danger);
 }
 .eip7702-batch-input {
   width: 100%;
@@ -2411,7 +2322,8 @@
 .eip7702-batch-input:focus {
   outline: none;
   border-color: var(--w3-border-accent);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--w3-accent-text) 12%, transparent);
 }
 .eip7702-batch-actions {
   display: flex;
@@ -2429,7 +2341,7 @@
 }
 .eip7702-batch-progress {
   font-size: 0.82rem;
-  color: #f59e0b;
+  color: var(--w3-warning);
 }
 .eip7702-batch-id {
   font-size: 0.78rem;
@@ -2446,13 +2358,13 @@
   height: 8px;
   border-radius: 999px;
   border: none;
-  background: rgba(148, 163, 184, 0.15);
+  background: color-mix(in srgb, var(--w3-text-muted) 15%, transparent);
   overflow: hidden;
   appearance: none;
   -webkit-appearance: none;
 }
 .eip7702-batch-bar::-webkit-progress-bar {
-  background: rgba(148, 163, 184, 0.15);
+  background: color-mix(in srgb, var(--w3-text-muted) 15%, transparent);
   border-radius: 999px;
 }
 .eip7702-batch-bar::-webkit-progress-value {
@@ -2500,15 +2412,15 @@
   height: 24px;
   border-radius: 999px;
   border: 1px solid var(--w3-border);
-  background: rgba(244, 63, 94, 0.08);
-  color: #f43f5e;
+  background: color-mix(in srgb, var(--w3-danger) 8%, transparent);
+  color: var(--w3-danger);
   font-size: 0.95rem;
   line-height: 1;
   cursor: pointer;
   padding: 0;
 }
 .eip7702-batch-remove:hover:not(:disabled) {
-  background: rgba(244, 63, 94, 0.18);
+  background: color-mix(in srgb, var(--w3-danger) 18%, transparent);
 }
 .eip7702-batch-remove:disabled {
   opacity: 0.35;
@@ -2524,12 +2436,12 @@
   border-radius: var(--w3-radius-sm);
   border: 1px dashed var(--w3-border);
   background: transparent;
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-size: 0.78rem;
   cursor: pointer;
 }
 .eip7702-batch-add:hover {
-  background: rgba(34, 211, 238, 0.08);
+  background: color-mix(in srgb, var(--w3-accent-text) 8%, transparent);
   border-style: solid;
 }
 
@@ -2604,6 +2516,247 @@
   flex-wrap: wrap;
 }
 
+.feature-actions--end {
+  justify-content: flex-end;
+}
+
+/* Segmented control — two tools sharing one panel, one visible at a time */
+.segmented-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-card);
+  border-radius: var(--w3-radius);
+}
+
+.segmented-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--w3-text-dim);
+  font-family: var(--w3-font-sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: var(--w3-radius-sm);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.segmented-item:hover {
+  color: var(--w3-text-muted);
+}
+
+.segmented-item[aria-selected="true"] {
+  background: var(--w3-accent-soft);
+  color: var(--w3-accent-text);
+  box-shadow: inset 0 0 0 1px var(--w3-border-accent);
+}
+
+.segmented-item:focus-visible {
+  outline: 2px solid var(--w3-border-focus);
+  outline-offset: 2px;
+}
+
+/* Choice cards: pick one of several payloads, then run the action once */
+.choice-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--w3-text-muted);
+  margin-bottom: 8px;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.choice-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  background: var(--w3-bg-card);
+  color: var(--w3-text-dim);
+  font-family: var(--w3-font-sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.choice-card:hover {
+  border-color: var(--w3-border-accent);
+  color: var(--w3-text-muted);
+}
+
+.choice-card:focus-visible {
+  outline: 2px solid var(--w3-border-focus);
+  outline-offset: 2px;
+}
+
+.choice-card[aria-checked="true"] {
+  background: var(--w3-accent-soft);
+  border-color: var(--w3-border-accent);
+  color: var(--w3-accent-text);
+}
+
+/* Radio dot: hollow until chosen, then filled with the accent */
+.choice-card-dot {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--w3-border);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.choice-card[aria-checked="true"] .choice-card-dot {
+  border-color: var(--w3-accent);
+  background: radial-gradient(circle, var(--w3-accent) 0 42%, transparent 43%);
+}
+
+/* Single-line field: fixed-width label beside a fluid control */
+.field-row {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.field-row > label {
+  font-size: 0.85rem;
+  color: var(--w3-text-muted);
+  margin: 0;
+}
+
+.field-row input,
+.field-row select {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--w3-radius-sm);
+  border: 1px solid var(--w3-border);
+  background: var(--w3-bg-main);
+  color: var(--w3-text);
+  font-family: var(--w3-font-sans);
+  font-size: 0.88rem;
+}
+
+.field-row select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 10 10' fill='none'><path d='M2 3.5L5 6.5L8 3.5' stroke='%23b39dff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+.field-row input:focus,
+.field-row select:focus {
+  outline: none;
+  border-color: var(--w3-border-accent);
+}
+
+@media (max-width: 620px) {
+  .field-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  /* Stack the emphasised result — the rate needs the full width on a phone. */
+  .result-emphasis {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .result-emphasis-actions {
+    align-self: flex-end;
+  }
+}
+
+/* Emphasised result — the number is what a calculator page exists to show */
+.result-emphasis {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: var(--w3-radius);
+  border: 1px solid var(--w3-border-accent);
+  background:
+    linear-gradient(180deg, var(--w3-accent-soft), transparent 70%),
+    var(--w3-bg-elevated);
+}
+
+/* Actions on the right of an emphasised result: flip (optional) + copy. */
+.result-emphasis-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* The value column. Allowed to shrink (`min-width: 0`) so a long rate wraps
+   inside it instead of shoving the buttons off the row. */
+.result-emphasis-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-emphasis-value {
+  font-family: var(--w3-font-mono);
+  font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+  font-weight: 600;
+  color: var(--w3-accent-text);
+  /* `break-all` did not care where it cut — it split "USDC" into "USD" / "C"
+     the moment the row got tight. */
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+
+.result-emphasis-sub {
+  font-family: var(--w3-font-mono);
+  font-size: 0.82rem;
+  color: var(--w3-text-dim);
+  margin-top: 6px;
+}
+
+/* Secondary line under an ordinary result — e.g. an ENS expiry date. */
+.result-sub {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  background: var(--w3-bg-elevated);
+  font-family: var(--w3-font-mono);
+  font-size: 0.78rem;
+  color: var(--w3-text-dim);
+}
+
 .feature-tx-link {
   margin-top: 24px;
   padding: 16px;
@@ -2619,7 +2772,7 @@
 }
 
 .feature-tx-link a {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-family: var(--w3-font-mono);
   font-size: 0.9rem;
   word-break: break-all;
@@ -2662,43 +2815,43 @@
 }
 
 .feature-tx-result-badge--pending {
-  background: rgba(251, 191, 36, 0.15);
-  color: #fbbf24;
+  background: color-mix(in srgb, var(--w3-warning) 15%, transparent);
+  color: var(--w3-warning);
 }
 
 .feature-tx-result-badge--success {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  background: color-mix(in srgb, var(--w3-success) 15%, transparent);
+  color: var(--w3-success);
 }
 
 .feature-tx-result-badge--failed {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: color-mix(in srgb, var(--w3-danger) 15%, transparent);
+  color: var(--w3-danger);
 }
 
 .feature-tx-result-badge--rejected {
-  background: rgba(148, 163, 184, 0.16);
+  background: color-mix(in srgb, var(--w3-text-muted) 16%, transparent);
   color: var(--w3-text-muted);
 }
 
 .feature-tx-result--inline.feature-tx-result--pending {
-  background: rgba(251, 191, 36, 0.06);
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  background: color-mix(in srgb, var(--w3-warning) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-warning) 20%, transparent);
 }
 
 .feature-tx-result--inline.feature-tx-result--success {
-  background: rgba(34, 197, 94, 0.06);
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: color-mix(in srgb, var(--w3-success) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-success) 20%, transparent);
 }
 
 .feature-tx-result--inline.feature-tx-result--failed {
-  background: rgba(239, 68, 68, 0.06);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: color-mix(in srgb, var(--w3-danger) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-danger) 20%, transparent);
 }
 
 .feature-tx-result--inline.feature-tx-result--rejected {
-  background: rgba(148, 163, 184, 0.06);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: color-mix(in srgb, var(--w3-text-muted) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-text-muted) 16%, transparent);
 }
 
 .feature-tx-result-label {
@@ -2706,7 +2859,7 @@
 }
 
 .feature-tx-result-link {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   font-family: var(--w3-font-mono);
   font-size: 0.85rem;
   word-break: break-all;
@@ -2718,9 +2871,9 @@
 }
 
 .feature-alert {
-  background: rgba(34, 211, 238, 0.12);
+  background: color-mix(in srgb, var(--w3-accent-text) 12%, transparent);
   border: 1px solid var(--w3-border-accent);
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   text-align: center;
   padding: 12px 16px;
   border-radius: var(--w3-radius-sm);
@@ -2741,12 +2894,12 @@
   text-transform: uppercase;
 }
 .token-type-badge--erc20 {
-  background: rgba(34, 211, 238, 0.15);
-  color: #22d3ee;
+  background: color-mix(in srgb, var(--w3-accent-text) 15%, transparent);
+  color: var(--w3-accent-text);
 }
 .token-type-badge--erc721 {
-  background: rgba(168, 85, 247, 0.16);
-  color: #a855f7;
+  background: color-mix(in srgb, var(--w3-accent-text) 16%, transparent);
+  color: var(--w3-accent-text);
 }
 
 /* Faucet token selector button (opens the token picker modal) */
@@ -2784,8 +2937,8 @@
   gap: 8px;
   padding: 14px 16px;
   border-radius: var(--w3-radius);
-  background: rgba(34, 211, 238, 0.05);
-  border: 1px solid rgba(34, 211, 238, 0.18);
+  background: color-mix(in srgb, var(--w3-accent-text) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--w3-accent-text) 18%, transparent);
   margin: 18px 0;
 }
 .faucet-summary-item {
@@ -2972,7 +3125,7 @@
   background: var(--w3-bg-main);
 }
 .faucet-picker-option.active {
-  background: rgba(34, 211, 238, 0.1);
+  background: color-mix(in srgb, var(--w3-accent-text) 10%, transparent);
 }
 .faucet-picker-option-label {
   flex: 1;
@@ -2994,7 +3147,7 @@
   justify-content: flex-end;
   min-width: 108px;
   padding: 3px 12px;
-  background: rgba(148, 163, 184, 0.08);
+  background: color-mix(in srgb, var(--w3-text-muted) 8%, transparent);
   border: 1px solid var(--w3-border);
   border-radius: 6px;
   white-space: nowrap;
@@ -3024,14 +3177,14 @@
   padding: 4px 10px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   background: transparent;
   border: 1px solid var(--w3-border-accent);
   border-radius: 6px;
   cursor: pointer;
 }
 .solana-hero-copy:hover {
-  background: rgba(34, 211, 238, 0.1);
+  background: color-mix(in srgb, var(--w3-accent-text) 10%, transparent);
 }
 .solana-hero-value {
   color: var(--w3-text);
@@ -3065,7 +3218,7 @@
   display: block;
   font-family: var(--w3-font-mono);
   font-size: 0.85rem;
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
   word-break: break-all;
 }
 .solana-result-mono {
@@ -3142,7 +3295,7 @@ body.app-menu-open {
     justify-content: space-between;
     gap: 8px;
     padding: 10px 12px;
-    min-height: 52px;
+    min-height: 56px;
     overflow: visible;
   }
 
@@ -3195,27 +3348,6 @@ body.app-menu-open {
     z-index: 2;
   }
 
-  .app-header-locale-wrap {
-    flex-shrink: 0;
-    z-index: 6;
-    overflow: visible;
-  }
-
-  .app-header-locale-menu {
-    left: 0;
-    right: auto;
-    z-index: 1300;
-  }
-
-  .app-header-locale-toggle,
-  .app-header-theme-toggle {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 5;
-  }
-
   .app-header-wallet-controls {
     gap: 6px;
     min-width: 0;
@@ -3263,7 +3395,7 @@ body.app-menu-open {
   .app-header-gas-wrap.is-mobile.is-open .app-header-gas-badge {
     border-color: var(--w3-border-accent);
     background: var(--w3-bg-hover);
-    box-shadow: 0 0 14px rgba(0, 229, 255, 0.1);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--w3-accent) 10%, transparent);
   }
 
   .app-header-gas-wrap:hover .app-header-gas-tooltip,
@@ -3444,7 +3576,7 @@ body.app-menu-open {
 
   .app-sidebar-overlay {
     display: block;
-    top: 52px;
+    top: 56px;
   }
 
   .sidebar-mobile-head {
@@ -3491,7 +3623,7 @@ body.app-menu-open {
   .app-sidebar {
     position: fixed;
     left: 0;
-    top: 52px;
+    top: 56px;
     bottom: 0;
     z-index: 90;
     width: min(280px, 86vw);
@@ -3525,17 +3657,17 @@ body.app-menu-open {
   }
 
   .app-body {
-    min-height: calc(100vh - 52px);
+    min-height: calc(100vh - 56px);
   }
 }
 
 /* Make sonner toast action buttons (e.g. "View transaction") more prominent. */
 [data-sonner-toast] [data-button][data-action] {
-  background: linear-gradient(135deg, #534ab7, #6e5fd8);
+  background: linear-gradient(135deg, var(--w3-accent), var(--w3-accent));
   color: #fff;
   font-weight: 600;
   border: none;
-  box-shadow: 0 2px 8px rgba(83, 74, 183, 0.35);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--w3-accent) 35%, transparent);
   padding: 6px 14px;
   border-radius: 6px;
   transition:
@@ -3544,8 +3676,581 @@ body.app-menu-open {
 }
 [data-sonner-toast] [data-button][data-action]:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(83, 74, 183, 0.5);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--w3-accent) 50%, transparent);
 }
 [data-sonner-toast] [data-button][data-action]:active {
   transform: translateY(0);
+}
+
+/* ==========================================================================
+   Shell v2 — search entry, settings popover, icon sidebar, wallet cluster
+   and the ⌘K palette. All colours come from `--w3-*` so the light theme
+   keeps working without a second copy of these rules.
+   ========================================================================== */
+
+/* ----- Header search trigger (opens the ⌘K palette) ----- */
+.app-search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Fluid rather than fixed: yields width to the wallet cluster as the
+     viewport narrows instead of forcing the header to overflow. */
+  width: clamp(150px, 22vw, 320px);
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  background: var(--w3-bg-card);
+  color: var(--w3-text-dim);
+  font-family: var(--w3-font-sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+
+.app-search-trigger:hover {
+  border-color: var(--w3-border-accent);
+  color: var(--w3-text-muted);
+  background: var(--w3-bg-hover);
+}
+
+.app-search-trigger:focus-visible {
+  outline: none;
+  border-color: var(--w3-border-focus);
+  box-shadow: 0 0 0 3px var(--w3-accent-soft);
+}
+
+.app-search-trigger-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.app-search-trigger-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.app-search-trigger-kbd {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--w3-border);
+  border-radius: 4px;
+  background: var(--w3-bg-elevated);
+  color: var(--w3-text-dim);
+  font-family: var(--w3-font-mono);
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+
+/* ----- Settings popover (theme + language) ----- */
+.app-header-settings-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.app-header-settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  background: var(--w3-bg-card);
+  color: var(--w3-text-muted);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.app-header-settings-toggle:hover,
+.app-header-settings-toggle.is-open {
+  color: var(--w3-accent-text);
+  border-color: var(--w3-border-accent);
+  background: var(--w3-bg-hover);
+}
+
+.app-header-settings-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 120;
+  min-width: 192px;
+  padding: 6px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius);
+  background: var(--w3-glass-strong);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--w3-shadow-md);
+}
+
+.settings-block + .settings-block {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--w3-border);
+}
+
+.settings-block-title {
+  padding: 6px 8px 4px;
+  font-family: var(--w3-font-display);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--w3-text-dim);
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--w3-text-muted);
+  font-family: var(--w3-font-sans);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.settings-option:hover {
+  color: var(--w3-text);
+  background: var(--w3-bg-hover);
+}
+
+.settings-option.is-active {
+  color: var(--w3-accent-text);
+  background: var(--w3-accent-soft);
+}
+
+.settings-option-icon {
+  display: inline-flex;
+}
+
+.settings-option-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-option-check {
+  font-size: 0.75rem;
+  color: var(--w3-accent-text);
+}
+
+/* ----- Sidebar: icon + label rows, grouped by function ----- */
+.sidebar-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  color: var(--w3-text-dim);
+  transition: color 0.15s;
+}
+
+.sidebar-link:hover .sidebar-link-icon,
+.sidebar-link.active .sidebar-link-icon {
+  color: var(--w3-accent-text);
+}
+
+.sidebar-section + .sidebar-section {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--w3-border);
+}
+
+/* Collapsed rail: keep the icon, drop the label, centre the row. */
+.app-sidebar.collapsed .sidebar-link {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.app-sidebar.collapsed .sidebar-section + .sidebar-section {
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+/* ----- Wallet cluster: gas + network read as one capsule ----- */
+.app-header-network-cluster {
+  display: flex;
+  align-items: center;
+  /* Squeezable — but only the selector inside absorbs it (gas keeps its size,
+     and the selector ellipsizes its name instead of overflowing). An earlier
+     version left the cluster compressible with nothing inside willing to give,
+     so the overflowing selector painted on top of the wallet pill and ate the
+     first characters of the address (measured: 212px of content in a 91px box). */
+  min-width: 0;
+}
+
+.app-header-network-cluster .app-header-gas-badge {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+/* The selector is the right half of the capsule — but only while the gas badge
+   is there to be the left half. Standalone (the Suspense fallback renders it
+   without a cluster, and the ladder drops gas on narrow columns) it keeps all
+   four corners; the two rules that hide the badge restore them explicitly. */
+.app-header-network-cluster .app-header-network-select {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.app-header-network-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  /* Gives width back (and lets the name ellipsize) before anything is hidden. */
+  min-width: 0;
+  max-width: 140px;
+  /* Overrides the 12px gutter on the legacy selector rule, which pushed the
+     connect button away from the cluster. */
+  margin-right: 0;
+  padding: 0 9px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  background: var(--w3-bg-card);
+  color: var(--w3-text-muted);
+  font-family: var(--w3-font-sans);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.app-header-network-select:hover,
+.app-header-network-select.is-open {
+  color: var(--w3-text);
+  border-color: var(--w3-border-accent);
+  background: var(--w3-bg-hover);
+}
+
+.app-header-network-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--w3-accent);
+  box-shadow: 0 0 6px var(--w3-accent-glow);
+}
+
+.app-header-network-name {
+  /* min-width: 0 is what turns "squeezed" into "ellipsized": a flex item's
+     automatic minimum size is its min-content, so without it the name holds the
+     selector wider than its box and the spill lands on the wallet pill. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header-network-chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--w3-text-dim);
+  transition: transform 0.15s;
+}
+
+.app-header-network-select.is-open .app-header-network-chevron {
+  transform: rotate(180deg);
+}
+
+/* ----- ⌘K command palette ----- */
+.cmd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 16px 16px;
+  background: rgba(3, 3, 6, 0.58);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.cmd-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(620px, 100%);
+  max-height: 62vh;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-lg);
+  background: var(--w3-glass-strong);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--w3-shadow-md);
+  overflow: hidden;
+}
+
+.cmd-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--w3-border);
+  color: var(--w3-text-dim);
+}
+
+.cmd-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--w3-text);
+  font-family: var(--w3-font-sans);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.cmd-input::placeholder {
+  color: var(--w3-text-dim);
+}
+
+.cmd-kbd {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--w3-border);
+  border-radius: 4px;
+  background: var(--w3-bg-elevated);
+  font-family: var(--w3-font-mono);
+  font-size: 0.65rem;
+}
+
+.cmd-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.cmd-group {
+  padding: 10px 10px 4px;
+  font-family: var(--w3-font-display);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--w3-text-dim);
+}
+
+.cmd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--w3-text-muted);
+  font-family: var(--w3-font-sans);
+  font-size: 0.86rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cmd-item.is-active {
+  color: var(--w3-text);
+  background: var(--w3-bg-hover);
+  box-shadow: inset 2px 0 0 var(--w3-accent);
+}
+
+.cmd-item-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--w3-text-dim);
+}
+
+.cmd-item.is-active .cmd-item-icon {
+  color: var(--w3-accent-text);
+}
+
+.cmd-item-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmd-item-path {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: var(--w3-font-mono);
+  font-size: 0.68rem;
+  color: var(--w3-text-dim);
+}
+
+.cmd-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--w3-text-dim);
+  font-size: 0.85rem;
+}
+
+.cmd-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--w3-border);
+  color: var(--w3-text-dim);
+  font-size: 0.68rem;
+}
+
+.cmd-foot-count {
+  font-family: var(--w3-font-mono);
+}
+
+/* ----- Column-width ladder: the half of the squeeze the viewport never sees.
+   The column gets a 1fr share of the header grid, so at a 1512px window it is
+   only ~570px while the row wants ~582px — 12px over, and that overflow pushed
+   the address pill past the right edge of the screen.
+
+   The numbers are measured, not guessed. The row has to hold: settings buttons
+   83 + gaps 16 + network capsule (153, or 201 once the gas figure is back on)
+   + wallet (233 with a balance, 148 without, 110 for the connect button). So:
+     533px  gas figure + gas badge + balance + name
+     485px  gas badge + balance + name
+     400px  gas badge + name + address, or gas badge + name + connect button
+            (405px on the gates below, which leaves the measured 5px of slack)
+
+   Order: gas figure → balance → gas badge. The balance yields before the badge
+   because the badge says something the wallet pill does not, while the balance
+   is restated in the wallet modal. The chain name is not in this list at all:
+   the selector exists to name the network, so it ellipsizes (see
+   .app-header-network-name) rather than disappearing.
+
+   These thresholds assume the search box has already given up its width — see
+   the media queries below. Between the two ladders the gas badge stays on
+   screen down to a ~900px window, where before it vanished at ~1500px. */
+@container header-right (max-width: 545px) {
+  /* The tier letter still tells you the level; the figure is in the tooltip. */
+  .app-header-gas-value,
+  .app-header-gas-label {
+    display: none;
+  }
+}
+
+/* Same threshold as BALANCE_DROP_PX in WalletControls, which does this for the
+   balance inside <appkit-button>'s shadow DOM; this rule covers the plain pill
+   (Suspense fallback and the optimistic session). */
+@container header-right (max-width: 490px) {
+  .app-header-wallet-pill-balance {
+    display: none;
+  }
+}
+
+@container header-right (max-width: 405px) {
+  .app-header-gas-wrap {
+    display: none;
+  }
+  /* With the gas badge gone the selector is no longer the right half of a
+     capsule, so it takes its left corners back. */
+  .app-header-network-select {
+    border-top-left-radius: var(--w3-radius-sm);
+    border-bottom-left-radius: var(--w3-radius-sm);
+  }
+}
+
+/* ----- Search box yields first (tablet and up) -----
+   The search trigger is the only thing in the header's middle column
+   (`grid-template-columns: 1fr auto 1fr`), so every pixel it gives up is a
+   pixel each side column gains — and the right column is the one that has to
+   fit the wallet cluster. That makes it the first thing to shrink, ahead of
+   the gas badge and the balance: a search box you can still click beats a gas
+   badge you cannot see, and the palette is on ⌘K either way.
+
+   Deliberately scoped to min-width 769px: below that the header switches to
+   its own mobile layout, which already collapses the trigger to its icon. */
+@media (min-width: 769px) and (max-width: 1240px) {
+  /* Keep the number, drop the "Gas:" prefix and the " Gwei" suffix. */
+  .app-header-gas-label,
+  .app-header-gas-value-unit {
+    display: none;
+  }
+
+  .app-search-trigger-kbd {
+    display: none;
+  }
+
+  .app-search-trigger {
+    width: clamp(110px, 14vw, 190px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1080px) {
+  /* Down to its icon. The ~140px this hands back is what keeps the gas badge
+     on screen down to a ~900px window. */
+  .app-search-trigger-label {
+    display: none;
+  }
+
+  .app-search-trigger {
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 820px) {
+  .app-logo-text {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header-center {
+    flex: 0 0 auto;
+  }
+
+  .app-search-trigger {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .app-search-trigger-label,
+  .app-search-trigger-kbd {
+    display: none;
+  }
+
+  .cmd-overlay {
+    padding: 8vh 10px 10px;
+  }
+
+  .cmd-panel {
+    max-height: 72vh;
+  }
+
+  .cmd-item-path {
+    display: none;
+  }
 }

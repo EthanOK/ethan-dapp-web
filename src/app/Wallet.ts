@@ -1,14 +1,17 @@
 import { EthersAdapter } from "@reown/appkit-adapter-ethers";
 import {
   base,
+  baseSepolia,
   bsc,
+  bscTestnet,
   mainnet,
   sepolia,
   hoodi,
   solanaDevnet,
   solana,
   bitcoin,
-  bitcoinTestnet
+  bitcoinTestnet,
+  xLayer
 } from "@reown/appkit/networks";
 import { createAppKit } from "@reown/appkit";
 import { SolanaAdapter } from "@reown/appkit-adapter-solana";
@@ -27,11 +30,14 @@ export type AppKitNetwork =
   | typeof hoodi
   | typeof mainnet
   | typeof base
+  | typeof baseSepolia
   | typeof bsc
+  | typeof bscTestnet
   | typeof solanaDevnet
   | typeof solana
   | typeof bitcoin
-  | typeof bitcoinTestnet;
+  | typeof bitcoinTestnet
+  | typeof xLayer;
 
 export const getDefaultNetwork = (chainId: string | number): AppKitNetwork => {
   const all: AppKitNetwork[] = [
@@ -39,7 +45,10 @@ export const getDefaultNetwork = (chainId: string | number): AppKitNetwork => {
     hoodi,
     mainnet,
     base,
+    baseSepolia,
     bsc,
+    bscTestnet,
+    xLayer,
     solanaDevnet,
     solana,
     bitcoin,
@@ -91,7 +100,10 @@ export const modal = createAppKit({
     hoodi,
     mainnet,
     base,
+    baseSepolia,
     bsc,
+    bscTestnet,
+    xLayer,
     solana,
     solanaDevnet,
     bitcoin,
@@ -111,7 +123,10 @@ export const modal = createAppKit({
     [sepolia.id]: FALLBACK_CHAIN_ICON,
     [hoodi.id]: FALLBACK_CHAIN_ICON,
     [base.id]: FALLBACK_CHAIN_ICON,
-    [bsc.id]: FALLBACK_CHAIN_ICON
+    [baseSepolia.id]: FALLBACK_CHAIN_ICON,
+    [bsc.id]: FALLBACK_CHAIN_ICON,
+    [bscTestnet.id]: FALLBACK_CHAIN_ICON,
+    [xLayer.id]: FALLBACK_CHAIN_ICON
   },
   features: {
     analytics: true
@@ -120,14 +135,47 @@ export const modal = createAppKit({
 
 initializeSubscribers(modal);
 
-export const headerNetworksAll: AppKitNetwork[] = [
-  mainnet,
-  sepolia,
-  hoodi,
-  bsc,
-  base,
-  solana,
-  solanaDevnet,
-  bitcoin,
-  bitcoinTestnet
+/**
+ * Header picker, grouped by network type: mainnets first, testnets under their
+ * own label — one flat list made the two hard to tell apart at a glance.
+ */
+export const headerNetworkGroups: {
+  key: "mainnet" | "testnet";
+  networks: AppKitNetwork[];
+}[] = [
+  {
+    key: "mainnet",
+    networks: [mainnet, bsc, base, xLayer, solana, bitcoin]
+  },
+  {
+    key: "testnet",
+    networks: [
+      sepolia,
+      hoodi,
+      bscTestnet,
+      baseSepolia,
+      solanaDevnet,
+      bitcoinTestnet
+    ]
+  }
 ];
+
+/** Flat view of the same list, for looking a network up by id. */
+export const headerNetworksAll: AppKitNetwork[] = headerNetworkGroups.flatMap(
+  (group) => group.networks
+);
+
+/**
+ * Names shown in the picker, keyed by chain id. Two of viem's names need
+ * trimming: the group heading already says mainnet or testnet, and "BNB Smart
+ * Chain Testnet" is long enough to fill the whole menu row.
+ */
+const NETWORK_DISPLAY_NAMES: Record<number, string> = {
+  196: "X Layer",
+  97: "BSC Testnet"
+};
+
+export const displayNameForNetwork = (network: AppKitNetwork): string => {
+  const id = Number((network as { id?: string | number }).id);
+  return NETWORK_DISPLAY_NAMES[id] ?? network.name;
+};

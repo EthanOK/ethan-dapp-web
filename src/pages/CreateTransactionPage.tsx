@@ -57,8 +57,17 @@ const parseNonceInput = (raw: string): number | "empty" | "invalid" => {
   return n;
 };
 
+/**
+ * Three things you can do with a raw transaction: send native coin, deploy
+ * with it, or replace one that is stuck. Each needs its own fields, so they
+ * share one panel behind a segmented control — transfer first, as the common
+ * case.
+ */
+type TxTab = "transfer" | "deploy" | "cancel";
+
 const CreateTransactionPage = () => {
   const { t } = useI18n();
+  const [tab, setTab] = useState<TxTab>("transfer");
   const [isMounted, setIsMounted] = useState(false);
   const [currentAccount, setCurrentAccount] = useState<string | null>(null);
   type TxStatus = "pending" | "success" | "failed" | "rejected";
@@ -371,251 +380,288 @@ const CreateTransactionPage = () => {
         <p>{t("createTx.subtitle")}</p>
       </section>
 
-      <section className="feature-panel">
-        <h3>{t("createTx.transferSection")}</h3>
-        <p className="feature-field-hint">{t("createTx.transferHint")}</p>
-        <div className="feature-field">
-          <label htmlFor="create-to">{t("common.to")}</label>
-          <textarea
-            id="create-to"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            placeholder={PLACEHOLDER_ADDRESS}
-            className="estimate-address-input"
-            rows={2}
-            spellCheck={false}
-            autoComplete="off"
-          />
-        </div>
-        <div className="feature-field">
-          <label htmlFor="create-amount">{t("common.valueEth")}</label>
-          <input
-            id="create-amount"
-            type="text"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.1"
-            spellCheck={false}
-            autoComplete="off"
-          />
-        </div>
-        <div className="feature-field">
-          <label htmlFor="create-input-data">
-            {t("createTx.dataOptional")}
-          </label>
-          <textarea
-            id="create-input-data"
-            value={inputData}
-            onChange={(e) => setInputData(e.target.value)}
-            placeholder="e.g. message or 0x..."
-            rows={3}
-            spellCheck={false}
-          />
-        </div>
-        <div className="feature-actions feature-actions--inline">
+      <div className="segmented-wrap">
+        <div
+          className="segmented"
+          role="tablist"
+          aria-label={t("createTx.title")}
+        >
           <button
             type="button"
-            onClick={transferNativeHandler}
-            className="cta-button mint-nft-button"
-            disabled={!currentAccount || isTransferring}
+            role="tab"
+            className="segmented-item"
+            aria-selected={tab === "transfer"}
+            onClick={() => setTab("transfer")}
           >
-            {isTransferring ? t("common.sending") : t("common.transfer")}
+            {t("createTx.transferSection")}
           </button>
-          {transferTx && (
-            <div
-              className={`feature-tx-result feature-tx-result--inline feature-tx-result--${transferTx.status}`}
-            >
-              <span
-                className={`feature-tx-result-badge feature-tx-result-badge--${transferTx.status}`}
-              >
-                {transferTx.status === "pending" && t("common.pending")}
-                {transferTx.status === "success" && t("common.success")}
-                {transferTx.status === "failed" && t("common.failed")}
-                {transferTx.status === "rejected" && t("common.rejected")}
-              </span>
-              {transferTx.link && (
-                <a
-                  href={transferTx.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="feature-tx-result-link"
-                  title={transferTx.link.split("/").pop() ?? ""}
-                >
-                  {truncateHash(transferTx.link.split("/").pop() ?? "")}
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="feature-panel">
-        <h3>{t("createTx.deploySection")}</h3>
-        <p className="feature-field-hint">{t("createTx.deployHint")}</p>
-        <div className="feature-field">
-          <label htmlFor="create-tx-to">{t("createTx.toOptional")}</label>
-          <input
-            id="create-tx-to"
-            type="text"
-            value={toTx}
-            onChange={(e) => setToTx(e.target.value)}
-            placeholder={PLACEHOLDER_ADDRESS}
-            className="estimate-address-input"
-            spellCheck={false}
-            autoComplete="off"
-          />
-        </div>
-        <div className="feature-field">
-          <label htmlFor="create-tx-value">{t("common.valueEth")}</label>
-          <input
-            id="create-tx-value"
-            type="text"
-            value={valueTx}
-            onChange={(e) => setValueTx(e.target.value)}
-            placeholder="0"
-            spellCheck={false}
-            autoComplete="off"
-          />
-        </div>
-        <div className="feature-field">
-          <label htmlFor="create-tx-data">{t("createTx.dataHex")}</label>
-          <textarea
-            id="create-tx-data"
-            value={dataTx}
-            onChange={(e) => setDataTx(e.target.value)}
-            placeholder="0x"
-            rows={4}
-            spellCheck={false}
-          />
-        </div>
-        <div className="feature-actions feature-actions--inline">
           <button
             type="button"
-            onClick={createTxHandler}
-            className="cta-button mint-nft-button"
-            disabled={!currentAccount || isCreating}
+            role="tab"
+            className="segmented-item"
+            aria-selected={tab === "deploy"}
+            onClick={() => setTab("deploy")}
           >
-            {isCreating ? t("common.sending") : t("createTx.createButton")}
+            {t("createTx.deploySection")}
           </button>
-          {createTx && (
-            <div
-              className={`feature-tx-result feature-tx-result--inline feature-tx-result--${createTx.status}`}
-            >
-              <span
-                className={`feature-tx-result-badge feature-tx-result-badge--${createTx.status}`}
-              >
-                {createTx.status === "pending" && t("common.pending")}
-                {createTx.status === "success" && t("common.success")}
-                {createTx.status === "failed" && t("common.failed")}
-                {createTx.status === "rejected" && t("common.rejected")}
-              </span>
-              {createTx.link && (
-                <a
-                  href={createTx.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="feature-tx-result-link"
-                  title={createTx.link.split("/").pop() ?? ""}
-                >
-                  {truncateHash(createTx.link.split("/").pop() ?? "")}
-                </a>
-              )}
-            </div>
-          )}
+          <button
+            type="button"
+            role="tab"
+            className="segmented-item"
+            aria-selected={tab === "cancel"}
+            onClick={() => setTab("cancel")}
+          >
+            {t("createTx.cancelSection")}
+          </button>
         </div>
-      </section>
+      </div>
 
-      <section className="feature-panel">
-        <h3>{t("createTx.cancelSection")}</h3>
-        <p className="feature-field-hint">{t("createTx.cancelHint")}</p>
-        <div className="feature-field">
-          <label htmlFor="adv-cancel-tx-hash">{t("common.txHash")}</label>
-          <div className="feature-actions feature-actions--inline">
-            <input
-              id="adv-cancel-tx-hash"
-              type="text"
-              value={cancelTxHash}
-              onChange={(e) => setCancelTxHash(e.target.value)}
-              placeholder="0x…"
+      {tab === "transfer" ? (
+        <section className="feature-panel">
+          <p className="feature-field-hint">{t("createTx.transferHint")}</p>
+          <div className="feature-field">
+            <label htmlFor="create-to">{t("common.to")}</label>
+            <textarea
+              id="create-to"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              placeholder={PLACEHOLDER_ADDRESS}
+              className="estimate-address-input"
+              rows={2}
               spellCheck={false}
               autoComplete="off"
-              className="estimate-address-input"
-              style={{ flex: 1, minWidth: 0 }}
             />
-            <button
-              type="button"
-              className="cta-button mint-nft-button"
-              disabled={isAdvBusy || isFetchingNonceFromHash}
-              onClick={() => void fetchNonceFromTxHash()}
-            >
-              {isFetchingNonceFromHash
-                ? t("common.loading")
-                : t("createTx.loadNonce")}
-            </button>
           </div>
-        </div>
-        <div className="feature-field">
-          <label htmlFor="adv-tx-nonce">{t("common.nonce")}</label>
-          <div className="feature-actions feature-actions--inline">
+          <div className="feature-field">
+            <label htmlFor="create-amount">{t("common.valueEth")}</label>
             <input
-              id="adv-tx-nonce"
+              id="create-amount"
               type="text"
-              inputMode="numeric"
-              value={nonceTx}
-              onChange={(e) => setNonceTx(e.target.value)}
-              placeholder={t("createTx.noncePlaceholder")}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.1"
               spellCheck={false}
               autoComplete="off"
-              className="estimate-address-input"
-              style={{ flex: 1, minWidth: 0 }}
             />
+          </div>
+          <div className="feature-field">
+            <label htmlFor="create-input-data">
+              {t("createTx.dataOptional")}
+            </label>
+            <textarea
+              id="create-input-data"
+              value={inputData}
+              onChange={(e) => setInputData(e.target.value)}
+              placeholder="e.g. message or 0x..."
+              rows={3}
+              spellCheck={false}
+            />
+          </div>
+          <div className="feature-actions feature-actions--inline feature-actions--end">
             <button
               type="button"
+              onClick={transferNativeHandler}
+              className="cta-button mint-nft-button"
+              disabled={!currentAccount || isTransferring}
+            >
+              {isTransferring ? t("common.sending") : t("common.transfer")}
+            </button>
+            {transferTx && (
+              <div
+                className={`feature-tx-result feature-tx-result--inline feature-tx-result--${transferTx.status}`}
+              >
+                <span
+                  className={`feature-tx-result-badge feature-tx-result-badge--${transferTx.status}`}
+                >
+                  {transferTx.status === "pending" && t("common.pending")}
+                  {transferTx.status === "success" && t("common.success")}
+                  {transferTx.status === "failed" && t("common.failed")}
+                  {transferTx.status === "rejected" && t("common.rejected")}
+                </span>
+                {transferTx.link && (
+                  <a
+                    href={transferTx.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="feature-tx-result-link"
+                    title={transferTx.link.split("/").pop() ?? ""}
+                  >
+                    {truncateHash(transferTx.link.split("/").pop() ?? "")}
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      ) : tab === "deploy" ? (
+        <section className="feature-panel">
+          <p className="feature-field-hint">{t("createTx.deployHint")}</p>
+          <div className="feature-field">
+            <label htmlFor="create-tx-to">{t("createTx.toOptional")}</label>
+            <input
+              id="create-tx-to"
+              type="text"
+              value={toTx}
+              onChange={(e) => setToTx(e.target.value)}
+              placeholder={PLACEHOLDER_ADDRESS}
+              className="estimate-address-input"
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </div>
+          <div className="feature-field">
+            <label htmlFor="create-tx-value">{t("common.valueEth")}</label>
+            <input
+              id="create-tx-value"
+              type="text"
+              value={valueTx}
+              onChange={(e) => setValueTx(e.target.value)}
+              placeholder="0"
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </div>
+          <div className="feature-field">
+            <label htmlFor="create-tx-data">{t("createTx.dataHex")}</label>
+            <textarea
+              id="create-tx-data"
+              value={dataTx}
+              onChange={(e) => setDataTx(e.target.value)}
+              placeholder="0x"
+              rows={4}
+              spellCheck={false}
+            />
+          </div>
+          <div className="feature-actions feature-actions--inline feature-actions--end">
+            <button
+              type="button"
+              onClick={createTxHandler}
+              className="cta-button mint-nft-button"
+              disabled={!currentAccount || isCreating}
+            >
+              {isCreating ? t("common.sending") : t("createTx.createButton")}
+            </button>
+            {createTx && (
+              <div
+                className={`feature-tx-result feature-tx-result--inline feature-tx-result--${createTx.status}`}
+              >
+                <span
+                  className={`feature-tx-result-badge feature-tx-result-badge--${createTx.status}`}
+                >
+                  {createTx.status === "pending" && t("common.pending")}
+                  {createTx.status === "success" && t("common.success")}
+                  {createTx.status === "failed" && t("common.failed")}
+                  {createTx.status === "rejected" && t("common.rejected")}
+                </span>
+                {createTx.link && (
+                  <a
+                    href={createTx.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="feature-tx-result-link"
+                    title={createTx.link.split("/").pop() ?? ""}
+                  >
+                    {truncateHash(createTx.link.split("/").pop() ?? "")}
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      ) : (
+        <section className="feature-panel">
+          <p className="feature-field-hint">{t("createTx.cancelHint")}</p>
+          <div className="feature-field">
+            <label htmlFor="adv-cancel-tx-hash">{t("common.txHash")}</label>
+            <div className="feature-actions feature-actions--inline">
+              <input
+                id="adv-cancel-tx-hash"
+                type="text"
+                value={cancelTxHash}
+                onChange={(e) => setCancelTxHash(e.target.value)}
+                placeholder="0x…"
+                spellCheck={false}
+                autoComplete="off"
+                className="estimate-address-input"
+                style={{ flex: 1, minWidth: 0 }}
+              />
+              <button
+                type="button"
+                className="cta-button mint-nft-button"
+                disabled={isAdvBusy || isFetchingNonceFromHash}
+                onClick={() => void fetchNonceFromTxHash()}
+              >
+                {isFetchingNonceFromHash
+                  ? t("common.loading")
+                  : t("createTx.loadNonce")}
+              </button>
+            </div>
+          </div>
+          <div className="feature-field">
+            <label htmlFor="adv-tx-nonce">{t("common.nonce")}</label>
+            <div className="feature-actions feature-actions--inline">
+              <input
+                id="adv-tx-nonce"
+                type="text"
+                inputMode="numeric"
+                value={nonceTx}
+                onChange={(e) => setNonceTx(e.target.value)}
+                placeholder={t("createTx.noncePlaceholder")}
+                spellCheck={false}
+                autoComplete="off"
+                className="estimate-address-input"
+                style={{ flex: 1, minWidth: 0 }}
+              />
+              <button
+                type="button"
+                className="cta-button mint-nft-button"
+                disabled={
+                  !currentAccount || isAdvBusy || isFetchingNonceFromHash
+                }
+                onClick={() => void refreshPendingNonce(currentAccount)}
+              >
+                {t("common.refresh")}
+              </button>
+            </div>
+          </div>
+          <div className="feature-actions feature-actions--inline feature-actions--end">
+            <button
+              type="button"
+              onClick={cancelTxHandler}
               className="cta-button mint-nft-button"
               disabled={!currentAccount || isAdvBusy || isFetchingNonceFromHash}
-              onClick={() => void refreshPendingNonce(currentAccount)}
+              title={t("createTx.cancelTitle")}
             >
-              {t("common.refresh")}
+              {isAdvBusy ? t("common.sending") : t("createTx.cancelButton")}
             </button>
-          </div>
-        </div>
-        <div className="feature-actions feature-actions--inline">
-          <button
-            type="button"
-            onClick={cancelTxHandler}
-            className="cta-button mint-nft-button"
-            disabled={!currentAccount || isAdvBusy || isFetchingNonceFromHash}
-            title={t("createTx.cancelTitle")}
-          >
-            {isAdvBusy ? t("common.sending") : t("createTx.cancelButton")}
-          </button>
-          {advTx && (
-            <div
-              className={`feature-tx-result feature-tx-result--inline feature-tx-result--${advTx.status}`}
-            >
-              <span
-                className={`feature-tx-result-badge feature-tx-result-badge--${advTx.status}`}
+            {advTx && (
+              <div
+                className={`feature-tx-result feature-tx-result--inline feature-tx-result--${advTx.status}`}
               >
-                {advTx.status === "pending" && t("common.pending")}
-                {advTx.status === "success" && t("common.success")}
-                {advTx.status === "failed" && t("common.failed")}
-                {advTx.status === "rejected" && t("common.rejected")}
-              </span>
-              {advTx.link && (
-                <a
-                  href={advTx.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="feature-tx-result-link"
-                  title={advTx.link.split("/").pop() ?? ""}
+                <span
+                  className={`feature-tx-result-badge feature-tx-result-badge--${advTx.status}`}
                 >
-                  {truncateHash(advTx.link.split("/").pop() ?? "")}
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
+                  {advTx.status === "pending" && t("common.pending")}
+                  {advTx.status === "success" && t("common.success")}
+                  {advTx.status === "failed" && t("common.failed")}
+                  {advTx.status === "rejected" && t("common.rejected")}
+                </span>
+                {advTx.link && (
+                  <a
+                    href={advTx.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="feature-tx-result-link"
+                    title={advTx.link.split("/").pop() ?? ""}
+                  >
+                    {truncateHash(advTx.link.split("/").pop() ?? "")}
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

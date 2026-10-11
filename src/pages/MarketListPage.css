@@ -27,7 +27,7 @@
 }
 
 .market-list-back:hover {
-  color: var(--w3-accent);
+  color: var(--w3-accent-text);
 }
 
 .market-list-hero h1 {
@@ -96,12 +96,14 @@
   grid-template-columns: var(--market-grid-cols);
   align-items: center;
   column-gap: 8px;
+  /* Prices refresh in place — tabular figures stop the columns from jittering */
+  font-variant-numeric: tabular-nums;
 }
 
 .market-list-grid-head {
   --market-head-font-size: 0.8125rem;
   padding: 10px 16px;
-  background: #1a1a24;
+  background: var(--w3-bg-elevated);
   border: 1px solid var(--w3-border);
   border-radius: 6px;
   font-family: var(--w3-font-sans);
@@ -209,7 +211,7 @@
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  border: 1px solid color-mix(in srgb, var(--w3-text-muted) 28%, transparent);
   border-radius: 4px;
   background: transparent;
   color: var(--w3-text-muted);
@@ -221,15 +223,15 @@
 
 .market-list-grid-head .market-list-tf-trigger:hover {
   color: var(--w3-text);
-  border-color: rgba(148, 163, 184, 0.45);
+  border-color: color-mix(in srgb, var(--w3-text-muted) 45%, transparent);
 }
 
 .market-list-grid-head .market-list-tf-trigger.is-active,
 .market-list-grid-head .market-list-tf-trigger.is-open {
   color: var(--w3-text);
   font-weight: 500;
-  border-color: rgba(251, 191, 36, 0.5);
-  background: rgba(251, 191, 36, 0.08);
+  border-color: color-mix(in srgb, var(--w3-warning) 50%, transparent);
+  background: color-mix(in srgb, var(--w3-warning) 8%, transparent);
 }
 
 .market-list-grid-head
@@ -297,7 +299,7 @@
   .market-list-sort-arrow.is-on {
   opacity: 1;
   color: var(--w3-secondary);
-  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.35));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--w3-warning) 35%, transparent));
 }
 
 .market-list-sort-icon {
@@ -392,11 +394,11 @@
 }
 
 .market-list-change.up {
-  color: #0ecb81;
+  color: var(--w3-success);
 }
 
 .market-list-change.down {
-  color: #f6465d;
+  color: var(--w3-danger);
 }
 
 .market-list-change {
@@ -524,11 +526,11 @@
 }
 
 .market-list-sparkline.up {
-  color: #0ecb81;
+  color: var(--w3-success);
 }
 
 .market-list-sparkline.down {
-  color: #f6465d;
+  color: var(--w3-danger);
 }
 
 .market-list-sparkline--empty {
@@ -623,8 +625,8 @@
 
 .market-list-pagination-page.is-active {
   color: var(--w3-secondary);
-  border-color: rgba(251, 191, 36, 0.45);
-  background: rgba(251, 191, 36, 0.08);
+  border-color: color-mix(in srgb, var(--w3-warning) 45%, transparent);
+  background: color-mix(in srgb, var(--w3-warning) 8%, transparent);
   font-weight: 600;
 }
 
@@ -717,7 +719,7 @@
   }
 
   .market-list-sort-pill.active {
-    color: var(--w3-accent);
+    color: var(--w3-accent-text);
     border-color: var(--w3-border-accent);
     background: var(--w3-bg-elevated);
   }

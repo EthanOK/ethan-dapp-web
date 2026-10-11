@@ -11,7 +11,6 @@ const suffixOfYunGou = "0xba6d2ab1";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-const bsc_rpc = "https://rpc.ankr.com/bsc";
 const projectId_walletconnect = import.meta.env
   .REACT_APP_WALLETCONNECT_PROJECTID;
 
@@ -32,6 +31,11 @@ const crossChain_tbsc = "0x6AAf3B8a8E42BeDc226e2d1F166Dfdc22d4b5182";
 
 const PancakeRouter = "0x10ED43C718714eb63d5aA57B78B54704E256024E";
 const UniswapRouter = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+
+/** V2 factories — the pair address for a token pair comes from here. */
+const UniswapFactory = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+const PancakeFactory = "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73";
+const UniswapFactoryBase = "0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6";
 const DefaultChainId = "11155111";
 
 const EXPIRES_TIME = "7d";
@@ -46,12 +50,14 @@ export const EIP7702Delegator_Metamask =
 export {
   PancakeRouter,
   UniswapRouter,
+  UniswapFactory,
+  PancakeFactory,
+  UniswapFactoryBase,
   chainName_S,
   YUNGOU_END,
   hashYUNGOU,
   OPENSEA_MAIN_API,
   suffixOfYunGou,
-  bsc_rpc,
   chainName_TBSC,
   projectId_walletconnect,
   React_Serve_Back,

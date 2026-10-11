@@ -2,13 +2,17 @@ import { ALCHEMY_KEY } from "@/config/SystemConfiguration";
 import { order_data, order_data_tbsc } from "@/fixtures/OrderDataYungou";
 import {
   formatUnits,
+  getBytes,
+  getCreate2Address,
   getCreateAddress,
   hexlify,
   isAddress,
   JsonRpcProvider,
+  keccak256,
   parseUnits,
   toUtf8Bytes,
-  type Provider
+  type Provider,
+  zeroPadValue
 } from "ethers";
 import { Decimal } from "decimal.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -177,6 +181,27 @@ function getAddressCreate(sender: string, nonce: number): string {
   return getCreateAddress({ from: sender, nonce });
 }
 
+/**
+ * CREATE2 address: keccak256(0xff ++ sender ++ salt ++ keccak256(initCode))[12:].
+ *
+ * Salt is left-padded to the 32 bytes the formula needs. Odd-length hex is
+ * zero-filled on the left first — ethers rejects `0x1` as a malformed
+ * BytesLike, but a salt of 1 is a natural thing to type.
+ */
+function getAddressCreate2(
+  sender: string,
+  salt: string,
+  initCode: string
+): string {
+  const body = salt.trim().replace(/^0x/i, "");
+  const evenHex = `0x${body.length % 2 === 0 ? body : `0${body}`}`;
+  return getCreate2Address(
+    sender,
+    zeroPadValue(getBytes(evenHex), 32),
+    keccak256(initCode)
+  );
+}
+
 async function getAssociatedAddress(
   mintAddress: string,
   ownerAddress: string
@@ -248,6 +273,7 @@ export {
   utf8ToHexBytes,
   caculatePriceBySqrtPriceX96,
   getAddressCreate,
+  getAddressCreate2,
   getAssociatedAddress,
   isContract,
   getAlchemyURL,
