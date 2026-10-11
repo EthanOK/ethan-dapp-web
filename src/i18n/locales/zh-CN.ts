@@ -2,6 +2,8 @@ import type { TranslationKey } from "@/i18n/locales/en";
 
 export const zhCN: Record<TranslationKey, string> = {
   "common.network": "网络",
+  "common.mainnet": "主网",
+  "common.testnet": "测试网",
   "common.close": "关闭",
   "common.viewTransaction": "查看交易",
   "common.copyAddress": "复制地址",
@@ -84,7 +86,6 @@ export const zhCN: Record<TranslationKey, string> = {
   "common.disConnect": "断开连接",
   "common.gateways": "网关",
   "common.price": "价格",
-  "common.platform": "平台",
   "common.signature": "签名",
   "common.unknownNetwork": "未知网络",
   "common.chainIdLabel": "chainId {{id}}",
@@ -164,7 +165,7 @@ export const zhCN: Record<TranslationKey, string> = {
   "lz.amountExceedsBalance": "金额不能超过余额",
   "lz.destinationLabel": "目标链（LayerZero dstEid）· 源链为当前连接的钱包网络",
   "lz.commonEids": "常用 EID",
-  "lz.pickPreset": "选择预设（可选）",
+  "lz.manualEntry": "手动输入",
   "lz.dstEid": "dstEid (uint32)",
   "lz.dstEidConflict":
     "dstEid 不能与所选链的 LayerZero 端点相同；请选择其他目标。",
@@ -414,8 +415,6 @@ export const zhCN: Record<TranslationKey, string> = {
     "池子的原始 sqrtPriceX96，从 slot0 直接读取的整数（V3、V4 通用）。",
   "utils.lpHint": "按交易对的两个代币地址计算 LP 代币价格。",
   "utils.lpSection": "LP 代币价格 V2",
-  "utils.uniswapEth": "UniSwap V2 (ETH)",
-  "utils.pancakeBsc": "PancakeSwap V2 (BSC)",
   "utils.token0": "Token0",
   "utils.token1": "Token1",
   "utils.lpPrice": "LP 价格：",
@@ -432,7 +431,7 @@ export const zhCN: Record<TranslationKey, string> = {
   "utils.signDesc": "用已连接的钱包签名任意十六进制数据或 EIP712 typed data。",
   "utils.ipfsDesc": "把 CID 转换成 5 个公共网关的可访问链接。",
   "utils.gasDesc": "根据 gasUsed 与 gasPrice 计算交易费用。",
-  "utils.priceSection": "Uniswap V2/V3/V4 价格",
+  "utils.priceSection": "Uniswap 交易对价格",
   "utils.priceDesc":
     "用交易对地址计算 Uniswap V2 LP 代币价格，或换算 V3/V4 的 sqrtPriceX96。",
   "utils.contractDesc":
@@ -623,12 +622,9 @@ export const zhCN: Record<TranslationKey, string> = {
 
   "ens.title": "ENS 服务",
   "ens.subtitle": "解析 ENS 名称与地址",
-  "ens.byAddress": "通过地址获取 ENS",
   "ens.getEns": "获取 ENS",
-  "ens.byEns": "通过 ENS 获取地址",
   "ens.nameLabel": "ENS 名称",
   "ens.getAddress": "获取地址",
-  "ens.byTokenId": "通过 Token ID 获取名称",
   "ens.tokenIdLabel": "ENS Token ID",
   "ens.getNameByTokenId": "通过 Token ID 获取名称",
   "ens.nameTooShort": "ENS 名称过短",

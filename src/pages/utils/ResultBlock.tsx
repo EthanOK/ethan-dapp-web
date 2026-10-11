@@ -92,6 +92,7 @@ export default function ResultBlock({
         </button>
       </div>
       <pre style={RESULT_PRE}>{value}</pre>
+      {sub ? <div className="result-sub">{sub}</div> : null}
     </>
   );
 }

@@ -4,6 +4,7 @@ import { useI18n } from "@/i18n";
 import ResultBlock from "@/pages/utils/ResultBlock";
 import { getTokenPrice } from "@/lib/price/GetLpTokenPrice";
 import { caculatePriceBySqrtPriceX96 } from "@/lib/shared/Utils";
+import { SupportChains } from "@/config/ChainsConfig";
 
 /**
  * Two ways of getting at a price: pricing a Uniswap V2 / PancakeSwap V2 LP
@@ -13,6 +14,16 @@ import { caculatePriceBySqrtPriceX96 } from "@/lib/shared/Utils";
  * order the page title promises.
  */
 type PriceTab = "lp" | "sqrt";
+
+/**
+ * Each chain here has a V2 router wired up in the price helper, so picking a
+ * chain is all the user has to tell us — the router follows from it.
+ */
+const V2_CHAIN_IDS = ["1", "56"];
+
+const v2Chains = SupportChains.filter((chain) =>
+  V2_CHAIN_IDS.includes(chain.id)
+);
 
 export default function PriceTool() {
   const { t } = useI18n();
@@ -98,14 +109,18 @@ export default function PriceTool() {
         <section className="feature-panel">
           <p className="feature-field-hint">{t("utils.lpHint")}</p>
           <div className="field-row">
-            <label htmlFor="utils-platform">{t("common.platform")}</label>
+            <label htmlFor="utils-chain">{t("common.chain")}</label>
             <select
-              id="utils-platform"
+              id="utils-chain"
               value={chainId}
               onChange={(event) => setChainId(event.target.value)}
+              aria-label={t("common.selectChain")}
             >
-              <option value="1">{t("utils.uniswapEth")}</option>
-              <option value="56">{t("utils.pancakeBsc")}</option>
+              {v2Chains.map((chain) => (
+                <option key={chain.id} value={chain.id}>
+                  {chain.name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="field-row">

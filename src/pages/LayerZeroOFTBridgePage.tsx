@@ -1209,7 +1209,10 @@ const LayerZeroOFTBridgePage = () => {
                 }
               }}
             >
-              <option value="">{t("lz.pickPreset")}</option>
+              {/* Not a choice: stands in for "current dstEid is not one of the presets". */}
+              <option value="" disabled>
+                {t("lz.manualEntry")}
+              </option>
               {dstPresetChoices.map((p) => (
                 <option key={p.eid} value={String(p.eid)}>
                   {t(p.key)}

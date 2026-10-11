@@ -733,6 +733,22 @@
   background: var(--w3-bg-elevated);
   box-shadow: var(--w3-shadow-md, 0 8px 24px rgba(0, 0, 0, 0.18));
 }
+/* Mainnets and testnets are separate groups, so the split is visible rather
+   than implied by the order of a flat list. */
+.app-header-network-group + .app-header-network-group {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--w3-border);
+}
+.app-header-network-group-label {
+  padding: 8px 12px 4px;
+  color: var(--w3-text-dim);
+  font-family: var(--w3-font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 .app-header-network-option {
   display: block;
   width: 100%;
@@ -2696,6 +2712,18 @@
   font-size: 0.82rem;
   color: var(--w3-text-dim);
   margin-top: 6px;
+}
+
+/* Secondary line under an ordinary result — e.g. an ENS expiry date. */
+.result-sub {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-sm);
+  background: var(--w3-bg-elevated);
+  font-family: var(--w3-font-mono);
+  font-size: 0.78rem;
+  color: var(--w3-text-dim);
 }
 
 .feature-tx-link {

@@ -1,5 +1,7 @@
 export const en = {
   "common.network": "Network",
+  "common.mainnet": "Mainnet",
+  "common.testnet": "Testnet",
   "common.close": "Close",
   "common.viewTransaction": "View transaction",
   "common.copyAddress": "Copy address",
@@ -82,7 +84,6 @@ export const en = {
   "common.disConnect": "DisConnect",
   "common.gateways": "Gateways",
   "common.price": "Price",
-  "common.platform": "Platform",
   "common.signature": "Signature",
   "common.unknownNetwork": "unknown network",
   "common.chainIdLabel": "chainId {{id}}",
@@ -166,7 +167,7 @@ export const en = {
   "lz.destinationLabel":
     "Destination (LayerZero dstEid) · source is the connected wallet network",
   "lz.commonEids": "Common EIDs",
-  "lz.pickPreset": "Pick a preset (optional)",
+  "lz.manualEntry": "Manual entry",
   "lz.dstEid": "dstEid (uint32)",
   "lz.dstEidConflict":
     "dstEid cannot match Select Chain's LayerZero endpoint; pick another destination.",
@@ -432,8 +433,6 @@ export const en = {
     "The pool's raw sqrtPriceX96 — the integer read straight from slot0, in V3 and V4 alike.",
   "utils.lpHint": "Price an LP token from the two tokens in its pair.",
   "utils.lpSection": "LP Token Price V2",
-  "utils.uniswapEth": "UniSwap V2 (ETH)",
-  "utils.pancakeBsc": "PancakeSwap V2 (BSC)",
   "utils.token0": "Token0",
   "utils.token1": "Token1",
   "utils.lpPrice": "LP Price:",
@@ -453,7 +452,7 @@ export const en = {
     "Turn a CID into reachable URLs across five public gateways.",
   "utils.gasDesc":
     "Work out what a transaction costs from gas used and gas price.",
-  "utils.priceSection": "Uniswap V2/V3/V4 Price",
+  "utils.priceSection": "Uniswap Pair Price",
   "utils.priceDesc":
     "Price a Uniswap V2 LP token from its pair, or decode a V3/V4 sqrtPriceX96.",
   "utils.contractDesc":
@@ -651,12 +650,9 @@ export const en = {
 
   "ens.title": "ENS Service",
   "ens.subtitle": "Resolve ENS names and addresses",
-  "ens.byAddress": "Get ENS by address",
   "ens.getEns": "Get ENS",
-  "ens.byEns": "Get address by ENS",
   "ens.nameLabel": "ENS name",
   "ens.getAddress": "Get address",
-  "ens.byTokenId": "Get name by token ID",
   "ens.tokenIdLabel": "ENS token ID",
   "ens.getNameByTokenId": "Get name by token ID",
   "ens.nameTooShort": "ENS name too short",

@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { headerNetworksAll, modal } from "@/app/Wallet";
+import {
+  displayNameForNetwork,
+  headerNetworkGroups,
+  headerNetworksAll,
+  modal
+} from "@/app/Wallet";
 import HeaderGasStatus from "@/app/HeaderGasStatus";
 import { useReownWalletSync } from "@/hooks/useReownWalletSync";
 import { useHeaderChainId } from "@/hooks/useHeaderChainId";
@@ -102,7 +107,7 @@ function WalletControls() {
         (n as { caipNetworkId?: string }).caipNetworkId === String(chainId) ||
         String((n as { id?: string | number }).id) === String(chainId)
     );
-    return found?.name ?? null;
+    return found ? displayNameForNetwork(found) : null;
   })();
 
   const handleNetworkSelect = (value: string) => {
@@ -162,31 +167,45 @@ function WalletControls() {
               role="listbox"
               aria-label="Network"
             >
-              {headerNetworksAll.map((network) => {
-                const value = String(
-                  (
-                    network as {
-                      caipNetworkId?: string;
-                      id?: string | number;
-                    }
-                  ).caipNetworkId ?? (network as { id?: string | number }).id
-                );
-                const active = String(chainId ?? "") === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    role="option"
-                    aria-selected={active}
-                    className={
-                      "app-header-network-option" + (active ? " is-active" : "")
-                    }
-                    onClick={() => handleNetworkSelect(value)}
-                  >
-                    {network.name}
-                  </button>
-                );
-              })}
+              {headerNetworkGroups.map((group) => (
+                <div
+                  key={group.key}
+                  className="app-header-network-group"
+                  role="group"
+                  aria-label={t(`common.${group.key}`)}
+                >
+                  <div className="app-header-network-group-label">
+                    {t(`common.${group.key}`)}
+                  </div>
+                  {group.networks.map((network) => {
+                    const value = String(
+                      (
+                        network as {
+                          caipNetworkId?: string;
+                          id?: string | number;
+                        }
+                      ).caipNetworkId ??
+                        (network as { id?: string | number }).id
+                    );
+                    const active = String(chainId ?? "") === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        role="option"
+                        aria-selected={active}
+                        className={
+                          "app-header-network-option" +
+                          (active ? " is-active" : "")
+                        }
+                        onClick={() => handleNetworkSelect(value)}
+                      >
+                        {displayNameForNetwork(network)}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           )}
         </div>
