@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.8](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.7...v3.0.8) (2026-10-11)
+
+
+### Features
+
+* **chains:** add Base Sepolia and BSC testnet, group the header network picker ([01b93b4](https://github.com/EthanOK/ethan-bric-web/commit/01b93b4d7cbae4f17d7b715ced931e8f2511fb63))
+* EIP7702 batch token picker ([5e44c57](https://github.com/EthanOK/ethan-bric-web/commit/5e44c57cf8bce9aefb18407de931a1750f14abed))
+* **price:** price LP tokens from the V2 pair, add Base ([4273f27](https://github.com/EthanOK/ethan-bric-web/commit/4273f27e3744cca8f5f28cc5215b5fde31322cc5))
+* **tools:** add TRON, multi-format BTC and local mnemonic generation ([f06bd28](https://github.com/EthanOK/ethan-bric-web/commit/f06bd2851a9ca9fe8406d831a314e50e4a5b7227))
+* **tools:** derive BTC/ETH/SOL addresses from BIP39 mnemonic ([eaa6b88](https://github.com/EthanOK/ethan-bric-web/commit/eaa6b889007797bae4c4205bd076ea21e1ce52d5))
+* **tron:** add dependency-free address helpers ([2b7e9d3](https://github.com/EthanOK/ethan-bric-web/commit/2b7e9d3b714031aaa65388b978ab38844efcece3))
+
+
+### Bug Fixes
+
+* **header:** keep the chain name and gas badge on narrow windows ([babd2fc](https://github.com/EthanOK/ethan-bric-web/commit/babd2fcbc5eacf835f03a19dd82e6dc76078eb71))
+* **tools:** clear stale addresses on edit, refine error hints, Escape closes QR ([8ade4d5](https://github.com/EthanOK/ethan-bric-web/commit/8ade4d5e620551c1f3998ed5f061c2c8c5dea8d6))
+
 ### [3.0.7](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.6...v3.0.7) (2026-08-16)
 
 
