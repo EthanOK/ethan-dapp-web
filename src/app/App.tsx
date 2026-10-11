@@ -21,20 +21,51 @@ import CommandPalette, { MOD_KEY } from "@/app/CommandPalette";
 import ThemeToggle from "@/app/ThemeToggle";
 import LanguageMenu from "@/app/LanguageMenu";
 
+/**
+ * The brand mark: a hexagon standing in for the "0" of the hex prefix, holding
+ * a slashed zero and an ×. Same artwork as `public/favicon.svg` and the PWA
+ * icons — the mark is one file's worth of geometry used at three sizes, so it
+ * has to stay legible down to 16px (hence the thick strokes and the single
+ * gradient, no fine detail).
+ *
+ * Unlike the nav icons this one is filled with its own gradient rather than
+ * inheriting `currentColor`: it is a badge, not a glyph.
+ */
 function LogoMarkIcon() {
   return (
-    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg width={24} height={24} viewBox="0 0 32 32" aria-hidden>
+      <defs>
+        <linearGradient id="logo-mark-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8b5cf6" />
+          <stop offset="100%" stopColor="#4c1bb0" />
+        </linearGradient>
+      </defs>
       <path
-        d="M12 2L4 7v10l8 5 8-5V7l-8-5z"
-        stroke="currentColor"
-        strokeWidth="1.75"
+        d="M16 2.5 L27.7 9 V23 L16 29.5 L4.3 23 V9 Z"
+        fill="url(#logo-mark-fill)"
+        stroke="url(#logo-mark-fill)"
+        strokeWidth="3"
         strokeLinejoin="round"
       />
+      <circle
+        cx="12"
+        cy="16"
+        r="5"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="2.5"
+      />
       <path
-        d="M12 12l8-5M12 12v10M12 12L4 7"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinejoin="round"
+        d="M9.45 18.55 L14.55 13.45"
+        stroke="#fff"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M17.5 11.5 L26 20.5 M26 11.5 L17.5 20.5"
+        stroke="#fff"
+        strokeWidth="2.5"
+        strokeLinecap="round"
       />
     </svg>
   );

@@ -153,12 +153,10 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--w3-radius-sm);
-  border: 1px solid var(--w3-border-accent);
-  background: var(--w3-accent-soft);
-  color: var(--w3-accent-text);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--w3-accent) 12%, transparent);
   flex-shrink: 0;
+  /* No plate behind the mark: the hexagon is filled with the brand gradient and
+     is its own container, so the old rounded accent box sat inside its
+     silhouette as a second, competing shape. */
 }
 
 .app-logo-mark svg {
