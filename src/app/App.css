@@ -183,6 +183,11 @@
   /* Shrinkable: the wallet cluster must be able to give up width (declared
      below via the responsive ladder) instead of overflowing the header. */
   flex-shrink: 1;
+  /* A query container, so the ladder can key off this column's own width:
+     the search box takes a share of the header, so the column and the viewport
+     are not the same thing (1440px viewport, ~535px column). */
+  container-type: inline-size;
+  container-name: header-right;
 }
 
 .app-header-wallet-controls {
@@ -2681,6 +2686,15 @@
     grid-template-columns: 1fr;
     gap: 6px;
   }
+
+  /* Stack the emphasised result — the rate needs the full width on a phone. */
+  .result-emphasis {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .result-emphasis-actions {
+    align-self: flex-end;
+  }
 }
 
 /* Emphasised result — the number is what a calculator page exists to show */
@@ -2698,12 +2712,29 @@
     var(--w3-bg-elevated);
 }
 
+/* Actions on the right of an emphasised result: flip (optional) + copy. */
+.result-emphasis-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* The value column. Allowed to shrink (`min-width: 0`) so a long rate wraps
+   inside it instead of shoving the buttons off the row. */
+.result-emphasis-body {
+  flex: 1;
+  min-width: 0;
+}
+
 .result-emphasis-value {
   font-family: var(--w3-font-mono);
   font-size: clamp(1.05rem, 2.4vw, 1.5rem);
   font-weight: 600;
   color: var(--w3-accent-text);
-  word-break: break-all;
+  /* `break-all` did not care where it cut — it split "USDC" into "USD" / "C"
+     the moment the row got tight. */
+  overflow-wrap: anywhere;
   line-height: 1.3;
 }
 
@@ -3864,6 +3895,11 @@ body.app-menu-open {
 .app-header-network-cluster {
   display: flex;
   align-items: center;
+  /* Squeezable — but only the selector inside absorbs it (gas keeps its size,
+     and the selector ellipsizes its name instead of overflowing). An earlier
+     version left the cluster compressible with nothing inside willing to give,
+     so the overflowing selector painted on top of the wallet pill and ate the
+     first characters of the address (measured: 212px of content in a 91px box). */
   min-width: 0;
 }
 
@@ -3873,11 +3909,22 @@ body.app-menu-open {
   border-right: none;
 }
 
+/* The selector is the right half of the capsule — but only while the gas badge
+   is there to be the left half. Standalone (the Suspense fallback renders it
+   without a cluster, and the ladder drops gas on narrow columns) it keeps all
+   four corners; the two rules that hide the badge restore them explicitly. */
+.app-header-network-cluster .app-header-network-select {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
 .app-header-network-select {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 36px;
+  /* Gives width back (and lets the name ellipsize) before anything is hidden. */
+  min-width: 0;
   max-width: 140px;
   /* Overrides the 12px gutter on the legacy selector rule, which pushed the
      connect button away from the cluster. */
@@ -3885,8 +3932,6 @@ body.app-menu-open {
   padding: 0 9px;
   border: 1px solid var(--w3-border);
   border-radius: var(--w3-radius-sm);
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
   background: var(--w3-bg-card);
   color: var(--w3-text-muted);
   font-family: var(--w3-font-sans);
@@ -3915,6 +3960,10 @@ body.app-menu-open {
 }
 
 .app-header-network-name {
+  /* min-width: 0 is what turns "squeezed" into "ellipsized": a flex item's
+     automatic minimum size is its min-content, so without it the name holds the
+     selector wider than its box and the spill lands on the wallet pill. */
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4079,56 +4128,86 @@ body.app-menu-open {
   font-family: var(--w3-font-mono);
 }
 
-/* ----- Responsive ladder for the header (tablet and up) -----
-   Priority as width runs out: wallet → network → gas → search text.
-   Each step hands width back to the wallet cluster so the connect button
-   stays visible instead of being clipped off the right edge.
+/* ----- Column-width ladder: the half of the squeeze the viewport never sees.
+   The column gets a 1fr share of the header grid, so at a 1512px window it is
+   only ~570px while the row wants ~582px — 12px over, and that overflow pushed
+   the address pill past the right edge of the screen.
+
+   The numbers are measured, not guessed. The row has to hold: settings buttons
+   83 + gaps 16 + network capsule (153, or 201 once the gas figure is back on)
+   + wallet (233 with a balance, 148 without, 110 for the connect button). So:
+     533px  gas figure + gas badge + balance + name
+     485px  gas badge + balance + name
+     400px  gas badge + name + address, or gas badge + name + connect button
+            (405px on the gates below, which leaves the measured 5px of slack)
+
+   Order: gas figure → balance → gas badge. The balance yields before the badge
+   because the badge says something the wallet pill does not, while the balance
+   is restated in the wallet modal. The chain name is not in this list at all:
+   the selector exists to name the network, so it ellipsizes (see
+   .app-header-network-name) rather than disappearing.
+
+   These thresholds assume the search box has already given up its width — see
+   the media queries below. Between the two ladders the gas badge stays on
+   screen down to a ~900px window, where before it vanished at ~1500px. */
+@container header-right (max-width: 545px) {
+  /* The tier letter still tells you the level; the figure is in the tooltip. */
+  .app-header-gas-value,
+  .app-header-gas-label {
+    display: none;
+  }
+}
+
+/* Same threshold as BALANCE_DROP_PX in WalletControls, which does this for the
+   balance inside <appkit-button>'s shadow DOM; this rule covers the plain pill
+   (Suspense fallback and the optimistic session). */
+@container header-right (max-width: 490px) {
+  .app-header-wallet-pill-balance {
+    display: none;
+  }
+}
+
+@container header-right (max-width: 405px) {
+  .app-header-gas-wrap {
+    display: none;
+  }
+  /* With the gas badge gone the selector is no longer the right half of a
+     capsule, so it takes its left corners back. */
+  .app-header-network-select {
+    border-top-left-radius: var(--w3-radius-sm);
+    border-bottom-left-radius: var(--w3-radius-sm);
+  }
+}
+
+/* ----- Search box yields first (tablet and up) -----
+   The search trigger is the only thing in the header's middle column
+   (`grid-template-columns: 1fr auto 1fr`), so every pixel it gives up is a
+   pixel each side column gains — and the right column is the one that has to
+   fit the wallet cluster. That makes it the first thing to shrink, ahead of
+   the gas badge and the balance: a search box you can still click beats a gas
+   badge you cannot see, and the palette is on ⌘K either way.
 
    Deliberately scoped to min-width 769px: below that the header switches to
-   its own mobile layout, which already has a dedicated gas panel and hides
-   the network label, so these rules must not fight it. */
+   its own mobile layout, which already collapses the trigger to its icon. */
 @media (min-width: 769px) and (max-width: 1240px) {
   /* Keep the number, drop the "Gas:" prefix and the " Gwei" suffix. */
   .app-header-gas-label,
   .app-header-gas-value-unit {
     display: none;
   }
-}
 
-@media (min-width: 769px) and (max-width: 1100px) {
   .app-search-trigger-kbd {
     display: none;
   }
 
   .app-search-trigger {
-    width: clamp(120px, 16vw, 220px);
+    width: clamp(110px, 14vw, 190px);
   }
 }
 
-@media (min-width: 769px) and (max-width: 980px) {
-  /* Gas goes first; the full figure is still available in its tooltip. */
-  .app-header-gas-wrap {
-    display: none;
-  }
-
-  .app-header-network-select {
-    max-width: 112px;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 880px) {
-  /* Network collapses to the status dot + chevron. */
-  .app-header-network-name {
-    display: none;
-  }
-
-  .app-header-network-select {
-    max-width: none;
-    padding: 0 8px;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 820px) {
+@media (min-width: 769px) and (max-width: 1080px) {
+  /* Down to its icon. The ~140px this hands back is what keeps the gas badge
+     on screen down to a ~900px window. */
   .app-search-trigger-label {
     display: none;
   }
@@ -4138,7 +4217,9 @@ body.app-menu-open {
     padding: 0;
     justify-content: center;
   }
+}
 
+@media (min-width: 769px) and (max-width: 820px) {
   .app-logo-text {
     display: none;
   }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   displayNameForNetwork,
   headerNetworkGroups,
@@ -14,10 +14,24 @@ import { useI18n } from "@/i18n";
 import { readCachedSession, shortAddress } from "@/lib/wallet/cachedSession";
 import { NavIcon } from "@/app/navIcons";
 
-// Widened from 768px: once the network selector and gas badge are in play the
-// 768–900px range is the tightest part of the header, so it also uses the
-// compact "Connect" label and hides the balance inside <appkit-button>.
-const MOBILE_HEADER_MQ = "(max-width: 900px)";
+/**
+ * Widths of the header's right column at which the wallet cluster gives things
+ * up. Measured on the column rather than the viewport: the column only gets a
+ * 1fr share of the header grid — the search box and the settings buttons take
+ * the rest — so a 1440px window leaves it about 535px, not 1440. Keying this to
+ * the viewport missed that entirely.
+ *
+ * The balance is the first of the two to go, the chain name never goes. The row
+ * can hold a gas badge plus a balance-bearing pill, or a gas badge plus the
+ * address, but not both: 495px is where the balance stops fitting next to the
+ * badge, and the badge wins because it says something the pill does not. The
+ * name is not part of this decision at all — it ellipsizes (App.css) instead of
+ * being hidden, so it is never traded away for either.
+ */
+const BALANCE_DROP_PX = 490;
+
+/** A disconnected row is ~130px cheaper, so the label only shortens this far. */
+const SHORT_CONNECT_LABEL_PX = 330;
 
 /** Keep AppKit modal/button theme in sync with the app theme (data-theme attr). */
 function useSyncAppKitTheme() {
@@ -40,22 +54,39 @@ function useSyncAppKitTheme() {
   }, []);
 }
 
-function useMobileHeaderLayout() {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia(MOBILE_HEADER_MQ).matches
-      : false
-  );
+/**
+ * Reports how much room the header's right column has, for the two decisions
+ * React has to make on its own: the balance lives inside <appkit-button>'s
+ * shadow DOM and the connect label is JSX text, so neither is reachable from a
+ * CSS container query.
+ */
+function useCompactWalletCluster() {
+  // Anchored on the cluster: that is where React can hand us an element. The
+  // measured box is the column above it.
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  // Infinite until measured. The layout effect below runs before paint, so the
+  // first frame already carries the real decision.
+  const [columnWidth, setColumnWidth] = useState(Number.POSITIVE_INFINITY);
 
-  useEffect(() => {
-    const mq = window.matchMedia(MOBILE_HEADER_MQ);
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
+  useLayoutEffect(() => {
+    const column = anchorRef.current?.closest(".app-header-right");
+    if (!column) return;
+
+    const measure = () => {
+      setColumnWidth(column.getBoundingClientRect().width);
+    };
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(column);
+    return () => observer.disconnect();
   }, []);
 
-  return isMobile;
+  return {
+    anchorRef,
+    dropBalance: columnWidth < BALANCE_DROP_PX,
+    shortConnectLabel: columnWidth < SHORT_CONNECT_LABEL_PX
+  };
 }
 
 /**
@@ -73,7 +104,8 @@ function useMobileHeaderLayout() {
  */
 function WalletControls() {
   const { t } = useI18n();
-  const isMobileHeader = useMobileHeaderLayout();
+  const { anchorRef, dropBalance, shortConnectLabel } =
+    useCompactWalletCluster();
   // Captured synchronously on first render so the header can show an
   // address+balance pill immediately while AppKit's session rehydration runs.
   const [optimistic, setOptimistic] = useState(() => readCachedSession());
@@ -123,12 +155,13 @@ function WalletControls() {
 
   const connectLabel = isConnecting
     ? t("common.connecting")
-    : isMobileHeader
+    : shortConnectLabel
       ? t("common.connect")
       : t("common.connectWallet");
 
   return (
     <div
+      ref={anchorRef}
       className={
         "app-header-wallet-controls" + (isConnected ? " is-connected" : "")
       }
@@ -213,7 +246,7 @@ function WalletControls() {
       <div className="w3-connect-wrap">
         {isConnected && address ? (
           <appkit-button
-            balance={isMobileHeader ? "hide" : "show"}
+            balance={dropBalance ? "hide" : "show"}
             label={t("common.connectWallet")}
             style={{ display: "block", marginLeft: "auto" }}
           />
@@ -231,7 +264,7 @@ function WalletControls() {
             <span className="app-header-wallet-pill-addr">
               {shortAddress(optimistic.address)}
             </span>
-            {!isMobileHeader && optimistic.balance && (
+            {!dropBalance && optimistic.balance && (
               <span className="app-header-wallet-pill-balance">
                 {Number(optimistic.balance.balance).toFixed(3)}{" "}
                 {optimistic.balance.symbol}
