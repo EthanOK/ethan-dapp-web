@@ -851,5 +851,9 @@ export const zhCN: Record<TranslationKey, string> = {
   "common.unlimitedAllowance": "无限 (MaxUint256)",
   "solana.signWelcome": "欢迎使用 {{origin}} !",
   "solana.signAccountPrefix": "\nAccount: ",
-  "solana.signLoginTimePrefix": "\nLoginTime: "
+  "solana.signLoginTimePrefix": "\nLoginTime: ",
+  "notFound.title": "页面不存在",
+  "notFound.desc": "该路径不存在，或页面已下线。",
+  "notFound.requestedPath": "请求路径",
+  "notFound.backHome": "返回首页"
 };

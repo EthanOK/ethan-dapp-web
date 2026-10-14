@@ -882,7 +882,12 @@ export const en = {
   "common.unlimitedAllowance": "Unlimited (MaxUint256)",
   "solana.signWelcome": "Welcome to {{origin}} !",
   "solana.signAccountPrefix": "\nAccount: ",
-  "solana.signLoginTimePrefix": "\nLoginTime: "
+  "solana.signLoginTimePrefix": "\nLoginTime: ",
+  "notFound.title": "Page not found",
+  "notFound.desc":
+    "This route does not exist, or the page has been taken offline.",
+  "notFound.requestedPath": "Requested path",
+  "notFound.backHome": "Back to home"
 } as const;
 
 export type TranslationKey = keyof typeof en;

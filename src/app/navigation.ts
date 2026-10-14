@@ -12,6 +12,9 @@ import type { TranslationKey } from "@/i18n/locales/en";
  * five are abandoned but still registered; the user does not want them
  * surfaced, so they get no sidebar slot and no search hit.
  *
+ * `/burn` and `/estimateTxFee` were hidden the same way on 2026-10-14: no
+ * sidebar slot, no ⌘K hit, route left registered so direct links still work.
+ *
  * Icons are referenced by key and resolved through `NAV_ICONS` in
  * `navIcons.tsx`, so this file stays plain data (no JSX, no React import —
  * keeps it out of the eager component graph).
@@ -75,12 +78,6 @@ export const NAV_GROUPS: NavGroup[] = [
           "cross chain",
           "lz"
         ]
-      },
-      {
-        id: "estimateTxFee",
-        titleKey: "nav.estimateTxFee",
-        to: "/estimateTxFee",
-        keywords: ["gas", "fee", "estimate", "txfee", "cost"]
       }
     ]
   },
@@ -93,12 +90,6 @@ export const NAV_GROUPS: NavGroup[] = [
         titleKey: "nav.erc20Allowance",
         to: "/erc20Allowance",
         keywords: ["allowance", "approve", "erc20", "token", "spender"]
-      },
-      {
-        id: "burn",
-        titleKey: "nav.burn",
-        to: "/burn",
-        keywords: ["burn", "destroy", "supply", "token"]
       },
       {
         id: "faucet",
