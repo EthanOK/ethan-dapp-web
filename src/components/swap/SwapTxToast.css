@@ -3,7 +3,11 @@
 .swap-tx-toast {
   --swap-tx-success: var(--w3-success);
   --swap-tx-success-dim: var(--w3-success);
-  --swap-tx-success-glow: color-mix(in srgb, var(--w3-success) 16%, transparent);
+  --swap-tx-success-glow: color-mix(
+    in srgb,
+    var(--w3-success) 16%,
+    transparent
+  );
 
   position: relative;
   display: flex;
@@ -265,7 +269,11 @@
 [data-theme="light"] .swap-tx-toast {
   --swap-tx-success: var(--w3-success);
   --swap-tx-success-dim: var(--w3-success);
-  --swap-tx-success-glow: color-mix(in srgb, var(--w3-success) 10%, transparent);
+  --swap-tx-success-glow: color-mix(
+    in srgb,
+    var(--w3-success) 10%,
+    transparent
+  );
   box-shadow:
     0 1px 0 color-mix(in srgb, var(--w3-text) 4%, transparent) inset,
     0 10px 30px color-mix(in srgb, var(--w3-bg-deep) 8%, transparent),

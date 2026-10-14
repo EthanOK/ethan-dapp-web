@@ -299,7 +299,9 @@
   .market-list-sort-arrow.is-on {
   opacity: 1;
   color: var(--w3-secondary);
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--w3-warning) 35%, transparent));
+  filter: drop-shadow(
+    0 0 4px color-mix(in srgb, var(--w3-warning) 35%, transparent)
+  );
 }
 
 .market-list-sort-icon {
