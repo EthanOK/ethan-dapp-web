@@ -289,6 +289,9 @@ export const zhTW: Record<TranslationKey, string> = {
   "eip7702.readinessInvalidHex":
     "金額必須是合法的 wei 數字（不含 0x 的十六進位）",
   "eip7702.readinessAmount": "金額",
+  "eip7702.readinessMax": "最大",
+  "eip7702.readinessMaxTitle": "填入全部餘額",
+  "eip7702.readinessMaxFailed": "餘額讀取失敗",
   "eip7702.readinessToken": "代幣",
   "eip7702.readinessTokenNative": "{symbol}",
   "eip7702.readinessTokenUsdc": "USDC",
@@ -305,6 +308,10 @@ export const zhTW: Record<TranslationKey, string> = {
   "eip7702.readinessTokenCancel": "取消",
   "eip7702.readinessChain": "網路",
   "eip7702.readinessPickerSearch": "搜尋名稱或貼上地址",
+  "eip7702.readinessPickerFromRow": "從第 {{row}} 行開始填入",
+  "eip7702.readinessPickerHint": "點方框可多選，點右側直接填入",
+  "eip7702.readinessPickerSelected": "已選 {{count}} 個",
+  "eip7702.readinessPickerApply": "填入 {{count}} 行",
   "eip7702.readinessNativeDesc": "原生",
   "eip7702.readinessTokenAddress": "代幣合約",
   "eip7702.readinessTokenSymbol": "符號",
@@ -851,5 +858,9 @@ export const zhTW: Record<TranslationKey, string> = {
   "common.unlimitedAllowance": "無限 (MaxUint256)",
   "solana.signWelcome": "歡迎使用 {{origin}} !",
   "solana.signAccountPrefix": "\nAccount: ",
-  "solana.signLoginTimePrefix": "\nLoginTime: "
+  "solana.signLoginTimePrefix": "\nLoginTime: ",
+  "notFound.title": "頁面不存在",
+  "notFound.desc": "該路徑不存在，或頁面已下線。",
+  "notFound.requestedPath": "請求路徑",
+  "notFound.backHome": "返回首頁"
 };

@@ -85,7 +85,6 @@ const BuyNFTPage = lazy(() => import("@/pages/BuyNFTPage"));
 const GetIPFSPage = lazy(() => import("@/pages/GetIPFSPage"));
 const FaucetTokenPage = lazy(() => import("@/pages/FaucetTokenPage"));
 const SwapPage = lazy(() => import("@/pages/SwapPage"));
-const BurnTokenPage = lazy(() => import("@/pages/BurnTokenPage"));
 const CreateTransactionPage = lazy(
   () => import("@/pages/CreateTransactionPage")
 );
@@ -101,9 +100,9 @@ const ContractAddressTool = lazy(
   () => import("@/pages/utils/ContractAddressTool")
 );
 const MnemonicPage = lazy(() => import("@/pages/MnemonicPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const ERC6551Page = lazy(() => import("@/pages/ERC6551Page"));
 const EIP7702Page = lazy(() => import("@/pages/EIP7702Page"));
-const EstimateTxFeePage = lazy(() => import("@/pages/EstimateTxFeePage"));
 const Web3AuthPage = lazy(() => import("@/pages/Web3AuthPage"));
 const Web3AuthSolanaPage = lazy(() => import("@/pages/Web3AuthSolanaPage"));
 const WsolPage = lazy(() => import("@/pages/WsolPage"));
@@ -424,7 +423,6 @@ function App() {
                 <Route path="/getIPFS" element={<GetIPFSPage />} />
                 <Route path="/faucet" element={<FaucetTokenPage />} />
                 <Route path="/bricswap" element={<SwapPage />} />
-                <Route path="/burn" element={<BurnTokenPage />} />
                 <Route
                   path="/createTransaction"
                   element={<CreateTransactionPage />}
@@ -447,7 +445,6 @@ function App() {
                 />
                 <Route path="/erc6551" element={<ERC6551Page />} />
                 <Route path="/eip7702" element={<EIP7702Page />} />
-                <Route path="/estimateTxFee" element={<EstimateTxFeePage />} />
                 <Route path="/web3Auth" element={<Web3AuthPage />} />
                 {/* Solana */}
                 <Route path="/solanaUtils" element={<SolanaUtilsPage />} />
@@ -458,6 +455,9 @@ function App() {
                 />
                 {/* Tools */}
                 <Route path="/mnemonic" element={<MnemonicPage />} />
+                {/* Catch-all: unmatched paths (retired routes, typos, stale
+                    bookmarks) get an explicit 404 instead of a blank pane. */}
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
           </main>

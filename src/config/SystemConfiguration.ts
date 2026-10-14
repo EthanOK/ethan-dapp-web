@@ -39,8 +39,6 @@ const UniswapFactoryBase = "0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6";
 const DefaultChainId = "11155111";
 
 const EXPIRES_TIME = "7d";
-const SECRETKEY = "y0Gv3jsn8CnT!^4t$U2c9A@kR6*%PqLpQAWER";
-const LOGIN_SOLANA_MESSAGE = "Welcome to ethan-yungou.vercel.app!";
 
 const SOLANA_DEV_RPC = "https://rpc.ankr.com/solana_devnet";
 
@@ -64,9 +62,7 @@ export {
   DefaultChainId,
   crossChain_tbsc,
   EXPIRES_TIME,
-  SECRETKEY,
   ZERO_ADDRESS,
-  LOGIN_SOLANA_MESSAGE,
   SOLANA_DEV_RPC,
   ALCHEMY_KEY
 };

@@ -1,0 +1,199 @@
+/* NotFoundPage — catch-all for unmatched routes.
+ * Visual language mirrors the home hero: gradient numerals (Chakra Petch),
+ * glass panel with corner brackets, accent glow. All colours come from the
+ * `--w3-*` tokens so both themes are covered. */
+.not-found-page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72vh;
+  padding: 56px 24px;
+  overflow: hidden;
+}
+
+/* Ambient accent glow behind the panel */
+.not-found-page::before {
+  content: "";
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--w3-accent-glow) 0%,
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.not-found-panel {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  padding: 52px 40px 46px;
+  text-align: center;
+  background: var(--w3-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--w3-border);
+  border-radius: var(--w3-radius-xl);
+  box-shadow: var(--w3-shadow-panel);
+  overflow: hidden;
+}
+
+/* Corner brackets, same motif as .home-hero */
+.not-found-panel::before,
+.not-found-panel::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--w3-border-accent);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.not-found-panel::before {
+  top: 16px;
+  left: 16px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.not-found-panel::after {
+  bottom: 16px;
+  right: 16px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Brand hexagon ghosted behind the numerals */
+.not-found-ghost {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 300px;
+  height: 300px;
+  color: var(--w3-accent);
+  opacity: 0.07;
+  pointer-events: none;
+}
+
+.not-found-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 2px;
+  font-family: var(--w3-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--w3-accent-text);
+}
+
+.not-found-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--w3-danger);
+  box-shadow: 0 0 8px var(--w3-danger);
+}
+
+.not-found-code {
+  margin: 0 0 10px;
+  font-family: var(--w3-font-display);
+  font-size: clamp(72px, 12vw, 104px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  background: var(--w3-gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 24px var(--w3-accent-glow));
+}
+
+.not-found-title {
+  margin: 0 0 8px;
+  font-family: var(--w3-font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--w3-text);
+}
+
+.not-found-desc {
+  margin: 0 0 28px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--w3-text-dim);
+}
+
+/* Requested path as a mono pill chip */
+.not-found-path {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  margin: 0 0 32px;
+  padding: 8px 16px;
+  border: 1px solid var(--w3-border);
+  border-radius: 999px;
+  background: var(--w3-bg-elevated);
+}
+
+.not-found-path-label {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--w3-text-dim);
+}
+
+.not-found-path code {
+  font-family: var(--w3-font-mono);
+  font-size: 12.5px;
+  color: var(--w3-accent-text);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.not-found-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 26px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--w3-on-accent);
+  background: var(--w3-gradient-accent);
+  border-radius: var(--w3-radius);
+  text-decoration: none;
+  box-shadow:
+    0 0 0 1px var(--w3-border-accent),
+    0 8px 24px var(--w3-accent-glow);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.not-found-home:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px var(--w3-border-focus),
+    0 10px 32px var(--w3-accent-glow);
+}
+
+.not-found-home-arrow {
+  transition: transform 0.15s ease;
+}
+
+.not-found-home:hover .not-found-home-arrow {
+  transform: translateX(2px);
+}
