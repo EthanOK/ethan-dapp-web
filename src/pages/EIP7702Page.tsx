@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import {
   getEip1193Provider,
@@ -9,8 +9,10 @@ import {
   decodeMulticallResult,
   multicall3Aggregate3StaticCall
 } from "@/lib/evm/Multicall3";
-import { fetchTokenBalancesMulticall } from "@/lib/swap/swapTokenMulticall";
-import { tokenBalanceKey, type TokenSide } from "@/lib/swap/swapTokenRules";
+import { discoverHeldErc20TokenAddresses } from "@/lib/evm/AlchemyTokenDiscovery";
+import { readPickerTokens } from "@/lib/evm/ReadPickerTokens";
+import { writeSwapTokenBalanceCache } from "@/lib/swap/swapTokenBalanceCache";
+import { tokenBalanceKey } from "@/lib/swap/swapTokenRules";
 import { useOpenAppKitModal } from "@/hooks/useOpenAppKitModal";
 import { hasValidSessionToken } from "@/lib/wallet/sessionToken";
 import {
@@ -43,6 +45,18 @@ const CHAINLIST_INFO_API = "https://chainlist.org/rpcs.json";
 /** Which kind of asset a batch row is transferring. */
 type TokenKind = "native" | "usdc" | "custom";
 
+/** Fractional digits a balance is rounded to before it gets the 0.0ₓ1 form. */
+const PICKER_FRACTION_DIGITS = 4;
+
+const SUBSCRIPT_DIGITS = "₀₁₂₃₄₅₆₇₈₉";
+
+/** 16 → "₁₆". Plain text, so it can travel inside a formatted string. */
+const toSubscript = (n: number): string =>
+  String(n)
+    .split("")
+    .map((d) => SUBSCRIPT_DIGITS[Number(d)] ?? d)
+    .join("");
+
 interface BatchTx {
   tokenKind: TokenKind;
   /** ERC-20 contract address (only when tokenKind !== "native"). */
@@ -61,6 +75,20 @@ interface BatchTx {
 }
 
 /**
+ * One tickable entry in the picker. `key` is what identifies it in there — the
+ * native slot, the USDC slot, or a lower-cased contract address — and it is
+ * also what a row is matched against to show its tick.
+ */
+interface PickerTokenOption {
+  key: string;
+  kind: TokenKind;
+  /** ERC-20 contract; absent for the native / USDC slots. */
+  address?: string;
+  symbol: string;
+  decimals: number;
+}
+
+/**
  * Canonical USDC contract addresses for chains the project actually tests on.
  * Chains not listed here disable the `usdc` option in the picker and force the
  * user to `custom` (no unverified address guesses baked into the codebase).
@@ -76,11 +104,21 @@ const USDC_DECIMALS = 6;
 /** ethers Interface instance bound to the project's erc20ABI, for calldata encoding. */
 const ERC20_IFACE = new Interface(erc20Abi);
 
+/** A discovered contract, once the batched read has named it. */
+type DiscoveredToken = { address: string; symbol: string; decimals: number };
+
 /**
  * Parse a human-readable amount like "1.5" or "100" into a bigint scaled to
  * `decimals`. Returns `null` when the input is empty, non-numeric or has more
  * fractional digits than the token supports.
  */
+/**
+ * Where one token's balance lives in the picker's answer map: the same slot the
+ * list renders from, so a MAX fill and the picker share one answer.
+ */
+const pickerBalanceSlot = (chainId: number, owner: string, token: string) =>
+  `${chainId}:${tokenBalanceKey(token)}:${owner.toLowerCase()}`;
+
 const parseAmountToWei = (raw: string, decimals: number): bigint | null => {
   const s = raw.trim();
   if (!s) return null;
@@ -296,21 +334,15 @@ const EIP7702Page = () => {
     SupportChains.find(
       (c) => Number(c.id) === Number.parseInt(readiness.chainIdHex, 16)
     )?.nativeCurrency.symbol ?? "ETH";
+  // One row to start with, addressed to the account that is connected — the
+  // usual first thing to do with a batch is send to yourself.
   const [batchTxs, setBatchTxs] = useState<BatchTx[]>([
     {
       tokenKind: "native",
       tokenAddress: "",
       tokenSymbol: "ETH",
       tokenDecimals: 18,
-      to: "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2",
-      value: "0.01"
-    },
-    {
-      tokenKind: "native",
-      tokenAddress: "",
-      tokenSymbol: "ETH",
-      tokenDecimals: 18,
-      to: "0x6278A1E803A76796a3A1f7F6344fE874ebfe94B2",
+      to: address ?? "",
       value: "0.01"
     }
   ]);
@@ -1088,7 +1120,9 @@ const EIP7702Page = () => {
         tokenAddress: "",
         tokenSymbol: nativeTokenSymbol,
         tokenDecimals: 18,
-        to: "",
+        // Same recipient as the first row: a batch usually goes to one place.
+        // An empty first row carries over as empty.
+        to: prev[0]?.to ?? "",
         value: "0.01"
       }
     ]);
@@ -1098,6 +1132,77 @@ const EIP7702Page = () => {
     setBatchTxs((prev) =>
       prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)
     );
+  };
+
+  // Row whose MAX is being read. One row means one token, so one call.
+  const [maxRowLoading, setMaxRowLoading] = useState<number | null>(null);
+
+  /**
+   * Fill a row with the whole balance the account holds of that row's token.
+   * Reuses the answer the picker already has when there is one — usually there
+   * is, because picking that very token read it — and otherwise asks for that
+   * single balance and nothing else.
+   */
+  const fillRowMax = async (index: number) => {
+    const item = batchTxs[index];
+    if (!item || !address) return;
+    const chainId = Number.parseInt(readiness.chainIdHex, 16);
+    if (!Number.isInteger(chainId)) return;
+
+    let token = ZeroAddress;
+    let decimals = 18;
+    if (item.tokenKind === "usdc") {
+      const usdc = USDC_ADDRESSES[chainId];
+      if (!usdc) {
+        toast.error(t("eip7702.readinessUsdcUnsupported"));
+        return;
+      }
+      token = usdc;
+      decimals = USDC_DECIMALS;
+    } else if (item.tokenKind === "custom") {
+      token = item.tokenAddress.trim();
+      if (!isAddress(token)) {
+        toast.error(t("eip7702.readinessInvalidToken"));
+        return;
+      }
+      decimals = Number(item.tokenDecimals);
+      if (!Number.isInteger(decimals) || decimals < 0 || decimals > 36) {
+        toast.error(t("eip7702.readinessInvalidAmount"));
+        return;
+      }
+    }
+
+    const slot = pickerBalanceSlot(chainId, address, token);
+    const fill = (raw: bigint | null) => {
+      if (raw === null) {
+        toast.error(t("eip7702.readinessMaxFailed"));
+        return;
+      }
+      handleBatchInputChange(index, "value", formatUnits(raw, decimals));
+    };
+
+    const cached = pickerBalances[slot];
+    if (cached !== undefined) {
+      fill(cached);
+      return;
+    }
+
+    setMaxRowLoading(index);
+    try {
+      const { balances } = await readPickerTokens({
+        owner: address,
+        chainId,
+        balanceAddresses: [token],
+        metaAddresses: []
+      });
+      const raw = balances[tokenBalanceKey(token)] ?? null;
+      setPickerBalances((prev) => ({ ...prev, [slot]: raw }));
+      fill(raw);
+    } catch {
+      toast.error(t("eip7702.readinessMaxFailed"));
+    } finally {
+      setMaxRowLoading(null);
+    }
   };
 
   // ---- Saved custom token list (per chain, persisted in localStorage) ----
@@ -1139,6 +1244,16 @@ const EIP7702Page = () => {
     symbol?: string;
     decimals?: number;
   } | null>(null);
+
+  // The connected account is the default recipient. Rows whose address is still
+  // empty pick it up when the wallet connects or the account changes; this only
+  // ever writes into an empty field, so nothing the user typed is overwritten.
+  useEffect(() => {
+    if (!address) return;
+    setBatchTxs((prev) =>
+      prev.map((item) => (item.to.trim() ? item : { ...item, to: address }))
+    );
+  }, [address]);
 
   // Switching chain resets every row back to the new chain's native token.
   const prevChainIdHexRef = useRef(readiness.chainIdHex);
@@ -1216,96 +1331,199 @@ const EIP7702Page = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickerOpen, pickerSearch, readiness.chainIdHex]);
 
-  // ---- Picker balances (native + ERC20 via Multicall3) ----
-  const [pickerBalances, setPickerBalances] = useState<
-    Record<string, bigint | null>
-  >({});
+  // ---- Held-token discovery: Alchemy lists the contract addresses, the single
+  // batched read below is what names and prices them ----
+  // `null` = cannot ask (no key / unsupported chain) and the picker keeps its
+  // built-in list; `[]` = asked and the account holds nothing.
+  const [discoveredAddresses, setDiscoveredAddresses] = useState<
+    string[] | null
+  >(null);
+  const [discoveredTokens, setDiscoveredTokens] = useState<
+    DiscoveredToken[] | null
+  >(null);
+  // The account+chain the answer above belongs to. Reopening the picker for the
+  // same one — the next row, or a row that was already set — asks nothing: the
+  // contracts found a moment ago are the contracts to show.
+  const [discoveryAskedFor, setDiscoveryAskedFor] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (!pickerOpen || !address) return;
     const chainId = Number.parseInt(readiness.chainIdHex, 16);
     if (!Number.isInteger(chainId)) return;
-    const owner = address;
 
-    // Build TokenSide list: native(ZeroAddress) + USDC + saved + lookup.
-    const sides: TokenSide[] = [
-      {
-        kind: "custom",
-        key: ZeroAddress.toLowerCase(),
-        tokenAddress: ZeroAddress,
-        symbol: nativeTokenSymbol,
-        decimals: 18,
-        name: nativeTokenSymbol
-      }
-    ];
-    const usdcAddr = USDC_ADDRESSES[chainId];
-    if (usdcAddr) {
-      sides.push({
-        kind: "custom",
-        key: usdcAddr.toLowerCase(),
-        tokenAddress: usdcAddr,
-        symbol: "USDC",
-        decimals: USDC_DECIMALS,
-        name: "USD Coin"
-      });
-    }
-    for (const tk of customTokens[chainId] ?? []) {
-      sides.push({
-        kind: "custom",
-        key: tk.address.toLowerCase(),
-        tokenAddress: tk.address,
-        symbol: tk.symbol,
-        decimals: Number(tk.decimals),
-        name: tk.symbol
-      });
-    }
-    if (pickerLookup?.status === "ok" && isAddress(pickerSearch.trim())) {
-      const a = pickerSearch.trim();
-      if (
-        !sides.some((s) => s.tokenAddress.toLowerCase() === a.toLowerCase())
-      ) {
-        sides.push({
-          kind: "custom",
-          key: a.toLowerCase(),
-          tokenAddress: a,
-          symbol: pickerLookup.symbol ?? "CUSTOM",
-          decimals: Number(pickerLookup.decimals ?? 18),
-          name: pickerLookup.symbol ?? "CUSTOM"
-        });
-      }
-    }
+    const key = `${chainId}:${address.toLowerCase()}`;
+    if (discoveryAskedFor === key) return;
 
     let cancelled = false;
-    fetchTokenBalancesMulticall(owner, sides, chainId)
-      .then((balances) => {
+    setDiscoveredAddresses(null);
+    setDiscoveredTokens(null);
+    discoverHeldErc20TokenAddresses(address, chainId)
+      .then((addresses) => {
         if (cancelled) return;
-        setPickerBalances((prev) => {
-          const next = { ...prev };
-          sides.forEach((side) => {
-            const key = tokenBalanceKey(side.tokenAddress);
-            next[`${chainId}:${key}:${owner.toLowerCase()}`] =
-              balances[key] ?? null;
-          });
-          return next;
-        });
+        setDiscoveredAddresses(addresses);
+        setDiscoveryAskedFor(key);
       })
       .catch(() => {
-        /* ignore */
+        if (cancelled) return;
+        setDiscoveredAddresses(null);
+        setDiscoveryAskedFor(key);
       });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickerOpen, address, readiness.chainIdHex, discoveryAskedFor]);
+
+  // ---- Picker balances (native + ERC20 via Multicall3) ----
+  const [pickerBalances, setPickerBalances] = useState<
+    Record<string, bigint | null>
+  >({});
+
+  // Only an actual address in the box takes part in the read; plain filter text
+  // must not fire another call on every keystroke.
+  const pickerSearchAddress = isAddress(pickerSearch.trim())
+    ? pickerSearch.trim()
+    : null;
+
+  // Everything the single batched read needs. Built during render so the list
+  // can tell "already answered" from "still waiting" without a second copy of
+  // this logic, and memoised so its identity is the identity of the request.
+  const pickerReadPlan = useMemo(() => {
+    if (!pickerOpen || !address) return null;
+    const chainId = Number.parseInt(readiness.chainIdHex, 16);
+    if (!Number.isInteger(chainId)) return null;
+    // Discovery feeds this call its contracts, so there is no plan to run until
+    // it has answered for this very account+chain — which also keeps a stale
+    // answer from the previous account from being read against the new one.
+    if (discoveryAskedFor !== `${chainId}:${address.toLowerCase()}`)
+      return null;
+
+    // native (ZeroAddress) + USDC + saved + pasted + discovered. Addresses are
+    // all the call needs: the symbol and decimals of the first four are known
+    // already, and the discovered ones come back from this same call.
+    const addresses = [
+      ZeroAddress,
+      ...(USDC_ADDRESSES[chainId] ? [USDC_ADDRESSES[chainId]] : []),
+      ...(customTokens[chainId] ?? []).map((tk) => tk.address),
+      ...(pickerLookup?.status === "ok" && pickerSearchAddress
+        ? [pickerSearchAddress]
+        : []),
+      ...(discoveredAddresses ?? [])
+    ];
+    return {
+      owner: address,
+      chainId,
+      addresses,
+      discovered: discoveredAddresses ?? []
+    };
   }, [
     pickerOpen,
     address,
     readiness.chainIdHex,
+    discoveryAskedFor,
+    discoveredAddresses,
     customTokens,
     pickerLookup?.status,
-    pickerSearch
+    pickerSearchAddress
   ]);
 
-  /** Short human-readable balance: 4 fractional digits max. */
+  // Nothing is rendered until every contract in the plan has an answer, so the
+  // list arrives in one piece instead of the built-in rows painting first and
+  // the discovered ones catching up. What is absent is the re-asking: a slot
+  // that already holds an answer — including "asked, nothing readable" — never
+  // goes back on the wire, which is what makes opening the picker for the next
+  // row cost nothing at all.
+  const pickerRowsReady = useMemo(() => {
+    if (!pickerReadPlan) return false;
+    const { owner, chainId, addresses } = pickerReadPlan;
+    return addresses.every(
+      (a) => pickerBalances[pickerBalanceSlot(chainId, owner, a)] !== undefined
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickerReadPlan, pickerBalances]);
+
+  useEffect(() => {
+    if (!pickerReadPlan) return;
+    const { owner, chainId, addresses, discovered } = pickerReadPlan;
+    const missing = addresses.filter(
+      (a) => pickerBalances[pickerBalanceSlot(chainId, owner, a)] === undefined
+    );
+    // Everything was answered earlier — the list is already whole.
+    if (missing.length === 0) return;
+
+    const missingKeys = new Set(missing.map((a) => a.toLowerCase()));
+    const metaAddresses = discovered.filter((a) =>
+      missingKeys.has(a.toLowerCase())
+    );
+
+    let cancelled = false;
+    const store = (balances: Record<string, bigint>) => {
+      setPickerBalances((prev) => {
+        const next = { ...prev };
+        for (const address of missing) {
+          next[pickerBalanceSlot(chainId, owner, address)] =
+            balances[tokenBalanceKey(address)] ?? null;
+        }
+        return next;
+      });
+    };
+
+    readPickerTokens({
+      owner,
+      chainId,
+      balanceAddresses: missing,
+      metaAddresses
+    })
+      .then(({ balances, metas }) => {
+        if (cancelled) return;
+        store(balances);
+        // The cache the batched balance read used to fill them with.
+        writeSwapTokenBalanceCache(chainId, owner, balances);
+
+        const tokens: DiscoveredToken[] = [];
+        for (const address of metaAddresses) {
+          const meta = metas[address.toLowerCase()];
+          if (!meta) continue;
+          tokens.push({
+            address,
+            symbol: meta.symbol,
+            decimals: meta.decimals
+          });
+        }
+        if (tokens.length > 0) {
+          // Only the contracts of this round carry symbols, so merge rather
+          // than replace: rows named by an earlier round have to survive.
+          setDiscoveredTokens((prev) => {
+            const fresh = new Set(tokens.map((tk) => tk.address.toLowerCase()));
+            return [
+              ...tokens,
+              ...(prev ?? []).filter(
+                (tk) => !fresh.has(tk.address.toLowerCase())
+              )
+            ];
+          });
+        }
+      })
+      .catch(() => {
+        // Asked and nothing readable: recorded all the same, so the rows still
+        // show (with "—") and reopening does not repeat the call that failed.
+        if (cancelled) return;
+        store({});
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickerReadPlan, pickerBalances]);
+
+  /**
+   * Short human-readable balance: 4 fractional digits max. Anything smaller
+   * keeps its zeros as a subscript count — 0.000000001851359579 reads as
+   * 0.0₈185, which is a balance, where four rounded digits would have read as
+   * a flat 0 and looked like an empty wallet.
+   */
   const formatPickerBalance = (
     raw: bigint | null | undefined,
     decimals: number
@@ -1313,65 +1531,91 @@ const EIP7702Page = () => {
     if (raw == null) return "—";
     const s = formatUnits(raw, decimals);
     const [intPart, fracPart = ""] = s.split(".");
-    const frac4 = fracPart.padEnd(4, "0").slice(0, 4).replace(/0+$/, "");
+    const significant = fracPart.replace(/^0+/, "");
+    const zeros = fracPart.length - significant.length;
+    if (raw !== 0n && zeros >= PICKER_FRACTION_DIGITS) {
+      return `0.0${toSubscript(zeros)}${significant.slice(0, 3)}`;
+    }
+    const frac4 = fracPart
+      .padEnd(PICKER_FRACTION_DIGITS, "0")
+      .slice(0, PICKER_FRACTION_DIGITS)
+      .replace(/0+$/, "");
     return frac4 ? `${intPart}.${frac4}` : intPart;
   };
 
-  /** Fill the target row with a picked token and close the picker. */
-  const pickToken = (opt: {
-    kind: "native" | "usdc" | "custom";
-    address?: string;
-    symbol?: string;
-    decimals?: number;
-  }) => {
-    if (pickerRowIndex == null) return;
-    // Picking a resolved custom address auto-collects it (silent) if new.
-    if (opt.kind === "custom" && opt.address) {
-      const chainId = Number.parseInt(readiness.chainIdHex, 16);
-      if (Number.isInteger(chainId)) {
-        const exists = (customTokens[chainId] ?? []).some(
-          (tk) => tk.address.toLowerCase() === (opt.address ?? "").toLowerCase()
-        );
-        if (!exists) {
-          toggleSaveCustomToken(
-            opt.address,
-            opt.symbol ?? "CUSTOM",
-            Number(opt.decimals ?? 18),
-            true
-          );
-        }
-      }
-    }
-    setBatchTxs((prev) =>
-      prev.map((item, i) => {
-        if (i !== pickerRowIndex) return item;
-        if (opt.kind === "native") {
-          return {
-            ...item,
-            tokenKind: "native",
-            tokenAddress: "",
-            tokenSymbol: nativeTokenSymbol,
-            tokenDecimals: 18
-          };
-        }
-        if (opt.kind === "usdc") {
-          return {
-            ...item,
-            tokenKind: "usdc",
-            tokenAddress: "",
-            tokenSymbol: "USDC",
-            tokenDecimals: USDC_DECIMALS
-          };
-        }
-        return {
-          ...item,
-          tokenKind: "custom",
-          tokenAddress: opt.address ?? "",
-          tokenSymbol: opt.symbol ?? "CUSTOM",
-          tokenDecimals: Number(opt.decimals ?? 18)
-        };
-      })
+  // Ticked tokens, in the order they were ticked. A list rather than a Set
+  // because that order is the order the rows get filled in.
+  const [pickerSelected, setPickerSelected] = useState<PickerTokenOption[]>([]);
+
+  /**
+   * Tick / untick a token. It is a set, so the same token cannot be picked
+   * twice; it says nothing about rows, where the same token may well appear
+   * more than once (one asset, several recipients).
+   */
+  const togglePickerToken = (opt: PickerTokenOption) => {
+    setPickerSelected((prev) =>
+      prev.some((o) => o.key === opt.key)
+        ? prev.filter((o) => o.key !== opt.key)
+        : [...prev, opt]
     );
+  };
+
+  /** The row fields a ticked token stands for. */
+  const pickerTokenFields = (
+    opt: PickerTokenOption
+  ): Omit<BatchTx, "to" | "value"> => {
+    if (opt.kind === "native") {
+      return {
+        tokenKind: "native",
+        tokenAddress: "",
+        tokenSymbol: nativeTokenSymbol,
+        tokenDecimals: 18
+      };
+    }
+    if (opt.kind === "usdc") {
+      return {
+        tokenKind: "usdc",
+        tokenAddress: "",
+        tokenSymbol: "USDC",
+        tokenDecimals: USDC_DECIMALS
+      };
+    }
+    return {
+      tokenKind: "custom",
+      tokenAddress: opt.address ?? "",
+      tokenSymbol: opt.symbol || "CUSTOM",
+      tokenDecimals: Number(opt.decimals ?? 18)
+    };
+  };
+
+  /**
+   * Write tokens into the rows and close. They land on the row that opened the
+   * picker and the ones after it, in the order given; rows past the end are
+   * added the way "+ Add row" adds them. Nothing above the opened row is
+   * touched, so a multi-select never silently rewrites a row that was not part
+   * of it.
+   *
+   * Called with the ticks from the footer, or with the single token of a row
+   * that was clicked directly — which is the common case and needs no ticking.
+   */
+  const applyPickerSelection = (
+    picks: PickerTokenOption[] = pickerSelected
+  ) => {
+    const start = pickerRowIndex;
+    if (start == null || picks.length === 0) return;
+    const fieldsList = picks.map(pickerTokenFields);
+    setBatchTxs((prev) => {
+      const next = [...prev];
+      fieldsList.forEach((fields, offset) => {
+        const index = start + offset;
+        const current = next[index];
+        next[index] = current
+          ? { ...current, ...fields }
+          : { ...fields, to: next[0]?.to ?? "", value: "0.01" };
+      });
+      return next;
+    });
+    setPickerSelected([]);
     setPickerOpen(false);
   };
 
@@ -1384,25 +1628,25 @@ const EIP7702Page = () => {
   ) => {
     const chainId = Number.parseInt(readiness.chainIdHex, 16);
     if (!Number.isInteger(chainId)) return;
-    let willAdd = false;
-    setCustomTokens((prev) => {
-      const list = prev[chainId] ?? [];
-      const exists = list.some(
-        (tk) => tk.address.toLowerCase() === address.toLowerCase()
-      );
-      willAdd = !exists;
-      const next = exists
-        ? list.filter(
-            (tk) => tk.address.toLowerCase() !== address.toLowerCase()
-          )
-        : [...list, { address, symbol, decimals: Number(decimals) }];
-      return { ...prev, [chainId]: next };
-    });
+
+    // Decided here rather than inside the updater: React only runs an updater
+    // synchronously when nothing else is queued, so a flag set in there was
+    // still false by the time the toast picked it up — adding a token then
+    // reported "Removed from list".
+    const list = customTokens[chainId] ?? [];
+    const exists = list.some(
+      (tk) => tk.address.toLowerCase() === address.toLowerCase()
+    );
+    const next = exists
+      ? list.filter((tk) => tk.address.toLowerCase() !== address.toLowerCase())
+      : [...list, { address, symbol, decimals: Number(decimals) }];
+    setCustomTokens((prev) => ({ ...prev, [chainId]: next }));
+
     if (!silent) {
-      if (willAdd) {
-        toast.success(t("eip7702.readinessTokenAdded"));
-      } else {
+      if (exists) {
         toast.info(t("eip7702.readinessTokenRemoved"));
+      } else {
+        toast.success(t("eip7702.readinessTokenAdded"));
       }
     }
   };
@@ -1739,8 +1983,12 @@ const EIP7702Page = () => {
                             type="button"
                             className="eip7702-batch-token-chip"
                             onClick={() => {
+                              // Opening only picks the row. Anything already
+                              // read for this account/chain stays as it is;
+                              // the ticks always start empty.
                               setPickerRowIndex(index);
                               setPickerSearch("");
+                              setPickerSelected([]);
                               setPickerOpen(true);
                             }}
                             title={t("eip7702.readinessToken")}
@@ -1757,20 +2005,32 @@ const EIP7702Page = () => {
                               aria-hidden
                             />
                           </button>
-                          <input
-                            className="eip7702-batch-input eip7702-batch-value"
-                            type="text"
-                            value={item.value}
-                            onChange={(e) =>
-                              handleBatchInputChange(
-                                index,
-                                "value",
-                                e.target.value
-                              )
-                            }
-                            placeholder={placeholder}
-                            spellCheck={false}
-                          />
+                          <div className="eip7702-batch-value-cell">
+                            <input
+                              className="eip7702-batch-input eip7702-batch-value"
+                              type="text"
+                              value={item.value}
+                              onChange={(e) =>
+                                handleBatchInputChange(
+                                  index,
+                                  "value",
+                                  e.target.value
+                                )
+                              }
+                              placeholder={placeholder}
+                              spellCheck={false}
+                            />
+                            <button
+                              type="button"
+                              className="eip7702-batch-max"
+                              onClick={() => void fillRowMax(index)}
+                              disabled={maxRowLoading === index}
+                              title={t("eip7702.readinessMaxTitle")}
+                              aria-label={t("eip7702.readinessMaxTitle")}
+                            >
+                              {t("eip7702.readinessMax")}
+                            </button>
+                          </div>
                           <span>{t("eip7702.readinessTo")}</span>
                           <input
                             className="eip7702-batch-input eip7702-batch-address"
@@ -1914,8 +2174,90 @@ const EIP7702Page = () => {
             );
           const q = pickerSearch.trim().toLowerCase();
           const includes = (s: string) => !q || s.toLowerCase().includes(q);
+          // Position of a token in the tick order, or -1 when it is not ticked.
+          // That number is the row it will land on, so it is shown as-is.
+          const pickedIndex = (key: string) =>
+            pickerSelected.findIndex((o) => o.key === key);
+          // Two hit areas, two acts: this box accumulates a multi-select and
+          // leaves the picker open; the row body is the one-click "put this
+          // here" that most picks are, and closes it.
+          const pickerTick = (opt: PickerTokenOption) => {
+            const index = pickedIndex(opt.key);
+            return (
+              <button
+                type="button"
+                className={
+                  "eip7702-picker-check" + (index >= 0 ? " is-picked" : "")
+                }
+                aria-pressed={index >= 0}
+                title={t("eip7702.readinessPickerHint")}
+                onClick={() => togglePickerToken(opt)}
+              >
+                {index >= 0 ? index + 1 : ""}
+              </button>
+            );
+          };
+          // One tick anywhere turns the whole picker into a multi-select: from
+          // then on the row body ticks as well, so a row click can never commit
+          // — and throw away — the ticks already on the board.
+          const pickRow = (opt: PickerTokenOption) => {
+            if (pickerSelected.length === 0) applyPickerSelection([opt]);
+            else togglePickerToken(opt);
+          };
+          const nativeOption: PickerTokenOption = {
+            key: "native",
+            kind: "native",
+            symbol: nativeTokenSymbol,
+            decimals: 18
+          };
+          const usdcOption: PickerTokenOption = {
+            key: "usdc",
+            kind: "usdc",
+            symbol: "USDC",
+            decimals: USDC_DECIMALS
+          };
+          const lookupOption: PickerTokenOption = {
+            key: lookupAddr.toLowerCase(),
+            kind: "custom",
+            address: lookupAddr,
+            symbol: pickerLookup?.symbol ?? "CUSTOM",
+            decimals: Number(pickerLookup?.decimals ?? 18)
+          };
           const showNative = includes(nativeTokenSymbol);
           const showUsdc = usdcSupported && includes("USDC");
+          // Discovered holdings that are not already shown as a saved token.
+          // "Holds anything" and the ordering both come from the balance in the
+          // same batched read that fills the other rows — Alchemy only supplied
+          // the addresses, so it does not get to say which ones matter.
+          const savedAddresses = new Set(
+            savedTokens.map((tk) => tk.address.toLowerCase())
+          );
+          const knownBalance = (token: DiscoveredToken) =>
+            pickerBalances[
+              `${pickerChainId}:${token.address.toLowerCase()}:${ownerKey}`
+            ] ?? null;
+          const heldAmount = (token: DiscoveredToken) => {
+            const raw = knownBalance(token);
+            if (!raw) return 0;
+            return Number(raw) / 10 ** token.decimals;
+          };
+          const discoveredRows = (discoveredTokens ?? [])
+            .filter(
+              (tk) =>
+                !savedAddresses.has(tk.address.toLowerCase()) &&
+                (!usdcSupported ||
+                  tk.address.toLowerCase() !==
+                    USDC_ADDRESSES[pickerChainId].toLowerCase()) &&
+                includes(tk.symbol)
+            )
+            .filter((tk) => {
+              const raw = knownBalance(tk);
+              // Held back until the batched read answers for this contract: the
+              // rows then arrive in one piece, with their balance and in their
+              // final order, instead of filling in and re-sorting afterwards.
+              return raw !== null && raw > 0n;
+            })
+            .sort((a, b) => (heldAmount(a) > heldAmount(b) ? -1 : 1));
           return (
             <div
               className="eip7702-token-modal-overlay"
@@ -1928,7 +2270,16 @@ const EIP7702Page = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="eip7702-token-modal-head">
-                  <h3>{t("eip7702.readinessToken")}</h3>
+                  <h3>
+                    {t("eip7702.readinessToken")}
+                    {pickerRowIndex != null && (
+                      <span className="eip7702-picker-from">
+                        {t("eip7702.readinessPickerFromRow", {
+                          row: String(pickerRowIndex + 1)
+                        })}
+                      </span>
+                    )}
+                  </h3>
                   <button
                     type="button"
                     className="eip7702-token-modal-close"
@@ -1950,17 +2301,18 @@ const EIP7702Page = () => {
                   />
                 </div>
                 <ul className="eip7702-picker-list">
-                  {showNative && (
+                  {pickerRowsReady && showNative && (
                     <li>
                       <div className="eip7702-picker-row">
                         <span
                           className="eip7702-picker-star-spacer"
                           aria-hidden
                         />
+                        {pickerTick(nativeOption)}
                         <button
                           type="button"
                           className="eip7702-picker-main"
-                          onClick={() => pickToken({ kind: "native" })}
+                          onClick={() => pickRow(nativeOption)}
                         >
                           <span className="eip7702-picker-avatar">
                             {nativeTokenSymbol.slice(0, 2).toUpperCase()}
@@ -1989,17 +2341,18 @@ const EIP7702Page = () => {
                       </div>
                     </li>
                   )}
-                  {showUsdc && usdcSupported && (
+                  {pickerRowsReady && showUsdc && usdcSupported && (
                     <li>
                       <div className="eip7702-picker-row">
                         <span
                           className="eip7702-picker-star-spacer"
                           aria-hidden
                         />
+                        {pickerTick(usdcOption)}
                         <button
                           type="button"
                           className="eip7702-picker-main"
-                          onClick={() => pickToken({ kind: "usdc" })}
+                          onClick={() => pickRow(usdcOption)}
                         >
                           <span className="eip7702-picker-avatar">US</span>
                           <span className="eip7702-picker-info">
@@ -2024,63 +2377,128 @@ const EIP7702Page = () => {
                       </div>
                     </li>
                   )}
-                  {savedTokens
-                    .filter((tk) => includes(tk.symbol))
-                    .map((tk) => (
-                      <li key={tk.address}>
-                        <div className="eip7702-picker-row">
-                          <button
-                            type="button"
-                            className="eip7702-picker-star is-saved"
-                            onClick={() =>
-                              toggleSaveCustomToken(
-                                tk.address,
-                                tk.symbol,
-                                tk.decimals
-                              )
-                            }
-                            title={t("eip7702.readinessTokenRemoveFromList")}
-                            aria-label={t(
-                              "eip7702.readinessTokenRemoveFromList"
-                            )}
-                          >
-                            ★
-                          </button>
-                          <button
-                            type="button"
-                            className="eip7702-picker-main"
-                            onClick={() =>
-                              pickToken({
-                                kind: "custom",
-                                address: tk.address,
-                                symbol: tk.symbol,
-                                decimals: tk.decimals
-                              })
-                            }
-                          >
-                            <span className="eip7702-picker-avatar">
-                              {tk.symbol.slice(0, 2).toUpperCase()}
-                            </span>
-                            <span className="eip7702-picker-info">
-                              <span className="eip7702-picker-symbol">
-                                {tk.symbol}
+                  {pickerRowsReady &&
+                    savedTokens
+                      .filter((tk) => includes(tk.symbol))
+                      .map((tk) => {
+                        const opt: PickerTokenOption = {
+                          key: tk.address.toLowerCase(),
+                          kind: "custom",
+                          address: tk.address,
+                          symbol: tk.symbol,
+                          decimals: tk.decimals
+                        };
+                        return (
+                          <li key={tk.address}>
+                            <div className="eip7702-picker-row">
+                              <button
+                                type="button"
+                                className="eip7702-picker-star is-saved"
+                                onClick={() =>
+                                  toggleSaveCustomToken(
+                                    tk.address,
+                                    tk.symbol,
+                                    tk.decimals
+                                  )
+                                }
+                                title={t(
+                                  "eip7702.readinessTokenRemoveFromList"
+                                )}
+                                aria-label={t(
+                                  "eip7702.readinessTokenRemoveFromList"
+                                )}
+                              >
+                                ★
+                              </button>
+                              {pickerTick(opt)}
+                              <button
+                                type="button"
+                                className="eip7702-picker-main"
+                                onClick={() => pickRow(opt)}
+                              >
+                                <span className="eip7702-picker-avatar">
+                                  {tk.symbol.slice(0, 2).toUpperCase()}
+                                </span>
+                                <span className="eip7702-picker-info">
+                                  <span className="eip7702-picker-symbol">
+                                    {tk.symbol}
+                                  </span>
+                                  <span className="eip7702-picker-desc">
+                                    {tk.address.slice(0, 6)}…
+                                    {tk.address.slice(-4)}
+                                  </span>
+                                </span>
+                                <span className="eip7702-picker-balance">
+                                  {formatPickerBalance(
+                                    pickerBalances[
+                                      `${pickerChainId}:${tk.address.toLowerCase()}:${ownerKey}`
+                                    ],
+                                    Number(tk.decimals)
+                                  )}
+                                </span>
+                              </button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                  {pickerRowsReady &&
+                    discoveredRows.map((tk) => {
+                      const opt: PickerTokenOption = {
+                        key: tk.address.toLowerCase(),
+                        kind: "custom",
+                        address: tk.address,
+                        symbol: tk.symbol,
+                        decimals: tk.decimals
+                      };
+                      return (
+                        <li key={tk.address}>
+                          <div className="eip7702-picker-row">
+                            <button
+                              type="button"
+                              className="eip7702-picker-star"
+                              onClick={() =>
+                                toggleSaveCustomToken(
+                                  tk.address,
+                                  tk.symbol,
+                                  tk.decimals
+                                )
+                              }
+                              title={t("eip7702.readinessTokenAddToList")}
+                              aria-label={t("eip7702.readinessTokenAddToList")}
+                            >
+                              ☆
+                            </button>
+                            {pickerTick(opt)}
+                            <button
+                              type="button"
+                              className="eip7702-picker-main"
+                              onClick={() => pickRow(opt)}
+                            >
+                              <span className="eip7702-picker-avatar">
+                                {tk.symbol.slice(0, 2).toUpperCase()}
                               </span>
-                              <span className="eip7702-picker-desc">
-                                {tk.address.slice(0, 6)}…{tk.address.slice(-4)}
+                              <span className="eip7702-picker-info">
+                                <span className="eip7702-picker-symbol">
+                                  {tk.symbol}
+                                </span>
+                                <span className="eip7702-picker-desc">
+                                  {tk.address.slice(0, 6)}…
+                                  {tk.address.slice(-4)}
+                                </span>
                               </span>
-                            </span>
-                            <span className="eip7702-picker-balance">
-                              {formatPickerBalance(
-                                pickerBalances[
-                                  `${pickerChainId}:${tk.address.toLowerCase()}:${ownerKey}`
-                                ],
-                                Number(tk.decimals)
-                              )}
-                            </span>
-                          </button>
-                        </div>
-                      </li>
-                    ))}
+                              <span className="eip7702-picker-balance">
+                                {formatPickerBalance(
+                                  pickerBalances[
+                                    `${pickerChainId}:${tk.address.toLowerCase()}:${ownerKey}`
+                                  ],
+                                  tk.decimals
+                                )}
+                              </span>
+                            </button>
+                          </div>
+                        </li>
+                      );
+                    })}
                   {pickerLookup?.status === "loading" && (
                     <li className="eip7702-picker-status">
                       {t("eip7702.readinessTokenQuerying")}
@@ -2119,17 +2537,11 @@ const EIP7702Page = () => {
                         >
                           {lookupSaved ? "★" : "☆"}
                         </button>
+                        {pickerTick(lookupOption)}
                         <button
                           type="button"
                           className="eip7702-picker-main"
-                          onClick={() =>
-                            pickToken({
-                              kind: "custom",
-                              address: lookupAddr,
-                              symbol: pickerLookup.symbol ?? "CUSTOM",
-                              decimals: Number(pickerLookup.decimals ?? 18)
-                            })
-                          }
+                          onClick={() => pickRow(lookupOption)}
                         >
                           <span className="eip7702-picker-avatar">
                             {(pickerLookup.symbol ?? "TO")
@@ -2159,6 +2571,32 @@ const EIP7702Page = () => {
                     </li>
                   )}
                 </ul>
+                <div className="eip7702-picker-foot">
+                  <span className="eip7702-picker-foot-hint">
+                    {pickerSelected.length > 0
+                      ? t("eip7702.readinessPickerSelected", {
+                          count: String(pickerSelected.length)
+                        })
+                      : t("eip7702.readinessPickerHint")}
+                  </span>
+                  <button
+                    type="button"
+                    className="eip7702-picker-foot-cancel"
+                    onClick={() => setPickerOpen(false)}
+                  >
+                    {t("eip7702.readinessTokenCancel")}
+                  </button>
+                  <button
+                    type="button"
+                    className="eip7702-picker-foot-apply"
+                    onClick={() => applyPickerSelection()}
+                    disabled={pickerSelected.length === 0}
+                  >
+                    {t("eip7702.readinessPickerApply", {
+                      count: String(pickerSelected.length)
+                    })}
+                  </button>
+                </div>
               </div>
             </div>
           );

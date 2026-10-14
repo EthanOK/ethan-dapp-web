@@ -303,6 +303,9 @@ export const en = {
   "eip7702.readinessInvalidHex":
     "Value must be a valid wei number (hex string without 0x)",
   "eip7702.readinessAmount": "Amount",
+  "eip7702.readinessMax": "MAX",
+  "eip7702.readinessMaxTitle": "Fill with your full balance",
+  "eip7702.readinessMaxFailed": "Balance unavailable",
   "eip7702.readinessToken": "Token",
   "eip7702.readinessTokenNative": "{symbol}",
   "eip7702.readinessTokenUsdc": "USDC",
@@ -320,6 +323,11 @@ export const en = {
   "eip7702.readinessTokenCancel": "Cancel",
   "eip7702.readinessChain": "Chain",
   "eip7702.readinessPickerSearch": "Search name or paste address",
+  "eip7702.readinessPickerFromRow": "filling from row {{row}}",
+  "eip7702.readinessPickerHint":
+    "Tick a box for several, or click a row for one",
+  "eip7702.readinessPickerSelected": "{{count}} ticked",
+  "eip7702.readinessPickerApply": "Fill {{count}} rows",
   "eip7702.readinessNativeDesc": "Native",
   "eip7702.readinessTokenAddress": "Token contract",
   "eip7702.readinessTokenSymbol": "Symbol",

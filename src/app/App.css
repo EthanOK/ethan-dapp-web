@@ -2218,9 +2218,11 @@
   max-height: min(52vh, 380px);
   overflow-y: auto;
 }
+/* Star | tick box | row body. The body is one click = one token; the box is
+   what accumulates a multi-select. */
 .eip7702-picker-row {
   display: grid;
-  grid-template-columns: 28px 1fr;
+  grid-template-columns: 28px 26px 1fr;
   align-items: center;
   gap: 4px;
 }
@@ -2302,6 +2304,75 @@
   font-size: 0.75rem;
   color: var(--w3-text-muted);
 }
+/* Multi-select: the tick box shows the position, which is also the row the
+   token will be written to. */
+.eip7702-picker-check {
+  width: 18px;
+  height: 18px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--w3-border);
+  background: transparent;
+  font-size: 0.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--w3-text-muted);
+  cursor: pointer;
+}
+.eip7702-picker-check:hover {
+  border-color: var(--w3-success);
+}
+.eip7702-picker-check.is-picked {
+  border-color: var(--w3-success);
+  background: var(--w3-success);
+  color: #fff;
+}
+.eip7702-picker-from {
+  margin-left: 8px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--w3-text-muted);
+}
+.eip7702-picker-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--w3-border);
+}
+.eip7702-picker-foot-hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.7rem;
+  color: var(--w3-text-muted);
+}
+.eip7702-picker-foot-cancel,
+.eip7702-picker-foot-apply {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.eip7702-picker-foot-cancel {
+  border: 1px solid var(--w3-border);
+  background: transparent;
+  color: var(--w3-text);
+}
+.eip7702-picker-foot-apply {
+  border: 1px solid var(--w3-success);
+  background: var(--w3-success);
+  color: #fff;
+}
+.eip7702-picker-foot-apply:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .eip7702-picker-status.is-error {
   color: var(--w3-danger);
 }
@@ -2322,6 +2393,33 @@
   border-color: var(--w3-border-accent);
   box-shadow: 0 0 0 3px
     color-mix(in srgb, var(--w3-accent-text) 12%, transparent);
+}
+/* Amount cell: input plus the MAX fill button, still one grid column. */
+.eip7702-batch-value-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.eip7702-batch-max {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--w3-accent-text) 40%, transparent);
+  background: transparent;
+  color: var(--w3-accent-text);
+  font-size: 0.55rem;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.eip7702-batch-max:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--w3-accent-text) 12%, transparent);
+}
+.eip7702-batch-max:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .eip7702-batch-actions {
   display: flex;
@@ -2390,7 +2488,7 @@
     grid-area: token;
     width: 100%;
   }
-  .eip7702-batch-row > .eip7702-batch-value {
+  .eip7702-batch-row > .eip7702-batch-value-cell {
     grid-area: value;
   }
   /* the "to" label span sits between value and address — drop it on mobile */
