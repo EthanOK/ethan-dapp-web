@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.9](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.8...v3.0.9) (2026-10-15)
+
+
+### Features
+
+* **alchemy:** walk every page of alchemy_getTokenBalances ([7034c9c](https://github.com/EthanOK/ethan-bric-web/commit/7034c9ccc97763883257c2a6e44f8a95811ef68b))
+* **brand:** replace the mark with a hexagon 0x, add the missing PWA icons ([dbb93c5](https://github.com/EthanOK/ethan-bric-web/commit/dbb93c5682d4e264ba480618ebb4e76b0dcc5a7b)), closes [#0a0b0](https://github.com/EthanOK/ethan-bric-web/issues/0a0b0)
+* **eip7702:** discover held tokens in one batched read, make the picker multi-select ([343cfd8](https://github.com/EthanOK/ethan-bric-web/commit/343cfd8033f2cc18cc9faba2ca66a51593213f70))
+* **eip7702:** refresh balances, link addresses to the explorer, colour avatars per token ([61ed807](https://github.com/EthanOK/ethan-bric-web/commit/61ed80777b4e546507b133811dd97bd1f61af7b7))
+* **eip7702:** show how many tokens the picker list is holding ([592b51f](https://github.com/EthanOK/ethan-bric-web/commit/592b51fc93a18830081a7682a1cc3d520e7ded10))
+* **routing:** retire /burn and /estimateTxFee, add a 404 fallback ([989aa35](https://github.com/EthanOK/ethan-bric-web/commit/989aa35d2a2406e3767f20cc0007dac14b9d8273))
+* **swap:** colour the pay and receive token chips per symbol ([925b67b](https://github.com/EthanOK/ethan-bric-web/commit/925b67b622f64bac4820fb4b87fbb8afc71deb35))
+
 ### [3.0.8](https://github.com/EthanOK/ethan-bric-web/compare/v3.0.7...v3.0.8) (2026-10-11)
 
 
