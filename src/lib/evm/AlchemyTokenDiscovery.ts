@@ -12,13 +12,19 @@ import { ALCHEMY_KEY } from "@/config/SystemConfiguration";
  * a silent fallback in the picker.
  *
  * Verified to exist but deliberately absent because the Enhanced API is off:
- * X Layer (196 / `xlayer-mainnet`), Hoodi (560048 / `eth-hoodi`), Mantle,
- * Sonic, Kaia, Sei, opBNB, Mode, Metis, Plasma, Astar.
+ * X Layer (196 / `xlayer-mainnet`), Mantle, Sonic, Kaia, Sei, opBNB, Mode,
+ * Metis, Plasma, Astar.
  */
 const ALCHEMY_NETWORK_BY_CHAIN: Record<number, string> = {
   // Ethereum
   1: "eth-mainnet",
   11155111: "eth-sepolia",
+  // Hoodi. The slug resolves — Alchemy names the network ETH_HOODI — but the
+  // Enhanced API is not switched on for it yet: the call comes back as "EAPIs
+  // not enabled on specified network [ETH_HOODI]", which turns into `null`
+  // here and a silent fallback in the picker. Kept in the list so it starts
+  // returning holdings the day Alchemy enables it, with no code change.
+  560048: "eth-hoodi",
   // BNB Smart Chain
   56: "bnb-mainnet",
   97: "bnb-testnet",
