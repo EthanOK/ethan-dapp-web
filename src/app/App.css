@@ -2252,6 +2252,14 @@
 .eip7702-picker-search-input:focus {
   border-color: color-mix(in srgb, var(--w3-success) 50%, transparent);
 }
+/* How many tokens the list below is holding — it moves with the search box and
+   with what the batched read found, so it is never a static total. */
+.eip7702-picker-count {
+  padding: 0 16px 6px;
+  font-size: 0.68rem;
+  color: var(--w3-text-muted);
+  font-variant-numeric: tabular-nums;
+}
 .eip7702-picker-list {
   list-style: none;
   margin: 0;

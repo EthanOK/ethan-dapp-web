@@ -2467,6 +2467,16 @@ const EIP7702Page = () => {
               return raw !== null && raw > 0n;
             })
             .sort((a, b) => (heldAmount(a) > heldAmount(b) ? -1 : 1));
+          const savedRows = savedTokens.filter((tk) => includes(tk.symbol));
+          // What the list below paints. The count has to follow the rows on
+          // screen rather than the size of each bucket: the buckets overlap,
+          // and the search box hides all but a few of them.
+          const visibleRowCount =
+            (showNative ? 1 : 0) +
+            (showUsdc ? 1 : 0) +
+            savedRows.length +
+            discoveredRows.length +
+            (pickerLookup?.status === "ok" ? 1 : 0);
           return (
             <div
               className="eip7702-token-modal-overlay"
@@ -2521,6 +2531,13 @@ const EIP7702Page = () => {
                     autoFocus
                   />
                 </div>
+                {pickerRowsReady && (
+                  <div className="eip7702-picker-count">
+                    {t("eip7702.readinessPickerCount", {
+                      count: String(visibleRowCount)
+                    })}
+                  </div>
+                )}
                 <ul className="eip7702-picker-list">
                   {pickerRowsReady && showNative && (
                     <li>
@@ -2615,71 +2632,67 @@ const EIP7702Page = () => {
                     </li>
                   )}
                   {pickerRowsReady &&
-                    savedTokens
-                      .filter((tk) => includes(tk.symbol))
-                      .map((tk) => {
-                        const opt: PickerTokenOption = {
-                          key: tk.address.toLowerCase(),
-                          kind: "custom",
-                          address: tk.address,
-                          symbol: tk.symbol,
-                          decimals: tk.decimals
-                        };
-                        return (
-                          <li key={tk.address}>
-                            <div className="eip7702-picker-row">
-                              <button
-                                type="button"
-                                className="eip7702-picker-star is-saved"
-                                onClick={() =>
-                                  toggleSaveCustomToken(
-                                    tk.address,
-                                    tk.symbol,
-                                    tk.decimals
-                                  )
-                                }
-                                title={t(
-                                  "eip7702.readinessTokenRemoveFromList"
-                                )}
-                                aria-label={t(
-                                  "eip7702.readinessTokenRemoveFromList"
-                                )}
+                    savedRows.map((tk) => {
+                      const opt: PickerTokenOption = {
+                        key: tk.address.toLowerCase(),
+                        kind: "custom",
+                        address: tk.address,
+                        symbol: tk.symbol,
+                        decimals: tk.decimals
+                      };
+                      return (
+                        <li key={tk.address}>
+                          <div className="eip7702-picker-row">
+                            <button
+                              type="button"
+                              className="eip7702-picker-star is-saved"
+                              onClick={() =>
+                                toggleSaveCustomToken(
+                                  tk.address,
+                                  tk.symbol,
+                                  tk.decimals
+                                )
+                              }
+                              title={t("eip7702.readinessTokenRemoveFromList")}
+                              aria-label={t(
+                                "eip7702.readinessTokenRemoveFromList"
+                              )}
+                            >
+                              ★
+                            </button>
+                            {pickerTick(opt)}
+                            <button
+                              type="button"
+                              className="eip7702-picker-main"
+                              onClick={() => pickRow(opt)}
+                            >
+                              <span
+                                className="eip7702-picker-avatar"
+                                style={pickerAvatarStyle(tk.address)}
                               >
-                                ★
-                              </button>
-                              {pickerTick(opt)}
-                              <button
-                                type="button"
-                                className="eip7702-picker-main"
-                                onClick={() => pickRow(opt)}
-                              >
-                                <span
-                                  className="eip7702-picker-avatar"
-                                  style={pickerAvatarStyle(tk.address)}
-                                >
-                                  {tk.symbol.slice(0, 2).toUpperCase()}
+                                {tk.symbol.slice(0, 2).toUpperCase()}
+                              </span>
+                              <span className="eip7702-picker-info">
+                                <span className="eip7702-picker-symbol">
+                                  {tk.symbol}
                                 </span>
-                                <span className="eip7702-picker-info">
-                                  <span className="eip7702-picker-symbol">
-                                    {tk.symbol}
-                                  </span>
-                                  <span className="eip7702-picker-desc">
-                                    {pickerAddress(tk.address, pickerChainId)}
-                                  </span>
+                                <span className="eip7702-picker-desc">
+                                  {pickerAddress(tk.address, pickerChainId)}
                                 </span>
-                                <span className="eip7702-picker-balance">
-                                  {formatPickerBalance(
-                                    pickerBalances[
-                                      `${pickerChainId}:${tk.address.toLowerCase()}:${ownerKey}`
-                                    ],
-                                    Number(tk.decimals)
-                                  )}
-                                </span>
-                              </button>
-                            </div>
-                          </li>
-                        );
-                      })}
+                              </span>
+                              <span className="eip7702-picker-balance">
+                                {formatPickerBalance(
+                                  pickerBalances[
+                                    `${pickerChainId}:${tk.address.toLowerCase()}:${ownerKey}`
+                                  ],
+                                  Number(tk.decimals)
+                                )}
+                              </span>
+                            </button>
+                          </div>
+                        </li>
+                      );
+                    })}
                   {pickerRowsReady &&
                     discoveredRows.map((tk) => {
                       const opt: PickerTokenOption = {

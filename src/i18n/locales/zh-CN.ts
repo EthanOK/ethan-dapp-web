@@ -318,6 +318,7 @@ export const zhCN: Record<TranslationKey, string> = {
   "eip7702.readinessPickerRefreshFailed": "刷新余额失败",
   "eip7702.readinessPickerViewExplorer": "在区块浏览器中查看",
   "eip7702.readinessPickerNoExplorer": "该网络未配置区块浏览器",
+  "eip7702.readinessPickerCount": "{{count}} 种代币",
   "eip7702.readinessNativeDesc": "原生",
   "eip7702.readinessTokenAddress": "代币合约",
   "eip7702.readinessTokenSymbol": "符号",

@@ -318,6 +318,7 @@ export const zhTW: Record<TranslationKey, string> = {
   "eip7702.readinessPickerRefreshFailed": "重新整理餘額失敗",
   "eip7702.readinessPickerViewExplorer": "在區塊瀏覽器中查看",
   "eip7702.readinessPickerNoExplorer": "該網路未配置區塊瀏覽器",
+  "eip7702.readinessPickerCount": "{{count}} 種代幣",
   "eip7702.readinessNativeDesc": "原生",
   "eip7702.readinessTokenAddress": "代幣合約",
   "eip7702.readinessTokenSymbol": "符號",

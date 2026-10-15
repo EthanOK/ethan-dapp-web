@@ -335,6 +335,7 @@ export const en = {
   "eip7702.readinessPickerViewExplorer": "View on block explorer",
   "eip7702.readinessPickerNoExplorer":
     "No block explorer configured for this chain",
+  "eip7702.readinessPickerCount": "{{count}} tokens",
   "eip7702.readinessNativeDesc": "Native",
   "eip7702.readinessTokenAddress": "Token contract",
   "eip7702.readinessTokenSymbol": "Symbol",
