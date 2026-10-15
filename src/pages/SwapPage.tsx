@@ -64,6 +64,7 @@ import {
   isSameTokenSide,
   resolveTokenSideFromSelectKey,
   sortTokenSidesByBalance,
+  tokenAvatarHue,
   tokenBalanceKey,
   whitelistTokenSide,
   type TokenSide
@@ -1249,7 +1250,13 @@ const SwapPage = () => {
                   setPickerOpen("pay");
                 }}
               >
-                <span className="swap-token-chip-avatar" aria-hidden>
+                <span
+                  className="swap-token-chip-avatar"
+                  aria-hidden
+                  style={{
+                    background: `hsl(${tokenAvatarHue(paySymbolLabel)} 55% 45%)`
+                  }}
+                >
                   {paySymbolLabel.slice(0, 2).toUpperCase()}
                 </span>
                 <span className="swap-token-chip-label">{paySymbolLabel}</span>
@@ -1318,7 +1325,13 @@ const SwapPage = () => {
                   setPickerOpen("receive");
                 }}
               >
-                <span className="swap-token-chip-avatar" aria-hidden>
+                <span
+                  className="swap-token-chip-avatar"
+                  aria-hidden
+                  style={{
+                    background: `hsl(${tokenAvatarHue(receiveSymbolLabel)} 55% 45%)`
+                  }}
+                >
                   {receiveSymbolLabel.slice(0, 2).toUpperCase()}
                 </span>
                 <span className="swap-token-chip-label">

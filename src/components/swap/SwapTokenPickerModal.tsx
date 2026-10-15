@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n";
 import {
   addressesEqual,
   getTokenDisplayName,
+  tokenAvatarHue,
   tokenBalanceKey,
   type TokenSide
 } from "@/lib/swap/swapTokenRules";
@@ -34,14 +35,6 @@ function formatListBalance(value: bigint, decimals: number): string {
   const [int, frac = ""] = raw.split(".");
   const frac6 = frac.padEnd(6, "0").slice(0, 6).replace(/0+$/, "");
   return frac6 ? `${int}.${frac6}` : int;
-}
-
-function tokenAvatarHue(symbol: string): number {
-  let hash = 0;
-  for (let i = 0; i < symbol.length; i += 1) {
-    hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash) % 360;
 }
 
 function rowKey(side: TokenSide): string {
