@@ -44,6 +44,18 @@ export function tokenBalanceKey(tokenAddress: string): string {
   return tokenAddress.toLowerCase();
 }
 
+/**
+ * A stable hue per symbol, used for swap token avatars. Different symbols land
+ * on different hues; the same symbol keeps its hue every time the picker opens.
+ */
+export function tokenAvatarHue(symbol: string): number {
+  let hash = 0;
+  for (let i = 0; i < symbol.length; i += 1) {
+    hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash) % 360;
+}
+
 function defaultTokenSideRank(
   side: TokenSide,
   chain = getDefaultSwapChain()

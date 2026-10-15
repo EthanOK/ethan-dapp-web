@@ -12,13 +12,19 @@ import { ALCHEMY_KEY } from "@/config/SystemConfiguration";
  * a silent fallback in the picker.
  *
  * Verified to exist but deliberately absent because the Enhanced API is off:
- * X Layer (196 / `xlayer-mainnet`), Hoodi (560048 / `eth-hoodi`), Mantle,
- * Sonic, Kaia, Sei, opBNB, Mode, Metis, Plasma, Astar.
+ * X Layer (196 / `xlayer-mainnet`), Mantle, Sonic, Kaia, Sei, opBNB, Mode,
+ * Metis, Plasma, Astar.
  */
 const ALCHEMY_NETWORK_BY_CHAIN: Record<number, string> = {
   // Ethereum
   1: "eth-mainnet",
   11155111: "eth-sepolia",
+  // Hoodi. The slug resolves — Alchemy names the network ETH_HOODI — but the
+  // Enhanced API is not switched on for it yet: the call comes back as "EAPIs
+  // not enabled on specified network [ETH_HOODI]", which turns into `null`
+  // here and a silent fallback in the picker. Kept in the list so it starts
+  // returning holdings the day Alchemy enables it, with no code change.
+  560048: "eth-hoodi",
   // BNB Smart Chain
   56: "bnb-mainnet",
   97: "bnb-testnet",
@@ -73,11 +79,26 @@ const ALCHEMY_NETWORK_BY_CHAIN: Record<number, string> = {
 const TOKEN_CATEGORY = "erc20";
 
 /**
- * How many contracts to name on chain. Matches one page of
- * `alchemy_getTokenBalances` (100 rows), so a single request covers every
- * contract Alchemy would have reported on the first page.
+ * Rows asked for per page. Alchemy caps `maxCount` at 100, and asking for the
+ * full page is what keeps a long walk down to a handful of requests.
  */
-const MAX_CANDIDATES = 100;
+const PAGE_SIZE = 100;
+
+/**
+ * How many contracts to name on chain. Alchemy lists every ERC20 the account
+ * has ever touched — spent-down ones report a zero balance and still take a
+ * row — so the walk is longer than the account is rich. Paging below collects
+ * the whole list; this caps how much of it the caller's batched read then has
+ * to chew through.
+ */
+const MAX_CANDIDATES = 200;
+
+/**
+ * Hard stop on paging. `pageKey` is opaque and only ever moves forward, but a
+ * walk that never ends would hammer the endpoint, so it stops here even if
+ * Alchemy still reports another page.
+ */
+const MAX_PAGES = 5;
 
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -87,6 +108,8 @@ type AlchemyTokenBalanceRow = {
 
 type AlchemyTokenBalancesResult = {
   tokenBalances?: AlchemyTokenBalanceRow[];
+  /** Present only while another page is left to ask for. */
+  pageKey?: string;
 };
 
 function alchemyRpcUrl(chainId: number, key: string): string | null {
@@ -96,24 +119,26 @@ function alchemyRpcUrl(chainId: number, key: string): string | null {
 }
 
 /**
- * Contract addresses Alchemy reports for the account, in the order it returns
- * them, cut off at `maxCandidates`.
+ * One page of `alchemy_getTokenBalances`. A `pageKey` from the previous result
+ * asks for the page after it; without one this is the first page.
  *
- * Alchemy is the address book and nothing else: the address is the only field
- * taken from the response. No balance, no ordering by balance, no opinion about
- * which contracts are worth showing — the chain answers all of that in the
- * caller's single batched read. `null` means "could not ask" (no key,
- * unsupported chain, request failed) and the caller falls back to its own list.
+ * `null` means the request did not come back usable — unsupported chain, rate
+ * limit, network error — and says nothing about what the account holds.
  */
-async function fetchErc20Candidates(
+async function requestTokenBalancePage(
   url: string,
   owner: string,
-  maxCandidates: number
-): Promise<string[] | null> {
+  pageKey?: string
+): Promise<AlchemyTokenBalancesResult | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
+    const params: unknown[] = [
+      owner,
+      TOKEN_CATEGORY,
+      pageKey ? { pageKey, maxCount: PAGE_SIZE } : { maxCount: PAGE_SIZE }
+    ];
     const res: Response = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -121,7 +146,7 @@ async function fetchErc20Candidates(
         jsonrpc: "2.0",
         id: 1,
         method: "alchemy_getTokenBalances",
-        params: [owner, TOKEN_CATEGORY]
+        params
       }),
       signal: controller.signal
     });
@@ -132,15 +157,7 @@ async function fetchErc20Candidates(
       error?: { message?: string };
     };
     if (data.error || !data.result?.tokenBalances) return null;
-
-    const addresses: string[] = [];
-    for (const row of data.result.tokenBalances) {
-      const contract = row.contractAddress;
-      if (!contract || !isAddress(contract)) continue;
-      addresses.push(getAddress(contract.toLowerCase()));
-      if (addresses.length >= maxCandidates) break;
-    }
-    return addresses;
+    return data.result;
   } catch {
     return null;
   } finally {
@@ -149,8 +166,60 @@ async function fetchErc20Candidates(
 }
 
 /**
+ * Contract addresses Alchemy reports for the account, walked page by page in
+ * the order it returns them, until it runs out of pages, the page cap is hit,
+ * or `maxCandidates` is filled.
+ *
+ * Alchemy is the address book and nothing else: the address is the only field
+ * taken from the response. No balance, no ordering by balance, no opinion about
+ * which contracts are worth showing — the chain answers all of that in the
+ * caller's single batched read. `null` means "could not ask" (no key,
+ * unsupported chain, first request failed) and the caller falls back to its own
+ * list.
+ */
+async function fetchErc20Candidates(
+  url: string,
+  owner: string,
+  maxCandidates: number
+): Promise<string[] | null> {
+  const seen = new Set<string>();
+  const addresses: string[] = [];
+  let pageKey: string | undefined;
+
+  for (let page = 0; page < MAX_PAGES; page += 1) {
+    const result = await requestTokenBalancePage(url, owner, pageKey);
+    // The first page failing means "could not ask" and the caller should fall
+    // back. A later page failing only cuts the walk short: what is already
+    // collected is still a usable list, so it is kept.
+    if (!result) {
+      if (page === 0) return null;
+      break;
+    }
+
+    for (const row of result.tokenBalances ?? []) {
+      const contract = row.contractAddress;
+      if (!contract || !isAddress(contract)) continue;
+      const address = getAddress(contract.toLowerCase());
+      // Pages can repeat a contract; it still only needs reading once.
+      if (seen.has(address)) continue;
+      seen.add(address);
+      addresses.push(address);
+      if (addresses.length >= maxCandidates) return addresses;
+    }
+
+    if (!result.pageKey) break;
+    pageKey = result.pageKey;
+  }
+
+  return addresses;
+}
+
+/**
  * ERC20 contract addresses the account may hold, for the picker to name and
  * price in its own batched read — nothing is read on chain here.
+ *
+ * Every page is walked, so an account spread over more than one page is not
+ * cut down to whatever happened to land on the first one.
  *
  * `null` means "could not ask" so the caller keeps its built-in list; `[]`
  * means "asked, holds nothing".
