@@ -324,10 +324,17 @@ export const en = {
   "eip7702.readinessChain": "Chain",
   "eip7702.readinessPickerSearch": "Search name or paste address",
   "eip7702.readinessPickerFromRow": "filling from row {{row}}",
+  "eip7702.readinessPickerCopyAddress": "Copy contract address",
   "eip7702.readinessPickerHint":
     "Tick a box for several, or click a row for one",
   "eip7702.readinessPickerSelected": "{{count}} ticked",
   "eip7702.readinessPickerApply": "Fill {{count}} rows",
+  "eip7702.readinessPickerRefresh": "↻",
+  "eip7702.readinessPickerRefreshTitle": "Refresh balances",
+  "eip7702.readinessPickerRefreshFailed": "Failed to refresh balances",
+  "eip7702.readinessPickerViewExplorer": "View on block explorer",
+  "eip7702.readinessPickerNoExplorer":
+    "No block explorer configured for this chain",
   "eip7702.readinessNativeDesc": "Native",
   "eip7702.readinessTokenAddress": "Token contract",
   "eip7702.readinessTokenSymbol": "Symbol",
