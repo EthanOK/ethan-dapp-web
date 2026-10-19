@@ -785,6 +785,52 @@
   background: var(--w3-bg-hover);
 }
 
+/* Chain switcher at the top of the donate modal. */
+.home-qr-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: fit-content;
+  margin: 0 auto 18px;
+  padding: 3px;
+  border-radius: 9999px;
+  border: 1px solid var(--w3-border);
+  background: color-mix(in srgb, var(--w3-bg-card) 88%, black);
+}
+
+.home-qr-tab {
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--w3-text-muted);
+  font-family: var(--w3-font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition:
+    border-color 0.18s,
+    background 0.18s,
+    color 0.18s;
+}
+
+.home-qr-tab:hover {
+  color: var(--w3-text);
+}
+
+.home-qr-tab.is-active {
+  border-color: var(--w3-border-accent);
+  background: color-mix(in srgb, var(--w3-accent) 18%, var(--w3-bg-card));
+  color: var(--w3-accent-text);
+}
+
+.home-qr-tab:focus-visible {
+  border-color: var(--w3-border-focus);
+  outline: none;
+}
+
 .home-qr-code-box {
   margin: 4px 0 20px;
   padding: 22px 20px 20px;

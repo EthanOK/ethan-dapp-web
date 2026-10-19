@@ -21,6 +21,10 @@ import AddressStyledQR, {
   PREWARM_PLACEHOLDER
 } from "@/components/AddressStyledQR";
 import { getBitCoinBalance } from "@/lib/shared/BitcoinBalance";
+import {
+  DONATION_TARGETS,
+  type DonationChain
+} from "@/config/DonationAddresses";
 import "./HomePage.css";
 
 import {
@@ -176,12 +180,12 @@ const HomePage = () => {
   const [marketSearch, setMarketSearch] = useState("");
   const [addressQrOpen, setAddressQrOpen] = useState(false);
   const [donateQrOpen, setDonateQrOpen] = useState(false);
+  const [donateChain, setDonateChain] = useState<DonationChain>("eth");
 
-  // Donation addresses (Donate modal + footer)
+  // Donation: the suggested amount travels in the pre-warm URI, the addresses
+  // live in DONATION_TARGETS — one per chain the modal offers.
   const {
-    target_address: donateAddress,
-    parameters: { value: donateValue },
-    scheme
+    parameters: { value: donateValue }
   } = parseEthUrl(PREWARM_PLACEHOLDER);
 
   const marketFilteredList = useMemo(() => {
@@ -208,15 +212,22 @@ const HomePage = () => {
     );
   }, [caipNetwork?.id, currentChainId]);
 
+  const donateTarget =
+    DONATION_TARGETS.find((target) => target.key === donateChain) ??
+    DONATION_TARGETS[0];
+
+  /**
+   * What the wallet scans for the selected chain. BTC wants BIP-21; ETH wants
+   * EIP-681 and carries the suggested amount; TRON wallets match on the bare
+   * address — `tron:` is handled unevenly, so encoding it would break more
+   * scanners than it fixes.
+   */
   const donateQrPayload = useMemo(() => {
-    // Default Donate QR: EVM ethereum:...@chainId format
-    return walletPaymentUriForQr(
-      donateAddress,
-      undefined,
-      undefined,
-      donateValue
-    );
-  }, [donateAddress]);
+    const { key, address } = donateTarget;
+    if (key === "btc") return `bitcoin:${address}`;
+    if (key === "tron") return address;
+    return walletPaymentUriForQr(address, undefined, undefined, donateValue);
+  }, [donateTarget, donateValue]);
 
   const addressQrPayload = useMemo(() => {
     if (!currentAccount) return "";
@@ -679,6 +690,26 @@ const HomePage = () => {
             >
               ×
             </button>
+            <div
+              className="home-qr-tabs"
+              role="tablist"
+              aria-label={t("home.footerDonate")}
+            >
+              {DONATION_TARGETS.map((target) => (
+                <button
+                  key={target.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={donateChain === target.key}
+                  className={`home-qr-tab${
+                    donateChain === target.key ? " is-active" : ""
+                  }`}
+                  onClick={() => setDonateChain(target.key)}
+                >
+                  {target.label}
+                </button>
+              ))}
+            </div>
             <div className="home-qr-code-box">
               <AddressStyledQR
                 value={donateQrPayload}
@@ -688,16 +719,16 @@ const HomePage = () => {
             <p id="home-donate-qr-heading" className="home-qr-hint">
               {t("home.donateQrHint")}
             </p>
-            <div className="home-qr-address" title={donateAddress}>
+            <div className="home-qr-address" title={donateTarget.address}>
               <span className="home-qr-address-text">
-                {middleEllipsis(donateAddress)}
+                {middleEllipsis(donateTarget.address)}
               </span>
             </div>
             <button
               type="button"
               className="home-qr-copy"
               onClick={() => {
-                navigator.clipboard.writeText(donateAddress).then(
+                navigator.clipboard.writeText(donateTarget.address).then(
                   () => toast.success(t("common.addressCopied")),
                   () => toast.error(t("common.copyFailed"))
                 );
@@ -811,7 +842,9 @@ const HomePage = () => {
               </svg>
               <span className="home-footer-link-text">
                 {t("home.footerDonate")}{" "}
-                <span className="home-footer-address">{scheme}</span>
+                <span className="home-footer-chains">
+                  {DONATION_TARGETS.map((target) => target.label).join(" · ")}
+                </span>
               </span>
             </button>
           </nav>
