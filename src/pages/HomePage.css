@@ -885,26 +885,22 @@
 
 .home-footer-inner {
   position: relative;
-  width: min(760px, 100%);
+  /* Four links do not come close to filling 760px, and a bar with wide empty
+     ends reads as unfinished. Fit the content instead, and only grow towards
+     the cap once the links wrap. */
+  width: fit-content;
+  max-width: min(760px, 100%);
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 10px 12px;
+  padding: 7px 9px;
   border-radius: 9999px;
   border: 1px solid var(--w3-border);
-  background:
-    radial-gradient(
-      120% 180% at 12% 10%,
-      var(--w3-accent-glow),
-      rgba(0, 0, 0, 0) 60%
-    ),
-    linear-gradient(180deg, var(--w3-bg-elevated), var(--w3-bg-card));
+  background: linear-gradient(180deg, var(--w3-bg-elevated), var(--w3-bg-card));
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.06) inset,
-    0 14px 34px rgba(0, 0, 0, 0.22),
-    0 0 0 1px rgba(0, 0, 0, 0.18) inset;
+    0 14px 34px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(12px);
 }
 
@@ -918,109 +914,117 @@
   opacity: 0.65;
 }
 
-.home-footer-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.home-footer-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 9999px;
-  background: radial-gradient(
-    circle at 30% 30%,
-    color-mix(in srgb, var(--w3-accent) 75%, white),
-    var(--w3-accent) 45%,
-    var(--w3-accent-dim)
-  );
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--w3-accent) 18%, transparent),
-    0 0 18px var(--w3-accent-glow);
-}
-
-.home-footer-name {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--w3-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .home-footer-links {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
 }
 
+/* One pill per link, with a hairline between neighbours. The divider is what
+   makes six buttons read as one bar instead of as six separate ones, so the
+   links sit flush — the gap comes from their padding. */
 .home-footer-link {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 9999px;
-  border: 1px solid var(--w3-border);
-  background: var(--w3-bg-card);
-  color: var(--w3-text);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--w3-text-muted);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1;
   font-family: var(--w3-font-sans);
   cursor: pointer;
   transition:
     border-color 0.18s,
     background 0.18s,
-    box-shadow 0.18s,
+    color 0.18s,
     transform 0.18s;
+}
+
+.home-footer-link + .home-footer-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 16px;
+  background: var(--w3-border);
+  pointer-events: none;
+  transition: opacity 0.18s;
+}
+
+/* The dividers either side of the hovered pill drop out, so its own border is
+   what shows rather than a hairline running through it. */
+.home-footer-link:hover::before,
+.home-footer-link:focus-visible::before,
+.home-footer-link:hover + .home-footer-link::before {
+  opacity: 0;
 }
 
 .home-footer-link:hover {
   border-color: var(--w3-border-accent);
   background: var(--w3-bg-hover);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.08) inset,
-    0 0 20px var(--w3-accent-glow);
+  color: var(--w3-text);
   transform: translateY(-1px);
 }
 
+.home-footer-link:focus-visible {
+  border-color: var(--w3-border-focus);
+  background: var(--w3-bg-hover);
+  color: var(--w3-text);
+  outline: none;
+}
+
+/* Donate is the only action in the bar, so it stays filled while the rest
+   are quiet until pointed at. */
 .home-footer-link-accent {
   border-color: var(--w3-border-accent);
-  background: color-mix(in srgb, var(--w3-accent) 14%, var(--w3-bg-card));
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--w3-accent) 16%, transparent) inset,
-    0 0 22px var(--w3-accent-glow);
+  background: color-mix(in srgb, var(--w3-accent) 18%, var(--w3-bg-card));
+  color: var(--w3-accent-text);
+}
+
+.home-footer-link-accent:hover {
+  background: color-mix(in srgb, var(--w3-accent) 26%, var(--w3-bg-card));
+  color: var(--w3-accent-text);
 }
 
 .home-footer-icon {
   flex-shrink: 0;
-  opacity: 0.9;
+  opacity: 0.85;
+}
+
+.home-footer-link:hover .home-footer-icon,
+.home-footer-link:focus-visible .home-footer-icon {
+  opacity: 1;
 }
 
 .home-footer-link-text {
   letter-spacing: 0.01em;
 }
 
-.home-footer-address {
-  margin-left: 6px;
-  padding: 2px 8px;
+/* Which chains the donate modal takes — "BTC · ETH · TRON". */
+.home-footer-chains {
+  margin-left: 4px;
+  padding: 2px 7px;
   border-radius: 9999px;
   border: 1px solid color-mix(in srgb, var(--w3-border-accent) 60%, transparent);
-  background: color-mix(in srgb, var(--w3-accent) 10%, var(--w3-bg-card));
+  background: color-mix(in srgb, var(--w3-accent) 12%, transparent);
   color: var(--w3-accent-text);
   font-family: var(--w3-font-mono);
-  font-size: 0.8em;
+  font-size: 0.72em;
   line-height: 1.2;
 }
 
+/* The version number is not worth a permanent slot in the bar, but it stays
+   one hover away. */
 .home-footer-version {
   position: relative;
-  border-style: dashed;
-  background: color-mix(in srgb, var(--w3-bg-card) 55%, transparent);
-  box-shadow: none;
 }
 
 .home-footer-version::after {
@@ -1054,24 +1058,21 @@
   transform: translateX(-50%) translateY(0);
 }
 
-.home-footer-version:hover {
-  transform: none;
-  box-shadow: 0 0 18px
-    color-mix(in srgb, var(--w3-accent-glow) 55%, transparent);
-}
-
 .home-footer-version-text {
   font-family: var(--w3-font-mono);
   letter-spacing: 0;
   opacity: 0.9;
 }
 
+/* Wrapped, the bar stops being a bar: a divider would open the second row with
+   nothing to its left. */
 @media (max-width: 720px) {
   .home-footer-inner {
     width: 100%;
     border-radius: 24px;
-    flex-direction: column;
-    align-items: center;
+  }
+  .home-footer-link + .home-footer-link::before {
+    display: none;
   }
   .home-footer-links {
     justify-content: center;
