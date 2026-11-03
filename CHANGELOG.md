@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.10](https://github.com/EthanOK/ethan-dapp-web/compare/v3.0.9...v3.0.10) (2026-11-03)
+
+
+### Features
+
+* **home:** take donations on BTC, ETH and TRON ([1aec770](https://github.com/EthanOK/ethan-dapp-web/commit/1aec77013bff6bba26d8c52aa4a24e158b9bcf1a))
+
 ### [3.0.9](https://github.com/EthanOK/ethan-dapp-web/compare/v3.0.8...v3.0.9) (2026-10-15)
 
 ### Features
