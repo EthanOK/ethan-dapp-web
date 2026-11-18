@@ -226,6 +226,8 @@ export const zhTW: Record<TranslationKey, string> = {
   "eip7702.subtitle": "EOA 委託與撤銷",
   "eip7702.privateKeySection": "私鑰（委託方）",
   "eip7702.privateKey": "私鑰",
+  "eip7702.walletSignDisabledNote":
+    "錢包限制：MetaMask、OKX 等主流錢包不允許 DApp 簽署 7702 授權，授權簽名 RPC（eth_signAuthorization）未開放，因此只能使用私鑰模式在本地簽名。",
   "eip7702.delegatorAddress": "委託地址（delegator）",
   "eip7702.enterDelegatorAddress": "請輸入委託地址",
   "eip7702.sponsorGas": "代付 gas（服務端代付）",

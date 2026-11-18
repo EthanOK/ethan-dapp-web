@@ -1725,6 +1725,14 @@
   line-height: 1.5;
   color: var(--w3-text-muted);
 }
+.eip7702-wallet-note {
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--w3-border);
+  border-left: 3px solid var(--w3-accent);
+  border-radius: 8px;
+  background: var(--w3-background-secondary, rgba(0, 0, 0, 0.03));
+}
 .eip7702-sponsor .cta-button {
   margin: 0;
   align-self: flex-start;

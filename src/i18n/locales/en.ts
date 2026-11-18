@@ -236,6 +236,8 @@ export const en = {
   "eip7702.subtitle": "Delegation and revoke for EOA",
   "eip7702.privateKeySection": "Private key (delegator)",
   "eip7702.privateKey": "Private key",
+  "eip7702.walletSignDisabledNote":
+    "Wallet restriction: mainstream wallets (MetaMask, OKX, etc.) do not allow DApps to sign 7702 authorizations — the authorization signing RPC (eth_signAuthorization) is not exposed, so a private key is required for local signing.",
   "eip7702.delegatorAddress": "Delegated address (delegator)",
   "eip7702.enterDelegatorAddress": "Please enter delegated address",
   "eip7702.sponsorGas": "Sponsor gas (server-side)",

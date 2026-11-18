@@ -1882,6 +1882,9 @@ const EIP7702Page = () => {
         <h3 className="eip7702-panel-title">
           {t("eip7702.delegationSection")}
         </h3>
+        <p className="eip7702-sponsor-hint eip7702-wallet-note">
+          {t("eip7702.walletSignDisabledNote")}
+        </p>
         <div className="feature-field">
           <label htmlFor="eip7702-pk">{t("eip7702.privateKey")}</label>
           <input
